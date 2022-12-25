@@ -1,104 +1,127 @@
-
 // &.ltrt {
 //   background-color: red;
 // }
 
-
 ol {
-  display: inline-block;position: inherit;
-  margin: 1% 1px;
-  >li{
-    display: inline-block;position: inherit;
-    color: lighten($Color,25%);
-    font-size: 90%;
-    a{
-      display: block;
-      position: inherit;
-      padding:4px 5px;
-      color: lighten($Color,15%);
-    }
-    span{
-      position: inherit;
-    }
-  }
-  &.locale{
-    li{
-      a {
-        background-color: lighten($ColorSecond,10%);
-        margin: 0 1px;
-        text-transform: uppercase;
-        color: #fff;
-      }
-      &:hover, &.active{
-        a{
-          background-color: $ColorSecond;
-        }
-      }
-    }
-  }
-  &.served{
-    li{
-      span{
-        display: inline-block; color: #fff; text-shadow: #666 0px 0px 1px;
-        background-color: lighten($ColorSecond,30%); padding: 4px 7px;
-        &:before, &:after{
-          position:absolute;display:block; content: " "; border:solid transparent;
-        }
-        &:first-child{
-        }
+	display: inline-block;
+	position: inherit;
+	margin: 1% 1px;
+	> li {
+		display: inline-block;
+		position: inherit;
+		// color: lighten($Color, 25%);
+		color: rgba(var(--color-text), 0.4);
+		font-size: 90%;
+		a {
+			display: block;
+			position: inherit;
+			padding: 4px 5px;
+			// color: lighten($Color, 15%);
+			color: rgba(var(--color-text), 0.8);
+		}
+		span {
+			position: inherit;
+		}
+	}
+	&.locale {
+		li {
+			a {
+				background-color: lighten($ColorSecond, 10%);
+				margin: 0 1px;
+				text-transform: uppercase;
+				color: #fff;
+			}
+			&:hover,
+			&.active {
+				a {
+					background-color: $ColorSecond;
+				}
+			}
+		}
+	}
+	&.served {
+		li {
+			span {
+				display: inline-block;
+				color: #fff;
+				text-shadow: #666 0px 0px 1px;
+				background-color: lighten($ColorSecond, 30%);
+				padding: 4px 7px;
+				&:before,
+				&:after {
+					position: absolute;
+					display: block;
+					content: " ";
+					border: solid transparent;
+				}
+				&:first-child {
+				}
 
-        &:nth-child(2){
-          padding:4px 7px; background-color: lighten($ColorSecond,25%);
-          &:before{
-            border-left-color:lighten($ColorSecond,25%);border-width:5px;right:-10px;top:8px;
-          }
-          &:after{
-            border-right-color:lighten($ColorSecond,25%);border-width:5px;left:-10px;top:8px;
-          }
-        }
-      }
-      a{
-        color:lighten(#666,10%);
-      }
-    }
-  }
-  &.privacy{
-    li{
-      // padding:0 2px;
-      &:before,&:after{
-        position: absolute; top: 4px;
-        content: '\2022'; color:lighten(#666,30%);
-        // padding-right:3px;
-      }
-      &:before{
-        left: 0;
-      }
-      &:after{
-        display: none;
-      }
-      a{
-        span{
-          color:lighten(#666,10%);
-          padding:1px 3px;
-        }
-        &:hover{
-          text-decoration: underline;
-        }
-      }
-    }
-  }
-  &.copyright{
-    li{
-      em{
-        font-style: normal;
-        color:lighten($ColorSecond,5%);
-      }
-      strong{
-        font-weight: normal;
-        color:lighten($ColorSecond,10%);
-      }
-    }
-  }
-  &.password{}
-  &.definition{}
+				&:nth-child(2) {
+					padding: 4px 7px;
+					background-color: lighten($ColorSecond, 25%);
+					&:before {
+						border-left-color: lighten($ColorSecond, 25%);
+						border-width: 5px;
+						right: -10px;
+						top: 8px;
+					}
+					&:after {
+						border-right-color: lighten($ColorSecond, 25%);
+						border-width: 5px;
+						left: -10px;
+						top: 8px;
+					}
+				}
+			}
+			a {
+				color: lighten(#666, 10%);
+			}
+		}
+	}
+	&.privacy {
+		li {
+			// padding:0 2px;
+			&:before,
+			&:after {
+				position: absolute;
+				top: 4px;
+				content: "\2022";
+				// color: lighten(#666, 30%);
+				color: rgba(var(--color-text), 0.3);
+				// padding-right:3px;
+			}
+			&:before {
+				left: 0;
+			}
+			&:after {
+				display: none;
+			}
+			a {
+				span {
+					// color: lighten(#666, 10%);
+					padding: 1px 3px;
+				}
+				&:hover {
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+	&.copyright {
+		li {
+			em {
+				font-style: normal;
+				// color: lighten($ColorSecond, 5%);
+				color: rgba(var(--color-text), 0.5);
+			}
+			strong {
+				font-weight: normal;
+				// color: lighten($ColorSecond, 10%);
+				color: rgba(var(--color-text), 0.6);
+			}
+		}
+	}
+	// &.password {}
+	// &.definition {}
 }

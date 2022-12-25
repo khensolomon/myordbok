@@ -1,61 +1,73 @@
-&.result{
-  margin: 0 2%;
-  max-width:$max-width;
-  border-radius: 3px;
-  >div{
-    margin: 2%;
-    border-left: 1px solid lighten($ColorSecond,25%);
-    &.translation{
-      >div{
-        >div.definition{
-          border-left-style: dotted;
-          &::before{
-            border-style: dotted;
-          }
-        }
-      }
-    }
-    >div{
-      padding:2% 5%;
-      padding-left: 150px;
-    }
-  }
+&.result {
+	margin: 0 2%;
+	max-width: $max-width;
+	border-radius: 3px;
+	> div {
+		margin: 2%;
+		// border-left: 1px solid lighten($ColorSecond,25%);
+		// border-left: 3px solid rgba(var(--color-highlight), 0.6);
+		border-left: 3px solid rgba(var(--color-text), 0.6);
+		&.translation {
+			> div {
+				> div.definition {
+					border-left-style: dotted;
+					&::before {
+						border-style: dotted;
+					}
+				}
+			}
+		}
+		> div {
+			padding: 2% 5%;
+			padding-left: 150px;
+		}
+	}
 
-  div.definition{
-    border-left: 1px solid lighten($ColorSecond,25%);
-    >h1{
-      padding-left: 25px;
-    }
-    >div{
-      >div{
-        padding: 3% 3% 3% 7%;
-        >h2,h3{
-          &::before{
-            content: ""; display: inline-block;
-            width: 20px; height: 20px; border-radius: 50%;
-            background-color: $ColorBackground;
-            border: 1px solid lighten($ColorMain,15%);
-            position: absolute; top: 0px; left: -11px;
-          }
-        }
-        >div{
-          border-left: 1px solid lighten($ColorMain,35%);
-          padding-left: 5%;
-        }
-        // &.thesaurus{
-        //   >div{
-        //     padding-left: 0;
-        //     border-left: 0;
-        //   }
-        // }
-      }
-    }
-  }
-  @media #{$media-tablet} {
-    >div{
-      >div{
-        padding-left: 7%;
-      }
-    }
-  }
+	div.definition {
+		// border-left: 2px solid rgba(var(--color-highlight), 0.6);
+		border-left: 1px solid rgba(var(--color-text), 0.3);
+		> h1 {
+			padding-left: 25px;
+		}
+		> div {
+			> div {
+				padding: 3% 3% 3% 7%;
+				> h2,
+				h3 {
+					&::before {
+						content: "";
+						display: inline-block;
+						width: 20px;
+						height: 20px;
+						border-radius: 50%;
+						position: absolute;
+						top: 0px;
+						left: -11px;
+						// background-color: $ColorBackground;
+						// border: 1px solid lighten($ColorMain, 15%);
+						// background-color: $ColorBackground;
+						border: 1px solid rgba(var(--color-highlight), 0.6);
+					}
+				}
+				> div {
+					padding-left: 5%;
+					// border-left: 1px solid lighten($ColorMain, 35%);
+					border-left: 1px solid rgba(var(--color-highlight), 0.6);
+				}
+				// &.thesaurus{
+				//   >div{
+				//     padding-left: 0;
+				//     border-left: 0;
+				//   }
+				// }
+			}
+		}
+	}
+	@media #{$media-tablet} {
+		> div {
+			> div {
+				padding-left: 7%;
+			}
+		}
+	}
 }

@@ -1,31 +1,33 @@
 @charset "utf-8";
 // $Font: 'Roboto', 'Lato', sans-serif;
-$Font: "Roboto", "Lato", "Masterpiece Uni Sans,Padauk,Myanmar Text,Noto Sans Myanmar", Parabaik, Yunghkio, Thanlwin, "Myanmar3, Win Uni Innwa", "WinUni Innwa",sans-serif;
+$Font: "Roboto", "Lato",
+	"Masterpiece Uni Sans,Padauk,Myanmar Text,Noto Sans Myanmar", Parabaik,
+	Yunghkio, Thanlwin, "Myanmar3, Win Uni Innwa", "WinUni Innwa", sans-serif;
 // $Font: 'Roboto', 'Lato', sans-serif;
 // $Font: 'Roboto', 'Lato', sans-serif,mm3web,"Myanmar Text", Myanmar3, TharLon, Noto Sans Myanmar, "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk , "MyMyanmar Unicode", "WinUni Innwa", Myanmar2;
 // $Font: mm3web, "Myanmar Text", Myanmar3, TharLon, "Noto Sans Myanmar", "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk,  "WinUni Innwa", Myanmar2;
-$FontSize: 100%;//11pt
+$FontSize: 100%; //11pt
 $Color: #333;
 // $Color: #000;
-$ColorBackground:#fff;//#F8F8F8;
+$ColorBackground: #fff; //#F8F8F8;
 // $ColorBackground:rgb(255,255,255);
-$ColorMain:#318ED7;
+$ColorMain: #318ed7;
 // $ColorMain:rgba(49,142,215,1);
-$ColorSecond:#7A7A7A;
+$ColorSecond: #7a7a7a;
 
-$ColorLinkStandard:#0000EE;
-$ColorLinkVisited:#551A8B;
-$ColorLinkActive:#EE0000;
+$ColorLinkStandard: #0000ee;
+$ColorLinkVisited: #551a8b;
+$ColorLinkActive: #ee0000;
 
-$ColorGold:goldenrod;
-$ColorRed:#d34836;
-$WidthMobile:500px;
-$WidthTablet:820px;
-$WidthDesktop:1210px;
+$ColorGold: goldenrod;
+$ColorRed: #d34836;
+$WidthMobile: 500px;
+$WidthTablet: 820px;
+$WidthDesktop: 1210px;
 
-$ColorGooglePlus:#d34836;
-$ColorTwitter:#3b5998;
-$ColorFacebook:#0084b4;
+$ColorGooglePlus: #d34836;
+$ColorTwitter: #3b5998;
+$ColorFacebook: #0084b4;
 
 $media-mobile: "(max-width:641px)";
 $media-tablet: "(min-width:642px) and (max-width:960px)";
@@ -34,53 +36,159 @@ $media-tablet-desktop: "(min-width:642px)";
 $media-mobile-tablet: "(max-width:960px)";
 $max-width: 950px;
 
+// rgba(var(--color-bar), 0.15);
+// rgb(var(--color-bar));
+// rgba($color: var(--color-bar), $alpha: 0.1);
+:root {
+	// --color-bar-rgb: rgb(51, 144, 215);
+	--color-bar: 51, 144, 215;
+	// --color-main-rgb: rgb(49, 142, 215);
+	--color-main: 49, 142, 215;
+
+	// --color-minor-rgb: rgb(122, 122, 122);
+	// --color-minor: 122, 122, 122;
+
+	// --color-background-rgb: rgb(255, 255, 255);
+	--color-background: 255, 255, 255;
+
+	// Normally surround is darker than current active background color
+	// --color-surround-rgb: rgb(240, 241, 241);
+	--color-surround: 240, 241, 241;
+
+	// --color-text-rgb: rgb(51, 51, 51);
+	--color-text: 51, 51, 51;
+	--color-text-hover: rgba(var(--color-text), 0.5);
+	--color-text-active: rgba(var(--color-text), 0.99);
+	--color-text-disable: rgba(var(--color-text), 0.6);
+	--color-text-enable: rgba(var(--color-text), 0.8);
+
+	// --color-link-rgb: rgb(1, 121, 201);
+	--color-link: 0, 143, 238;
+	// --color-link-visited-rgb: rgb(43, 114, 161);
+	--color-link-visited: 7, 122, 199;
+	// --color-link-active-rgb: rgb(238, 0, 0);
+	--color-link-active: 238, 0, 0;
+	// --color-link-hover-rgb: rgb(96, 135, 161);
+	--color-link-hover: 96, 135, 161;
+
+	// --color-highlight-rgb: rgb(49, 142, 215);
+	--color-highlight: 49, 142, 215;
+	// --color-danger-rgb: rgb(168, 166, 8);
+	--color-danger: 168, 166, 8;
+
+	// --color-google-rgb: rgb(211, 72, 54);
+	--color-google: 211, 72, 54;
+	// --color-twitter-rgb: rgb(59, 89, 152);
+	--color-twitter: 59, 89, 152;
+	// --color-facebook-rgb: rgb(0, 132, 180);
+	--color-facebook: 0, 132, 180;
+
+	--filter-logo: grayscale(0%);
+
+	&.dark {
+		// --color-bar-rgb: rgb(34, 34, 34);
+		--color-bar: 34, 34, 34;
+
+		// --color-main-rgb: rgb(34, 34, 34);
+		--color-main: 34, 34, 34;
+
+		// --color-minor-rgb: rgb(83, 82, 82);
+		// --color-minor: 83, 82, 82;
+
+		// --color-background-rgb: rgb(78, 78, 78);
+		--color-background: 78, 78, 78;
+
+		// --color-surround-rgb: rgb(71, 71, 71);
+		--color-surround: 71, 71, 71;
+
+		--color-text-rgb: rgb(231, 231, 231);
+		--color-text: 231, 231, 231;
+		--color-text-hover: rgba(var(--color-text), 0.5);
+		--color-text-active: rgba(var(--color-text), 0.99);
+		--color-text-disable: rgba(var(--color-text), 0.6);
+		--color-text-enable: rgba(var(--color-text), 0.8);
+
+		--color-link-rgb: rgb(199, 202, 172);
+		--color-link: 199, 202, 172;
+		--color-link-visited-rgb: rgb(177, 192, 187);
+		--color-link-visited: 177, 192, 187;
+		--color-link-active-rgb: rgb(238, 0, 0);
+		--color-link-active: 238, 0, 0;
+		--color-link-hover-rgb: rgb(190, 183, 162);
+		--color-link-hover: 190, 183, 162;
+
+		// --color-highlight-rgb: rgb(201, 201, 201);
+		--color-highlight: 201, 201, 201;
+		--color-danger-rgb: rgb(235, 227, 126);
+		--color-danger: 235, 227, 126;
+
+		--filter-logo: grayscale(100%);
+	}
+}
+
 @mixin text-size-adjust($value: none) {
-    -webkit-text-size-adjust: $value;
-    -moz-text-size-adjust: $value;
-    -ms-text-size-adjust: $value;
+	-webkit-text-size-adjust: $value;
+	-moz-text-size-adjust: $value;
+	-ms-text-size-adjust: $value;
 }
 @mixin box-sizing($value: border-box) {
-    // -webkit-box-sizing: $value;
-    // -moz-box-sizing: $value;
-    box-sizing: $value;
+	// -webkit-box-sizing: $value;
+	// -moz-box-sizing: $value;
+	box-sizing: $value;
 }
-@mixin box-shadow($top, $right, $left, $blur, $color, $inset:"") {
-    -webkit-box-shadow:$top $right $left $blur $color #{$inset};
-    -moz-box-shadow:$top $right $left $blur $color #{$inset};
-    box-shadow:$top $right $left $blur $color #{$inset};
+@mixin box-shadow($top, $right, $left, $blur, $color, $inset: "") {
+	-webkit-box-shadow: $top $right $left $blur $color #{$inset};
+	-moz-box-shadow: $top $right $left $blur $color #{$inset};
+	box-shadow: $top $right $left $blur $color #{$inset};
 }
 @mixin user-select($value: none) {
-    -webkit-user-select:$value;
-    // -khtml-user-select:$value;
-    // -moz-user-select:$value;
-    // -ms-user-select:$value;
-    // user-select:$value;
+	-webkit-user-select: $value;
+	// -khtml-user-select:$value;
+	// -moz-user-select:$value;
+	// -ms-user-select:$value;
+	// user-select:$value;
 }
-@mixin opacity($decimal:1){
-    opacity: $decimal;
-    $percent: $decimal * 100;
-    filter:alpha(opacity=$percent);
-    -ms-filter:"alpha(opacity=#{$percent})";
-    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{round($percent)});
+@mixin opacity($decimal: 1) {
+	opacity: $decimal;
+	$percent: $decimal * 100;
+	filter: alpha(opacity=$percent);
+	-ms-filter: "alpha(opacity=#{$percent})";
+	filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{round($percent)});
 }
-@mixin scrollbar($bar:10,$border:10,$color:#bdbdbd){
-    ::-webkit-scrollbar { width:#{$bar}px;}
-    // ::-webkit-scrollbar-track {}
-    ::-webkit-scrollbar-thumb { background-color:#{$color};border-top-left-radius:#{$border}px;border-top-right-radius:#{$border}px;border-bottom-right-radius:#{$border}px;border-bottom-left-radius:#{$border}px;}
-    ::-webkit-scrollbar-thumb:window-inactive {background-color:#{$color};}
+@mixin scrollbar($bar: 10, $border: 10, $color: #bdbdbd) {
+	::-webkit-scrollbar {
+		width: #{$bar}px;
+	}
+	// ::-webkit-scrollbar-track {}
+	::-webkit-scrollbar-thumb {
+		background-color: #{$color};
+		border-top-left-radius: #{$border}px;
+		border-top-right-radius: #{$border}px;
+		border-bottom-right-radius: #{$border}px;
+		border-bottom-left-radius: #{$border}px;
+	}
+	::-webkit-scrollbar-thumb:window-inactive {
+		background-color: #{$color};
+	}
 }
 // NOTE: hi-res laptops and desktops
-@media (min-width:1281px){}
+@media (min-width: 1281px) {
+}
 // NOTE: big landscape tablets, laptops, and desktops
-@media (min-width:1025px) {}
+@media (min-width: 1025px) {
+}
 // NOTE: tablet, landscape iPad, lo-res laptops ands desktops
-@media (min-width:961px) {}
+@media (min-width: 961px) {
+}
 // NOTE: portrait tablets, portrait iPad, landscape e-readers, landscape 800x480 or 854x480 phones
-@media (min-width:641px) {}
+@media (min-width: 641px) {
+}
 // NOTE: portrait e-readers (Nook/Kindle), smaller tablets @ 600 or @ 640 wide.
-@media (min-width:481px) {}
+@media (min-width: 481px) {
+}
 // NOTE: 320px smartphones, iPhone, portrait 480x320 phones
-@media (min-width:150px) {}
+@media (min-width: 150px) {
+}
 // inherit
 // text-overflow:ellipsis;
 // @-moz-document url-prefix() {}
