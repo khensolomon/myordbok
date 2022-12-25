@@ -46,8 +46,12 @@ html(lang='en' dir='ltr')
       //- script(data-ad-client="ca-pub-2986689390924566" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js")
       //- script(async custom-element="amp-ad" src="https://cdn.ampproject.org/v0/amp-ad-0.1.js")
 
-      script(src='https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js')
-      script(src='https://cdn.jsdelivr.net/npm/vue-resource@1.5.1/dist/vue-resource.min.js')
+      //- script(src='https://cdn.jsdelivr.net/npm/vue@5.15.1/dist/vue.min.js')
+      //- script(src='https://cdn.jsdelivr.net/npm/vue')
+      //- script(src='https://unpkg.com/vue@2')
+      script(src='https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js')
+
+      script(src='https://cdn.jsdelivr.net/npm/vue-resource@1.5.3/dist/vue-resource.min.js')
       //- script(src='https://cdn.jsdelivr.net/npm/vue-router@3.1.2/dist/vue-router.min.js')
       //- script(src='https://code.jquery.com/jquery-3.3.1.min.js')
       //- script(src=isDevelopment?'/jquery.js':'https://code.jquery.com/jquery-3.3.1.min.js')
@@ -67,8 +71,10 @@ html(lang='en' dir='ltr')
         div.ptl#bar
           div.ltrt
             div.navigate
-              div.column
+              div.column.one
                 include bar-page
+              div.column.two
+                include bar-user
               //- div.column
               //-   include bar-user
       block header

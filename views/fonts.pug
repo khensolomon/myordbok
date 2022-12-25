@@ -143,7 +143,7 @@ block content
                 li
                   a.dt(href=`/myanmar-fonts/secondary?font=${j.file}` data-view=j.view data-download=j.download data-total=total class=total ? 'y':'n')= j.name
                   if !j.restrict
-                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/secondary?font=${j.file}` title="Download") Download
+                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/secondary?font=${j.file}` title=`Download ${j.name}`) Download
                   p.f2= j.version
                   p.f5= j.family
 
@@ -155,7 +155,7 @@ block content
                 li
                   a.dt(href=`/myanmar-fonts/external?font=${j.file}` data-view=j.view data-download=j.download data-total=total class=total ? 'y':'n')= j.name
                   if !j.restrict
-                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/external?font=${j.file}` title="Download") Download
+                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/external?font=${j.file}` title=`Download ${j.name}`) Download
                   p.f2= j.version
                   p.f5= j.family
 

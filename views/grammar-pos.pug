@@ -3,10 +3,10 @@ extends layout
 //-   eg.replace(/\'(.*?)\'/g, "<em>$1</em>")
 
 mixin rootDesc(o)
-  p!= o.desc.replace(/\'(.*?)\'/g, "<q>$1</q>")
+  p!= o.desc.replace(/\'(.*?)\'/g, " <q>$1</q> ")
   if o.note
     ul.note
-      li!= o.note.replace(/\'(.*?)\'/g, "<em>$1</em>")
+      li!= o.note.replace(/\'(.*?)\'/g, " <em>$1</em> ")
 
 mixin wordList(o)
   each e in o
@@ -16,7 +16,7 @@ mixin wordList(o)
     if e.desc
       ul.worddesc
         each w in e.desc
-          li!= w.replace(/\'(.*?)\'/g, "<strong>$1</strong>")
+          li!= w.replace(/\'(.*?)\'/g, " <strong>$1</strong> ")
 
 mixin forms(o)
   //- dl.form
@@ -52,7 +52,8 @@ mixin categoryLink(o)
   //- p!= o.map(e => e.desc.replace(/\'(.*?)\'/g, "<q>$1</q>")).join(' ')
   each e in o
     section
-      p= e.desc
+      //- p= e.desc
+      p!= o.map(e => e.desc.replace(/\'(.*?)\'/g, " <q>$1</q> ")).join(' ')
       ol.mynum
         each i in e.row
           li

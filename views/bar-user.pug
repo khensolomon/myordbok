@@ -1,11 +1,11 @@
 ul
   li.activ--.showMobileMenu--
-    nav-engine
+    //- nav-engine
     //- div.toggle.panel.zA.icon-user
     //-   span(style="display:none")
     ol.menu.user
       li.suggest
-        span Suggest
+        span(@click="theme_switch") Mode:{{themeMode}}
 
       //- li.signin
       //-   a(href="/signin")

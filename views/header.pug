@@ -10,6 +10,27 @@ div.ptl#header
                 span Myanmar
       div.column.wide
         each v, route in navDefinition
-          search-engine(name='search' method='get' action=v.url query=meta.q)
+          form(name='search' method='get' action=v.url ref="form" v-bind:class="hasActive" @submit.prevent="input_submit")
             p
-              input(type="search" name="q" placeholder=" ...Search")
+              input(
+                type="search" ref="input" name="q" placeholder=" ...Search" autocomplete="off" query=meta.q
+                v-model = "q"
+                @keydown.down = "arrow_down"
+                @keydown.up = "arrow_up"
+                @input = "input_change"
+                @focus = "input_focus"
+                @click = "input_click"
+                @blur = "input_blur"
+              )
+            p
+              button(type="submit" id="search") &#xe83d;
+
+            ul(v-if=hasFocus)
+              li(
+                v-for="(word,index) in suggests" :key="index"
+                class="hover-active"
+                v-bind:class = "{'selected': isCurrent(index)}"
+                @mousemove = "suggestion_hover(index)"
+                @click = "suggestion_click(word)"
+                v-html = "wordHighlight(word)"
+              )
