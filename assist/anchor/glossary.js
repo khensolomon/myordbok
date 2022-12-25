@@ -13,6 +13,7 @@ glossary.synmap = path.join(media,'glossary',glossary.synmap);
 glossary.zero = path.join(media,'glossary',glossary.zero);
 glossary.info = path.join(media,'glossary',glossary.info);
 glossary.thesaurus = path.join(media,'glossary',glossary.thesaurus);
+glossary.sqlite = path.join(media,'glossary',glossary.sqlite);
 
 /**
  * @param {string} file

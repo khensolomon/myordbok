@@ -12,7 +12,8 @@ export const setting = {
     senses:'list_sense',
     other:'ord_0',
     synset:'list_word',
-    synmap:'map_derive'
+    synmap:'map_derive',
+    thesaurus:'map_thesaurus',
   },
   dictionaries:[
     {
@@ -65,15 +66,15 @@ export const setting = {
     { name: "Pronoun", shortname: "pron" },
     { name: "Interjection", shortname: "int" },
     { name: "Abbreviation", shortname: "abb" },
-    { name: "Prefix", shortname: null },
-    { name: "Combining form", shortname: null },
+    { name: "Prefix", shortname: '' },
+    { name: "Combining form", shortname: '' },
     { name: "Phrase", shortname: 'phra' },
-    { name: "Contraction", shortname: null },
+    { name: "Contraction", shortname: '' },
     { name: "Punctuation", shortname: "punc" },
     { name: "Particle", shortname: "part" },
     { name: "Post-positional Marker", shortname: "ppm" },
-    { name: "Acronym", shortname: null },
-    { name: "Article", shortname: null },
+    { name: "Acronym", shortname: '' },
+    { name: "Article", shortname: '' },
     { name: "Number", shortname: "tn" }
   ],
   /**
@@ -101,6 +102,7 @@ export const setting = {
     zero:'zero.EN.csv', //no result
     info:'info.EN.json',
     thesaurus:'thesaurus.json',
+    sqlite:'tmp-sqlite.db',
   },
   grammar:{
     live:'_live.json',

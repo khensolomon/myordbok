@@ -22,6 +22,7 @@ export async function definition(req){
   }
 
   // NOTE: reset wrid
+  // o = list_sense, i = list_word
   // UPDATE ?? AS o INNER JOIN (select id,word from ?? GROUP BY word ) AS i ON o.word = i.word SET o.wrid = i.id;
   // UPDATE ?? AS o INNER JOIN (select id,word from ?? GROUP BY word ) AS i ON o.word = i.word SET o.wrid = i.id;'
   // UPDATE ?? AS o INNER JOIN (select id, word from ?? GROUP BY word COLLATE UTF8_BIN) AS i ON o.word COLLATE UTF8_BIN = i.word SET o.wrid = i.id;
@@ -135,10 +136,12 @@ export async function translation(req){
 /**
  * export word [synmap]
  * @param {any} req
+ * SELECT root_id AS w, wrid AS v, derived_type AS d, word_type AS t FROM ??;
+ * SELECT wrid AS v, dete AS d, wrte AS t FROM ??;
  */
 export async function wordSynmap(req){
-  throw '...needed to enable manually, column have been changed, word into wordid (wrid)';
-  await db.mysql.query("SELECT root_id AS w, wrid AS v, derived_type AS d, word_type AS t FROM ??;",[table.synmap]).then(
+  // throw '...needed to enable manually, column have been changed, word into wordid (wrid)';
+  await db.mysql.query("SELECT id AS w, word AS v, dete AS d, wrte AS t FROM ??;",[table.synmap]).then(
     async raw=>{
       // await json.write('./test/derives.json',raw);
       await json.write(config.setting.glossary.synmap,raw);
@@ -147,5 +150,5 @@ export async function wordSynmap(req){
   ).catch(
     e=>console.error(e)
   );
-  return 'Done';
+  return 'Done ';
 }

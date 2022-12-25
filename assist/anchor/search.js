@@ -157,6 +157,9 @@ async function getDefinition(raw,wordNormal){
  */
 async function rowDefinition(raw,word,other=[]){
   var status = false;
+  // NOTE: force from MySQL
+  // var rowMeaning = await clue.definition(word, true);
+  // NOTE: force from JSON
   var rowMeaning = await clue.definition(word);
   if (rowMeaning.length){
     // EXAM: us britian

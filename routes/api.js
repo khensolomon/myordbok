@@ -52,14 +52,13 @@ routes.get('/speech',
   }
 );
 
+// req.cookies.solId
 routes.get('/suggestion',
   /**
    * @param {any} req
    * @param {any} res
    */
   (req, res) => {
-  // req.cookies.solId
-
     suggestion(req.query.q,res.locals.sol.id).then(
       raw => res.json(raw)
     ).catch(
