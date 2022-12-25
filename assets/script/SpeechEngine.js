@@ -1,14 +1,13 @@
-<template>
-  <span @click = 'speech' v-bind:class = "{'playing': isplaying}" class="speech icon-volume-up"></span>
-</template>
-<script>
+
+// Vue.component('my-checkbox', {});
+// SpeechEngine
+
 export default {
-  name: 'speech-engine',
   props: ['word','lang'],
   data: () => ({
     isplaying:false
   }),
-  methods:{
+  methods: {
     speech(){
       // var element = e.target;
       // console.log(e)
@@ -22,6 +21,23 @@ export default {
       audio.play();
       audio.addEventListener("ended", () => this.isplaying = false);
     }
+  },
+  render(createElement) {
+    // <span @click = 'speech' v-bind:class = "{'playing': isplaying}" class="speech icon-volume-up"></span>
+
+    return createElement(
+      'span', {
+        // attrs: {
+        //   'class': 'speech icon-volume-up isplaying'
+        // },
+        class: {
+          'speech icon-volume-up':true,
+          playing: this.isplaying
+        },
+        on: {
+          click: this.speech
+        }
+      },
+    );
   }
 };
-</script>

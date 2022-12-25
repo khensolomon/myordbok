@@ -1,6 +1,7 @@
 
 export default {
-  name: 'search-engine',
+  // name: 'SearchEngine',
+  // el:'form[name="search"]'
   props: ['query'],
   data: () => ({
     q: '',
@@ -26,6 +27,7 @@ export default {
       },150);
     },
     up() {
+      console.log('up');
       if (this.wordIndex > 0) {
         this.wordIndex--;
       } else {
@@ -38,6 +40,7 @@ export default {
       this.updateQuery();
     },
     down() {
+      console.log('down');
       if (this.wordIndex <= this.lastIndex) {
         this.wordIndex++;
       } else {

@@ -1,15 +1,19 @@
 // import Vue from 'vue';
-import axios from 'axios';
+import axios from "axios";
 
 // import VueResource from 'vue-resource';
 // Vue.use(VueResource);
 
-import SearchEngine from './SearchEngine.vue';
-import SpeechEngine from './SpeechEngine.vue';
-import NavEngine from './NavEngine.vue';
+// @ts-ignore
+import SpeechEngine from "./SpeechEngine.js";
+// @ts-ignore
+// import SearchEngine from './SearchEngine.vue';
+
+import NavEngine from "./NavEngine.js";
+// import NavTest from './NavTest.js';
 
 Vue.config.productionTip = false;
-Vue.config.devtools = false
+Vue.config.devtools = false;
 
 // Vue.directive('click-outside', {
 //   bind: function (el, binding, vnode) {
@@ -27,66 +31,312 @@ Vue.config.devtools = false
 //   },
 // });
 
+// Vue.component('navengine', {
+//   props:{
+//      is:{type:String, required:true}
+//   },
+//   render(h){
+//     return h(this.tag, this.$slots.default)
+//   }
+// });
+// Vue.components('search-engine',SearchEngine);
+
+// @ts-ignore
 new Vue({
-  el: '#myordbok',
-  data: {
-    isLoading: false,
-    isDone: false,
-    activeFontToggle:'',
-    api:{
-      suggestion:'noitseggus/ipa/',
-      orthword:'drow-htro/ipa/',
-      speech:'hceeps/ipa/'
-    }
-  },
-  components: {
-    SearchEngine, SpeechEngine, NavEngine
-  },
-  methods: {
-    async suggestion(q){
-      return await axios.get(this.reverse(this.api.suggestion),{ params:{q:q}}).then(response=>response.data, ()=>new Array());
-    },
-    async orthword(ord){
-      return await axios.get(this.reverse(this.api.orthword),{ params:{ord:ord}}).then(response=>response.data, ()=>new Array());
-    },
-    reverse(str){
-      return str.split("").reverse().join("");
-    },
-    fontToggle(str){
-      // console.log('fontToggle',str)
-      // this.activeFontToggle = str;
-      if (this.activeFontToggle != str){
-        this.activeFontToggle = str;
-      } else {
-        this.activeFontToggle = '';
-      }
-    },
-    fontActive(str){
-      return this.activeFontToggle == str;
-    },
-    speech(params){
-      return this.reverse(this.api.speech)+'?'+Object.keys(params).map(function(key) {
-        return [key, params[key]].map(encodeURIComponent).join("=");
-      }).join("&");
-    },
-    querySelector(e) {
-      return document.querySelector(e);
-    }
-  },
-  watch: {
-  },
-  // beforeCreate() {
-  //   console.log('beforeCreate')
-  // },
-  // created() {
-  //   console.log('created')
-  // },
-  // beforeMount() {
-  //   console.log('beforeMount')
-  // },
-  // mounted() {
-  //   // console.log('mounted')
-  // }
+	el: "#myordbok",
+	// props: ['query'],
+	data: {
+		isLoading: false,
+		isDone: false,
+		activeFontToggle: "",
+		api: {
+			suggestion: "noitseggus/ipa/",
+			orthword: "drow-htro/ipa/",
+			speech: "hceeps/ipa/"
+		},
+		available_theme: ["light", "dark"],
+		themeMode: 0,
+		q: "",
+		wordInput: "",
+		wordIndex: -1,
+		hasFocus: false,
+		OverrideFocus: false,
+		suggests: [],
+		key_history: "word",
+		key_theme: "theme"
+	},
+	filters: {},
+	components: {
+		// 'search-engine': SearchEngine,
+		// SearchEngine,
+		SpeechEngine,
+		NavEngine
+		// NavTest
+	},
+	methods: {
+		// Switch theme dark or light
+		theme_switch() {
+			// this.querySelector("div.navigate").classList.toggle("active");
+
+			const label = this.available_theme[this.themeMode];
+			// remove current theme class with toggle
+			// this.$el.classList.toggle(label);
+			// this.querySelector("body").classList.toggle(label);
+			this.querySelector("html").classList.toggle(label);
+
+			this.themeMode++;
+			if (this.available_theme[this.themeMode] === undefined) {
+				this.themeMode = 0;
+			}
+			// save theme
+			this.save_theme(this.themeMode);
+			// apply theme
+			this.theme_apply();
+		},
+		theme_apply() {
+			const index = this.load_theme;
+			if (this.available_theme[index] != undefined) {
+				const label = this.available_theme[index];
+				// this.$el.classList.toggle(label);
+				// this.querySelector("body").classList.toggle(label);
+				this.querySelector("html").classList.toggle(label);
+			}
+		},
+
+		async suggestion(q) {
+			return await axios
+				.get(this.reverse(this.api.suggestion), { params: { q: q } })
+				.then(response => response.data, () => new Array());
+		},
+		async orthword(ord) {
+			return await axios
+				.get(this.reverse(this.api.orthword), { params: { ord: ord } })
+				.then(response => response.data, () => new Array());
+		},
+		reverse(str) {
+			return str
+				.split("")
+				.reverse()
+				.join("");
+		},
+		fontToggle(str) {
+			// console.log('fontToggle',str)
+			// this.activeFontToggle = str;
+			if (this.activeFontToggle != str) {
+				this.activeFontToggle = str;
+			} else {
+				this.activeFontToggle = "";
+			}
+		},
+		fontActive(str) {
+			return this.activeFontToggle == str;
+		},
+		speech(params) {
+			return (
+				this.reverse(this.api.speech) +
+				"?" +
+				Object.keys(params)
+					.map(function(key) {
+						return [key, params[key]].map(encodeURIComponent).join("=");
+					})
+					.join("&")
+			);
+		},
+		querySelector(e) {
+			return document.querySelector(e);
+		},
+		// search-engine
+		input_focus() {
+			this.hasFocus = true;
+		},
+		input_blur() {
+			setTimeout(() => {
+				if (!this.OverrideFocus) {
+					this.hasFocus = false;
+					this.OverrideFocus = false;
+				}
+			}, 150);
+		},
+		arrow_up() {
+			console.log("up");
+			if (this.wordIndex > 0) {
+				this.wordIndex--;
+			} else {
+				if (this.wordIndex == -1) {
+					this.wordIndex = this.lastIndex;
+				} else {
+					this.wordIndex = -1;
+				}
+			}
+			this.updateQuery();
+		},
+		arrow_down() {
+			console.log("down");
+			if (this.wordIndex <= this.lastIndex) {
+				this.wordIndex++;
+			} else {
+				if (this.wordIndex > 0) {
+					this.wordIndex = 0;
+				} else {
+					this.wordIndex = -1;
+				}
+			}
+			this.updateQuery();
+		},
+		input_click() {
+			if (!this.q) {
+				this.suggests = this.load_history.slice(0, 10);
+			}
+		},
+		suggestion_hover(index) {
+			this.wordIndex = index;
+		},
+		async input_change() {
+			this.wordIndex = -1;
+			this.wordInput = this.q;
+			if (this.q) {
+				console.log("q", this.q);
+				this.suggests = await this.suggestion(this.q);
+				// if (/[\u1000-\u109F]/.test(this.q)) {
+				//   // console.log('?',this.q)
+				//   this.suggests = await this.$parent.orthword(this.q);
+				// } else {
+				//   this.suggests = await this.$parent.suggestion(this.q);
+				// }
+				this.suggests = await this.suggestion(this.q);
+			} else {
+				this.suggests = this.load_history.slice(0, 10);
+			}
+		},
+		isCurrent(index) {
+			return index === this.wordIndex;
+		},
+		updateQuery(w) {
+			if (w) {
+				return (this.q = w);
+			} else if (this.suggests[this.wordIndex]) {
+				this.q = this.suggests[this.wordIndex];
+			} else if (this.wordInput) {
+				this.q = this.wordInput;
+			}
+		},
+		wordHighlight(w) {
+			return w.replace(new RegExp(this.wordInput, "i"), "<mark>$&</mark>");
+		},
+		async suggestion_click(w) {
+			this.$refs.input.focus();
+			// this.OverrideFocus=true;
+			await this.updateQuery(w);
+			this.$refs.form.submit();
+			// setTimeout(()=>{
+			//   this.OverrideFocus=false;
+			// },150);
+		},
+		async save_history(w) {
+			var _Index = this.load_history.findIndex(
+				e => e.toLowerCase() == w.toLowerCase()
+			);
+			if (_Index > -1) {
+				this.load_history.unshift(this.load_history.splice(_Index, 1)[0]);
+			} else {
+				this.load_history.unshift(w);
+			}
+
+			localStorage.setItem(
+				this.key_history,
+				JSON.stringify(this.load_history.slice(0, 200))
+			);
+		},
+
+		save_theme(index) {
+			// this.available_theme.contains(index);
+			// if (this.available_theme.includes(index)) {
+			// 	localStorage.setItem(this.key_theme, index);
+			// }
+			if (this.available_theme[index] != undefined) {
+				localStorage.setItem(this.key_theme, index);
+			}
+		},
+
+		async input_submit() {
+			this.$refs.form.submit();
+			this.save_history(this.q);
+		}
+	},
+	computed: {
+		lastIndex() {
+			return this.suggests.length - 1;
+		},
+		hasActive() {
+			if (this.hasFocus && this.suggests.length) {
+				return "active";
+			} else if (this.hasFocus) {
+				return "focus";
+			}
+		},
+		/**
+		 *
+		 * @returns {string[]}
+		 */
+		load_history() {
+			try {
+				var e = localStorage.getItem(this.key_history);
+				if (e) {
+					var o = JSON.parse(e);
+					if (Array.isArray(o)) return o;
+				}
+				return [];
+			} catch (error) {
+				return [];
+			}
+		},
+		/**
+		 *
+		 * @returns {number}
+		 */
+		load_theme() {
+			try {
+				var e = localStorage.getItem(this.key_theme);
+				if (e) {
+					// this.available_theme.indexOf(e);
+					// if (this.available_theme.indexOf(e)) {}
+					// if (this.available_theme.includes(e)) {}
+					if (this.available_theme[e] != undefined) {
+						this.themeMode = e;
+					}
+				}
+			} catch (error) {
+				this.themeMode = 0;
+			} finally {
+				return this.themeMode;
+			}
+		}
+	},
+	mounted() {
+		if (this.query) {
+			this.save_history(this.query);
+		}
+
+		this.theme_apply();
+		if (this.$refs.input != null) {
+			this.$refs.input.focus();
+		}
+		console.log("mounted", this.q, this.themeMode);
+	},
+	// created() {}
+	watch: {}
+	// beforeCreate() {
+	//   console.log('beforeCreate')
+	// },
+	// created() {
+	//   console.log('created')
+	// },
+	// beforeMount() {
+	//   console.log('beforeMount')
+	// },
+	// mounted() {
+	//   console.log('mounted')
+	// }
 });
 
 /*
