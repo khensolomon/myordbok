@@ -1,5 +1,5 @@
 import core from 'lethil';
-import mysql from 'mysql';
+import mysql from 'mysql2';
 // import mongodb from 'mongodb';
 import config from './assist/anchor/config.js';
 
