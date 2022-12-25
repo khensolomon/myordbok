@@ -275,4 +275,5 @@ UPDATE `senses` SET `sense` = REPLACE(`sense`, "~ sb (", "(~ sb ") WHERE `sense`
 
 
 UPDATE `ord_ar` SET `sense` = REPLACE(`sense`, ",", ";") WHERE `sense` LIKE '%,%';
+
 ```

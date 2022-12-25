@@ -1,29 +1,5 @@
 # table
 
-... Update wrid(wordId)
-
-```sql
--- reset wrid
-UPDATE `list_sense` AS a SET a.wrid = 0 WHERE wrid > 0;
-
--- update wrid(wordId) based on list_word.id
-
-UPDATE `list_sense` AS a
-  INNER JOIN (select id, word from `list_word` GROUP BY word) AS b ON a.word = b.word
-  SET a.wrid = b.id
-  WHERE a.word IS NOT NULL;
-
--- update wrid(wordId) based on it own id
-
-UPDATE `list_sense` AS a
-  INNER JOIN (select id, word from `list_sense` GROUP BY word) AS b ON a.word = b.word
-  SET a.wrid = b.id;
-
-SELECT * FROM `list_sense` WHERE wrid = 0 ORDER BY word;
-
-DELETE FROM `list_sense` WHERE wrid = 0 AND wrte = 0 AND wrkd = 8
-```
-
 ... search
 
 ```sql
@@ -75,17 +51,6 @@ WHERE w.word = 'love';
 Merge id
 
 ```sql
-
-
-UPDATE
-    `map_derive` AS dest
-INNER JOIN
-    `list_word` AS src ON src.word = dest.word
-SET
-    dest.word = src.id
-WHERE
-    dest.word REGEXP '^[0-9]+$' = 0;
-
 SELECT * FROM `map_derive` AS dest WHERE dest.word REGEXP '^[0-9]+$' = 0;
 SELECT * FROM `map_derive` AS dest WHERE dest.word REGEXP '^[0-9]+$';
 
@@ -105,8 +70,62 @@ SELECT o.* FROM `list_word` AS o LEFT JOIN `map_derive` AS w ON o.word = w.word 
 SELECT * FROM `list_sense` AS o INNER JOIN `list_word` AS w ON o.word != w.word;
 
 SELECT * FROM `list_sense` AS dest LEFT JOIN (select word from `list_word` where word = dest.word) AS i ON i.word IS NULL GROUP BY dest.word;
-SELECT * FROM `list_sense` AS d
-  INNER JOIN `list_word` AS w ON w.word != d.word
+
+SELECT d.word, d.sense FROM `list_sense` FROM `list_sense` AS d
+  INNER JOIN `list_word` AS w ON w.word = d.word;
+
+SELECT d.* FROM `list_dump` AS d
+  INNER JOIN `list_word` AS w ON w.word = d.word;
+
+DELETE d.* FROM `list_dump` AS d
+  INNER JOIN `list_sense` AS w ON w.word = d.word;
+
+
+SELECT d.* FROM `list_dump` AS d
+  INNER JOIN `list_sense` AS w ON w.word = d.word;
+
+SELECT  d.*
+FROM    `list_dump` AS d
+WHERE   d.word NOT IN
+        (
+        SELECT  word
+        FROM    list_sense r
+        )
+
+SELECT  d.*
+FROM    `list_dump` AS d
+LEFT JOIN
+        `list_sense` AS w
+ON      w.word = d.word
+WHERE   w.word IS NULL
+
+SELECT  d.*
+FROM    t_left l
+LEFT JOIN
+        t_right r
+ON      r.value = l.value
+WHERE   r.value IS NULL
+
+SELECT  l.*
+FROM    t_left l
+WHERE   l.value NOT IN
+        (
+        SELECT  value
+        FROM    t_right r
+        )
+
+
+SELECT d.* FROM `list_dump` AS d
+  INNER JOIN `list_word` AS w ON w.word = d.word
+    INNER JOIN `map_derive` AS m ON m.wrid = w.id AND dete = 0;
+
+
+SELECT * FROM `list_dump` AS d
+  INNER JOIN `list_word` AS w ON w.word = d.word
+    INNER JOIN `list_sense` AS s ON s.word != d.word
+
+SELECT * FROM `list_dump` AS d, `list_word` AS w,  `list_sense` AS s
+  WHERE w.word = d.word AND d.word != s.word;
 
 SELECT *
   FROM `list_sense` AS d
@@ -114,6 +133,18 @@ SELECT *
     WHERE d.word = 'biggest' AND d.word_type < 10;
 
 SELECT dest.* FROM `list_sense` AS dest WHERE dest.word IN (SELECT w.word FROM `list_word` w);
+
+UPDATE
+    `list_dump` AS d
+SET
+    d.lst_word = 1,
+FROM
+    `list_word` AS dest
+    INNER JOIN `list_word` AS `src`
+        ON dest.id = src.id
+WHERE
+    dest.col3 = 'cool';
+
 
 SELECT *
   FROM `list_sense` AS d
@@ -147,7 +178,7 @@ FROM `map_derive` AS dest
   ON src.word = dest.word
 WHERE u.package = 1
 
-root_id derived_type irreg word_type
+-- root_id derived_type irreg word_type
 SELECT u.*
 FROM users AS u
   INNER JOIN (
@@ -159,25 +190,19 @@ FROM users AS u
   ON p.user_id = u.id
 WHERE u.package = 1
 
-UPDATE
-    `map_derive` AS dest
-JOIN
-    `list_word` AS src USING(id)
-SET
-    dest.word = src.id;
-WHERE
-    dest.word = 'cool'
+UPDATE `map_derive` AS dest
+  JOIN `list_word` AS src USING(id)
+  SET dest.wrid = src.id;
+    WHERE dest.word = 'cool';
 
 
 UPDATE `map_derive` AS dest
-SET dest.word = (SELECT id, word FROM `list_word` WHERE word = dest.word )
+  SET dest.word = (SELECT id, word FROM `list_word` WHERE word = dest.word )
 
-UPDATE `map_derive`
-SET word = src.id
-FROM (
-  SELECT id, word  FROM `list_word`) AS src
-WHERE
-  src.word = `map_derive`.word;
+UPDATE `map_derive` AS dest
+  SET dest.wrid = src.id
+  FROM (SELECT id, word FROM `list_word`) AS src
+    WHERE src.word = dest.word;
 
 UPDATE
   dest
