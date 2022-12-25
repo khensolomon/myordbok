@@ -31,7 +31,7 @@ const config = merge(common, {
 // config.entry.app.unshift('webpack-hot-middleware/client?path=/__webpack_hmr&reload=true&timeout=1000');
 
 //Add HMR plugin
-//config.plugins.push(new webpack.HotModuleReplacementPlugin());
+// config.plugins.push(new webpack.HotModuleReplacementPlugin());
 
 // @ts-ignore
 const compiler = webpack(config);
