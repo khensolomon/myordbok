@@ -6,11 +6,13 @@
 .icon-home:before { content: '\e804'; } /* '' */
 .icon-tag:before { content: '\e805'; } /* '' */
 .icon-leaf:before { content: '\e806'; } /* '' */
+.icon-sun:before { content: '\e807'; } /* '' */
 .icon-dot3:before { content: '\e808'; } /* '' */
 .icon-floppy:before { content: '\e809'; } /* '' */
 .icon-android:before { content: '\e80a'; } /* '' */
 .icon-volume-up:before { content: '\e80b'; } /* '' */
 .icon-user:before { content: '\e80c'; } /* '' */
+.icon-moon:before { content: '\e80d'; } /* '' */
 .icon-language:before { content: '\e815'; } /* '' */
 .icon-config:before { content: '\e839'; } /* '' */
 .icon-loading:before { content: '\e83b'; } /* '' */

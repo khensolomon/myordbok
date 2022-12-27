@@ -192,6 +192,18 @@
       "css": "paypal",
       "code": 62274,
       "src": "entypo"
+    },
+    {
+      "uid": "5840fe162df3bcc8e390c58ef4e2acf9",
+      "css": "sun",
+      "code": 59399,
+      "src": "typicons"
+    },
+    {
+      "uid": "c2152732d525871cf35345955854f711",
+      "css": "moon",
+      "code": 59405,
+      "src": "iconic"
     }
   ]
 }
