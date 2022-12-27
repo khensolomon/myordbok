@@ -97,6 +97,7 @@ mixin definition(raw)
     h1= raw.word
       //- span.speech.en.zA.icon-volume-up
       speech-engine(word=raw.word lang=lang.src)
+      //- speech-engine(word=raw.word lang=lang.src) @click="apple('Form cannot be submitted yet.', $event)"
     div.meaning
       each row, name in raw.clue
         +#{name}(row)
