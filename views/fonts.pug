@@ -26,7 +26,7 @@ block content
                   li.get
                     a.download(href=`/myanmar-fonts/download/${type}?font=${download}`) Download
 
-              div.container(v-bind:class = "{'active': activeFontToggle}")
+              div.container(v-bind:class = "{'active': dataStore.activeFontToggle}")
                 if definition
                   div.definition(v-bind:class = "{'active': fontActive(1)}")
                     each o in definition
