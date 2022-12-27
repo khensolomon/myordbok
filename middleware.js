@@ -17,14 +17,22 @@ routes.use(
 	 * @param {*} next
 	 */
 	function(req, res, next) {
-		// res.setHeader( 'X-Powered-By', 'lethil' );
+		// res.setHeader("X-Powered-By", "lethil");
 		const l0 = language.primary;
+		// @ts-ignore
 		var Id = l0.id;
 
 		if (req.cookies.solId || req.cookies.solId != undefined) {
 			Id = req.cookies.solId;
 		} else {
 			res.cookie("solId", Id);
+		}
+		var theme = "light";
+		if (req.cookies.theme || req.cookies.theme != undefined) {
+			theme = req.cookies.theme;
+		} else {
+			// NOTE: No need to set, client script should do it
+			// res.cookie("theme", theme);
 		}
 
 		const [name, solName] = req.url.split("/").filter(e => e);
@@ -35,7 +43,8 @@ routes.use(
 				res.cookie("solId", Id);
 			}
 		}
-		// res.locals.app_locale = locale;
+		res.locals.app_locale = config.locale;
+		res.locals.appTheme = theme;
 
 		res.locals.appName = config.name;
 		res.locals.appVersion = config.version;
