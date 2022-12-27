@@ -4,8 +4,21 @@ ul
     //- div.toggle.panel.zA.icon-user
     //-   span(style="display:none")
     ol.menu.user
-      li.suggest
-        span(@click="theme_switch") Mode:{{themeMode}}
+      //- li.suggest
+      //-   span(@click="theme_switch") Mode:{{dataStore.themeMode}}
+      li
+        theme-switch(light="icon-sun" dark="icon-moon")
+        //- div.theme-switch
+        //-   input#theme-switcher(type="checkbox" v-model="dataStore.themeCheck" @click="theme_switch")
+        //-   label(for="theme-switcher")
+        //-     i.icon-moon
+        //-     i.icon-sun
+        //-     span
+        //- div.theme-switch
+        //-   button(@click="theme_switch")
+        //-     i.icon-moon
+        //-     i.icon-sun
+        //-     span
 
       //- li.signin
       //-   a(href="/signin")
