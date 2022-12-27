@@ -14,7 +14,7 @@ div.ptl#header
             p
               input(
                 type="search" ref="input" name="q" placeholder=" ...Search" autocomplete="off" query=meta.q
-                v-model = "q"
+                v-model = "dataStore.q"
                 @keydown.down = "arrow_down"
                 @keydown.up = "arrow_up"
                 @input = "input_change"
@@ -27,7 +27,7 @@ div.ptl#header
 
             ul(v-if=hasFocus)
               li(
-                v-for="(word,index) in suggests" :key="index"
+                v-for="(word,index) in dataStore.suggests" :key="index"
                 class="hover-active"
                 v-bind:class = "{'selected': isCurrent(index)}"
                 @mousemove = "suggestion_hover(index)"
