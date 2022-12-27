@@ -4,6 +4,7 @@
   "description": "online Myanmar dictionary",
   "main": "index.js",
   "type": "module",
+
   "scripts": {
     "build": "node webpack.build.js",
     "serve": "node serve.js",
@@ -21,6 +22,15 @@
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list"
   },
+
+  "docs": {
+    "dev": {
+      "lethil": "file:../lethil",
+      "myanmar-notation": "file:../myanmar-notation",
+      "ttfmeta": "file:../ttfmeta"
+    }
+  },
+
   "babel": {
     "presets": [
       [
@@ -83,8 +93,5 @@
     "webpack-dev-middleware": "^6.0.0",
     "webpack-hot-middleware": "^2.25.3",
     "webpack-merge": "^5.8.0"
-  },
-  "used-in": {
-    "lethil": "file:../lethil"
   }
 }
