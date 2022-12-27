@@ -7,28 +7,25 @@ $Font: "Roboto", "Lato",
 // $Font: 'Roboto', 'Lato', sans-serif,mm3web,"Myanmar Text", Myanmar3, TharLon, Noto Sans Myanmar, "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk , "MyMyanmar Unicode", "WinUni Innwa", Myanmar2;
 // $Font: mm3web, "Myanmar Text", Myanmar3, TharLon, "Noto Sans Myanmar", "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk,  "WinUni Innwa", Myanmar2;
 $FontSize: 100%; //11pt
-$Color: #333;
-// $Color: #000;
-$ColorBackground: #fff; //#F8F8F8;
-// $ColorBackground:rgb(255,255,255);
-$ColorMain: #318ed7;
-// $ColorMain:rgba(49,142,215,1);
-$ColorSecond: #7a7a7a;
 
-$ColorLinkStandard: #0000ee;
-$ColorLinkVisited: #551a8b;
-$ColorLinkActive: #ee0000;
+// $Color: #333;
+// $ColorBackground: #fff;
+// $ColorMain: #318ed7;
+// $ColorSecond: #7a7a7a;
+// $ColorLinkStandard: #0000ee;
+// $ColorLinkVisited: #551a8b;
+// $ColorLinkActive: #ee0000;
+// $ColorGold: goldenrod;
+// $ColorRed: #d34836;
+// $ColorGooglePlus: #d34836;
+// $ColorTwitter: #3b5998;
+// $ColorFacebook: #0084b4;
 
-$ColorGold: goldenrod;
-$ColorRed: #d34836;
 $WidthMobile: 500px;
 $WidthTablet: 820px;
 $WidthDesktop: 1210px;
 
-$ColorGooglePlus: #d34836;
-$ColorTwitter: #3b5998;
-$ColorFacebook: #0084b4;
-
+$media-scale: "(max-width: 250px)";
 $media-mobile: "(max-width:641px)";
 $media-tablet: "(min-width:642px) and (max-width:960px)";
 $media-desktop: "(min-width:961px)";

@@ -72,7 +72,6 @@
 		th {
 			font-size: 90%;
 			&.chain {
-				// color: lighten($ColorMain, 10%);
 				color: rgba(var(--color-highlight), 0.9);
 			}
 		}
@@ -100,7 +99,6 @@
 			}
 		}
 		td.chain {
-			// color: darken($ColorMain, 0%);
 			// background-color: lighten(grey, 47%);
 			// color: rgba(var(--color-text), 0.7);
 			color: rgba(var(--color-highlight), 0.9);
@@ -110,7 +108,6 @@
 	section {
 		padding: 15px;
 		p {
-			color: $ColorSecond;
 			font-weight: lighter;
 			font-size: 95%;
 		}
@@ -124,23 +121,15 @@
 					text-align: center;
 					margin-right: 5px;
 					// font-size: 90%;
-					// color: $ColorSecond;
-					// background-color: lighten($ColorMain, 35%);
 					background-color: rgba(var(--color-main), 0.35);
 					color: rgba(var(--color-highlight), 0.6);
 					border-radius: 100%;
 				}
 				a {
-					// background-color: lighten($ColorMain,40%);
 					border-radius: 3px;
 					display: inline-block;
 					padding: 2px 7px;
-					// color: darken($ColorMain, 20%);
 					// color: rgba(var(--color-highlight), 0.8);
-					&:hover {
-						// background-color: lighten($ColorMain,20%);
-						// color: darken($ColorRed, 0%);
-					}
 				}
 			}
 		}
@@ -152,13 +141,11 @@
 				font-size: calc(3vw + 110%);
 				line-height: 430%;
 				text-shadow: #000 0px -1px 1px;
-				// color:lighten($ColorMain,10%);
 				color: rgba(var(--color-highlight), 1);
 			}
 			p {
 				padding: 2px 1%;
 				font-size: 120%;
-				// color: $ColorSecond;
 				color: var(--color-text-enable);
 				q {
 					color: rgba(var(--color-text));
@@ -175,7 +162,6 @@
 					&:before {
 						display: inline-block;
 						content: attr(data-name);
-						// background-color: lighten($ColorMain, 10%);
 						background-color: rgba(var(--color-main), 0.5);
 						color: #fff;
 						padding: 3px 10px;
@@ -185,7 +171,6 @@
 					li {
 						display: inline-block;
 						margin: 1px 3px;
-						// color: darken($ColorMain, 25%);
 						color: var(--color-text-disable);
 						// color: darken(#ccc,26%);
 						&::after {
@@ -213,10 +198,8 @@
 						// white-space: break-spaces;
 						// white-space: nowrap;
 						// white-space: pre-line;
-						// color: darken($ColorMain,25%);
 						// color: darken(#ccc,26%);
 						strong {
-							// color: darken($ColorMain, 10%);
 							color: rgb(var(--color-highlight));
 							font-weight: lighter;
 						}
@@ -243,28 +226,23 @@
 							// background-color: lighten(#ccc,20%);
 							// border: 1px solid darken(#ccc, 6%);
 							border: 1px solid rgba(var(--color-text), 0.5);
-							// background-color: lighten($ColorMain,35%);
-							// border: 1px solid lighten($ColorMain,15%);
 							position: absolute;
 							top: 11px;
 							left: -11px;
 						}
 						p {
-							// color: lighten($ColorMain,15%);
-							// color: darken(#ccc, 40%);
 							color: rgba(var(--color-text), 0.8);
 							em {
 								font-style: normal;
-								// color: darken($ColorMain, 12%);
 								// color: rgba(var(--color-text), 1);
 								&::before,
 								&::after {
 									content: '"';
 								}
-								&::before {
-								}
-								&::after {
-								}
+								// &::before {
+								// }
+								// &::after {
+								// }
 							}
 							q {
 								color: rgba(var(--color-text), 1);
@@ -283,96 +261,26 @@
 								font-size: 90%;
 								em {
 									font-style: normal;
-									// color: darken($ColorMain, 12%);
 									color: rgba(var(--color-text), 1);
 									&::before,
 									&::after {
 										content: '"';
 									}
-									&::before {
-									}
-									&::after {
-									}
+									// &::before {
+									// }
+									// &::after {
+									// }
 								}
 							}
 						}
-						/*
-            dl{
-              border: 1px solid lighten(grey, 20%);
-              border-radius: 3px;
-              // padding: 20px 20px;
-              color:lighten(grey, 30%);
-              span{
-                margin-right: 10px;
-                color:lighten(grey, 1%);
-              }
-              mark{
-                margin-left: 10px;
-                color: darken($ColorMain,0%);
-                background-color: transparent;
-              }
-              dt{
-                // color: darken($ColorMain,22%);
-                background-color: lighten(grey, 45%);
-                padding: 5px;
-                border-bottom: 1px solid lighten(grey, 20%);
-                span, mark {
-                  font-weight: bold;
-                }
-                span {
-                  padding-left:5px;
-                  padding-right:5px;
-                }
-              }
-              dd{
-                padding: 5px 10px;
-              }
-            }
-            */
-						/*
-            >ul{
-              // NOTE: form
-              // display: inline-block;
-              border: 1px solid lighten(grey, 20%);
-              border-radius: 3px;
-              padding: 0;
-              li{
-                &.header{
-                  // font-weight: bold;
-                  color: darken($ColorMain,22%);
-                  background-color: lighten(grey, 45%);
-                  span {
-                   padding-left:5px;
-                   padding-right:5px;
-                  }
-                }
-                border-bottom: 1px solid lighten(grey, 30%);
-                padding: 5px 7px;
-                // margin: 5px 7px;
-                // margin: 2px;
-                line-height: 160%;
-                strong{
-                  color: darken($ColorMain,12%);
-                  font-weight: normal;
-                }
-                span{
-                  color: lighten(grey, 30%);
-                }
-                &:last-child{
-                  border-bottom-width: 0;
-                }
-              }
-            }
-            */
 					}
 				}
-				> ol {
-				}
+				// > ol {
+				// }
 				> div {
 					padding: 1%;
 					margin: 1% 2%;
 					> h2 {
-						// color: $ColorMain;
 						color: rgba(var(--color-highlight), 1);
 						font-weight: normal;
 						font-size: 130%;
@@ -387,8 +295,6 @@
 							width: 25px;
 							height: 25px;
 							border-radius: 50%;
-							// background-color: lighten($ColorMain,40%);
-							// border: 2px solid lighten($ColorMain, 20%);
 							border: 2px solid rgba(var(--color-highlight), 0.6);
 							position: absolute;
 							top: 8px;
@@ -396,11 +302,9 @@
 						}
 					}
 					> div {
-						// border-left: 2px solid lighten($ColorMain, 25%);
 						border-left: 2px solid rgba(var(--color-highlight), 0.6);
 						> p {
 							padding: 1% 2%;
-							// color: darken($ColorMain, 20%);
 							color: var(--color-text-enable);
 							border-radius: 3px;
 							font-size: 120%;
@@ -424,7 +328,6 @@
 								display: inline-block;
 								padding: 2px 12px;
 								margin: 2px 7px;
-								// color: $ColorMain;
 								color: rgba(var(--color-highlight), 0.6);
 								text-shadow: #fff 1px 0px 1px;
 								position: relative;
@@ -435,7 +338,6 @@
 									height: 18px;
 									border-radius: 50%;
 									// background-color: #fff;
-									// border: 2px solid lighten($ColorMain, 25%);
 									background-color: rgb(var(--color-background));
 									border: 2px solid rgba(var(--color-highlight), 0.6);
 									position: absolute;
@@ -468,7 +370,6 @@
 											height: 12px;
 											border-radius: 50%;
 											// background-color: #fff;
-											// border: 2px solid lighten($ColorMain, 25%);
 											background-color: rgb(var(--color-background));
 											border: 2px solid rgba(var(--color-highlight), 0.6);
 											position: absolute;
@@ -505,7 +406,6 @@
 					// color: lighten(#666, 10%);
 					color: var(--color-text-disable);
 					strong {
-						// color: $ColorMain;
 						color: rgba(var(--color-highlight), 1);
 						display: inline-block;
 						&::after {
@@ -518,7 +418,6 @@
 					}
 					em {
 						font-style: normal;
-						color: darken($ColorMain, 12%);
 						&::before,
 						&::after {
 							content: '"';
@@ -541,17 +440,14 @@
 					margin: 1%;
 					border-radius: 12px;
 					overflow: hidden;
-					// background-color: lighten($ColorMain, 26%);
 					background-color: rgba(var(--color-main), 0.2);
 					a {
 						font-size: 130%;
 						display: block;
 						padding: 15px;
 						// color: #fff;
-						// background-color: lighten($ColorMain, 10%);
 						background-color: rgba(var(--color-main), 0.2);
 						&:hover {
-							// background-color: lighten($ColorMain, 20%);
 							background-color: rgba(var(--color-main), 0.3);
 							// text-shadow: #000 0px 0px 1px;
 							@include box-shadow(
@@ -568,13 +464,6 @@
 
 						padding: 15px;
 					}
-					// &:hover {
-					// 	// background-color: lighten($ColorMain, 30%);
-					// 	background-color: rgba(var(--color-main), 0.3);
-					// 	a {
-					// 		@include box-shadow(0px, 0px, 1px, 1px, lighten(#666, 50%));
-					// 	}
-					// }
 				}
 			}
 			&.summary-not-in-used {

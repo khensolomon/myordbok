@@ -1,79 +1,72 @@
-&.notfound,&.pleaseenter{
-  >div{
-    padding:20px 3%;
-    // background-color: lighten($ColorMain,15%);
-    >div{
-      &.notice{
-        h1{
-          color: lighten($ColorSecond,20%);
-          // color: lighten($ColorMain,10%);
-          // color: darken($ColorBackground,10%);
-          padding:2% 3%;
-          // font-size: calc(40vw - 45vh);
-          font-size: 2em;
-          font-weight: lighter;
-          // word-wrap: break-word;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          sup{
-            font-size:15px;
-            // display: inline-block;
-            // border-radius: 3px;
-            // font-size: 60%;
-            // padding: 1px 3px;
-            // color: darken($ColorBackground,1%);
-            // background-color: lighten($ColorMain,15%);
-          }
-        }
-        h2{
-          color: lighten($ColorSecond,10%);
-          font-size: 1.5em;
-          padding:1% 5%;
-          font-weight: lighter;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          em{
-            color: lighten($ColorMain,20%);
-          }
-        }
-        ul{
-          padding:20px 5%;
-          font-weight: lighter;
-          list-style: none;
-          // overflow-wrap: break-word;
-          li{
-            // color: darken($ColorBackground,15%);
-            font-size:1rem;
-            // margin: 1%;
-            line-height:1.7rem;
-            &::before{
-              content: '... ';
-              // color: lighten($ColorBackground,15%);
-            }
-            q{
-              color: darken($ColorBackground,42%);
-              font-weight: lighter;
-              font-size: 130%;
-              &::before,&::after{
-                color: lighten($ColorBackground,15%);
-              }
-            }
-            em{
-              // color: darken($ColorBackground,1%);
-              font-style: normal;
-              text-transform: uppercase;
-              &::before{
-                // color: lighten($ColorBackground,15%);
-                font-weight: lighter;
-                content: ':';
-              }
-            }
-            a {
-              font-size:1.2rem;
-            }
-          }
-        }
-      }
-    }
-  }
+&.notfound,
+&.pleaseenter {
+	> div {
+		padding: 20px 3%;
+		> div {
+			&.notice {
+				h1 {
+					padding: 2% 3%;
+					// font-size: calc(40vw - 45vh);
+					font-size: 2em;
+					font-weight: lighter;
+					// word-wrap: break-word;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					sup {
+						font-size: 15px;
+						// display: inline-block;
+						// border-radius: 3px;
+						// font-size: 60%;
+						// padding: 1px 3px;
+					}
+				}
+				h2 {
+					color: var(--color-text-disable);
+					font-size: 1.5em;
+					padding: 1% 5%;
+					font-weight: lighter;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					em {
+						color: var(--color-text-enable);
+					}
+				}
+				ul {
+					padding: 20px 5%;
+					font-weight: lighter;
+					list-style: none;
+					// overflow-wrap: break-word;
+					li {
+						font-size: 1rem;
+						// margin: 1%;
+						line-height: 1.7rem;
+						&::before {
+							content: "... ";
+						}
+						q {
+							color: var(--color-text-enable);
+							font-weight: lighter;
+							font-size: 130%;
+							&::before,
+							&::after {
+								color: var(--color-text-active);
+							}
+						}
+						em {
+							font-style: normal;
+							text-transform: uppercase;
+							&::before {
+								color: var(--color-text-disable);
+								font-weight: lighter;
+								content: ":";
+							}
+						}
+						a {
+							font-size: 1.2rem;
+						}
+					}
+				}
+			}
+		}
+	}
 }

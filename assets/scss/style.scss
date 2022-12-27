@@ -4,18 +4,17 @@
 html {
 	-ms-touch-action: manipulation;
 	touch-action: manipulation;
-	overflow: hidden;
-	height: 100%;
-	width: 100%;
-	position: fixed;
+	// overflow: hidden;
+	// height: 100%;
+	// width: 100%;
+	// position: fixed;
+	// -webkit-text-size-adjust: 100%;
 	// background: linear-gradient(0deg, rgba(255,255,255,.5) 75%, rgba(49,142,215,0.6) 25%);
-	background: linear-gradient(
-		0deg,
-		rgb(var(--color-background)) 75%,
-		rgb(var(--color-bar)) 25%
-	);
+	// background: linear-gradient( 0deg, rgb(var(--color-background)) 75%, rgb(var(--color-bar)) 25% );
 	// &.landscape{}
 	// &.portrait{}
+
+	background-color: rgb(var(--color-background));
 }
 // COMMON
 // .cursor-hand{cursor:pointer;}
@@ -31,14 +30,6 @@ a {
 	text-decoration: none;
 	// outline:none;
 	// -webkit-tap-highlight-color:rgba(0,0,0,0); -webkit-tap-highlight-color:transparent; -webkit-user-select:none; -webkit-touch-callout:none;
-
-	// 	--color-link: 0, 0, 238;
-	// // --color-link-visited-rgb: rgb(85, 26, 139);
-	// --color-link-visited: 85, 26, 139;
-	// // --color-link-active-rgb: rgb(238, 0, 0);
-	// --color-link-active: 238, 0, 0;
-	// // --color-link-hover-rgb: rgb(128, 122, 122);
-	// --color-link-hover: 128, 122, 122;
 	color: rgb(var(--color-link));
 	&:visited {
 		color: rgb(var(--color-link-visited));
@@ -72,23 +63,30 @@ body {
 	font-family: $Font;
 	color: rgb(var(--color-text));
 	font-size: $FontSize;
-	// background-color: $ColorMain;
-	// background: $ColorBackground;
-	// background: linear-gradient(to top, $ColorBackground 50%, $ColorMain 50%);
-	// background: -webkit-gradient(linear, left top, left bottom, from($ColorMain), to($ColorBackground)) fixed;
-	overflow: auto;
-	height: 100%;
+	direction: ltr;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	transition: color 0.5s, background-color 0.5s;
+	-webkit-font-smoothing: antialiased;
+
+	// background: -webkit-gradient( linear, left top, left bottom, from(rgba(var(--color-bar), 0.2)), to(rgba(var(--color-background), 0.2)) ) fixed;
+	// background: linear-gradient( 0deg, rgb(255, 255, 255) 0%, rgba(49, 142, 215, 1) 100% );
+	// background-color: rgb(var(--color-background));
+	// overflow: auto;
+	// height: 100%;
 	// background-image: url(../img/MyOrdbok.logo.png);
 	// background-repeat: no-repeat;
 	// background-position: top center;
-	// background-size: 90% auto;
-	//     position: relative;
-	//   margin: 0;
-	//   background-repeat: no-repeat;
 	// background-attachment: fixed;
-	// background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(49,142,215,1) 100%);
-	// background-color: $ColorBackground;
-	// background-color: oldlace;
+	// background-size: 90% auto;
+
+	&::before {
+		display: block;
+		background-color: rgb(var(--color-bar));
+		height: 2px;
+		width: 100%;
+		content: "";
+	}
 
 	&.home {
 		div.navMobile {
@@ -101,7 +99,7 @@ body {
 		}
 	}
 	> div {
-		background-color: rgb(var(--color-background));
+		// background-color: rgb(var(--color-background));
 		@import "Portal.editor";
 	}
 }
@@ -123,13 +121,9 @@ div.ptl {
 		}
 		&::before {
 			z-index: -2;
-			background-color: rgba(49, 142, 215, 0.5);
-			// border-width:1px 0px 1px 0px;
-			// border-style: solid;
-			// border-color: lighten($ColorMain,10%);
-			border: 1px solid lighten($ColorMain, 10%);
+			border: 1px solid rgba(var(--color-main), 0.1);
+			background-color: rgba(var(--color-main), 0.5);
 			border-width: 1px 0px 1px 0px;
-			// box-shadow: 1px 0px 1px 1px $ColorMain;
 		}
 		&::after {
 			z-index: -1;
@@ -156,7 +150,6 @@ div.ptl {
 			// background-color:lighten(#ccc,19%);
 			// border-width:1px 0px 1px 0px;
 			// border-style: solid;
-			// border-color: lighten($ColorMain,10%);
 			// border: 1px solid lighten(#ccc,5%);
 			// border-width:0px 0px 1px 0px;
 			box-shadow: 0px 1px 0px 1px lighten(#ccc, 10%);
@@ -187,6 +180,7 @@ div.ptl {
 			position: inherit;
 			@import "Common.logo";
 			@import "Common.search";
+			@import "Common.theme-switch";
 			// NOTE: bar
 			@import "Portal.navigate";
 			// NOTE: header
@@ -208,8 +202,6 @@ div.ptl {
 	}
 	&#bar {
 		z-index: 5;
-		// border-top:4px solid $ColorMain;
-		margin-top: 4px;
 		ul {
 			display: table;
 			width: 100%;
@@ -234,7 +226,7 @@ div.ptl {
 		z-index: 2;
 		> div {
 			> div.message {
-				// display: none;
+				display: none;
 			}
 			// >div.gads{
 			//   // background-color: red;
@@ -247,6 +239,9 @@ div.ptl {
 		> div {
 			@import "footer.Common";
 		}
+	}
+	@media #{$media-scale} {
+		transform: scale(1);
 	}
 	@media #{$media-mobile} {
 		&#bar {

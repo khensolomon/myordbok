@@ -12,7 +12,6 @@ form[name="search"] {
 	@include box-shadow(0px, 0px, 1px, 1px, rgba(var(--color-text), 0.3));
 	border-radius: 20px;
 	&.focus {
-		// @include box-shadow(0px, 0px, 2px, 1px, darken($ColorMain,0%));
 		// @include box-shadow(0px, 0px, 2px, 1px, darken(#ccc, 10%));
 		@include box-shadow(0px, 0px, 2px, 1px, rgba(var(--color-text), 0.4));
 	}
@@ -81,20 +80,17 @@ form[name="search"] {
 				font-size: 20px;
 				line-height: 2em;
 				// text-shadow: #666 0px 1px 1px;
-				// color: $ColorSecond;
 				// background-color: #fff;
 				// background-color: red;
 				font-family: "myordbok";
 				// text-shadow: #ccc 1px 1px 1px;
 				width: 50px;
-				// border-left:1px solid lighten($ColorMain,30%);
 				// background-color: lighten(#ccc,16%);
 				border-radius: 0 50px 50px 0;
 				// border-left: 1px solid lighten(#ccc, 2%);
 				border-left: 1px solid rgba(var(--color-text), 0.3);
 				color: rgba(var(--color-text), 0.7);
 				&:hover {
-					// color: darken($ColorMain, 10%);
 					background-color: rgba(var(--color-surround), 1);
 					color: rgba(var(--color-text), 0.5);
 				}
@@ -111,7 +107,7 @@ form[name="search"] {
 		right: 0px;
 		// width:100%;
 		// top:calc(100% + 1px);
-		top: calc(100% + 0.5px);
+		top: calc(100% + 0.58px);
 		// padding-top: 50px;
 		// line-height:30px;
 		font-size: 15px;
@@ -137,24 +133,19 @@ form[name="search"] {
 			// color: #666;
 			color: rgba(var(--color-text), 0.7);
 			mark {
-				// color:$ColorLinkStandard;
-
 				// text-shadow:#ccc 1px 0px 1px;
 				font-weight: normal;
-				// background-color: lighten($ColorMain,50%);
 				background-color: transparent;
 				// font-weight: normal;
-				// color: $ColorRed;
-				// color: darken($ColorMain, 0%);
 				// color: rgba(var(--color-text), 0.9);
 				color: var(--color-text-active);
 			}
-			&.selected {
+			&:hover.selected {
 				// color: #0661a9;
-				// background-color: lighten($ColorMain, 35%);
 				// color: rgba(var(--color-text), 1);
 				color: var(--color-text-enable);
-				background-color: rgba(var(--color-main), 0.8);
+				// background-color: rgba(var(--color-main), 0.8);
+				background-color: rgba(var(--color-text), 0.05);
 			}
 			// &:last-child{margin-bottom:1px;}
 		}

@@ -9,14 +9,12 @@ ol {
 	> li {
 		display: inline-block;
 		position: inherit;
-		// color: lighten($Color, 25%);
 		color: rgba(var(--color-text), 0.4);
 		font-size: 90%;
 		a {
 			display: block;
 			position: inherit;
 			padding: 4px 5px;
-			// color: lighten($Color, 15%);
 			color: rgba(var(--color-text), 0.8);
 		}
 		span {
@@ -26,15 +24,17 @@ ol {
 	&.locale {
 		li {
 			a {
-				background-color: lighten($ColorSecond, 10%);
 				margin: 0 1px;
 				text-transform: uppercase;
-				color: #fff;
+				border-radius: 3px;
+				background-color: rgba(var(--color-surround), 1);
+				// color: #fff;
 			}
 			&:hover,
 			&.active {
 				a {
-					background-color: $ColorSecond;
+					background-color: var(--color-text-disable);
+					color: rgba(var(--color-surround), 1);
 				}
 			}
 		}
@@ -45,7 +45,7 @@ ol {
 				display: inline-block;
 				color: #fff;
 				text-shadow: #666 0px 0px 1px;
-				background-color: lighten($ColorSecond, 30%);
+				background-color: rgba(var(--color-surround), 1);
 				padding: 4px 7px;
 				&:before,
 				&:after {
@@ -54,20 +54,19 @@ ol {
 					content: " ";
 					border: solid transparent;
 				}
-				&:first-child {
-				}
+				// &:first-child {}
 
 				&:nth-child(2) {
 					padding: 4px 7px;
-					background-color: lighten($ColorSecond, 25%);
+					background-color: rgba(var(--color-surround), 0.6);
 					&:before {
-						border-left-color: lighten($ColorSecond, 25%);
+						border-left-color: var(--color-text-disable);
 						border-width: 5px;
 						right: -10px;
 						top: 8px;
 					}
 					&:after {
-						border-right-color: lighten($ColorSecond, 25%);
+						border-right-color: var(--color-text-disable);
 						border-width: 5px;
 						left: -10px;
 						top: 8px;
@@ -112,12 +111,10 @@ ol {
 		li {
 			em {
 				font-style: normal;
-				// color: lighten($ColorSecond, 5%);
 				color: rgba(var(--color-text), 0.5);
 			}
 			strong {
 				font-weight: normal;
-				// color: lighten($ColorSecond, 10%);
 				color: rgba(var(--color-text), 0.6);
 			}
 		}

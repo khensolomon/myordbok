@@ -38,7 +38,7 @@ ol {
 			top: 88%;
 			left: -1px;
 			width: 100%;
-			background-color: lighten($ColorMain, 15%);
+			background-color: rgba(var(--color-bar), 0.5);
 			&:after,
 			&:before {
 				position: absolute;
@@ -52,13 +52,13 @@ ol {
 				border: solid transparent;
 			}
 			&:before {
-				border-bottom-color: darken($ColorMain, 20%);
+				border-bottom-color: rgba(var(--color-bar), 0.8);
 				border-width: 5px;
 				right: calc(78% - 1px);
 				top: -10px;
 			}
 			&:after {
-				border-bottom-color: lighten($ColorMain, 15%);
+				border-bottom-color: rgba(var(--color-bar), 0.2);
 				border-width: 4px;
 				right: 78%;
 				top: -8px;
@@ -71,7 +71,7 @@ ol {
 					color: #fff;
 					font-size: 12px;
 					padding: 7px 7px;
-					border-bottom: 1px solid lighten($ColorMain, 35%);
+					border-bottom: 1px solid rgba(var(--color-bar), 0.3);
 				}
 				&:last-child {
 					a {
@@ -127,7 +127,6 @@ ol {
 	&.menu {
 		&.page {
 			> li {
-				// border-bottom: 1px solid $ColorMain;
 				border-bottom: 1px solid rgba(var(--color-main), 0.5);
 				// border-bottom-color:red;
 				> a {
@@ -167,7 +166,11 @@ ol {
 								rgba(0, 0, 0, 0)
 							)
 							7 100%;
-						// -o-border-image: -o-linear-gradient($ColorMain, rgba(0, 0, 0, 0)) 7 100%;
+						-o-border-image: -o-linear-gradient(
+								rgb(var(--color-main)),
+								rgba(0, 0, 0, 0)
+							)
+							7 100%;
 						border-image: linear-gradient(
 								to top,
 								rgb(var(--color-main)),
@@ -202,7 +205,11 @@ ol {
 								rgba(0, 0, 0, 0)
 							)
 							7 100%;
-						// -o-border-image: -o-linear-gradient($ColorMain, rgba(0, 0, 0, 0)) 7 100%;
+						-o-border-image: -o-linear-gradient(
+								rgb(var(--color-main)),
+								rgba(0, 0, 0, 0)
+							)
+							7 100%;
 						border-image: linear-gradient(
 								to top,
 								rgb(var(--color-main)),
@@ -240,8 +247,8 @@ ol {
 					// max-width:30px;
 					a {
 						&:before {
-							box-shadow: inset 0px 1px 2px 0px darken($ColorMain, 30%);
-							background-color: $ColorMain;
+							box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+							background-color: rgba(var(--color-main), 0.8);
 							color: #fff;
 							border-radius: 30px;
 							width: 20px;
@@ -272,11 +279,6 @@ ol {
 					a {
 						padding: 5px 0px;
 					}
-					&:hover {
-						a {
-							color: $ColorMain;
-						}
-					}
 				}
 				&.hasChild {
 					> a {
@@ -289,7 +291,7 @@ ol {
 							overflow: hidden;
 						}
 						&:after {
-							background-color: lighten($ColorMain, 10%);
+							background-color: rgba(var(--color-main), 0.5);
 							right: 1px;
 							top: 2px;
 							width: 19px;
@@ -311,17 +313,12 @@ ol {
 					}
 					&:hover {
 						> a {
-							color: $ColorMain;
-							&:after {
-								background-color: $ColorMain;
-							}
+							color: #fff;
 						}
 					}
 					&.active {
 						> a {
 							color: #236ea9;
-							&:after {
-							}
 						}
 					}
 					ol {
@@ -330,7 +327,7 @@ ol {
 						right: 0px;
 						left: auto;
 						top: 80%;
-						border-top: 1px solid $ColorMain;
+						border-top: 1px solid rgba(var(--color-bar), 1);
 						&:before {
 							right: calc(13% - 1px);
 						}

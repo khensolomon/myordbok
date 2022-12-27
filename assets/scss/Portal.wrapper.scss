@@ -45,7 +45,6 @@
 					line-height: 30px;
 					> div {
 						padding: 5px 10px;
-						// color: lighten($ColorMain, 0%);
 						// color: rgb(var(--color-main));
 						transition: all 2s;
 						-webkit-transition: all 2s;
@@ -64,13 +63,11 @@
 							// padding-right: 0;
 							color: rgba(var(--color-text));
 							text-shadow: 1px 0px 1px rgba(var(--color-text) 0.2);
-							// color: lighten($Color, 10%);
 							// text-shadow: 1px 0px 1px #fff;
 						}
 					}
 					&.percentage {
 						// color: #fff;
-						// background-color: lighten($ColorMain, 30%);
 						background-color: rgba(var(--color-main), 0.3);
 						position: relative;
 						overflow: hidden;
@@ -85,15 +82,12 @@
 							}
 							&:last-child {
 								z-index: 0;
-								// background-color: lighten($ColorMain, 25%);
-								// border-right: 1px solid lighten($ColorMain, 15%);
 								background-color: rgba(var(--color-main), 0.5);
 								border-right: 1px solid rgba(var(--color-main), 0.15);
 							}
 						}
 					}
 					&.status {
-						// background-color: lighten($ColorSecond, 40%);
 						background-color: rgba(var(--color-main), 0.5);
 					}
 				}
@@ -112,7 +106,6 @@
 					}
 					h3 {
 						font-weight: normal;
-						// color: lighten($ColorMain, 13%);
 						color: rgba(var(--color-highlight), 0.9);
 					}
 				}
@@ -133,30 +126,23 @@
 					color: rgba(var(--color-highlight), 0.9);
 				}
 				em {
-					// color:$ColorRed;
-					// color: lighten($Color, 32%);
 					color: rgba(var(--color-highlight), 0.32);
 					font-style: normal;
 					font-size: 90%;
 				}
 				q {
-					// color:$ColorRed;
-					// color: lighten($Color, 32%);
 					color: rgba(var(--color-danger), 1);
 				}
 				&.dictionaries {
 					h1 {
-						// color: lighten($ColorMain, 15%);
 						color: rgba(var(--color-main), 0.15);
 						text-align: center;
 						padding: 2%;
 						em {
-							// color: darken($ColorMain, 0%);
 							color: rgba(var(--color-main), 1);
 						}
 					}
 					> ol {
-						// background-color: lighten($ColorMain,30%);
 						// box-shadow:inset 0px -1px 1px 1px lighten(#666,30%);
 						// border-radius: 5px;
 						overflow: hidden;
@@ -184,7 +170,6 @@
 										white-space: nowrap;
 										padding: 3px 20px;
 										line-height: 30px;
-										// background-color: lighten($ColorMain, 15%);
 										border-radius: 20px;
 										font-weight: normal;
 										background-color: rgba(var(--color-main), 0.6);
@@ -192,13 +177,11 @@
 										// text-shadow: 1px 0px 1px #ccc;
 										transition: 1s;
 										&:hover {
-											// background-color: lighten($ColorMain, 1%);
 											background-color: rgba(var(--color-main), 1);
 										}
 									}
 									&.active {
 										a {
-											// background-color: $ColorMain;
 											background-color: rgba(var(--color-main), 0.8);
 										}
 									}
@@ -223,10 +206,11 @@
 							}
 						}
 						@media #{$media-mobile} {
-							background-color: lighten($ColorMain, 30%);
-							// box-shadow:inset 0px 1px 1px 1px lighten(#666,30%);
-							border-radius: 3px;
+							border-radius: 10px;
 							width: 100%;
+							background-color: rgba(var(--color-main), 0.2);
+							box-shadow: 0px 1px 1px 1px rgba(var(--color-text), 0.2);
+							overflow: hidden;
 							> li {
 								display: table-row;
 								// h3{}
@@ -234,7 +218,6 @@
 									li {
 										padding: 0px;
 										a {
-											// background-color: lighten($ColorMain,15%);
 											border-radius: 0px;
 											padding: 7px 10%;
 											display: block;
@@ -248,7 +231,6 @@
 				&.social {
 					a {
 						display: inline-block;
-						// background-color: $ColorMain;
 						background-color: rgba(var(--color-main), 1);
 						vertical-align: middle;
 						text-align: center;
@@ -263,7 +245,6 @@
 							display: none;
 						}
 						&:hover {
-							// background-color: lighten($ColorMain, 10%);
 							background-color: rgba(var(--color-main), 0.5);
 							&:before {
 								text-shadow: 2px 2px 1px #000;
@@ -293,8 +274,6 @@
 				}
 				&.paypal {
 					form {
-						// background-color: lighten($ColorMain, 30%);
-						// box-shadow: inset 0px 0px 1px 1px lighten(#666, 30%);
 						background-color: rgba(var(--color-main), 0.3);
 						// box-shadow: inset 0px 0px 1px 1px lighten(#666, 30%);
 						box-shadow: inset 0px 0px 1px 1px rgba(var(--color-main), 0.3);
@@ -303,12 +282,10 @@
 						p {
 							padding: 2%;
 							&.icon-paypal {
-								// color: darken($ColorMain, 10%);
 								color: rgba(var(--color-text), 0.8);
 							}
 						}
 						button {
-							// background-color: lighten($ColorMain, 10%);
 							background-color: rgba(var(--color-main), 0.8);
 							border: 2px solid rgba(var(--color-background), 0.9);
 							padding: 12px 50px;
@@ -317,7 +294,6 @@
 							font-size: 104%;
 							outline: 0;
 							&:hover {
-								// background-color: lighten($ColorMain, 2%);
 								background-color: rgba(var(--color-main), 1);
 							}
 						}
@@ -340,15 +316,12 @@
 				margin: 20px auto;
 
 				border-radius: 10px;
-				// background-color: lighten($ColorMain,30%);
 			}
 			> h1 {
-				// color: lighten($ColorMain,10%);
 				color: rgb(var(--color-highlight));
 				display: inline-block;
 				border-radius: 100px;
 				// padding: 5px 25px;
-				// background-color: lighten($ColorMain,20%);
 			}
 		}
 		&.administration-not-in-used {
@@ -360,12 +333,12 @@
 					padding: 5px;
 					margin: 2px;
 					&.msg {
-						background-color: lighten($ColorMain, 40%);
+						background-color: rgb(var(--color-surround));
 						// border: 1px solid #ccc;
 						border-radius: 3px;
 						font-size: 80%;
 						padding: 2%;
-						color: $ColorMain;
+						color: rgb(var(--color-danger));
 						> p {
 							&[class] {
 								&::before {
@@ -382,10 +355,8 @@
 					ul {
 						@include user-select();
 						li {
-							// $ColorMain:#318ED7;
-							// $ColorSecond:#7A7A7A;
 							display: inline-block;
-							background-color: lighten($ColorSecond, 10%);
+							background-color: rgba(var(--color-surround), 0.4);
 							color: #fff;
 							padding: 4px 7px;
 							margin: 1px;
@@ -393,7 +364,7 @@
 							font-size: 95%;
 							cursor: pointer;
 							&:hover {
-								background-color: lighten($ColorSecond, 5%);
+								background-color: rgba(var(--color-surround), 0.5);
 							}
 							&.working {
 								background-color: black;
@@ -408,7 +379,7 @@
 								background-color: green;
 							}
 							&.all {
-								background-color: darken($ColorSecond, 10%);
+								background-color: rgba(var(--color-surround), 1);
 							}
 						}
 					}
@@ -425,13 +396,10 @@
 		// width: auto;
 		background-color: lighten(#ccc, 15%);
 		// box-shadow:inset 0px 1px 1px 1px lighten(#666,50%);
-		// background-color: lighten($ColorMain,45%);
-		// box-shadow:inset 0px 1px 1px 1px lighten($ColorMain,30%);
 		border-radius: 4px;
 		padding: 2%;
 		h2 {
 			padding: 2%;
-			color: $ColorMain;
 		}
 		div {
 			padding: 4px 2px;
@@ -460,8 +428,8 @@
 				&[type="submit"] {
 					min-width: auto;
 					margin-left: 157px;
-					background-color: lighten($ColorMain, 10%);
-					box-shadow: 0px 0px 0px 0px darken($ColorMain, 10%);
+					background-color: rgba(var(--color-main), 0.5);
+					box-shadow: 0px 0px 0px 0px rgba(var(--color-main), 0.5);
 					color: #fff;
 				}
 			}
@@ -497,25 +465,25 @@
 					}
 					&.google {
 						a {
-							background-color: $ColorGooglePlus;
+							background-color: rgba(var(--color-google), 0.5);
 							&:hover {
-								background-color: lighten($ColorGooglePlus, 10%);
+								background-color: rgba(var(--color-google), 0.7);
 							}
 						}
 					}
 					&.facebook {
 						a {
-							background-color: $ColorFacebook;
+							background-color: rgba(var(--color-facebook), 0.5);
 							&:hover {
-								background-color: lighten($ColorFacebook, 10%);
+								background-color: rgba(var(--color-facebook), 0.7);
 							}
 						}
 					}
 					&.twitter {
 						a {
-							background-color: $ColorTwitter;
+							background-color: rgba(var(--color-twitter), 0.5);
 							&:hover {
-								background-color: lighten($ColorTwitter, 10%);
+								background-color: rgba(var(--color-twitter), 0.7);
 							}
 						}
 					}

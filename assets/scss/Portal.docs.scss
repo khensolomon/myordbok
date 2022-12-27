@@ -1,24 +1,25 @@
-&.docs{
-  padding: 2% 1%;
-  h1{
-    padding: 2%;
-    color:$ColorMain;
-  }
-  h2{
-    padding: 2% 3%;
-    color: #666;
-  }
-  h3{
-    padding: 2% 4%;
-    color: #666;
-  }
-  p{
-    padding: 1% 5%;
-  }
-  ul{
-    margin: 20px 40px;
-    li{
-      padding: 3px 7px;
-    }
-  }
+&.docs {
+	padding: 2% 1%;
+	h1 {
+		padding: 2%;
+		text-shadow: #000 0px -1px 1px;
+		color: rgba(var(--color-highlight), 1);
+	}
+	h2 {
+		padding: 2% 3%;
+		color: var(--color-text-disabled);
+	}
+	h3 {
+		padding: 2% 4%;
+		color: var(--color-text-hover);
+	}
+	p {
+		padding: 1% 5%;
+	}
+	ul {
+		margin: 20px 40px;
+		li {
+			padding: 3px 7px;
+		}
+	}
 }
