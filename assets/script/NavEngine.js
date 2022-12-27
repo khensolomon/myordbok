@@ -1,32 +1,36 @@
-// Vue.component('my-checkbox', {});
+import { h } from "vue";
+
 export default {
-	// data() {
-	//   return {
-	//     show:false
-	//  }
-	// },
 	methods: {
 		toggle() {
-			// this.show = !this.show;
-			// this.$parent.querySelector('li.showMobileMenu').classList.toggle('active');
 			this.$parent.querySelector("div.navigate").classList.toggle("active");
+			// this.$parent
+			// 	.querySelector("li.showMobileMenu")
+			// 	.classList.toggle("active");
 		}
 	},
-	render(createElement) {
-		return createElement("div", {}, [
-			createElement("div", {
-				attrs: {
-					class: "name navMobile"
-				}
+	render() {
+		// return h("div", {}, [
+		// 	h("div", {
+		// 		class: "name navMobile"
+		// 	}),
+		// 	h("div", {
+		// 		class: "toggle panel icon-panel",
+		// 		onClick: this.toggle
+		// 	})
+		// ]);
+		return h("div", {}, [
+			h("div", {
+				class: "name navMobile"
 			}),
-			createElement("div", {
-				attrs: {
-					class: "toggle panel icon-panel"
+			h(
+				"div",
+				{
+					class: "toggle icon-panels",
+					onClick: this.toggle
 				},
-				on: {
-					click: this.toggle
-				}
-			})
+				[h("span", {}), h("span", {}), h("span", {})]
+			)
 		]);
 	}
 };
