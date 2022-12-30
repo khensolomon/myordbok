@@ -1,13 +1,12 @@
-import * as anchor from './anchor/index.js';
+import * as anchor from "./anchor/index.js";
 
 export const { language, glossary, visits, speech, thuddar, search } = anchor;
 
-export const {translation, definition, suggestion} = anchor.clue;
+export const { translation, definition, suggestion } = anchor.clue;
 export const config = anchor.config.setting;
 
 // export {suggestion,definition,translation} from './dictionary.js';
 // export {search} from './search.js'
-
 
 // export {default as config} from './config.js';
 // export {language,information,suggestion} from './dictionary.js';
@@ -32,7 +31,6 @@ export const config = anchor.config.setting;
 // NOTE: grammar
 // export const grammarMain = grammar.main;
 // export const grammarPos = grammar.pos;
-
 
 // NOTE: mean
 // exports.suggestion = async (e,l) => await dictionary.suggestion(e,l);

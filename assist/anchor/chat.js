@@ -3,30 +3,37 @@
  * idiom caseContext
  * @param {string} str
  */
-export function removeNoneAlphanumeric(str){
-  return str.replace(/[\s-?!,.]+/g,'').toLowerCase();
+export function removeNoneAlphanumeric(str) {
+	return str.replace(/[\s-?!,.]+/g, "").toLowerCase();
 }
 
 /**
  * @param {string} str
  * @param {string} other
  */
-export function compare(str,other){
-  return removeNoneAlphanumeric(str) == removeNoneAlphanumeric(other);
+export function compare(str, other) {
+	return removeNoneAlphanumeric(str) == removeNoneAlphanumeric(other);
 }
 
 /**
  * @param {string} str
  */
 export function stripString(str) {
-  return str.replace(/\(\s+?/g, '(').replace(/\s+?\)/g, ')').replace(/\[\s+?/g, '[').replace(/\s+?\]/g, ']').replace(/\t/g, ' ').replace(/\s\s+/g, ' ').trim();
+	return str
+		.replace(/\(\s+?/g, "(")
+		.replace(/\s+?\)/g, ")")
+		.replace(/\[\s+?/g, "[")
+		.replace(/\s+?\]/g, "]")
+		.replace(/\t/g, " ")
+		.replace(/\s\s+/g, " ")
+		.trim();
 }
 
 /**
  * @param {string} str
  */
 export function upperCaseFirstString(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 /**
@@ -34,7 +41,10 @@ export function upperCaseFirstString(str) {
  * @param {string} str
  */
 export function replaceSpaceWithDot(str) {
-  return str.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g).join('.').toLowerCase();
+	return str
+		.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g)
+		.join(".")
+		.toLowerCase();
 }
 
 // export const chat = {

@@ -1,53 +1,53 @@
-import path from 'path';
-import {setting} from './config.js';
-import {primary} from './language.js';
-import {read} from './json.js';
+import path from "path";
+import { setting } from "./config.js";
+import { primary } from "./language.js";
+import { read } from "./json.js";
 
-const {media,glossary} = setting;
+const { media, glossary } = setting;
 
-glossary.word = path.join(media,'glossary',glossary.word);
-glossary.sense = path.join(media,'glossary',glossary.sense);
-glossary.usage = path.join(media,'glossary',glossary.usage);
-glossary.synset = path.join(media,'glossary',glossary.synset);
-glossary.synmap = path.join(media,'glossary',glossary.synmap);
-glossary.zero = path.join(media,'glossary',glossary.zero);
-glossary.info = path.join(media,'glossary',glossary.info);
-glossary.thesaurus = path.join(media,'glossary',glossary.thesaurus);
-glossary.sqlite = path.join(media,'glossary',glossary.sqlite);
+glossary.word = path.join(media, "glossary", glossary.word);
+glossary.sense = path.join(media, "glossary", glossary.sense);
+glossary.usage = path.join(media, "glossary", glossary.usage);
+glossary.synset = path.join(media, "glossary", glossary.synset);
+glossary.synmap = path.join(media, "glossary", glossary.synmap);
+glossary.zero = path.join(media, "glossary", glossary.zero);
+glossary.info = path.join(media, "glossary", glossary.info);
+glossary.thesaurus = path.join(media, "glossary", glossary.thesaurus);
+glossary.sqlite = path.join(media, "glossary", glossary.sqlite);
 
 /**
  * @param {string} file
  */
 export function get(file, name = primary.id) {
-  return file.replace(/EN/, name);
+	return file.replace(/EN/, name);
 }
 
 /**
  * @param {any} lang
  */
 export function word(lang) {
-  return get(glossary.word, lang);
+	return get(glossary.word, lang);
 }
 
 /**
  * @param {any} lang
  */
 export function info(lang = primary.id) {
-  return get(glossary.info, lang);
+	return get(glossary.info, lang);
 }
 
 /**
  * @param {any} lang
  */
 export function zero(lang = primary.id) {
-  return get(glossary.zero, lang);
+	return get(glossary.zero, lang);
 }
 
 /**
  * thesaurus
  */
 export function thesaurus() {
-  return get(glossary.thesaurus);
+	return get(glossary.thesaurus);
 }
 
 /**
@@ -56,7 +56,7 @@ export function thesaurus() {
  * @returns {Promise<{title:string,keyword:string,description:string,info:[]}>}
  */
 export async function stats(lang) {
-  return await read(info(lang),{});
+	return await read(info(lang), {});
 }
 
 // fileName

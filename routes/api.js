@@ -1,70 +1,70 @@
-import {route} from 'lethil';
-import {config,search,speech,suggestion} from '../assist/index.js';
+import { route } from "lethil";
+import { config, search, speech, suggestion } from "../assist/index.js";
 
-const routes = route('_','/api');
+const routes = route("_", "/api");
 
-routes.get('/',
-  /**
-   * @param {any} req
-   * @param {any} res
-   */
-  (req, res) => {
-    res.send({
-      name:config.name,
-      version:config.version,
-      development:config.development
-    })
-  }
+routes.get(
+	"/",
+	/**
+	 * @param {any} req
+	 * @param {any} res
+	 */
+	(req, res) => {
+		res.send({
+			name: config.name,
+			version: config.version,
+			development: config.development
+		});
+	}
 );
 
-routes.get('/search',
-  /**
-   * @param {any} req
-   * @param {any} res
-   * @param {any} next
-   */
-  (req, res,next) => {
-    search(req).then(
-      raw=> res.send(raw)
-    ).catch(next)
-  }
+routes.get(
+	"/search",
+	/**
+	 * @param {any} req
+	 * @param {any} res
+	 * @param {any} next
+	 */
+	(req, res, next) => {
+		search(req)
+			.then(raw => res.send(raw))
+			.catch(next);
+	}
 );
 
-routes.get('/speech',
-  /**
-   * @param {any} req
-   * @param {any} res
-   */
-  (req, res) => {
-    res.set({
-      "Content-Type": "audio/mpeg",
-      "Accept-Ranges": "bytes",
-      "Content-Transfer-Encoding": "binary",
-      "Pragma": "cache"
-    });
-    // res.setHeader("Content-Type", "audio/mpeg");
-    // res.setHeader("Accept-Ranges", "bytes");
-    // res.setHeader("Content-Transfer-Encoding", "binary");
-    // res.setHeader("Pragma", "cache");
-    speech(req.query).then(
-      e => e.pipe(res)
-    )
-  }
+routes.get(
+	"/speech",
+	/**
+	 * @param {any} req
+	 * @param {any} res
+	 */
+	(req, res) => {
+		res.set({
+			"Content-Type": "audio/mpeg",
+			"Accept-Ranges": "bytes",
+			"Content-Transfer-Encoding": "binary",
+			Pragma: "cache"
+		});
+		// res.setHeader("Content-Type", "audio/mpeg");
+		// res.setHeader("Accept-Ranges", "bytes");
+		// res.setHeader("Content-Transfer-Encoding", "binary");
+		// res.setHeader("Pragma", "cache");
+		speech(req.query).then(e => e.pipe(res));
+	}
 );
 
 // req.cookies.solId
-routes.get('/suggestion',
-  /**
-   * @param {any} req
-   * @param {any} res
-   */
-  (req, res) => {
-    suggestion(req.query.q,res.locals.sol.id).then(
-      raw => res.json(raw)
-    ).catch(
-      (e)=>res.status(404).end(e.message)
-    )
-  }
+routes.get(
+	"/suggestion",
+	/**
+	 * @param {any} req
+	 * @param {any} res
+	 */
+	(req, res) => {
+		suggestion(req.query.q, res.locals.sol.id)
+			.then(raw => res.json(raw))
+			.catch(e => res.status(404).end(e.message));
+	}
 );
 
 // routes.get('/grammar', (req, res) => {

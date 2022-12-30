@@ -1,4 +1,4 @@
-var MY_SYLLABLE_UNKNOWN	= 0;
+var MY_SYLLABLE_UNKNOWN = 0;
 var MY_SYLLABLE_CONSONANT = 1;
 var MY_SYLLABLE_MEDIAL = 2;
 var MY_SYLLABLE_VOWEL = 3;
@@ -52,7 +52,7 @@ var CHAR_PART = [
 	MY_SYLLABLE_CONSONANT, // 1028;MYANMAR LETTER MON E;Lo;0;L;;;;;N;;;;;
 	MY_SYLLABLE_CONSONANT, // 1029;MYANMAR LETTER O;Lo;0;L;;;;;N;;;;;
 	MY_SYLLABLE_CONSONANT, // 102A;MYANMAR LETTER AU;Lo;0;L;;;;;N;;;;;
-	MY_SYLLABLE_VOWEL, 	// 102B;MYANMAR VOWEL SIGN TALL AA;Mc;0;L;;;;;N;;;;;
+	MY_SYLLABLE_VOWEL, // 102B;MYANMAR VOWEL SIGN TALL AA;Mc;0;L;;;;;N;;;;;
 	MY_SYLLABLE_VOWEL, // 102C;MYANMAR VOWEL SIGN AA;Mc;0;L;;;;;N;;;;;
 	MY_SYLLABLE_VOWEL, // 102D;MYANMAR VOWEL SIGN I;Mn;0;NSM;;;;;N;;;;;
 	MY_SYLLABLE_VOWEL, // 102E;MYANMAR VOWEL SIGN II;Mn;0;NSM;;;;;N;;;;;
@@ -186,36 +186,35 @@ var MM_MAX_CONTEXT_LENGTH = 4;
 function get_char_class(char) {
 	// var identifiedClass = MY_SYLLABLE_UNKNOWN;
 
-	if ('\u1000' > char || char > '\u109F') {
-		if ('\uAA60' <= char < '\uAA7C') {
-			if(char == '\uAA70') {
+	if ("\u1000" > char || char > "\u109F") {
+		if ("\uAA60" <= char < "\uAA7C") {
+			if (char == "\uAA70") {
 				return MY_SYLLABLE_TONE;
-			} else if (char == '\uAA7B') {
+			} else if (char == "\uAA7B") {
 				return MY_SYLLABLE_TONE;
 			}
 			return MY_SYLLABLE_CONSONANT;
 		}
 		return MY_SYLLABLE_UNKNOWN;
 	}
-	return CHAR_PART[char.charCodeAt(0) - '\u1000'.charCodeAt(0)];
+	return CHAR_PART[char.charCodeAt(0) - "\u1000".charCodeAt(0)];
 }
 
 function get_break_status(before, after) {
-
-	 // first char = row, second char = column
-	 // 0=illegal, 1=no, 2=yes, 3=yes-line, 4=punctuation, 5=context,
+	// first char = row, second char = column
+	// 0=illegal, 1=no, 2=yes, 3=yes-line, 4=punctuation, 5=context,
 
 	var BKSTATUS = [
-		 // -  C  M  V  T 39 3A  N  S
-		[ 1, 3, 1, 1, 1, 1, 1, 1, 1 ], // -
-		[ 3, 5, 1, 1, 1, 1, 1, 2, 4 ], // C
-		[ 3, 5, 1, 1, 1, 0, 1, 2, 4 ], // M
-		[ 3, 5, 0, 1, 1, 0, 1, 2, 4 ], // V
-		[ 3, 2, 0, 1, 1, 0, 1, 2, 4 ], // T
-		[ 3, 1, 0, 0, 0, 0, 0, 0, 0 ], // 1039
-		[ 3, 2, 1, 1, 1, 1, 0, 2, 4 ], // 103A
-		[ 3, 2, 1, 1, 1, 0, 0, 1, 4 ], // N
-		[ 3, 2, 0, 0, 0, 0, 0, 2, 0 ]  // S
+		// -  C  M  V  T 39 3A  N  S
+		[1, 3, 1, 1, 1, 1, 1, 1, 1], // -
+		[3, 5, 1, 1, 1, 1, 1, 2, 4], // C
+		[3, 5, 1, 1, 1, 0, 1, 2, 4], // M
+		[3, 5, 0, 1, 1, 0, 1, 2, 4], // V
+		[3, 2, 0, 1, 1, 0, 1, 2, 4], // T
+		[3, 1, 0, 0, 0, 0, 0, 0, 0], // 1039
+		[3, 2, 1, 1, 1, 1, 0, 2, 4], // 103A
+		[3, 2, 1, 1, 1, 0, 0, 1, 4], // N
+		[3, 2, 0, 0, 0, 0, 0, 2, 0] // S
 	];
 
 	firstClass = get_char_class(before);
@@ -230,33 +229,33 @@ function evaluate_context(contextText, offset, langHint) {
 	var length = text.length;
 
 	if (length < 4) {
-		for(var x = 1; x <= 4 - length; x++) {
+		for (var x = 1; x <= 4 - length; x++) {
 			text += " ";
 		}
 	}
 
-	if(text[0] == '\u1021' && langHint == LANG_MY) {
+	if (text[0] == "\u1021" && langHint == LANG_MY) {
 		return MY_PAIR_NO_BREAK;
 	}
 
-	if(text[1] == '\u002d') {
+	if (text[1] == "\u002d") {
 		return MY_PAIR_NO_BREAK;
 	}
 
-	if(text[1] == '\u103F') {
+	if (text[1] == "\u103F") {
 		return MY_PAIR_NO_BREAK;
 	}
 
-	if(text[2] == '\u1037' && text[3] == '\u103A') {
+	if (text[2] == "\u1037" && text[3] == "\u103A") {
 		return MY_PAIR_NO_BREAK;
 	}
 
-	if(text[2] == '\u1039') {
+	if (text[2] == "\u1039") {
 		return MY_PAIR_NO_BREAK;
 	}
 
-	if(text[2] == '\u103A' && langHint == LANG_MY) {
-		 // Karen (and also some loan words in Myanmar) can have a starting 103A
+	if (text[2] == "\u103A" && langHint == LANG_MY) {
+		// Karen (and also some loan words in Myanmar) can have a starting 103A
 		return MY_PAIR_NO_BREAK;
 	}
 
@@ -271,33 +270,35 @@ function get_next_syllable(text, length, offset) {
 		return [breakType, length];
 	}
 
-	while ( (i + 1) < length ) {
-		var breakStatus = get_break_status(text[i], text[i+1]);
+	while (i + 1 < length) {
+		var breakStatus = get_break_status(text[i], text[i + 1]);
 
-		if(breakStatus == MY_PAIR_NO_BREAK) {
+		if (breakStatus == MY_PAIR_NO_BREAK) {
 			//
-		} else if(breakStatus == MY_PAIR_SYL_BREAK ||
+		} else if (
+			breakStatus == MY_PAIR_SYL_BREAK ||
 			breakStatus == MY_PAIR_WORD_BREAK ||
 			breakStatus == MY_PAIR_PUNCTUATION ||
-			breakStatus == MY_PAIR_ILLEGAL) {
-				breakType = breakStatus;
-				foundCluster = true;
-		} else if(breakStatus == MY_PAIR_CONTEXT) {
+			breakStatus == MY_PAIR_ILLEGAL
+		) {
+			breakType = breakStatus;
+			foundCluster = true;
+		} else if (breakStatus == MY_PAIR_CONTEXT) {
 			breakType = evaluate_context(text, i, LANG_MY);
 
-			if(breakType != MY_PAIR_NO_BREAK) {
+			if (breakType != MY_PAIR_NO_BREAK) {
 				foundCluster = true;
 			}
 		} else {
 			console.log("Unexpected status", breakStatus);
 		}
 
-		if(foundCluster) break;
+		if (foundCluster) break;
 
 		i += 1;
 	}
 
-	if( (i + 1) == text.length) {
+	if (i + 1 == text.length) {
 		breakType = MY_PAIR_EOL;
 	}
 
@@ -305,7 +306,7 @@ function get_next_syllable(text, length, offset) {
 }
 
 function is_myanmar_char(char) {
-	if('\u1000' <= char <= '\u109f' || '\uaa60' <= char <= '\uaa7f') {
+	if ("\u1000" <= char <= "\u109f" || "\uaa60" <= char <= "\uaa7f") {
 		return true;
 	}
 
@@ -314,7 +315,12 @@ function is_myanmar_char(char) {
 
 function is_not_myanmar(char) {
 	var charClass = get_char_class(char);
-	if(charClass == MMC_OT || charClass == MMC_RQ || charClass == MMC_LQ || charClass == MMC_SP) {
+	if (
+		charClass == MMC_OT ||
+		charClass == MMC_RQ ||
+		charClass == MMC_LQ ||
+		charClass == MMC_SP
+	) {
 		return true;
 	}
 
@@ -323,17 +329,24 @@ function is_not_myanmar(char) {
 
 function is_neutral(char) {
 	var charClass = get_char_class(char);
-	if(charClass == MMC_WJ || charClass == MMC_RQ || charClass == MMC_LQ || charClass == MMC_SP || charClass == MMC_NJ) {
+	if (
+		charClass == MMC_WJ ||
+		charClass == MMC_RQ ||
+		charClass == MMC_LQ ||
+		charClass == MMC_SP ||
+		charClass == MMC_NJ
+	) {
 		return true;
 	}
 
 	return false;
 }
 
-module.exports = async (str) => {
-	var offset = 0, result = [];
+module.exports = async str => {
+	var offset = 0,
+		result = [];
 
-	while(offset < str.length) {
+	while (offset < str.length) {
 		var output = get_next_syllable(str, str.length, offset);
 		var type = output[0];
 		var next = output[1];
