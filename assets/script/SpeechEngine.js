@@ -1,6 +1,6 @@
 import { h } from "vue";
 // import { mapStores } from "pinia";
-// import { useDataStore } from "./data.js";
+// import { useDataStore } from "./store-data.js";
 // Vue.component('my-checkbox', {});
 
 export default {

@@ -3,9 +3,9 @@ import { createPinia, mapStores } from "pinia";
 
 import axios from "axios";
 
-import { useDataStore } from "./data.js";
-import { useCookieStore } from "./cookie.js";
-import { useStorageStore } from "./storage.js";
+import { useDataStore } from "./store-data.js";
+import { useStorageStore } from "./store-storage.js";
+import { useCookieStore } from "./store-cookie.js";
 
 import NavEngine from "./NavEngine.js";
 import SpeechEngine from "./SpeechEngine.js";
@@ -190,7 +190,7 @@ const app = createApp({
 			this.$refs.input.focus();
 		}
 	},
-	// render: (h) => h(layout),
+	// render: () => h(layout),
 	// ready: () {},
 	computed: {
 		// note we are not passing an array, just one store after the other
