@@ -1,30 +1,27 @@
-import path from 'path';
-import webpack from 'webpack';
-import { merge } from 'webpack-merge';
-import devMiddleware from 'webpack-dev-middleware';
-import hotMiddleware from 'webpack-hot-middleware';
-import common from './webpack.config.js';
+import path from "path";
+import webpack from "webpack";
+import { merge } from "webpack-merge";
+import devMiddleware from "webpack-dev-middleware";
+import hotMiddleware from "webpack-hot-middleware";
+import common from "./webpack.config.js";
 
 // @ts-ignore
 const config = merge(common, {
-  // target: "node",
-  mode: 'development',
-  devtool: 'inline-source-map',
-  entry: {
-    script: [
-      'webpack-hot-middleware/client?path=/__webpack_hmr&reload=true&timeout=1000',
-      // path.resolve('./assets/script/analytics.js'),
-      // path.resolve('./assets/script/sw.register.js')
-    ],
-    // sw:[
-    //   path.resolve('./assets/script/sw.js')
-    // ]
-  },
-  plugins: [
-    new webpack.HotModuleReplacementPlugin()
-  ]
+	// target: "node",
+	mode: "development",
+	devtool: "inline-source-map",
+	entry: {
+		script: [
+			"webpack-hot-middleware/client?path=/__webpack_hmr&reload=true&timeout=1000"
+			// path.resolve('./assets/script/analytics.js'),
+			// path.resolve('./assets/script/sw.register.js')
+		]
+		// sw:[
+		//   path.resolve('./assets/script/sw.js')
+		// ]
+	},
+	plugins: [new webpack.HotModuleReplacementPlugin()]
 });
-
 
 //reload=true:Enable auto reloading when changing JS files or content
 //timeout=1000:Time from disconnecting from server to reconnecting
