@@ -12,8 +12,8 @@ if (config.development) {
 
 routes.use(
 	/**
-	 * @param {Object} req
-	 * @param {Object} res
+	 * @param {any} req
+	 * @param {any} res
 	 * @param {*} next
 	 */
 	function(req, res, next) {
