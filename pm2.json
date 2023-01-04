@@ -8,8 +8,8 @@
       "env": {
         "NODE_ENV": "production"
       },
-      "error_file" : "./test/pm2.err.log",
-      "out_file" : "./test/pm2.out.log"
+      "error_file" : "./log/pm2.err.log",
+      "out_file" : "./log/pm2.out.log"
     }
   ]
 }
