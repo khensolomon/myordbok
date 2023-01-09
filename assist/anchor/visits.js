@@ -1,7 +1,5 @@
-import path from "path";
-import { seek } from "lethil";
-
-import { setting } from "./config.js";
+import { resolve } from "path";
+import { seek, config } from "lethil";
 
 /**
  * @param {any} str
@@ -30,7 +28,7 @@ const result = {
 };
 export function visits() {
 	if (result.created == "") {
-		var file = path.join(setting.media, "log", "myordbok.visit.log");
+		var file = resolve(config.media, "log", "myordbok.visit.log");
 		if (seek.exists(file)) {
 			var tpl = Object.keys(result);
 			seek
