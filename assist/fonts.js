@@ -1,9 +1,9 @@
-import path from "path";
 import { config, seek } from "lethil";
-import util from "util";
+import { resolve } from "path";
+// import util from "util";
 import ttfMeta from "ttfmeta";
 
-const { media } = config;
+// const { media } = config;
 
 export default class fonts {
 	/**
@@ -22,7 +22,7 @@ export default class fonts {
 	 * @param {...string} fileName
 	 */
 	root(...fileName) {
-		return path.join(media, "fonts", fileName.join("/"));
+		return resolve(config.media, "fonts", fileName.join("/"));
 	}
 
 	/**
