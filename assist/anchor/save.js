@@ -1,3 +1,5 @@
+import { config } from "lethil";
+import { resolve } from "path";
 import { access, createWriteStream, createReadStream } from "fs";
 import { createInterface } from "readline";
 import { zero } from "./glossary.js";
@@ -32,7 +34,7 @@ function read(file) {
  */
 export async function keyword(keyword, lang) {
 	var addWord = true;
-	var file = zero(lang);
+	const file = resolve(config.media, zero(lang));
 	keyword = keyword.replace(/\W/g, "").toLowerCase();
 
 	access(file, e => {
