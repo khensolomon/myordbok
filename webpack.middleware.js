@@ -1,4 +1,4 @@
-import path from "path";
+// import path from "path";
 import webpack from "webpack";
 import { merge } from "webpack-merge";
 import devMiddleware from "webpack-dev-middleware";
@@ -12,7 +12,8 @@ const config = merge(common, {
 	devtool: "inline-source-map",
 	entry: {
 		script: [
-			"webpack-hot-middleware/client?path=/__webpack_hmr&reload=true&timeout=1000"
+			// "webpack-hot-middleware/client?path=/__webpack_hmr&reload=true&timeout=1000"
+			"webpack-hot-middleware/client?path=/__webpack_hmr&timeout=1000&overlay=false"
 			// path.resolve('./assets/script/analytics.js'),
 			// path.resolve('./assets/script/sw.register.js')
 		]
