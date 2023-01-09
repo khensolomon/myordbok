@@ -11,6 +11,8 @@ routes.get(
 	 * @param {*} res
 	 */
 	function(req, res) {
+		// read(info(lang), {});
+		// const src = path.resolve(config.media, file);
 		glossary
 			.stats(res.locals.sol.id)
 			.then(raw =>
