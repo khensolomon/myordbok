@@ -1,6 +1,6 @@
 // import fs from 'fs';
 import path from "path";
-import { seek } from "lethil";
+import { seek, config } from "lethil";
 
 export const data = {
 	/**
@@ -79,12 +79,14 @@ export function watch(file, id) {
  * @returns {Promise<Array<any>>}
  */
 export async function get(file, watchIt = false) {
+	const src = path.resolve(config.media, file);
+	// console.log("json.get", file);
 	var id = path.parse(file).name;
 	if (data.hasOwnProperty(id) && Array.isArray(data[id]) && data[id].length) {
 		return data[id];
-	} else if (seek.exists(file)) {
-		data[id] = await read(file);
-		if (watchIt) watch(file, id);
+	} else if (seek.exists(src)) {
+		data[id] = await read(src);
+		if (watchIt) watch(src, id);
 		return data[id];
 	} else {
 		return [];
