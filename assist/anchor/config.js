@@ -8,6 +8,7 @@ export const setting = {
 		// {id:'my',name:'Myanmar'},
 		// {id:'zo',name:'Zolai'}
 	],
+
 	table: {
 		senses: "list_sense",
 		other: "ord_0",
@@ -20,7 +21,12 @@ export const setting = {
 			name: "International",
 			my: "အပြည်ပြည်ဆိုင်ရာ",
 			lang: [
-				{ id: "en", name: "English", my: "အင်္ဂလိပ်", default: true },
+				{
+					id: "en",
+					name: "English",
+					my: "အင်္ဂလိပ်",
+					default: true
+				},
 				{ id: "iw", name: "Hebrew", my: "ဟေဗြဲ" },
 				{ id: "el", name: "Greek", my: "ဂရိ" },
 				{ id: "pt", name: "Portuguese", my: "ပေါ်တူဂီ" },
@@ -100,26 +106,26 @@ export const setting = {
 		{ id: 10, type: 1, name: "plural past" }
 	],
 	glossary: {
-		word: "EN.json",
-		sense: "sense.json", // definition
-		usage: "usage.json", // example
-		synset: "synset.json", // words
-		synmap: "synmap.json", //derives
-		zero: "zero.EN.csv", //no result
-		info: "info.EN.json",
-		thesaurus: "thesaurus.json",
-		sqlite: "tmp-sqlite.db"
+		word: "glossary/EN.json",
+		sense: "glossary/sense.json", // definition
+		usage: "glossary/usage.json", // example
+		synset: "glossary/synset.json", // words
+		synmap: "glossary/synmap.json", //derives
+		zero: "glossary/zero.EN.csv", //no result
+		info: "glossary/info.EN.json",
+		thesaurus: "glossary/thesaurus.json",
+		sqlite: "glossary/tmp-sqlite.db"
 	},
 	grammar: {
-		live: "_live.json",
-		pos: "pos-*.json",
-		structure: "structure.json"
-		// context:'*.json'
+		live: "grammar/_live.json",
+		pos: "grammar/pos-*.json",
+		structure: "grammar/structure.json"
+		// context:'grammar/*.json'
 	},
 	orthography: {
-		character: "character.json",
-		word: "word.json",
-		sense: "sense.json"
+		character: "orthography/character.json",
+		word: "orthography/word.json",
+		sense: "orthography/sense.json"
 	}
 };
 
