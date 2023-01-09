@@ -1,4 +1,5 @@
 import path from "path";
+import { config } from "lethil";
 import { setting } from "./config.js";
 
 import { write, read } from "./json.js";
@@ -8,7 +9,7 @@ import { replaceSpaceWithDot } from "./chat.js";
  * @param {string} file
  */
 function root(file) {
-	return path.join(setting.media, "grammar", file);
+	return path.join(config.media, file);
 }
 
 /**
