@@ -54,7 +54,7 @@
   "homepage": "https://github.com/khensolomon/myordbok#readme",
   "dependencies": {
     "csv": "^6.2.5",
-    "lethil": "file:../lethil",
+    "lethil": "^1.2.9",
     "mathjs": "^11.4.0",
     "myanmar-notation": "^1.5.0",
     "mysql2": "^2.3.3",
