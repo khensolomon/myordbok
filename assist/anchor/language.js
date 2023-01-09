@@ -8,12 +8,13 @@ export const count = dictionaries
 	.map(continental => continental.lang.length)
 	.reduce((a, b) => a + b, 0);
 
-export const primary = dictionaries
-	.map(continental =>
-		continental.lang.filter(lang => lang.hasOwnProperty("default"))
-	)
-	.reduce((prev, next) => prev.concat(next), [])
-	.find(lang => lang.id);
+export const primary =
+	dictionaries
+		.map(continental =>
+			continental.lang.filter(lang => lang.hasOwnProperty("default"))
+		)
+		.reduce((prev, next) => prev.concat(next), [])
+		.find(lang => lang.id) || "";
 
 /**
  * @param {string} name
