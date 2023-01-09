@@ -49,6 +49,7 @@ routes.use(
 		res.locals.appName = config.name;
 		res.locals.appVersion = config.version;
 		res.locals.appDescription = config.description;
+		res.locals.environment = config.development;
 
 		if (req.headers.referer) {
 			var ref = parse.url(req.headers.referer);
