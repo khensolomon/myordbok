@@ -103,6 +103,10 @@
 						// text-shadow: 1px 0px 1px #fff;
 						color: rgba(var(--color-highlight), 0.8);
 						text-shadow: 1px 0px 1px rgba(var(--color-main), 0.8);
+						// if environment
+						&.true {
+							color: rgba(var(--color-danger), 1);
+						}
 					}
 					h3 {
 						font-weight: normal;
