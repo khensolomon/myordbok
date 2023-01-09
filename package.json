@@ -1,10 +1,9 @@
 {
   "name": "myordbok",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "online Myanmar dictionary",
   "main": "index.js",
   "type": "module",
-
   "scripts": {
     "build": "node webpack.build.js",
     "serve": "node serve.js",
@@ -14,23 +13,22 @@
     "test:listen": "set LISTEN= && node serve",
     "test:production": "set NODE_ENV=production && node serve",
     "pm2:start": "pm2 start",
-    "pm2:startJSON": "pm2 start pm2.json",
+    "pm2:startJSON": "pm2 start process.json",
     "pm2:reload": "pm2 reload MyOrdbok",
-    "pm2:reloadJSON": "pm2 reload pm2.json",
+    "pm2:reloadJSON": "pm2 reload process.json",
     "pm2:stop": "pm2 stop MyOrdbok",
     "pm2:delete": "pm2 delete MyOrdbok",
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list"
   },
-
   "docs": {
     "dev": {
       "lethil": "file:../lethil",
+      "lethils": "^1.2.8",
       "myanmar-notation": "file:../myanmar-notation",
       "ttfmeta": "file:../ttfmeta"
     }
   },
-
   "babel": {
     "presets": [
       [
@@ -56,7 +54,7 @@
   "homepage": "https://github.com/khensolomon/myordbok#readme",
   "dependencies": {
     "csv": "^6.2.5",
-    "lethil": "^1.2.8",
+    "lethil": "file:../lethil",
     "mathjs": "^11.4.0",
     "myanmar-notation": "^1.5.0",
     "mysql2": "^2.3.3",
@@ -68,10 +66,12 @@
     "ttfmeta": "^1.0.9"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.2",
+    "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
+    "@types/pug": "^2.0.6",
+    "@types/webpack-hot-middleware": "^2.25.6",
     "axios": "^1.2.2",
-    "babel-loader": "^9.1.0",
+    "babel-loader": "^9.1.2",
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.7.2",
     "file-loader": "^6.2.0",
