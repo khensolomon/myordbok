@@ -6,6 +6,7 @@ import "./route.js";
 core.set("pug", pug);
 
 const app = core.server();
+app.environment();
 const config = app.config;
 
 app.listen(config.listen, () => {
