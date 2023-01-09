@@ -10,7 +10,12 @@ routes.get(
 	 * @param {any} res
 	 */
 	(req, res) => {
-		res.send({
+		// res.send({
+		// 	name: config.name,
+		// 	version: config.version,
+		// 	development: config.development
+		// });
+		res.json({
 			name: config.name,
 			version: config.version,
 			development: config.development
