@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# git update-index --chmod=+x install.sh
+# git update-index --chmod=+x webhook.sh
 git pull -f origin master
 
 npm install
