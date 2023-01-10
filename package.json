@@ -24,7 +24,6 @@
   "docs": {
     "dev": {
       "lethil": "file:../lethil",
-      "lethils": "^1.2.8",
       "myanmar-notation": "file:../myanmar-notation",
       "ttfmeta": "file:../ttfmeta"
     }
