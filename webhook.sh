@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 1. Fetch the latest origin from [master/main/branch-name]
+# git update-index --chmod=+x install.sh
 git pull -f origin master
 
 npm install
