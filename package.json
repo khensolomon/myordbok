@@ -21,13 +21,6 @@
     "pm2:kill": "pm2 kill",
     "pm2:list": "pm2 list"
   },
-  "docs": {
-    "dev": {
-      "lethil": "file:../lethil",
-      "myanmar-notation": "file:../myanmar-notation",
-      "ttfmeta": "file:../ttfmeta"
-    }
-  },
   "babel": {
     "presets": [
       [
@@ -41,16 +34,6 @@
     ],
     "plugins": []
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/khensolomon/myordbok.git"
-  },
-  "author": "Khen Solomon Lethil",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/khensolomon/myordbok/issues"
-  },
-  "homepage": "https://github.com/khensolomon/myordbok#readme",
   "dependencies": {
     "csv": "^6.2.5",
     "lethil": "^1.2.9",
@@ -92,5 +75,22 @@
     "webpack-dev-middleware": "^6.0.0",
     "webpack-hot-middleware": "^2.25.3",
     "webpack-merge": "^5.8.0"
-  }
+  },
+  "docs": {
+    "dev": {
+      "lethil": "file:../lethil",
+      "myanmar-notation": "file:../myanmar-notation",
+      "ttfmeta": "file:../ttfmeta"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khensolomon/myordbok.git"
+  },
+  "author": "Khen Solomon Lethil",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/khensolomon/myordbok/issues"
+  },
+  "homepage": "https://github.com/khensolomon/myordbok#readme"
 }
