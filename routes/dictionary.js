@@ -21,6 +21,6 @@ routes.get(
 					info: raw.info
 				})
 			)
-			.catch(() => res.status(404).send());
+			.catch(() => res.status(404).end());
 	}
 );

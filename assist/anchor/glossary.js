@@ -58,6 +58,7 @@ export function thesaurus() {
  * read glossary 'info.*.json' and return
  * @param {string} lang - language shortname
  * returns {Promise<{title:string,keyword:string,description:string,info:[]}>}
+ * @returns {Promise<any>}
  */
 export async function stats(lang) {
 	const src = path.resolve(config.media, info(lang));

@@ -10,7 +10,14 @@ const { dictionaries, table } = config.setting;
 export async function definition(req) {
 	// NOTE: info record
 	var infoFile = glossary.info();
+	/**
+	 * @type {any}
+	 */
 	var infoRaw = await json.read(infoFile);
+	/**
+	 * @param {string} identity
+	 * @param {any} digit
+	 */
 	function _record_info(identity, digit) {
 		infoRaw.info.progress.map(e => {
 			if (e.id && e.id == identity) {
