@@ -9,6 +9,7 @@ import "./assist/command.js";
 
 const app = core.command();
 app.environment();
+
 app.execute(() => {
 	// const mus = app.memoryUsage();
 	// for (var k in mus) console.log(`${k} ${Math.round(mus[k] / 1024 / 1024 * 100) / 100} MB`);
@@ -16,7 +17,7 @@ app.execute(() => {
 });
 
 // NOTE: on success
-app.on("success", e => console.log("...", e));
+app.on("success", console.log);
 
 // NOTE: on error
-app.on("error", e => console.log("...", e));
+app.on("error", console.error);

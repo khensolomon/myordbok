@@ -13,14 +13,11 @@ import { seek, route } from "lethil";
 import fonts from "../assist/fonts.js";
 
 // const {media} = core.config();
-const routes = route("navPage", "/myanmar-fonts");
+const routes = new route.gui("navPage", "/myanmar-fonts");
 
 routes.get(
 	{ url: "/:type?", route: "fonts", text: "Fonts" },
-	/**
-	 * @param {*} req
-	 * @param {*} res
-	 */
+
 	async function(req, res) {
 		var fontType = req.params.type;
 		var fontName = req.query.font;
@@ -52,35 +49,28 @@ routes.get(
 	}
 );
 
-routes.get(
-	"/download/:type?",
-	/**
-	 * @param {*} req
-	 * @param {*} res
-	 */
-	function(req, res) {
-		var fontType = req.params.type;
-		var fontName = req.query.font;
+routes.get("/download/:type?", function(req, res) {
+	var fontType = req.params.type;
+	var fontName = req.query.font;
 
-		new fonts(fontType)
-			.download(fontName)
-			.then(function(file) {
-				if (file && seek.exists(file)) {
-					res.setHeader(
-						"Content-disposition",
-						"attachment; filename=" + fontName
-					);
-					res.setHeader("Content-Type", "application");
-					fs.createReadStream(file).pipe(res);
-				} else {
-					res.status(500).end();
-				}
-			})
-			.catch(function(e) {
-				res.status(404).end(e.message);
-			});
-	}
-);
+	new fonts(fontType)
+		.download(fontName)
+		.then(function(file) {
+			if (file && seek.exists(file)) {
+				res.setHeader(
+					"Content-disposition",
+					"attachment; filename=" + fontName
+				);
+				res.setHeader("Content-Type", "application");
+				fs.createReadStream(file).pipe(res);
+			} else {
+				res.status(500).end();
+			}
+		})
+		.catch(function(e) {
+			res.status(404).end(e.message);
+		});
+});
 
 // routes.get('/scan-:type', function(req, res) {
 //   var fontType = req.params.type;

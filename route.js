@@ -1,14 +1,14 @@
 // import core from 'lethil';
-import './routes/home.js';
-import './routes/about.js';
-import './routes/grammar.js';
-import './routes/fonts.js';
-import './routes/dictionary.js';
-import './routes/definition.js';
+import "./routes/home.js";
+import "./routes/about.js";
+import "./routes/grammar.js";
+import "./routes/fonts.js";
+import "./routes/dictionary.js";
+import "./routes/definition.js";
 
-import './routes/privacy.js';
-import './routes/terms.js';
-import './routes/api.js';
+import "./routes/privacy.js";
+import "./routes/terms.js";
+import "./routes/api.js";
 
 /**
  * NOTE: development only
@@ -32,8 +32,6 @@ import './routes/api.js';
 // navPage.get({url: '/about',route: 'about', text: 'About'});
 // navPage.get({url: '/grammar',route: 'grammar', text: 'Grammar'});
 // navPage.get({url: '/myanmar-fonts',route: 'fonts', text: 'Fonts'});
-
-
 
 // app.Navigation('navDictionary')
 //   .route({url: '/dictionary/:id?',route: 'dictionary', text: 'Dictionary'});

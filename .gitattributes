@@ -1,14 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
+/test export-ignore
 /assets export-ignore
 /docs export-ignore
 /test.js export-ignore
-/ttf.js export-ignore
-webpack.*.js export-ignore
-*.md export-ignore
+# *.md export-ignore
 .env export-ignore
-package.lock.json export-ignore
 
 /.vscode export-ignore
 .travis.yml export-ignore

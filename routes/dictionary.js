@@ -2,14 +2,10 @@
 import { route } from "lethil";
 
 import { language, glossary } from "../assist/index.js";
-const routes = route("navDictionary");
+const routes = new route.gui("navDictionary");
 
 routes.get(
 	{ url: "/dictionary/:id?", route: "dictionary", text: "Dictionary" },
-	/**
-	 * @param {*} req
-	 * @param {*} res
-	 */
 	function(req, res) {
 		// read(info(lang), {});
 		// const src = path.resolve(config.media, file);

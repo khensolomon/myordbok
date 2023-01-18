@@ -228,4 +228,7 @@ const app = createApp({
 
 app.use(pinia);
 
+// app.provide("dataStore", useDataStore());
+// app.provide("storageStore", useStorageStore());
+
 app.mount("#myordbok");

@@ -19,5 +19,5 @@ app.listen(config.listen, () => {
 });
 
 app.on("error", function(e) {
-	console.log("...", e);
+	console.error("...", e);
 });

@@ -1,14 +1,7 @@
 import { route } from "lethil";
 
-const routes = route("none", "/template");
+const routes = new route.gui("none", "/template");
 
-routes.get(
-	"/",
-	/**
-	 * @param {*} req
-	 * @param {*} res
-	 */
-	function(req, res) {
-		res.render("template/definition", { title: "testing", meta: {} });
-	}
-);
+routes.get("/", function(req, res) {
+	res.render("template/definition", { title: "testing", meta: {} });
+});
