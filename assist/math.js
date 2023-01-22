@@ -9,9 +9,8 @@ export default function(num) {
 		math: {}
 	};
 	try {
-		check.object();
 		let equation = mathJs.evaluate(num);
-		if (check.object(equation)) {
+		if (check.isObject(equation)) {
 			registry.math = equation;
 			// registry.math = [JSON.parse(JSON.stringify(equation))];
 		} else {

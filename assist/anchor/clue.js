@@ -1,7 +1,6 @@
-// @ts-check
+import { db, fire, config } from "lethil";
 
-import { db, fire } from "lethil";
-
+// @ts-ignore
 import modThesaurus from "thesaurus";
 import myanmarNotation from "myanmar-notation";
 
@@ -13,6 +12,15 @@ import * as makeup from "./makeup.js";
 import * as language from "./language.js";
 
 const { glossary, synset } = setting;
+
+/**
+ * @typedef {setting & config} Child
+ * @return {Child}
+ */
+export function abc() {
+	// var abcs = [...setting,config, ];
+	return config;
+}
 
 /**
  * @param {string} word

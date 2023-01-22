@@ -1,9 +1,9 @@
 import core from "lethil";
 import mysql from "mysql2";
 // import mongodb from 'mongodb';
-import config from "./assist/anchor/config.js";
+import { setting } from "./assist/anchor/config.js";
 
-core.set("config", config.setting);
+core.set("config", setting);
 core.set("root", process.cwd());
 // core.set("root", "./test?");
 // core.set("hostname", "localhost");

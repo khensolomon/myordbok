@@ -2,6 +2,10 @@
 import path from "path";
 import { seek, config } from "lethil";
 
+/**
+ * type {{ [k: string]: any }}
+ * data {{ [k: string]: any}}
+ */
 export const data = {
 	/**
 	 * definition
@@ -42,7 +46,7 @@ export const data = {
 
 /**
  * @param {string} file
- * @param {Array} raw
+ * @param {[]} raw
  * @param {number} space
  * @returns {Promise<boolean>}
  */
@@ -66,8 +70,13 @@ export async function read(file, catchWith = []) {
 }
 
 /**
+ * type {{ [name: string]: string }}
+ * data {{[k: string]: string}}
  * @param {string} file
  * @param {string} id
+ * param {[keyof string]} id
+ * param {{data:string}} id
+ * param {[keyof data]} id
  */
 export function watch(file, id) {
 	seek.watch(file, async () => (data[id] = await read(file)));
