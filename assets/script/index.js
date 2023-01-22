@@ -28,10 +28,16 @@ const app = createApp({
 		test() {
 			console.log("test yesss");
 		},
+		/**
+		 * @param {any} e
+		 */
 		querySelector(e) {
 			return document.querySelector(e);
 		},
 
+		/**
+		 * @param {string} q
+		 */
 		async suggestion(q) {
 			return await axios
 				.get(this.reverse(this.dataStore.api.suggestion), {
@@ -39,6 +45,9 @@ const app = createApp({
 				})
 				.then(response => response.data, () => new Array());
 		},
+		/**
+		 * @param {string} ord
+		 */
 		async orthword(ord) {
 			return await axios
 				.get(this.reverse(this.dataStore.api.orthword), {
@@ -46,13 +55,19 @@ const app = createApp({
 				})
 				.then(response => response.data, () => new Array());
 		},
+		/**
+		 * @param {string} str
+		 */
 		reverse(str) {
 			return str
 				.split("")
 				.reverse()
 				.join("");
 		},
-		// Myanmar font description toggle
+		/**
+		 * Myanmar font description toggle
+		 * @param {any} str
+		 */
 		fontToggle(str) {
 			// console.log('fontToggle',str)
 			// this.dataStore.activeFontToggle = str;
@@ -62,9 +77,15 @@ const app = createApp({
 				this.dataStore.activeFontToggle = "";
 			}
 		},
+		/**
+		 * @param {string} str
+		 */
 		fontActive(str) {
 			return this.dataStore.activeFontToggle == str;
 		},
+		/**
+		 * @param {{ [x: string]: any; }} params
+		 */
 		speech(params) {
 			return (
 				this.reverse(this.dataStore.api.speech) +
@@ -77,7 +98,9 @@ const app = createApp({
 			);
 		},
 
-		// search-engine
+		/**
+		 * search-engine
+		 */
 		input_focus() {
 			this.dataStore.hasFocus = true;
 		},
@@ -120,6 +143,9 @@ const app = createApp({
 				this.dataStore.suggests = this.load_history.slice(0, 10);
 			}
 		},
+		/**
+		 * @param {any} index
+		 */
 		suggestion_hover(index) {
 			this.dataStore.wordIndex = index;
 		},
@@ -140,9 +166,15 @@ const app = createApp({
 				this.dataStore.suggests = this.load_history.slice(0, 10);
 			}
 		},
+		/**
+		 * @param {any} index
+		 */
 		isCurrent(index) {
 			return index === this.dataStore.wordIndex;
 		},
+		/**
+		 * @param {any} w
+		 */
 		updateQuery(w) {
 			if (w) {
 				return (this.dataStore.q = w);
@@ -152,12 +184,18 @@ const app = createApp({
 				this.dataStore.q = this.dataStore.wordInput;
 			}
 		},
+		/**
+		 * @param {string} w
+		 */
 		wordHighlight(w) {
 			return w.replace(
 				new RegExp(this.dataStore.wordInput, "i"),
 				"<mark>$&</mark>"
 			);
 		},
+		/**
+		 * @param {any} w
+		 */
 		async suggestion_click(w) {
 			this.$refs.input.focus();
 			// this.dataStore.OverrideFocus=true;
@@ -167,6 +205,9 @@ const app = createApp({
 			//   this.dataStore.OverrideFocus=false;
 			// },150);
 		},
+		/**
+		 * @param {any} w
+		 */
 		async save_history(w) {
 			this.storageStore.setItemAsList(this.dataStore.historyId, w);
 		},

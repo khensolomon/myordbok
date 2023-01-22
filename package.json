@@ -1,6 +1,6 @@
 {
   "name": "myordbok",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "online Myanmar dictionary",
   "main": "index.js",
   "type": "module",
@@ -19,7 +19,8 @@
     "pm2:stop": "pm2 stop MyOrdbok",
     "pm2:delete": "pm2 delete MyOrdbok",
     "pm2:kill": "pm2 kill",
-    "pm2:list": "pm2 list"
+    "pm2:list": "pm2 list",
+    "test": "mocha ./test/*.js"
   },
   "babel": {
     "presets": [
@@ -50,6 +51,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
+    "@types/pluralize": "^0.0.29",
     "@types/pug": "^2.0.6",
     "@types/webpack-hot-middleware": "^2.25.6",
     "axios": "^1.2.3",
@@ -58,6 +60,7 @@
     "css-loader": "^6.7.2",
     "file-loader": "^6.2.0",
     "mini-css-extract-plugin": "^2.7.0",
+    "mocha": "^10.2.0",
     "pinia": "^2.0.29",
     "postcss-loader": "^7.0.1",
     "sass": "^1.57.0",

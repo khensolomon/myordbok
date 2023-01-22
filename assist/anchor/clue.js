@@ -19,7 +19,7 @@ const { glossary, synset } = setting;
  * @param {boolean} watchIt - default value is false
  */
 export async function fromJSON(word, watchIt = false) {
-	console.log("fromJSON", "JSON");
+	// console.log("fromJSON", "JSON");
 	// await docket.get(glossary.word,_watchData);
 	await docket.get(fileName.word("en"), watchIt);
 	await docket.get(glossary.sense, watchIt);
@@ -54,7 +54,7 @@ export async function fromJSON(word, watchIt = false) {
   console.log('sql',word)
  */
 export async function fromMySQL(word) {
-	console.log("fromMySQL", raw, setting.table.senses, word);
+	// console.log("fromMySQL", raw, setting.table.senses, word);
 	var raw = await db.mysql.query(
 		"SELECT word AS term, wrte AS pos, sense AS v,exam FROM ?? WHERE LOWER(word) LIKE LOWER(?) ORDER BY wrte, wseq;",
 		[setting.table.senses, word]
@@ -187,11 +187,11 @@ export async function translation(word, lang = lID) {
 /**
  * definition - OPTION: ...development, ...mysqlConnection
  * @param {string} word
- * @param {boolean} live
+ * @param {boolean} [useMySQL]
  */
-export async function definition(word, live = false) {
+export async function definition(word, useMySQL) {
 	try {
-		if (setting.development && live == true) {
+		if (useMySQL == true) {
 			return await fromMySQL(word);
 		} else {
 			return await fromJSON(word, false);
@@ -199,4 +199,13 @@ export async function definition(word, live = false) {
 	} catch (error) {
 		return [];
 	}
+	// try {
+	// 	if (setting.development && live == true) {
+	// 		return await fromMySQL(word);
+	// 	} else {
+	// 		return await fromJSON(word, false);
+	// 	}
+	// } catch (error) {
+	// 	return [];
+	// }
 }

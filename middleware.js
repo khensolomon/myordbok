@@ -1,4 +1,5 @@
 import { config, route, parse } from "lethil";
+
 import { language } from "./assist/index.js";
 
 const routes = new route.gui();
@@ -22,14 +23,14 @@ routes.use(function(req, res, next) {
 	if (req.cookies.solId || req.cookies.solId != undefined) {
 		Id = req.cookies.solId;
 	} else {
-		res.cookie("solId", Id);
+		res.cookies("solId", Id);
 	}
 	var theme = "light";
 	if (req.cookies.theme || req.cookies.theme != undefined) {
 		theme = req.cookies.theme;
 	} else {
 		// NOTE: No need to set, client script should do it
-		// res.cookie("theme", theme);
+		// res.cookies("theme", theme);
 	}
 	if (req.url) {
 		const [name, solName] = req.url.split("/").filter(e => e);
@@ -37,7 +38,7 @@ routes.use(function(req, res, next) {
 			var l1 = language.byName(solName);
 			if (l1 && l1.id != Id) {
 				Id = l1.id;
-				res.cookie("solId", Id);
+				res.cookies("solId", Id);
 			}
 		}
 	}
@@ -64,7 +65,6 @@ routes.use(function(req, res, next) {
  * org: restrictMiddleWare
  */
 routes.use("/api", function(req, res, next) {
-	console.log("??", res.locals.referer);
 	if (res.locals.referer) return next();
 	res.status(404).end();
 	// if (req.xhr || req.headers.range) next();

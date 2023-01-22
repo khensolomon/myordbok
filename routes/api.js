@@ -25,7 +25,7 @@ routes.get("/search", (req, res, next) => {
 });
 
 routes.get("/speech", (req, res) => {
-	res.set({
+	res.setHeaders({
 		"Content-Type": "audio/mpeg",
 		"Accept-Ranges": "bytes",
 		"Content-Transfer-Encoding": "binary",
@@ -35,6 +35,8 @@ routes.get("/speech", (req, res) => {
 	// res.setHeader("Accept-Ranges", "bytes");
 	// res.setHeader("Content-Transfer-Encoding", "binary");
 	// res.setHeader("Pragma", "cache");
+
+	// @ts-ignore
 	speech(req.query).then(e => e.pipe(res));
 });
 

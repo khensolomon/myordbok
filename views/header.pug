@@ -2,7 +2,7 @@ div.ptl#header
   div.resz.ltrt
     div.row
       div.column
-        ol.menu.dictionary#MyOrdbok-logo(data-lang=sol.id)
+        ol.menu.dictionary#MyOrdbok-logo(data-lang=sol.id, title=title)
           each v, route in navDictionary
             li(class=v.route class={active: v.active})
               a(href='/dictionary')

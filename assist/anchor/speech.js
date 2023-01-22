@@ -1,6 +1,6 @@
 import { escape } from "querystring";
-import { ask } from "lethil";
-import { setting } from "./config.js";
+import { ask, config } from "lethil";
+// import { setting } from "./config.js";
 
 /**
  * @param {{q:string,l:string}} query
@@ -12,7 +12,15 @@ import { setting } from "./config.js";
  */
 export function speech(query) {
 	// return ask.request(setting.speechUrl.replace('$q',escape(query.q)).replace('$l',query.l));
+	// return ask.stream(
+	// 	setting.speechUrl.replace("$q", escape(query.q)).replace("$l", query.l)
+	// );
+	// console.log("setting.speechUrl", setting.speechUrl);
+	// console.log("config.speechUrl", config.speechUrl);
+	// return ask.stream(
+	// 	"https://translate.google.com/translate_tts?ie=UTF-8&q=hello&tl=en&client=tw-ob"
+	// );
 	return ask.stream(
-		setting.speechUrl.replace("$q", escape(query.q)).replace("$l", query.l)
+		config.speechUrl.replace("$q", escape(query.q)).replace("$l", query.l)
 	);
 }

@@ -1,5 +1,5 @@
 export const setting = {
-	name: "MyOrdbok",
+	name: "MyOrdbok-?",
 	// description: 'package.description',
 	// version: 'package.version',
 	locale: [

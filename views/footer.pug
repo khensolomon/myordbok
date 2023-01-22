@@ -1,12 +1,12 @@
 div.ptl#footer
   div.ltrt
     div.responsive
-      if app_locale
-        ol.menu.locale
-          each o in app_locale
-            li(class=o.id class={active: o.active})
-              a(href="?language="+o.id)
-                span= o.id.toUpperCase()
+      //- if app_locale
+      //-   ol.menu.locale
+      //-     each o in app_locale
+      //-       li(class=o.id class={active: o.active})
+      //-         a(href="?language="+o.id)
+      //-           span= o.id.toUpperCase()
 
       if visits_total || visits_count
         ol.served
@@ -17,7 +17,7 @@ div.ptl#footer
               span.Hited.by(title="Overall hits") #{visits_count}
             span served
       ol.copyright
-        li.copyright &copy; #[em 2022] #[strong= appName]
+        li.copyright &copy; #[em 2023] #[strong= appName]
       ol.menu.privacy
         each v, route in navTerms
           li(class=v.route class={active: v.active})

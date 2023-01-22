@@ -6,13 +6,56 @@ import * as grammar from "./grammar.js";
 import * as save from "./save.js";
 import * as clue from "./clue.js";
 
+/**
+ * @typedef {Object.<string, any>}} setting
+ * @property {Object.<string, any>} result
+ * @property {Object.<string, any>} result.meta
+ * @property {Object.<string, any>} result.meta.msg
+ * @property {Object.<string, any>} result.sug
+ * @property {Object.<string, any>[]} result.data
+ * property {object} result
+ * property {Object.<string, any>} result.msg
+ * @type {setting} setting
+ */
 const setting = {
 	lang: {
 		tar: "en",
-		src: primary.id
+		// src: primary.id
+		get src() {
+			// @ts-ignore
+			return primary.id;
+		}
 	},
 	type: ["notfound", "pleaseenter", "result", "definition", "translation"],
-	result: {}
+	showcase: {
+		definition: {
+			title: '"*" definition and meaning in Myanmar',
+			description: "The definition of * in Myanmar, Burmese.",
+			keywords: "*, definition | meaning, myanmar, burma, MyOrdbok"
+		}
+	},
+
+	result: {
+		meta: {
+			searchQuery: "",
+			q: "",
+			type: "",
+			name: "",
+			msg: [],
+			todo: [],
+			sug: []
+		},
+		lang: {
+			tar: "",
+			src: ""
+		},
+
+		title: "",
+		description: "",
+		keywords: "",
+		pageClass: "definition",
+		data: []
+	}
 };
 
 /**
@@ -108,7 +151,7 @@ async function hasDefinition(raw, wordNormal) {
 async function getDefinition(raw, wordNormal) {
 	var wordBase = {};
 	var wordPos = await grammar.main(wordNormal);
-	var form = wordPos.form;
+	let form = wordPos.form;
 	var status = await rowDefinition(raw, wordNormal, form);
 	if (status == false) {
 		if (wordPos.root.length) {
@@ -182,7 +225,7 @@ async function rowDefinition(raw, word, other = []) {
 		// clue.wordCategory(raw,rowMeaning.concat(other));
 		status = true;
 	}
-	if (check.number(word)) {
+	if (check.isNumber(word)) {
 		// EXAM: 10 50
 		var rowNumber = clue.wordNumber(word);
 		if (rowNumber) {
@@ -211,10 +254,57 @@ async function rowDefinition(raw, word, other = []) {
  * @param {any} e
  */
 export default async function search(e) {
-	var param = { query: { q: "" }, cookies: { solId: "" }, originalUrl: "" };
+	/**
+	 * @typedef param
+	 * @property {Object.<string, string>} param.query
+	 */
+	let param = {
+		/**
+		 * type {Object.<string, any>
+		 */
+		query: {
+			/**
+			 * @property
+			 */
+			_localSearch: "",
+			get q() {
+				return check.isValid(this._localSearch);
+			},
+			/**
+			 * @param {string} str
+			 */
+			set q(str) {
+				this._localSearch = str;
+			},
+			language: ""
+		},
+		cookies: {
+			solId: ""
+		},
+		originalUrl: ""
+	};
+
+	if (e) {
+		if (check.isObject(e)) {
+			// NOTE: gui
+			param = e;
+		} else if (check.isString(e)) {
+			// NOTE: cli
+			param.query.q = e;
+		}
+	}
+
+	if (param.query.q) {
+		// NOTE: since its already built!
+		// TODO: if the language change, setting.result.lang.tar = param.cookies.solId;
+		if (param.query.q == setting.result.meta.q) {
+			return setting.result;
+		}
+	}
+
 	setting.result = {
 		meta: {
-			q: "",
+			q: param.query.q,
 			type: setting.type[0],
 			name: "",
 			msg: [],
@@ -225,23 +315,9 @@ export default async function search(e) {
 			tar: setting.lang.tar,
 			src: setting.lang.src
 		},
-		pageClass: "definition",
 		data: []
 	};
 
-	if (e) {
-		if (check.object(e)) {
-			// NOTE: gui
-			param = e;
-		} else if (check.string(e)) {
-			// NOTE: cli
-			param.query.q = e;
-		}
-	}
-
-	if (param.query.q) {
-		setting.result.meta.q = param.query.q.replace(/\s+/g, " ").trim();
-	}
 	if (param.cookies.solId) {
 		setting.result.lang.tar = param.cookies.solId;
 	} else {
@@ -254,7 +330,7 @@ export default async function search(e) {
 	}
 
 	var keyword = setting.result.meta.q;
-	if (/[\u1000-\u109F]/.test(keyword)) {
+	if (check.isMyanmarText(keyword)) {
 		// NOTE: from Myanmar
 		setting.result.meta.unicode = true;
 	} else if (keyword) {
@@ -262,12 +338,33 @@ export default async function search(e) {
 		if (setting.result.lang.tar == setting.result.lang.src) {
 			// NOTE: definition
 			if (await hasDefinition(setting.result.data, keyword)) {
+				// setting.result.title = `${setting.result.meta.q} definition in Myanmar`;
+				// setting.result.description = `the definition of ${
+				// 	setting.result.meta.q
+				// } in Myanmar`;
+				// setting.result.keywords = `${
+				// 	setting.result.meta.q
+				// }, definition and meaning, myanmar, burma, MyOrdbok`;
+				setting.result.title = setting.showcase.definition.title.replace(
+					/\*/g,
+					setting.result.meta.q
+				);
+				setting.result.description = setting.showcase.definition.description.replace(
+					/\*/g,
+					setting.result.meta.q
+				);
+				setting.result.keywords = setting.showcase.definition.keywords.replace(
+					/\*/g,
+					setting.result.meta.q
+				);
+
 				setPageProperty(3);
 			}
 		} else {
 			// NOTE: translation,
 			var t1 = await clue.translation(keyword, setting.result.lang.tar);
 			if (t1.length) {
+				setting.result.title = "found translation";
 				for (const row of t1) {
 					var raw = {
 						word: row.v,
