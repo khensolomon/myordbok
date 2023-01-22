@@ -1,4 +1,4 @@
-import { db, load } from "lethil";
+import { db } from "lethil";
 import { config, json, glossary } from "../anchor/index.js";
 
 const { dictionaries, table } = config.setting;

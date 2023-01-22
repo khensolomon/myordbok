@@ -21,12 +21,7 @@ export const setting = {
 			name: "International",
 			my: "အပြည်ပြည်ဆိုင်ရာ",
 			lang: [
-				{
-					id: "en",
-					name: "English",
-					my: "အင်္ဂလိပ်",
-					default: true
-				},
+				{ id: "en", name: "English", my: "အင်္ဂလိပ်", default: true },
 				{ id: "iw", name: "Hebrew", my: "ဟေဗြဲ" },
 				{ id: "el", name: "Greek", my: "ဂရိ" },
 				{ id: "pt", name: "Portuguese", my: "ပေါ်တူဂီ" },
