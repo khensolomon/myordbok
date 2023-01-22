@@ -19,11 +19,10 @@ const { glossary } = setting;
 
 /**
  * @param {string} file
- * @param {string | undefined} [name]
+ * @param {string} [lang] - lang || primary.id
  */
-export function get(file, name = primary.id) {
-	// name = name || primary.id || "";
-	return file.replace(/EN/, name);
+export function get(file, lang) {
+	return path.resolve(config.media, file).replace(/EN/, lang || primary.id);
 }
 
 /**
@@ -34,17 +33,17 @@ export function word(lang) {
 }
 
 /**
- * @param {any} lang
+ * @param {string} [lang] - lang || primary.id
  */
-export function info(lang = primary.id) {
-	return get(glossary.info, lang);
+export function info(lang) {
+	return get(glossary.info, lang || primary.id);
 }
 
 /**
- * @param {any} lang
+ * @param {string} [lang] - lang || primary.id
  */
-export function zero(lang = primary.id) {
-	return get(glossary.zero, lang);
+export function zero(lang) {
+	return get(glossary.zero, lang || primary.id);
 }
 
 /**
