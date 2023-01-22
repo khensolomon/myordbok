@@ -5,15 +5,29 @@ export const useStorageStore = defineStore("storage", {
 	getters: {},
 	actions: {
 		/**
+		 * refer to: aid.check.isValid (xss)
+		 * @param {string} str
 		 * @returns {string}
-		 * @param {string} id
+		 */
+		isValid(str) {
+			return str
+				.replace(/(\r\n|\n|\r)/gm, "")
+				.replace(/(\<|%3C)(.*)(\>|%3E)/g, "")
+				.replace(/(\<|%3C|\>|%3E)(.*)(\<|%3C\>|%3E)/g, "")
+				.replace(/(\/|%2F)(.*)(\>|%3E)/g, "")
+				.replace(/(\/\*)/g, "")
+				.trim();
+		},
+		/**
 		 * @example .getItem('key')
+		 * @param {string} id
+		 * @returns {string}
 		 */
 		getItem(id) {
 			try {
-				var e = localStorage.getItem(id);
-				if (e) {
-					return e;
+				const val = localStorage.getItem(id);
+				if (val) {
+					return this.isValid(val);
 				}
 				return "";
 			} catch (error) {
@@ -22,24 +36,29 @@ export const useStorageStore = defineStore("storage", {
 		},
 
 		/**
-		 * @returns {void}
+		 * @example .setItem('key','value)
 		 * @param {string} id
 		 * @param {string} value
-		 * @example .setItem('key','value)
+		 * @returns {void}
 		 */
 		setItem(id, value) {
-			localStorage.setItem(id, value);
+			const val = this.isValid(value);
+			if (val != "") {
+				localStorage.setItem(id, val);
+			}
 		},
 
 		/**
-		 * @returns {string[]}
 		 * @param {string} id
+		 * @returns {string[]}
 		 */
 		getItemAsList(id) {
 			var e = this.getItem(id);
 			if (e) {
-				var o = JSON.parse(e);
-				if (Array.isArray(o)) return o;
+				const val = JSON.parse(e);
+				if (Array.isArray(val)) {
+					return val.filter(v => this.isValid(v));
+				}
 			}
 			return [];
 		},
@@ -61,8 +80,8 @@ export const useStorageStore = defineStore("storage", {
 		},
 
 		/**
-		 * @returns {object}
 		 * @param {string} id
+		 * @returns {object}
 		 */
 		getItemAsObject(id) {
 			var e = this.getItem(id);
@@ -73,9 +92,9 @@ export const useStorageStore = defineStore("storage", {
 			return {};
 		},
 		/**
-		 * @returns {void}
 		 * @param {string} id
 		 * @param {any} value
+		 * @returns {void}
 		 */
 		setItemAsObject(id, value) {
 			this.setItem(id, JSON.stringify(value));
