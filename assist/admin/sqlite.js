@@ -1,8 +1,8 @@
-import { db, load } from "lethil";
-import { config, json, glossary } from "../anchor/index.js";
+import { db } from "lethil";
+import { config } from "../anchor/index.js";
 import sqliteDatabase from "sqlite3";
 
-const { dictionaries, table } = config.setting;
+const { table } = config.setting;
 
 /**
  * export word [synmap]

@@ -1,5 +1,5 @@
 import { db, load, seek } from "lethil";
-import { config, json, glossary } from "../anchor/index.js";
+import { config, json } from "../anchor/index.js";
 
 const { table } = config.setting;
 

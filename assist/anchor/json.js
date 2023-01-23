@@ -1,11 +1,6 @@
-// import fs from 'fs';
 import path from "path";
 import { seek, config } from "lethil";
 
-/**
- * type {{ [k: string]: any }}
- * data {{ [k: string]: any}}
- */
 export const data = {
 	/**
 	 * definition
@@ -72,11 +67,12 @@ export async function read(file, catchWith = []) {
 /**
  * type {{ [name: string]: string }}
  * data {{[k: string]: string}}
+ * @typedef {[keyof data]} abc
  * @param {string} file
  * @param {string} id
  * param {[keyof string]} id
  * param {{data:string}} id
- * param {[keyof data]} id
+ * param {{[keykey:string]:any}} id
  */
 export function watch(file, id) {
 	seek.watch(file, async () => (data[id] = await read(file)));

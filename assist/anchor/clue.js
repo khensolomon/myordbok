@@ -14,15 +14,6 @@ import * as language from "./language.js";
 const { glossary, synset } = setting;
 
 /**
- * @typedef {setting & config} Child
- * @return {Child}
- */
-export function abc() {
-	// var abcs = [...setting,config, ];
-	return config;
-}
-
-/**
  * @param {string} word
  * @param {boolean} watchIt - default value is false
  */
