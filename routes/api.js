@@ -1,5 +1,5 @@
-import { route } from "lethil";
-import { config, search, speech, suggestion } from "../assist/index.js";
+import { route, config } from "lethil";
+import { search, speech, suggestion } from "../assist/index.js";
 
 const routes = new route.gui("_", "/api");
 
@@ -11,11 +11,14 @@ routes.get("/", (_req, res) => {
 	// });
 	res.json({
 		name: config.name,
-		// @ts-ignore
 		version: config.version,
-		// @ts-ignore
 		development: config.development
 	});
+});
+
+routes.get("/config", (_req, res) => {
+	console.log("config.glossary.sense", config.glossary.sense);
+	res.json(config);
 });
 
 routes.get("/search", (req, res, next) => {
