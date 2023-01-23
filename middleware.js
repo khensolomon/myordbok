@@ -56,7 +56,6 @@ routes.use(function(req, res, next) {
 		res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
 		res.locals.host = ref.protocol + "//" + req.headers.host;
 	}
-
 	res.locals.sol = language.byId(Id) || l0;
 	next();
 });
@@ -64,8 +63,23 @@ routes.use(function(req, res, next) {
 /**
  * org: restrictMiddleWare
  */
+// routes.use("/api", function(req, res, next) {
+// 	if (res.locals.referer) return next();
+// 	res.status(404).end();
+// 	// if (req.xhr || req.headers.range) next();
+// });
 routes.use("/api", function(req, res, next) {
-	if (res.locals.referer) return next();
+	if (res.locals.referer) {
+		// NOTE: internal
+		return next();
+	} else {
+		// NOTE: external
+		const base = Object.keys(config.restrict),
+			user = Object.keys(req.query),
+			key = base.find(e => user.includes(e));
+		if (key && config.restrict[key] == req.query[key]) {
+			return next();
+		}
+	}
 	res.status(404).end();
-	// if (req.xhr || req.headers.range) next();
 });
