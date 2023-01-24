@@ -4,16 +4,48 @@ import { config, json, glossary } from "../anchor/index.js";
 const { dictionaries, table } = config.setting;
 
 /**
- * export definition [en, sense, usage]
- * @param {any} req
+ * @typedef {Object<string,any>} TypeOfInfoProgress
+ * @property {string} name
+ * @property {string} my
+ * @property {number} [percentage] - 87.5
+ * @property {string} [id] - word
+ * @property {number} [status] - 58497
+ *
+ * @typedef {Object} TypeOfInfo
+ * @property {string} title
+ * @property {string} keyword
+ * @property {string} description
+ * @property {string} description
+ * @property {Object} info
+ * @property {string} info.header
+ * @property {TypeOfInfoProgress[]} info.progress
+ * @property {string[]} info.context
+ * property {Object} info.progress
+ * property {string} info.progress.name
+ * property {string} info.progress.my
+ * property {string} info.progress.my
+ * property {number} [info.progress.percentage] - 87.5
+ * property {string} [info.progress.id] - word
+ * property {number} [info.progress.status] - 58497
+ * property {{name:string,my:string,percentage?:number, id?:string, status?:number}[]} info.progress
  */
-export async function definition(req) {
+
+/**
+ * @param {string} file
+ * @returns {Promise<TypeOfInfo>}
+ */
+function info_read(file) {
+	return json.read(file);
+}
+/**
+ * export definition [en, sense, usage]
+ * @param {any} _req
+ */
+export async function definition(_req) {
 	// NOTE: info record
-	var infoFile = glossary.info();
-	/**
-	 * @type {any}
-	 */
-	var infoRaw = await json.read(infoFile);
+	const infoFile = glossary.info();
+	const infoRaw = await info_read(infoFile);
+
 	/**
 	 * @param {string} identity
 	 * @param {any} digit
@@ -37,7 +69,7 @@ export async function definition(req) {
 			[table.senses, table.senses]
 		)
 		.then(() => {
-			console.log("...", "reset wrid");
+			console.log(" >", "reset wrid");
 		})
 		.catch(e => console.error(e));
 	// Change wrid AS w to wrid AS k
@@ -50,18 +82,24 @@ export async function definition(req) {
 			var _wi = glossary.word();
 			await json.write(_wi, raw);
 			_record_info("word", raw.length);
-			console.log("...", "en(word):", raw.length, _wi);
+			console.log(" >", "en(word):", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
+	/*
+	word:{w:wrid, v:word}
+	sense:{i:id,w:wrid,t:wrte,v:sense}
+	usage:{i:id,v:exam}
+	*/
 	await db.mysql
 		.query(
 			"SELECT id AS i, wrid AS w, wrte AS t, sense AS v FROM ?? WHERE word IS NOT NULL AND sense IS NOT NULL ORDER BY wrte, wseq;",
 			[table.senses]
 		)
 		.then(async raw => {
-			await json.write(config.setting.glossary.sense, raw);
+			var _wi = glossary.sense();
+			await json.write(_wi, raw);
 			_record_info("sense", raw.length);
-			console.log("...", "sense:", raw.length, config.setting.glossary.sense);
+			console.log(" >", "sense:", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
 	await db.mysql
@@ -70,9 +108,10 @@ export async function definition(req) {
 			[table.senses]
 		)
 		.then(async raw => {
-			await json.write(config.setting.glossary.usage, raw);
+			var _wi = glossary.usage();
+			await json.write(_wi, raw);
 			_record_info("usage", raw.length);
-			console.log("...", "usage:", raw.length, config.setting.glossary.usage);
+			console.log(" >", "usage:", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
 	await json.write(infoFile, infoRaw, 2);
@@ -81,22 +120,23 @@ export async function definition(req) {
 
 /**
  * export translation [ar, da, de, el ...]
- * @param {any} req
+ * @param {any} _req
  */
-export async function translation(req) {
+export async function translation(_req) {
 	for (const continental of dictionaries) {
 		for (const lang of continental.lang) {
 			if (!lang.hasOwnProperty("default")) {
 				var infoFile = glossary.info(lang.id);
-				var infoRaw = await json.read(infoFile);
+				const infoRaw = await info_read(infoFile);
 				await db.mysql
 					.query(
 						"SELECT word AS v, sense AS e FROM ?? WHERE word IS NOT NULL AND sense IS NOT NULL AND sense <> '';",
 						[table.other.replace("0", lang.id)]
 					)
 					.then(raw => {
-						json.write(glossary.word(lang.id), raw);
-						console.info("...", lang.id, raw.length);
+						var _wi = glossary.word(lang.id);
+						json.write(_wi, raw);
+						console.info(" >", lang.id, raw.length, _wi);
 
 						infoRaw.info.progress.map(e => {
 							if (e.id && e.id == "word") {
@@ -108,7 +148,7 @@ export async function translation(req) {
 					.catch(e => console.error(e));
 				await json.write(infoFile, infoRaw, 2);
 			} else {
-				console.info("...", lang.id, "skip");
+				console.info(" >", lang.id, "skip");
 			}
 		}
 	}
@@ -126,9 +166,10 @@ export async function wordSynset(req) {
 	await db.mysql
 		.query("SELECT id AS w, word AS v FROM ??;", [table.synset])
 		.then(async raw => {
-			await json.write(config.setting.glossary.synset, raw);
+			var _wi = glossary.synset();
+			await json.write(_wi, raw);
 			// await json.write('./test/words.json',raw);
-			console.info("words->synset", raw.length);
+			console.info(" >", "words->synset", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
 	return "Done";
@@ -136,20 +177,20 @@ export async function wordSynset(req) {
 
 /**
  * export word [synmap]
- * @param {any} req
+ * @param {any} _req
  * SELECT root_id AS w, wrid AS v, derived_type AS d, word_type AS t FROM ??;
  * SELECT wrid AS v, dete AS d, wrte AS t FROM ??;
  */
-export async function wordSynmap(req) {
-	// throw '...needed to enable manually, column have been changed, word into wordid (wrid)';
+export async function wordSynmap(_req) {
+	// throw ' >needed to enable manually, column have been changed, word into wordid (wrid)';
 	await db.mysql
 		.query("SELECT id AS w, word AS v, dete AS d, wrte AS t FROM ??;", [
 			table.synmap
 		])
 		.then(async raw => {
-			// await json.write('./test/derives.json',raw);
-			await json.write(config.setting.glossary.synmap, raw);
-			console.info("derives->synmap", raw.length);
+			var _wi = glossary.synmap();
+			await json.write(_wi, raw);
+			console.info(" >", "derives->synmap", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
 	return "Done ";

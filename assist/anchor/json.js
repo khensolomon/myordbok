@@ -41,8 +41,8 @@ export const data = {
 
 /**
  * @param {string} file
- * @param {[]} raw
- * @param {number} space
+ * @param {any[]|any} raw
+ * @param {number} [space]
  * @returns {Promise<boolean>}
  */
 export async function write(file, raw, space = 0) {
@@ -53,9 +53,12 @@ export async function write(file, raw, space = 0) {
 }
 
 /**
+ * @template T
  * @param {string} file
- * @param {Array<any> | object} catchWith
- * @returns {Promise<Array<any> | object>}
+ * param {Array<any> | object} catchWith
+ * returns {Promise<Array<any> | object>}
+ * @param {T | []} [catchWith]
+ * @returns {Promise<T>}
  */
 export async function read(file, catchWith = []) {
 	return await seek
@@ -65,14 +68,11 @@ export async function read(file, catchWith = []) {
 }
 
 /**
- * type {{ [name: string]: string }}
- * data {{[k: string]: string}}
- * @typedef {[keyof data]} abc
+ * typedef {[keyof data]} abc
  * @param {string} file
  * @param {string} id
  * param {[keyof string]} id
  * param {{data:string}} id
- * param {{[keykey:string]:any}} id
  */
 export function watch(file, id) {
 	seek.watch(file, async () => (data[id] = await read(file)));

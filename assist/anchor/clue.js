@@ -6,12 +6,12 @@ import myanmarNotation from "myanmar-notation";
 
 import { setting } from "./config.js";
 import * as docket from "./json.js";
-import * as fileName from "./glossary.js";
+import * as glossary from "./glossary.js";
 import * as chat from "./chat.js";
 import * as makeup from "./makeup.js";
 import * as language from "./language.js";
 
-const { glossary, synset } = setting;
+const { fileName, synset } = setting;
 
 /**
  * @param {string} word
@@ -19,17 +19,19 @@ const { glossary, synset } = setting;
  */
 export async function fromJSON(word, watchIt = false) {
 	// console.log("fromJSON", "JSON");
-	// await docket.get(glossary.word,_watchData);
-	await docket.get(fileName.word("en"), watchIt);
-	await docket.get(glossary.sense, watchIt);
-	await docket.get(glossary.usage, watchIt);
+	// await docket.get(fileName.word,_watchData);
+	await docket.get(glossary.word("en"), watchIt);
+	await docket.get(fileName.sense, watchIt);
+	await docket.get(fileName.usage, watchIt);
 
 	var raw = docket.data.en.filter(e => chat.compare(word, e.v));
 	if (raw.length) {
 		return docket.data.sense
 			.filter(o => raw.find(e => e.w == o.w))
 			.map(function(o) {
+				// console.log("row.id", o.id, o);
 				var row = {};
+				row.id = o.i;
 				row.pos = synset[o.t].name;
 				row.term = raw.find(e => e.w == o.w).v;
 				row.v = makeup.sense(o.v);
@@ -54,8 +56,8 @@ export async function fromJSON(word, watchIt = false) {
  */
 export async function fromMySQL(word) {
 	// console.log("fromMySQL", raw, setting.table.senses, word);
-	var raw = await db.mysql.query(
-		"SELECT word AS term, wrte AS pos, sense AS v,exam FROM ?? WHERE LOWER(word) LIKE LOWER(?) ORDER BY wrte, wseq;",
+	const raw = await db.mysql.query(
+		"SELECT id, word AS term, wrte AS pos, sense AS v,exam FROM ?? WHERE LOWER(word) LIKE LOWER(?) ORDER BY wrte, wseq;",
 		[setting.table.senses, word]
 	);
 	if (raw.length) {
@@ -64,7 +66,8 @@ export async function fromMySQL(word) {
 			o.v = makeup.sense(o.v);
 			o.type = "meaning";
 			o.exam = o.exam ? makeup.exam(o.exam) : [];
-			return (({ term, v, pos, type, exam }) => ({
+			return (({ id, term, v, pos, type, exam }) => ({
+				id,
 				term,
 				v,
 				pos,
@@ -145,7 +148,7 @@ export function wordCategory(raw, arr) {
  */
 export async function suggestion(word, lang) {
 	return await docket
-		.get(fileName.word(lang))
+		.get(glossary.word(lang))
 		.then(e =>
 			e
 				.filter(e => e.v.toLowerCase().startsWith(word.toLowerCase()))
@@ -165,7 +168,7 @@ const lID = language.primary.id;
 export async function translation(word, lang = lID) {
 	var raw = [];
 	if (lang == lID) return raw;
-	const row = await docket.get(fileName.word(lang));
+	const row = await docket.get(glossary.word(lang));
 
 	row
 		.filter(e => chat.compare(word, e.v))

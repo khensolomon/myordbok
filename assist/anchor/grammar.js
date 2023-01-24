@@ -4,7 +4,7 @@ import { setting } from "./config.js";
 import * as docket from "./json.js";
 import * as chat from "./chat.js";
 
-const { glossary, synmap, synset } = setting;
+const { fileName, synmap, synset } = setting;
 
 /**
  * @param {number} Id
@@ -102,8 +102,8 @@ function rootOf(row) {
  * @param {boolean} pluralize_attempt
  */
 export async function main(keyword, pluralize_attempt = false) {
-	const grammar = await docket.get(glossary.synset);
-	const form = await docket.get(glossary.synmap);
+	const grammar = await docket.get(fileName.synset);
+	const form = await docket.get(fileName.synmap);
 	const result = { root: [], form: [], kind: [] };
 
 	var type = form
@@ -143,11 +143,11 @@ export async function main(keyword, pluralize_attempt = false) {
  * @param {string} keyword
  */
 export async function pos(keyword) {
-	const grammar = await docket.get(glossary.synset);
+	const grammar = await docket.get(fileName.synset);
 	/**
 	 * @type {any}
 	 */
-	const form = await docket.get(glossary.synmap);
+	const form = await docket.get(fileName.synmap);
 	var result = {
 		// root, pos, form
 		form: [],
@@ -169,8 +169,8 @@ export async function pos(keyword) {
  * @param {string} keyword
  */
 export async function base(keyword) {
-	const grammar = await docket.get(glossary.synset);
-	const form = await docket.get(glossary.synmap);
+	const grammar = await docket.get(fileName.synset);
+	const form = await docket.get(fileName.synmap);
 	const result = {
 		form: [],
 		root: []

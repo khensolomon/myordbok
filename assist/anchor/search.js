@@ -1,5 +1,6 @@
 import { check, fire, parse } from "lethil";
 import pluralize from "pluralize";
+import { evaluate } from "mathjs";
 
 import { primary } from "./language.js";
 import * as grammar from "./grammar.js";
@@ -206,9 +207,9 @@ async function getDefinition(raw, wordNormal) {
 async function rowDefinition(raw, word, other = []) {
 	var status = false;
 	// NOTE: force from MySQL
-	// var rowMeaning = await clue.definition(word, true);
+	var rowMeaning = await clue.definition(word, true);
 	// NOTE: force from JSON
-	var rowMeaning = await clue.definition(word);
+	// var rowMeaning = await clue.definition(word);
 	if (rowMeaning.length) {
 		// EXAM: us britian
 		var rowTerm = rowMeaning
@@ -330,6 +331,7 @@ export default async function search(e) {
 	}
 
 	var keyword = setting.result.meta.q;
+	// setting.result.mathjstest = evaluate("12%20/%20(2.3%20+%200.7)");
 	if (check.isMyanmarText(keyword)) {
 		// NOTE: from Myanmar
 		setting.result.meta.unicode = true;

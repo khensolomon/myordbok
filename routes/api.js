@@ -17,14 +17,11 @@ routes.get("/", (_req, res) => {
 });
 
 routes.get("/config", (_req, res) => {
-	console.log("config.glossary.sense", config.glossary.sense);
 	res.json(config);
 });
 
-routes.get("/search", (req, res, next) => {
-	search(req)
-		.then(raw => res.send(raw))
-		.catch(next);
+routes.get("/search", (req, res) => {
+	search(req).then(raw => res.json(raw));
 });
 
 routes.get("/speech", (req, res) => {

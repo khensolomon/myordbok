@@ -5,7 +5,7 @@ const fs = require("fs");
 // const util = require('util');
 const path = require("path");
 
-const { glossary } = app.Config;
+const { fileName } = app.Config;
 // const {utility} = app.Common;
 
 // const mediaTest = path.join(app.Config.media,'test');
@@ -34,20 +34,20 @@ const cliTask = {
 
 cliTask.check = async keyword => {
 	// keyword = app.Param[1] ed ing tive tory tion ness less ly ;
-	// var words = await readJSON(glossary.synset);
+	// var words = await readJSON(fileName.synset);
 	// words = words.filter(e=>e.v.endsWith("ed"))
 	// await writeJSON('_wordbreak_ed.json',words);
-	// var words = await readJSON(glossary.synset);
+	// var words = await readJSON(fileName.synset);
 	// words = words.filter(e=>e.v.endsWith("ed")).map(w => wordbreak(w))
 	// await writeJSON('_wordbreak_ed.json',words);
 	// return 'done';
 	// return keyword
 	if (keyword) {
-		var filename = "_wordbreak_0.json".replace(0, keyword);
-		var words = await readJSON(glossary.synset);
+		var file = "_wordbreak_0.json".replace(0, keyword);
+		var words = await readJSON(fileName.synset);
 		words = words.filter(e => e.v.endsWith(keyword)).map(w => wordbreak(w.v));
-		await writeJSON(filename, words);
-		return filename;
+		await writeJSON(file, words);
+		return file;
 	} else {
 		return "endsWith?";
 	}

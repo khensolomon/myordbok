@@ -10,8 +10,8 @@ const { table } = config.setting;
  * SQLite testing
  */
 export async function main(req) {
-	// config.setting.glossary.sqlite = '/dev/lidea/assets/tmp/node-word.db';
-	// const sqlite = new sqliteDatabase.Database(config.setting.glossary.sqlite);
+	// config.setting.fileName.sqlite = '/dev/lidea/assets/tmp/node-word.db';
+	// const sqlite = new sqliteDatabase.Database(config.setting.fileName.sqlite);
 	// db.serialize(() => {
 	//   // db.run("CREATE TABLE lorem (info TEXT)");
 	//   db.run("CREATE TABLE IF NOT EXISTS 'list' ('id' INTEGER, 'word' TEXT, 'derived' INTEGER)");
@@ -30,8 +30,8 @@ export async function main(req) {
 
 	// db.close();
 	await createWord();
-	return "Yes " + config.setting.glossary.sqlite;
-	// return 'Yes '+ config.setting.glossary.synmap;
+	return "Yes " + config.setting.fileName.sqlite;
+	// return 'Yes '+ config.setting.fileName.synmap;
 }
 /**
  * Word list -> list
