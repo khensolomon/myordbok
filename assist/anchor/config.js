@@ -21,7 +21,12 @@ export const setting = {
 			name: "International",
 			my: "အပြည်ပြည်ဆိုင်ရာ",
 			lang: [
-				{ id: "en", name: "English", my: "အင်္ဂလိပ်", default: true },
+				{
+					id: "en",
+					name: "English",
+					my: "အင်္ဂလိပ်",
+					default: true
+				},
 				{ id: "iw", name: "Hebrew", my: "ဟေဗြဲ" },
 				{ id: "el", name: "Greek", my: "ဂရိ" },
 				{ id: "pt", name: "Portuguese", my: "ပေါ်တူဂီ" },
@@ -100,7 +105,10 @@ export const setting = {
 		{ id: 9, type: 1, name: "2nd person" },
 		{ id: 10, type: 1, name: "plural past" }
 	],
-	glossary: {
+	/**
+	 * to fileName
+	 */
+	fileName: {
 		word: "glossary/EN.json",
 		sense: "glossary/sense.json", // definition
 		usage: "glossary/usage.json", // example
