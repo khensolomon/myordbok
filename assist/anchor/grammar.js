@@ -1,10 +1,10 @@
 import { fire } from "lethil";
 
-import { setting } from "./config.js";
+import config from "./config.js";
 import * as docket from "./json.js";
 import * as chat from "./chat.js";
 
-const { fileName, synmap, synset } = setting;
+const { fileName, synmap, synset } = config;
 
 /**
  * @param {number} Id

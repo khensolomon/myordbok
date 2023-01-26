@@ -3,7 +3,7 @@ import core from "./core.js";
 import "./middleware.js";
 import "./route.js";
 
-core.set("pug", pug);
+core.set.only("pug", pug);
 
 const app = core.server();
 app.environment();

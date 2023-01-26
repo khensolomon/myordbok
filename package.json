@@ -9,6 +9,7 @@
     "serve": "node serve.js",
     "task": "node task.js",
     "start": "node serve.js",
+    "test": "mocha ./test/*.js",
     "test:port": "set PORT=5000 && node serve",
     "test:listen": "set LISTEN= && node serve",
     "test:production": "set NODE_ENV=production && node serve",
@@ -19,8 +20,7 @@
     "pm2:stop": "pm2 stop MyOrdbok",
     "pm2:delete": "pm2 delete MyOrdbok",
     "pm2:kill": "pm2 kill",
-    "pm2:list": "pm2 list",
-    "test": "mocha ./test/*.js"
+    "pm2:list": "pm2 list"
   },
   "babel": {
     "presets": [
@@ -54,7 +54,7 @@
     "@types/pluralize": "^0.0.29",
     "@types/pug": "^2.0.6",
     "@types/webpack-hot-middleware": "^2.25.6",
-    "axios": "^1.2.3",
+    "axios": "^1.2.5",
     "babel-loader": "^9.1.2",
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.7.2",

@@ -1,6 +1,5 @@
 import path from "path";
-import { config } from "lethil";
-import { setting } from "./config.js";
+import config from "./config.js";
 
 import { write, read } from "./json.js";
 import { replaceSpaceWithDot } from "./chat.js";
@@ -16,7 +15,7 @@ function root(file) {
  * @param {string} file
  */
 async function readJSON(file) {
-	return await read(root(file), {});
+	return await read(root(file));
 }
 
 /**
@@ -24,7 +23,7 @@ async function readJSON(file) {
  * @returns {Promise<{chapter:[],note:any,context:any,pos:[{info:any,root:any}],other:[]}>}
  */
 export async function main() {
-	return await readJSON(setting.grammar.live);
+	return readJSON(config.grammar.live);
 }
 
 /**
@@ -32,7 +31,7 @@ export async function main() {
  */
 export async function pos(id) {
 	return await readJSON(
-		setting.grammar.pos.replace("*", replaceSpaceWithDot(id))
+		config.grammar.pos.replace("*", replaceSpaceWithDot(id))
 	);
 }
 
@@ -41,7 +40,7 @@ export async function pos(id) {
  * @param {any} req
  */
 export async function update(req) {
-	var raw = await readJSON(setting.grammar.structure);
+	var raw = await readJSON(config.grammar.structure);
 	var structure = raw.structure;
 	for (const abc of structure.file) {
 		if (abc.hasOwnProperty("child")) {
@@ -61,12 +60,12 @@ export async function update(req) {
 		} else {
 			raw.chapter.push(abc.id);
 			raw[abc.id] = await readJSON(
-				setting.grammar.structure.replace("structure", abc.id)
+				config.grammar.structure.replace("structure", abc.id)
 			);
 		}
 	}
 	delete raw.structure;
 	// await writeSON(raw);
-	await write(root(setting.grammar.live), raw);
+	await write(root(config.grammar.live), raw);
 	return "done grammar update";
 }

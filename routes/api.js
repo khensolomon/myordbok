@@ -1,5 +1,5 @@
-import { route, config } from "lethil";
-import { search, speech, suggestion } from "../assist/index.js";
+import { route } from "lethil";
+import { config, search, speech, suggestion } from "../assist/index.js";
 
 const routes = new route.gui("_", "/api");
 

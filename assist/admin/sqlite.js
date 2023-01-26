@@ -2,7 +2,7 @@ import { db } from "lethil";
 import { config } from "../anchor/index.js";
 import sqliteDatabase from "sqlite3";
 
-const { table } = config.setting;
+const { table } = config;
 
 /**
  * export word [synmap]
@@ -10,8 +10,8 @@ const { table } = config.setting;
  * SQLite testing
  */
 export async function main(req) {
-	// config.setting.fileName.sqlite = '/dev/lidea/assets/tmp/node-word.db';
-	// const sqlite = new sqliteDatabase.Database(config.setting.fileName.sqlite);
+	// config.fileName.sqlite = '/dev/lidea/assets/tmp/node-word.db';
+	// const sqlite = new sqliteDatabase.Database(config.fileName.sqlite);
 	// db.serialize(() => {
 	//   // db.run("CREATE TABLE lorem (info TEXT)");
 	//   db.run("CREATE TABLE IF NOT EXISTS 'list' ('id' INTEGER, 'word' TEXT, 'derived' INTEGER)");
@@ -30,8 +30,8 @@ export async function main(req) {
 
 	// db.close();
 	await createWord();
-	return "Yes " + config.setting.fileName.sqlite;
-	// return 'Yes '+ config.setting.fileName.synmap;
+	return "Yes " + config.fileName.sqlite;
+	// return 'Yes '+ config.fileName.synmap;
 }
 /**
  * Word list -> list

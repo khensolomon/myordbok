@@ -1,7 +1,9 @@
-import { config, seek } from "lethil";
+import { seek } from "lethil";
 import { resolve } from "path";
 // import util from "util";
 import ttfMeta from "ttfmeta";
+
+import config from "./anchor/config.js";
 
 // const { media } = config;
 

@@ -1,17 +1,19 @@
-import { db, fire, config } from "lethil";
+import { db, fire } from "lethil";
+import config from "./config.js";
 
 // @ts-ignore
 import modThesaurus from "thesaurus";
 import myanmarNotation from "myanmar-notation";
 
-import { setting } from "./config.js";
 import * as docket from "./json.js";
 import * as glossary from "./glossary.js";
 import * as chat from "./chat.js";
 import * as makeup from "./makeup.js";
 import * as language from "./language.js";
 
-const { fileName, synset } = setting;
+const { fileName, synset } = config;
+
+export function tmp() {}
 
 /**
  * @param {string} word
@@ -55,10 +57,10 @@ export async function fromJSON(word, watchIt = false) {
   console.log('sql',word)
  */
 export async function fromMySQL(word) {
-	// console.log("fromMySQL", raw, setting.table.senses, word);
+	// console.log("fromMySQL", raw, config.table.senses, word);
 	const raw = await db.mysql.query(
 		"SELECT id, word AS term, wrte AS pos, sense AS v,exam FROM ?? WHERE LOWER(word) LIKE LOWER(?) ORDER BY wrte, wseq;",
-		[setting.table.senses, word]
+		[config.table.senses, word]
 	);
 	if (raw.length) {
 		return raw.map(function(o) {
@@ -202,7 +204,7 @@ export async function definition(word, useMySQL) {
 		return [];
 	}
 	// try {
-	// 	if (setting.development && live == true) {
+	// 	if (config.development && live == true) {
 	// 		return await fromMySQL(word);
 	// 	} else {
 	// 		return await fromJSON(word, false);

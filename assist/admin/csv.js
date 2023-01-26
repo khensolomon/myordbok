@@ -3,7 +3,7 @@ import path from "path";
 import { config } from "../anchor/index.js";
 import * as csv from "csv";
 
-const { table } = config.setting;
+const { table } = config;
 
 const outputDirectory = "/dev/lidea/assets/tmp/";
 

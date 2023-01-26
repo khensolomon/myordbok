@@ -5,7 +5,7 @@ import path from "path";
 import { db } from "lethil";
 import { config, json, chat } from "../anchor/index.js";
 
-const { table } = config.setting;
+const { table } = config;
 
 // import {table,docket,makeup,fileName,chat,language,information} from './dictionary.Config.js';
 

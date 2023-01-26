@@ -1,5 +1,6 @@
 import path from "path";
-import { seek, config } from "lethil";
+import { seek } from "lethil";
+import config from "./config.js";
 
 export const data = {
 	/**
@@ -70,9 +71,8 @@ export async function read(file, catchWith = []) {
 /**
  * typedef {[keyof data]} abc
  * @param {string} file
- * @param {string} id
- * param {[keyof string]} id
- * param {{data:string}} id
+ * param {string} id
+ * @param {keyof data} id
  */
 export function watch(file, id) {
 	seek.watch(file, async () => (data[id] = await read(file)));
@@ -85,8 +85,11 @@ export function watch(file, id) {
  */
 export async function get(file, watchIt = false) {
 	const src = path.resolve(config.media, file);
-	// console.log("json.get", file);
-	var id = path.parse(file).name;
+	/**
+	 * @type {keyof data}
+	 */
+	// @ts-ignore
+	const id = path.parse(file).name;
 	if (data.hasOwnProperty(id) && Array.isArray(data[id]) && data[id].length) {
 		return data[id];
 	} else if (seek.exists(src)) {

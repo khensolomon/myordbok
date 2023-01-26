@@ -1,6 +1,7 @@
 import { escape } from "querystring";
-import { ask, config } from "lethil";
-// import { setting } from "./config.js";
+import { ask } from "lethil";
+
+import config from "./config.js";
 
 /**
  * @param {{q:string,l:string}} query

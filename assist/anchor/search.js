@@ -1,6 +1,6 @@
 import { check, fire, parse } from "lethil";
 import pluralize from "pluralize";
-import { evaluate } from "mathjs";
+// import { evaluate } from "mathjs";
 
 import { primary } from "./language.js";
 import * as grammar from "./grammar.js";

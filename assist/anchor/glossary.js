@@ -1,10 +1,9 @@
-import { config } from "lethil";
 import path from "path";
-import { setting } from "./config.js";
+import config from "./config.js";
 import { primary } from "./language.js";
 import { read } from "./json.js";
 
-const { fileName } = setting;
+const { fileName } = config;
 
 // const { media, fileName } = setting;
 // fileName.word = path.join(media, fileName.word);

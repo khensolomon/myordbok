@@ -10,6 +10,6 @@ export { speech } from "./speech.js";
 export { visits } from "./visits.js";
 // export * as save from './save.js';
 export { default as search } from "./search.js";
-export * as config from "./config.js";
+export { default as config } from "./config.js";
 
 // export default {table,docket,makeup,fileName,chat,language,information};

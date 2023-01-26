@@ -1,6 +1,6 @@
-import { setting } from "./config.js";
+import config from "./config.js";
 
-const { dictionaries } = setting;
+const { dictionaries } = config;
 
 export const list = dictionaries;
 

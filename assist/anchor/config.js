@@ -1,5 +1,7 @@
-export const setting = {
-	name: "MyOrdbok-?",
+import { set } from "lethil";
+
+const settings = {
+	name: "MyOrdbok",
 	// description: 'package.description',
 	// version: 'package.version',
 	locale: [
@@ -105,9 +107,6 @@ export const setting = {
 		{ id: 9, type: 1, name: "2nd person" },
 		{ id: 10, type: 1, name: "plural past" }
 	],
-	/**
-	 * to fileName
-	 */
 	fileName: {
 		word: "glossary/EN.json",
 		sense: "glossary/sense.json", // definition
@@ -132,4 +131,4 @@ export const setting = {
 	}
 };
 
-export default { setting };
+export default set.merge(settings);
