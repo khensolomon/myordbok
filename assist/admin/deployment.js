@@ -13,6 +13,6 @@ export const createOrUpdate = deploy.ecosystem.createOrUpdate;
  */
 export function transferEnvironment(req) {
 	const env = "~/OneDrive/env/dev/myordbok/web/.env";
-	// deploy.environment.transfer(env);
-	return deploy.environment.buildCommandLine(env);
+	return deploy.environment.transfer(env);
+	// return deploy.environment.buildCommandLine(env);
 }
