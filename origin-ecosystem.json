@@ -35,11 +35,11 @@
       "ref": "origin/master",
       "repo": "<APP_REPO>",
       "fetch": "all",
-      "path": "<APP_ROOT>-repo",
+      "path": "<APP_ROOT>-git",
       "pre-deploy": "",
       "post-deploy": "",
       "pre-setup": "",
-      "post-setup": "ln -s <APP_ROOT>-repo/current <APP_ROOT>",
+      "post-setup": "ln -s <APP_ROOT>-git/current <APP_ROOT>",
       "pre-deploy-local": ""
     }
   },

@@ -1,58 +1,148 @@
-const app = require("../..");
-const wordbreak = require(".");
+import path from "path";
+// import fs from "fs";
+// import util from "util";
+import { seek, parse, param, fire } from "lethil";
+// import { config } from "../anchor/index.js";
+import { default as wordbreak } from "./index.js";
 
-const fs = require("fs");
-// const util = require('util');
-const path = require("path");
+// const { fileName } = config;
 
-const { fileName } = app.Config;
-// const {utility} = app.Common;
+// const mediaTest = path.join(config.media,'test');
 
-// const mediaTest = path.join(app.Config.media,'test');
+/**
+ * @param {string} file
+ * @returns {Promise<string[]>}
+ */
+async function readFile(file) {
+	return seek
+		.read(file)
+		.then(function(e) {
+			// if (isJSON) {
+			// 	const content = JSON.parse(e);
+			// 	if (content instanceof Array) {
+			// 		return content;
+			// 	}
+			// } else {
+			// 	return fire.array.unique(parse.csv(e));
+			// }
 
-const readJSON = async file =>
-	await fs.promises
-		.readFile(file)
-		.then(e => JSON.parse(e))
+			try {
+				if (typeof e == "string") {
+					return JSON.parse(e);
+				}
+				throw "?";
+			} catch (error) {
+				return fire.array.unique(parse.csv(e));
+			}
+		})
 		.catch(() => []);
-const writeJSON = async (file, raw) =>
-	await fs.promises
-		.writeFile(
-			path.join(app.Config.media, "test", file),
-			JSON.stringify(raw, null, 1)
-		)
-		.then(() => true)
-		.catch(() => false);
-const cliActive = name =>
-	Object.keys(cliTask).find(e => e == name) || "default";
+}
 
-const cliTask = {
-	default: () => "????",
-	info: () => Object.keys(cliTask)
-};
-// ord
-
-cliTask.check = async keyword => {
-	// keyword = app.Param[1] ed ing tive tory tion ness less ly ;
-	// var words = await readJSON(fileName.synset);
-	// words = words.filter(e=>e.v.endsWith("ed"))
-	// await writeJSON('_wordbreak_ed.json',words);
-	// var words = await readJSON(fileName.synset);
-	// words = words.filter(e=>e.v.endsWith("ed")).map(w => wordbreak(w))
-	// await writeJSON('_wordbreak_ed.json',words);
-	// return 'done';
-	// return keyword
-	if (keyword) {
-		var file = "_wordbreak_0.json".replace(0, keyword);
-		var words = await readJSON(fileName.synset);
-		words = words.filter(e => e.v.endsWith(keyword)).map(w => wordbreak(w.v));
-		await writeJSON(file, words);
-		return file;
-	} else {
-		return "endsWith?";
+/**
+ * @param {string} file
+ * param {string | Uint8Array} raw
+ * @param {string | Uint8Array} raw
+ * @returns {Promise<boolean>}
+ */
+async function writeFile(file, raw) {
+	// path.join(config.media, "test", file);
+	if (typeof raw != "string") {
+		raw = JSON.stringify(raw, null, 1);
 	}
-	// return wordbreak('tested')
-};
+	return seek
+		.write(file, raw)
+		.then(function(_e) {
+			return true;
+		})
+		.catch(() => false);
+}
 
-module.exports = async taskName =>
-	await cliTask[cliActive(taskName)](app.Param[1]);
+class Assignments {
+	/**
+	 * Working
+	 * @param {string} [keyword]
+	 */
+	default(keyword) {
+		if (keyword) {
+			const result = wordbreak(keyword);
+			return result;
+		} else {
+			return "default ?";
+		}
+	}
+
+	/**
+	 * @param {string } [file] - ./assist/wordbreak/word.csv
+	 */
+	async file(file = "./assist/wordbreak/word.csv") {
+		const src = await readFile(file);
+
+		const tar = src.map(function(keyword) {
+			return {
+				[keyword]: wordbreak(keyword)
+			};
+		});
+
+		var res = "";
+
+		for (const key in tar) {
+			if (Object.hasOwnProperty.call(tar, key)) {
+				const element = tar[key];
+				const name = Object.keys(element)[0];
+				res += name;
+				res += "\r\n";
+
+				// console.log(element);
+
+				for (const k in element[name]) {
+					if (Object.hasOwnProperty.call(element[name], k)) {
+						const es = element[name][k];
+						// console.log(es);
+
+						res += ` ${es.id} ${es.word}\r\n`;
+						// res += "";
+					}
+				}
+			}
+		}
+
+		const tarFileName = path.basename(file);
+		const tarFilePath = file.replace(
+			tarFileName,
+			tarFileName.replace(/.([^.]*)$/, "-result.v0.$1")
+			// tarFileName.replace(/.([^.]*)$/, ".v0.json")
+		);
+
+		return writeFile(tarFilePath, res)
+			.then(function(e) {
+				return `> total:${tar.length}, at:${tarFilePath}`;
+			})
+			.catch(function(e) {
+				return e;
+			});
+	}
+}
+
+const cliTask = new Assignments();
+
+/**
+ * @param {any} req
+ * @example
+ * node run wordbreak
+ * node run wordbreak loving
+ * node run wordbreak file ./assist/wordbreak/word.csv
+ */
+export default function(req) {
+	if (param.length > 1) {
+		/**
+		 * @type {keyof cliTask}
+		 */
+		// @ts-ignore - nothing is wrong with es6
+		const name = param[1];
+		if (name in cliTask && typeof cliTask[name] == "function") {
+			return cliTask[name](param[2]);
+		}
+		return cliTask.default(name);
+	}
+	return cliTask.default();
+}

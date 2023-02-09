@@ -68,7 +68,7 @@ const settings = {
 		}
 	],
 	/**
-	 * @type {{name: string;shortname: string;}[]}
+	 * @type { {name: string;shortname: string;}[] }
 	 */
 	synset: [
 		{ name: "Noun", shortname: "n" },
@@ -113,8 +113,8 @@ const settings = {
 		usage: "glossary/usage.json", // example
 		synset: "glossary/synset.json", // words
 		synmap: "glossary/synmap.json", //derives
-		zero: "glossary/zero.EN.csv", //no result
-		info: "glossary/info.EN.json",
+		zero: "glossary/zero/EN.csv", //no result
+		info: "glossary/info/EN.json",
 		thesaurus: "glossary/thesaurus.json",
 		sqlite: "glossary/tmp-sqlite.db"
 	},

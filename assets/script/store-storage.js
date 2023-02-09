@@ -16,6 +16,7 @@ export const useStorageStore = defineStore("storage", {
 				.replace(/(\<|%3C|\>|%3E)(.*)(\<|%3C\>|%3E)/g, "")
 				.replace(/(\/|%2F)(.*)(\>|%3E)/g, "")
 				.replace(/(\/\*)/g, "")
+				.replace(/\s+|%22|%3E|%3C/g, " ")
 				.trim();
 		},
 		/**

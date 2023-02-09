@@ -8,7 +8,7 @@ import * as save from "./save.js";
 import * as clue from "./clue.js";
 
 /**
- * @typedef {Object.<string, any>}} setting
+ * @typedef {Object.<string, any>}} settings
  * @property {Object.<string, any>} result
  * @property {Object.<string, any>} result.meta
  * @property {Object.<string, any>} result.meta.msg
@@ -16,9 +16,9 @@ import * as clue from "./clue.js";
  * @property {Object.<string, any>[]} result.data
  * property {object} result
  * property {Object.<string, any>} result.msg
- * @type {setting} setting
+ * @type {settings} settings
  */
-const setting = {
+const settings = {
 	lang: {
 		tar: "en",
 		// src: primary.id
@@ -64,13 +64,13 @@ const setting = {
  * @param {number} id
  */
 function setPageProperty(id) {
-	if (setting.result.meta.type == setting.type[0]) {
-		if (setting.type[id]) {
-			setting.result.meta.type = setting.type[id];
+	if (settings.result.meta.type == settings.type[0]) {
+		if (settings.type[id]) {
+			settings.result.meta.type = settings.type[id];
 			if (id > 2) {
 				// NOTE: Used in pug
-				setting.result.meta.type = setting.type[2];
-				setting.result.meta.name = setting.type[id];
+				settings.result.meta.type = settings.type[2];
+				settings.result.meta.name = settings.type[id];
 			}
 		}
 	}
@@ -86,10 +86,10 @@ function setPageProperty(id) {
  */
 async function hasDefinition(raw, wordNormal) {
 	var status = false;
-	setting.result.meta.msg.push({ msg: "lookup", list: [wordNormal] });
+	settings.result.meta.msg.push({ msg: "lookup", list: [wordNormal] });
 	if (await getDefinition(raw, wordNormal)) {
 		// EXAM: NO -> adelsstand
-		setting.result.meta.msg.push({ msg: "okey" });
+		settings.result.meta.msg.push({ msg: "okey" });
 		status = true;
 	} else if (/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/.test(wordNormal)) {
 		// EXAM: NO -> Administratortilgang
@@ -100,21 +100,21 @@ async function hasDefinition(raw, wordNormal) {
 			.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g)
 			.filter(e => e && e != wordNormal);
 		if (words.length) {
-			setting.result.meta.msg.push({ msg: "split", list: words });
+			settings.result.meta.msg.push({ msg: "split", list: words });
 			for (const word of words) {
 				if (await getDefinition(raw, word)) {
 					status = true;
-					setting.result.meta.msg.push({ msg: "partially", list: [word] });
+					settings.result.meta.msg.push({ msg: "partially", list: [word] });
 				} else {
-					save.keyword(word, setting.result.lang.tar);
-					setting.result.meta.msg.push({ msg: "save 1 ?" });
+					save.keyword(word, settings.result.lang.tar);
+					settings.result.meta.msg.push({ msg: "save 1 ?" });
 					var rowThesaurus = clue.wordThesaurus(word);
 					if (rowThesaurus) {
-						setting.result.meta.sug.push({
+						settings.result.meta.sug.push({
 							word: word,
 							list: rowThesaurus.v
 						});
-						setting.result.meta.msg.push({
+						settings.result.meta.msg.push({
 							msg: "0 to suggestion".replace("0", word)
 						});
 					}
@@ -125,22 +125,22 @@ async function hasDefinition(raw, wordNormal) {
 			// skillfulness, utile
 			// decennary decennium
 			// EXAM: adeptness adroitness deftness "facility quickness skillfulness"
-			setting.result.meta.msg.push({ msg: "save 2 ?" });
-			save.keyword(wordNormal, setting.result.lang.tar);
+			settings.result.meta.msg.push({ msg: "save 2 ?" });
+			save.keyword(wordNormal, settings.result.lang.tar);
 			var rowThesaurus = clue.wordThesaurus(wordNormal);
 			if (rowThesaurus) {
-				setting.result.meta.sug.push({
+				settings.result.meta.sug.push({
 					word: wordNormal,
 					list: rowThesaurus.v
 				});
-				setting.result.meta.msg.push({
+				settings.result.meta.msg.push({
 					msg: "0 to suggestion".replace("0", wordNormal)
 				});
 			}
 		}
 	} else {
 		// NOTE: å ø æ
-		setting.result.meta.msg.push({ msg: "is this a word?" });
+		settings.result.meta.msg.push({ msg: "is this a word?" });
 	}
 	return status;
 }
@@ -173,7 +173,7 @@ async function getDefinition(raw, wordNormal) {
 		// EXAM: britains -> britain, lovings -> loving
 		var wordSingular = pluralize.singular(wordNormal);
 		if (pluralize.isPlural(wordNormal) && wordSingular != wordNormal) {
-			setting.result.meta.msg.push({ msg: "pluralize", list: [wordSingular] });
+			settings.result.meta.msg.push({ msg: "pluralize", list: [wordSingular] });
 			wordBase = await grammar.main(wordSingular, true);
 			status = await rowDefinition(raw, wordSingular, wordBase.form);
 			if (status == false) {
@@ -188,12 +188,12 @@ async function getDefinition(raw, wordNormal) {
 		}
 	}
 	// if (status == false) {
-	//   setting.result.meta.msg.push({msg:'save?'});
+	//   settings.result.meta.msg.push({msg:'save?'});
 	//   for (const row of wordPos.root) {
 	//     var abc = wordbreak(row.v);
 	//     console.log('save?',row.v,abc)
 	//   }
-	//   setting.result.meta.msg.push({msg:'root',list:wordPos.root});
+	//   settings.result.meta.msg.push({msg:'root',list:wordPos.root});
 	//   // console.log('save?',wordPos,wordBase)
 	// }
 	return status;
@@ -230,8 +230,8 @@ async function rowDefinition(raw, word, other = []) {
 		// EXAM: 10 50
 		var rowNumber = clue.wordNumber(word);
 		if (rowNumber) {
-			// setting.result.meta.todo.push('notation');
-			setting.result.meta.msg.push({ msg: "notation", list: [word] });
+			// settings.result.meta.todo.push('notation');
+			settings.result.meta.msg.push({ msg: "notation", list: [word] });
 			rowMeaning.push(rowNumber);
 			if (!rowMeaning.find(e => e.pos == "thesaurus")) {
 				var rowThesaurus = clue.wordThesaurus(word);
@@ -256,10 +256,10 @@ async function rowDefinition(raw, word, other = []) {
  */
 export default async function search(e) {
 	/**
-	 * @typedef param
-	 * @property {Object.<string, string>} param.query
+	 * @typedef options
+	 * @property {Object.<string, string>} options.query
 	 */
-	let param = {
+	let options = {
 		/**
 		 * type {Object.<string, any>
 		 */
@@ -288,85 +288,85 @@ export default async function search(e) {
 	if (e) {
 		if (check.isObject(e)) {
 			// NOTE: gui
-			param = e;
+			options = e;
 		} else if (check.isString(e)) {
 			// NOTE: cli
-			param.query.q = e;
+			options.query.q = e;
 		}
 	}
 
-	if (param.query.q) {
+	if (options.query.q) {
 		// NOTE: since its already built!
-		// TODO: if the language change, setting.result.lang.tar = param.cookies.solId;
-		if (param.query.q == setting.result.meta.q) {
-			return setting.result;
+		// TODO: if the language change, settings.result.lang.tar = options.cookies.solId;
+		if (options.query.q == settings.result.meta.q) {
+			return settings.result;
 		}
 	}
 
-	setting.result = {
+	settings.result = {
 		meta: {
-			q: param.query.q,
-			type: setting.type[0],
+			q: options.query.q,
+			type: settings.type[0],
 			name: "",
 			msg: [],
 			todo: [],
 			sug: []
 		},
 		lang: {
-			tar: setting.lang.tar,
-			src: setting.lang.src
+			tar: settings.lang.tar,
+			src: settings.lang.src
 		},
 		data: []
 	};
 
-	if (param.cookies.solId) {
-		setting.result.lang.tar = param.cookies.solId;
+	if (options.cookies.solId) {
+		settings.result.lang.tar = options.cookies.solId;
 	} else {
 		// NOTE: possibly attacks
 	}
 
 	// NOTE: test purpose ?language=no,en,ja
-	if (param.query.language) {
-		setting.result.lang.tar = param.query.language;
+	if (options.query.language) {
+		settings.result.lang.tar = options.query.language;
 	}
 
-	var keyword = setting.result.meta.q;
-	// setting.result.mathjstest = evaluate("12%20/%20(2.3%20+%200.7)");
+	var keyword = settings.result.meta.q;
+	// settings.result.mathjstest = evaluate("12%20/%20(2.3%20+%200.7)");
 	if (check.isMyanmarText(keyword)) {
 		// NOTE: from Myanmar
-		setting.result.meta.unicode = true;
+		settings.result.meta.unicode = true;
 	} else if (keyword) {
 		// NOTE: to Myanmar
-		if (setting.result.lang.tar == setting.result.lang.src) {
+		if (settings.result.lang.tar == settings.result.lang.src) {
 			// NOTE: definition
-			if (await hasDefinition(setting.result.data, keyword)) {
-				// setting.result.title = `${setting.result.meta.q} definition in Myanmar`;
-				// setting.result.description = `the definition of ${
-				// 	setting.result.meta.q
+			if (await hasDefinition(settings.result.data, keyword)) {
+				// settings.result.title = `${settings.result.meta.q} definition in Myanmar`;
+				// settings.result.description = `the definition of ${
+				// 	settings.result.meta.q
 				// } in Myanmar`;
-				// setting.result.keywords = `${
-				// 	setting.result.meta.q
+				// settings.result.keywords = `${
+				// 	settings.result.meta.q
 				// }, definition and meaning, myanmar, burma, MyOrdbok`;
-				setting.result.title = setting.showcase.definition.title.replace(
+				settings.result.title = settings.showcase.definition.title.replace(
 					/\*/g,
-					setting.result.meta.q
+					settings.result.meta.q
 				);
-				setting.result.description = setting.showcase.definition.description.replace(
+				settings.result.description = settings.showcase.definition.description.replace(
 					/\*/g,
-					setting.result.meta.q
+					settings.result.meta.q
 				);
-				setting.result.keywords = setting.showcase.definition.keywords.replace(
+				settings.result.keywords = settings.showcase.definition.keywords.replace(
 					/\*/g,
-					setting.result.meta.q
+					settings.result.meta.q
 				);
 
 				setPageProperty(3);
 			}
 		} else {
 			// NOTE: translation,
-			var t1 = await clue.translation(keyword, setting.result.lang.tar);
+			var t1 = await clue.translation(keyword, settings.result.lang.tar);
 			if (t1.length) {
-				setting.result.title = "found translation";
+				settings.result.title = "found translation";
 				for (const row of t1) {
 					var raw = {
 						word: row.v,
@@ -377,7 +377,7 @@ export default async function search(e) {
 							setPageProperty(4);
 						}
 					}
-					setting.result.data.push(raw);
+					settings.result.data.push(raw);
 				}
 			} else {
 				// NOTE: is_sentence?
@@ -385,7 +385,7 @@ export default async function search(e) {
 				if (wordlist.length > 1) {
 					// Note: sentence
 					for (const word of fire.array.unique(wordlist)) {
-						var t2 = await clue.translation(word, setting.result.lang.tar);
+						var t2 = await clue.translation(word, settings.result.lang.tar);
 						if (t2.length) {
 							for (const row of t2) {
 								var raw = {
@@ -397,13 +397,13 @@ export default async function search(e) {
 										setPageProperty(4);
 									}
 								}
-								setting.result.data.push(raw);
+								settings.result.data.push(raw);
 							}
-						} else if (await hasDefinition(setting.result.data, word)) {
+						} else if (await hasDefinition(settings.result.data, word)) {
 							setPageProperty(4);
 						}
 					}
-				} else if (await hasDefinition(setting.result.data, keyword)) {
+				} else if (await hasDefinition(settings.result.data, keyword)) {
 					// NOTE: definition from src
 					setPageProperty(3);
 				}
@@ -413,5 +413,5 @@ export default async function search(e) {
 		// NOTE: pleaseenter
 		setPageProperty(1);
 	}
-	return setting.result;
+	return settings.result;
 }

@@ -12,13 +12,13 @@ routes.get("", () => "?");
 routes.get("apple", () => "Did you know apple is fruit?");
 routes.get("orange", () => "Orange is good for health");
 
-routes.get("environment", async req =>
-	import("./admin/deployment.js").then(e => e.transferEnvironment(req))
-);
+routes.get("ecosystem", async function(req) {
+	return import("./admin/deployment.js").then(e => e.createOrUpdate(req));
+});
 
-routes.get("ecosystem", async req =>
-	import("./admin/deployment.js").then(e => e.createOrUpdate(req))
-);
+routes.get("environment", async function(req) {
+	return import("./admin/deployment.js").then(e => e.transferEnvironment(req));
+});
 
 routes.get("export-grammar", thuddar.update);
 
@@ -35,6 +35,16 @@ routes.get("gist-patch", gist.patch);
 routes.get("gist-remove", gist.remove);
 
 routes.get("works", working.main);
+
+// routes.get("wordbreak", working.main);
+// routes.get("wordbreak", function(req) {
+// 	console.log(req);
+// 	return req.route.searchParams.get("info");
+// });
+
+routes.get("wordbreak", async function(req) {
+	return import("./wordbreak/test.js").then(async e => e.default(req));
+});
 
 routes.get("upgrade/:id?", req =>
 	import("./admin/upgrade.js").then(e => e.default(req))

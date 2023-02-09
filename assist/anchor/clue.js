@@ -1,8 +1,8 @@
 import { db, fire } from "lethil";
 import config from "./config.js";
 
-// @ts-ignore
-import modThesaurus from "thesaurus";
+import thesaurus from "word-thesaurus";
+
 import myanmarNotation from "myanmar-notation";
 
 import * as docket from "./json.js";
@@ -86,9 +86,18 @@ export async function fromMySQL(word) {
  */
 export function wordThesaurus(word, sensitive = false) {
 	/**
-	 * @type {string[]}
+	 * type {string[]}
 	 */
-	var row = modThesaurus.find(word.toLowerCase());
+	var row = thesaurus.find(word.toLowerCase());
+
+	// row.map(e => e.raw);
+	var a1 = row.map(e => e.raw);
+	// var a2 = [].concat.apply([],a1);
+	var a2 = a1.reduce(function(prev, next) {
+		return prev.concat(next);
+	});
+	// [...new Set()];
+	const tmpSolution = [...new Set(a2)];
 
 	if (row.length) {
 		// var okey = (sensitive == true && row.find(e => e == word) == null);
@@ -99,7 +108,7 @@ export function wordThesaurus(word, sensitive = false) {
 			type: "suggestion",
 			pos: "thesaurus",
 			kind: ["odd"],
-			v: row
+			v: tmpSolution
 		};
 	}
 	return null;

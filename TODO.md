@@ -3,6 +3,7 @@
 - General
   - [ ] menu active vs child
   - [ ] menu - {param} (:type?)
+  - [ ] Directory of pm2 cwd for development and production
 
 - Lookup
   - [x] get rootWord when no definition found
@@ -17,6 +18,9 @@
   - [ ] math
   - [x] notation
   - [ ] roman
+
+- Thesaurus
+  - [ ] word-thesaurus
 
 - Grammar
   - [x] Grammar
@@ -59,3 +63,11 @@
 - SEO
   - [ ] description
   - [x] meta->og:image
+
+- Structure changes
+  - `glossary/info.*.json` change to `glossary/info/*.json`
+    - [x] development
+    - [ ] production (gstorage)
+  - `glossary/zero.*.csv` change to `glossary/zero/*.csv`
+    - [x] development
+    - [ ] production (gstorage)

@@ -44,6 +44,7 @@ function info_read(file) {
 export async function definition(_req) {
 	// NOTE: info record
 	const infoFile = glossary.info();
+
 	const infoRaw = await info_read(infoFile);
 
 	/**
