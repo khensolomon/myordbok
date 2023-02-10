@@ -69,21 +69,37 @@ routes.use(function(req, res, next) {
 // 	// if (req.xhr || req.headers.range) next();
 // });
 routes.use("/api", function(req, res, next) {
-	if (req.headers.referer) {
-		var ref = parse.url(req.headers.referer);
-		res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
-	}
-	if (res.locals.referer) {
-		// NOTE: internal
-		return next();
-	} else {
-		// NOTE: external
-		const base = Object.keys(config.restrict),
-			user = Object.keys(req.query),
-			key = base.find(e => user.includes(e));
-		if (key && config.restrict[key] == req.query[key]) {
-			return next();
-		}
-	}
-	res.status(404).end();
+	// config.referer;
+	// console.log("api", config.referer);
+	return next();
+	// if (req.headers.referer) {
+	// 	var ref = parse.url(req.headers.referer);
+	// 	res.locals.referer = req.headers.host == ref.host;
+	// }
+	// if (res.locals.referer) {
+	// 	console.log("res.locals.referer");
+	// 	// NOTE: internal
+	// 	return next();
+	// } else {
+	// 	// NOTE: external
+	// 	const base = Object.keys(config.restrict),
+	// 		user = Object.keys(req.query),
+	// 		key = base.find(e => user.includes(e));
+	// 	if (key && config.restrict[key] == req.query[key]) {
+	// 		return next();
+	// 	}
+	// }
+	// if (res.locals.referer) {
+	// 	// NOTE: internal
+	// 	return next();
+	// } else {
+	// 	// NOTE: external
+	// 	const base = Object.keys(config.restrict),
+	// 		user = Object.keys(req.query),
+	// 		key = base.find(e => user.includes(e));
+	// 	if (key && config.restrict[key] == req.query[key]) {
+	// 		return next();
+	// 	}
+	// }
+	// res.status(404).end();
 });
