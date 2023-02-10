@@ -51,11 +51,11 @@ routes.use(function(req, res, next) {
 	res.locals.appDescription = config.description;
 	res.locals.environment = config.development;
 
-	if (req.headers.referer) {
-		var ref = parse.url(req.headers.referer);
-		res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
-		res.locals.host = ref.protocol + "//" + req.headers.host;
-	}
+	// if (req.headers.referer) {
+	// 	var ref = parse.url(req.headers.referer);
+	// 	res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
+	// 	res.locals.host = ref.protocol + "//" + req.headers.host;
+	// }
 	res.locals.sol = language.byId(Id) || l0;
 	next();
 });
@@ -69,6 +69,10 @@ routes.use(function(req, res, next) {
 // 	// if (req.xhr || req.headers.range) next();
 // });
 routes.use("/api", function(req, res, next) {
+	if (req.headers.referer) {
+		var ref = parse.url(req.headers.referer);
+		res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
+	}
 	if (res.locals.referer) {
 		// NOTE: internal
 		return next();
