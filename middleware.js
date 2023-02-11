@@ -83,14 +83,14 @@ routes.use("/api", function(req, res, next) {
 	if (res.locals.referer) {
 		console.log("res.locals.referer == true");
 		// NOTE: internal
-		return next();
+		next();
 	} else {
 		// NOTE: external
 		const base = Object.keys(config.restrict),
 			user = Object.keys(req.query),
 			key = base.find(e => user.includes(e));
 		if (key && config.restrict[key] == req.query[key]) {
-			return next();
+			next();
 		}
 	}
 
