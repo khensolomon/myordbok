@@ -70,12 +70,16 @@ routes.use(function(req, res, next) {
 // });
 routes.use("/api", function(req, res, next) {
 	// config.referer;
-	// console.log("api", config.referer);
+	console.log("api", config.referer);
 	// return next();
 	if (req.headers.referer) {
 		var ref = parse.url(req.headers.referer);
 		res.locals.referer = req.headers.host == ref.host;
 
+		// ref.host == host;
+		// req.headers.referer -> https://myordbok.lethil.me
+		// req.headers.host -> myordbok
+		// ref.host - myordbok.lethil.me
 		console.log("req.headers.referer", req.headers.referer);
 		console.log("req.headers.host", req.headers.host);
 		console.log("ref.host", ref.host);
@@ -83,14 +87,14 @@ routes.use("/api", function(req, res, next) {
 	if (res.locals.referer) {
 		console.log("res.locals.referer == true");
 		// NOTE: internal
-		next();
+		return next();
 	} else {
 		// NOTE: external
 		const base = Object.keys(config.restrict),
 			user = Object.keys(req.query),
 			key = base.find(e => user.includes(e));
 		if (key && config.restrict[key] == req.query[key]) {
-			next();
+			return next();
 		}
 	}
 
@@ -106,5 +110,5 @@ routes.use("/api", function(req, res, next) {
 	// 		return next();
 	// 	}
 	// }
-	// res.status(404).end();
+	res.status(404).end();
 });
