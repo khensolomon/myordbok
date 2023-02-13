@@ -69,9 +69,7 @@ routes.use(function(req, res, next) {
 // 	// if (req.xhr || req.headers.range) next();
 // });
 routes.use("/api", function(req, res, next) {
-	// config.referer;
-	console.log("api", config.referer);
-	// return next();
+	// config.referer.test(req.headers.host);
 	if (req.headers.referer) {
 		var ref = parse.url(req.headers.referer);
 		res.locals.referer = req.headers.host == ref.host;
@@ -79,13 +77,10 @@ routes.use("/api", function(req, res, next) {
 		// ref.host == host;
 		// req.headers.referer -> https://myordbok.lethil.me
 		// req.headers.host -> myordbok
+		// req.headers.host -> myordbok.lethil.me
 		// ref.host - myordbok.lethil.me
-		console.log("req.headers.referer", req.headers.referer);
-		console.log("req.headers.host", req.headers.host);
-		console.log("ref.host", ref.host);
 	}
 	if (res.locals.referer) {
-		console.log("res.locals.referer == true");
 		// NOTE: internal
 		return next();
 	} else {

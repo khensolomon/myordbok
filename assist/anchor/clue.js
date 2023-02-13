@@ -13,8 +13,6 @@ import * as language from "./language.js";
 
 const { fileName, synset } = config;
 
-export function tmp() {}
-
 /**
  * @param {string} word
  * @param {boolean} watchIt - default value is false
@@ -82,6 +80,7 @@ export async function fromMySQL(word) {
 }
 
 /**
+ * @todo merge to pos
  * @param {string} word
  */
 export function wordThesaurus(word, sensitive = false) {
@@ -93,11 +92,21 @@ export function wordThesaurus(word, sensitive = false) {
 	// row.map(e => e.raw);
 	var a1 = row.map(e => e.raw);
 	// var a2 = [].concat.apply([],a1);
-	var a2 = a1.reduce(function(prev, next) {
-		return prev.concat(next);
-	});
+	// var a2 = a1.reduce(function(prev, next) {
+	// 	return prev.concat(next);
+	// });
+	/**
+	 * @type {string[]}
+	 */
+	var tmpSolution = [];
+	if (a1.length) {
+		var a2 = a1.reduce(function(prev, next) {
+			return prev.concat(next);
+		});
+		tmpSolution = [...new Set(a2)];
+	}
 	// [...new Set()];
-	const tmpSolution = [...new Set(a2)];
+	// const tmpSolution = [...new Set(a2)];
 
 	if (row.length) {
 		// var okey = (sensitive == true && row.find(e => e == word) == null);
@@ -200,11 +209,10 @@ export async function translation(word, lang = lID) {
 /**
  * definition - OPTION: ...development, ...mysqlConnection
  * @param {string} word
- * @param {boolean} [useMySQL]
  */
-export async function definition(word, useMySQL) {
+export async function definition(word) {
 	try {
-		if (useMySQL == true) {
+		if (config.fromDatabase == "yes" || config.fromDatabase == "true") {
 			return await fromMySQL(word);
 		} else {
 			return await fromJSON(word, false);

@@ -1,5 +1,14 @@
 # Todo
 
+- Must fixed
+- Reduce of empty array with no initial value
+  - ?q=word form
+  - ?q=court card
+  - ref
+    - ?q=natural action -> ok
+- API referer
+  - Not working
+
 - General
   - [ ] menu active vs child
   - [ ] menu - {param} (:type?)

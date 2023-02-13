@@ -10,4 +10,7 @@ routes.get({ url: "/", route: "definition", text: "Definition" }, function(
 	search(req)
 		.then(raw => res.render("definition/layout", raw))
 		.catch(e => res.status(404).send(e.message));
+	// search(req)
+	// 	.then(raw => res.render("definition/layout", raw))
+	// 	.catch(e => res.status(404).send(e.message));
 });

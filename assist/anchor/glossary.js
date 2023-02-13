@@ -1,7 +1,7 @@
 import path from "path";
 import config from "./config.js";
 import { primary } from "./language.js";
-import { read } from "./json.js";
+import { read, write } from "./json.js";
 
 const { fileName } = config;
 
@@ -16,6 +16,54 @@ const { fileName } = config;
 // fileName.thesaurus = path.join(media, fileName.thesaurus);
 // fileName.sqlite = path.join(media, fileName.sqlite);
 
+// /**
+//  * @param {string} page
+//  * @param {string} [query] - empty
+//  * version-page-query
+//  * @example cache("definition", keyword)
+//  */
+// export function cache(page, query = "") {
+// 	return path
+// 		.resolve(config.fileName.cache)
+// 		.replace("version", config.version.replace(/\./g, ""))
+// 		.replace("page", page)
+// 		.replace("query", query.replace(/\s+/g, "_").trim());
+// }
+
+/**
+ * ./cache/version-page-lang-query.json
+ * version-page-query
+ * @example cache("definition", keyword, lang)
+ */
+export class Cache {
+	file = "";
+	/**
+	 * @param {string} page
+	 * @param {string} [query] - empty
+	 * @param {string} [lang="en"] - language
+	 * version-page-query
+	 * @example cache("definition", keyword, lange)
+	 */
+	constructor(page, query = "", lang = "en") {
+		this.file = path
+			.resolve(config.fileName.cache)
+			.replace("version", config.version.replace(/\./g, ""))
+			.replace("lang", lang)
+			.replace("page", page)
+			.replace("query", query.replace(/\s+/g, "_").trim());
+	}
+
+	async read() {
+		return await read(this.file, {});
+	}
+	/**
+	 * @param {*} raw
+	 * @returns {Promise<boolean>}
+	 */
+	async write(raw) {
+		return await write(this.file, raw, 2);
+	}
+}
 /**
  * @param {string} file
  * @param {string} [lang] - lang || primary.id

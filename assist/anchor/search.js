@@ -6,24 +6,46 @@ import { primary } from "./language.js";
 import * as grammar from "./grammar.js";
 import * as save from "./save.js";
 import * as clue from "./clue.js";
+import { Cache } from "./glossary.js";
 
 /**
- * @typedef {Object.<string, any>}} settings
- * @property {Object.<string, any>} result
- * @property {Object.<string, any>} result.meta
- * @property {Object.<string, any>} result.meta.msg
- * @property {Object.<string, any>} result.sug
- * @property {Object.<string, any>[]} result.data
- * property {object} result
- * property {Object.<string, any>} result.msg
- * @type {settings} settings
+ * 1. check unordinary - myanmar, number, symbol
+ * 2. check definition exists
+ * 3. check if sentence - hello world
+ * 4. suggest - wordbreak, thesaurus, synonyms or related
+ */
+
+/**
+ * @typedef {Object} TypeOfSetting
+ * @property {{src:string, tar:string}} lang
+ * @property {string[]} type
+ * @property {any} showcase
+ * @property {Object} result
+ * @property {Object} result.meta
+ * @property {string} result.meta.searchQuery
+ * @property {string} result.meta.q
+ * @property {string} result.meta.type
+ * @property {string} result.meta.name
+ * @property {{name:string, list?:string[]}[]} result.meta.msg
+ * @property {{name:string, list?:string[]}[]} result.meta.todo
+ * @property {{name:string, list?:string[]}[]} result.meta.sug
+ * @property {{src:string, tar:string}} result.lang
+ * @property {string} result.title - page title
+ * @property {string} result.description - page description
+ * @property {string} result.keywords - page keywords
+ * @property {string} result.revised - page last modified date
+ * @property {string} result.pageClass - page classname
+ * @property {any} result.data
+ * @property {Cache} cache
+ */
+
+/**
+ * @type {TypeOfSetting} settings
  */
 const settings = {
 	lang: {
 		tar: "en",
-		// src: primary.id
 		get src() {
-			// @ts-ignore
 			return primary.id;
 		}
 	},
@@ -54,14 +76,24 @@ const settings = {
 		title: "",
 		description: "",
 		keywords: "",
+		revised: "",
 		pageClass: "definition",
 		data: []
+	},
+	get cache() {
+		return new Cache("definition", this.result.meta.q, this.result.lang.tar);
 	}
 };
 
 /**
  * set page
  * @param {number} id
+ * @example
+ * setPageProperty(0) -> notfound
+ * setPageProperty(1) -> pleaseenter
+ * setPageProperty(2) -> result
+ * setPageProperty(3) -> definition
+ * setPageProperty(4) -> translation
  */
 function setPageProperty(id) {
 	if (settings.result.meta.type == settings.type[0]) {
@@ -71,6 +103,7 @@ function setPageProperty(id) {
 				// NOTE: Used in pug
 				settings.result.meta.type = settings.type[2];
 				settings.result.meta.name = settings.type[id];
+				settings.cache.write(settings.result);
 			}
 		}
 	}
@@ -79,43 +112,44 @@ function setPageProperty(id) {
 /**
  * has_meaning, is_plural, is_number
  * NOTFOUND: humanlike
- * @param {any} raw
+ * @param {any} raw - settings.result.data
  * @param {string} wordNormal - unfading, netlike
     EXAM: NO -> adelsstand
  * @example ..({},'test')
  */
 async function hasDefinition(raw, wordNormal) {
-	var status = false;
-	settings.result.meta.msg.push({ msg: "lookup", list: [wordNormal] });
-	if (await getDefinition(raw, wordNormal)) {
+	var status = await getDefinition(raw, wordNormal);
+	settings.result.meta.msg.push({ name: "lookup", list: [wordNormal] });
+	if (status) {
 		// EXAM: NO -> adelsstand
-		settings.result.meta.msg.push({ msg: "okey" });
-		status = true;
+		settings.result.meta.msg.push({ name: "okey" });
 	} else if (/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/.test(wordNormal)) {
 		// EXAM: NO -> Administratortilgang
 		// EXAM: wind[2] good!
 		// EXAM: 1900th 10times
 		// superscripts 1st, 2nd, 3rd, 4th ??
-		var words = wordNormal
-			.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g)
-			.filter(e => e && e != wordNormal);
-		if (words.length) {
-			settings.result.meta.msg.push({ msg: "split", list: words });
+		// var words = wordNormal
+		// 	.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g)
+		// 	.filter(e => e && e != wordNormal);
+		var words = wordNormal.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g);
+
+		if (words && words.length) {
+			settings.result.meta.msg.push({ name: "split", list: words });
 			for (const word of words) {
 				if (await getDefinition(raw, word)) {
 					status = true;
-					settings.result.meta.msg.push({ msg: "partially", list: [word] });
+					settings.result.meta.msg.push({ name: "partially", list: [word] });
 				} else {
 					save.keyword(word, settings.result.lang.tar);
-					settings.result.meta.msg.push({ msg: "save 1 ?" });
+					settings.result.meta.msg.push({ name: "save 1 ?" });
 					var rowThesaurus = clue.wordThesaurus(word);
 					if (rowThesaurus) {
 						settings.result.meta.sug.push({
-							word: word,
+							name: word,
 							list: rowThesaurus.v
 						});
 						settings.result.meta.msg.push({
-							msg: "0 to suggestion".replace("0", word)
+							name: "* to suggestion".replace("*", word)
 						});
 					}
 				}
@@ -125,22 +159,22 @@ async function hasDefinition(raw, wordNormal) {
 			// skillfulness, utile
 			// decennary decennium
 			// EXAM: adeptness adroitness deftness "facility quickness skillfulness"
-			settings.result.meta.msg.push({ msg: "save 2 ?" });
+			settings.result.meta.msg.push({ name: "save 2 ?" });
 			save.keyword(wordNormal, settings.result.lang.tar);
 			var rowThesaurus = clue.wordThesaurus(wordNormal);
 			if (rowThesaurus) {
 				settings.result.meta.sug.push({
-					word: wordNormal,
+					name: wordNormal,
 					list: rowThesaurus.v
 				});
 				settings.result.meta.msg.push({
-					msg: "0 to suggestion".replace("0", wordNormal)
+					name: "0 to suggestion".replace("0", wordNormal)
 				});
 			}
 		}
 	} else {
 		// NOTE: å ø æ
-		settings.result.meta.msg.push({ msg: "is this a word?" });
+		settings.result.meta.msg.push({ name: "is this a word?" });
 	}
 	return status;
 }
@@ -154,7 +188,7 @@ async function getDefinition(raw, wordNormal) {
 	var wordPos = await grammar.main(wordNormal);
 	let form = wordPos.form;
 	var status = await rowDefinition(raw, wordNormal, form);
-	if (status == false) {
+	if (!status) {
 		if (wordPos.root.length) {
 			for (const row of wordPos.root) {
 				form = wordPos.kind.filter(e => e.term == row.v);
@@ -166,14 +200,17 @@ async function getDefinition(raw, wordNormal) {
 			}
 		}
 	}
-	if (status == false) {
+	if (!status) {
 		// EXAM: US
 		// EXAM: lovings -> loving
 		// EXAM: winds -> wound winding
 		// EXAM: britains -> britain, lovings -> loving
 		var wordSingular = pluralize.singular(wordNormal);
 		if (pluralize.isPlural(wordNormal) && wordSingular != wordNormal) {
-			settings.result.meta.msg.push({ msg: "pluralize", list: [wordSingular] });
+			settings.result.meta.msg.push({
+				name: "pluralize",
+				list: [wordSingular]
+			});
 			wordBase = await grammar.main(wordSingular, true);
 			status = await rowDefinition(raw, wordSingular, wordBase.form);
 			if (status == false) {
@@ -188,12 +225,12 @@ async function getDefinition(raw, wordNormal) {
 		}
 	}
 	// if (status == false) {
-	//   settings.result.meta.msg.push({msg:'save?'});
+	//   settings.result.meta.msg.push({name'save?'});
 	//   for (const row of wordPos.root) {
 	//     var abc = wordbreak(row.v);
 	//     console.log('save?',row.v,abc)
 	//   }
-	//   settings.result.meta.msg.push({msg:'root',list:wordPos.root});
+	//   settings.result.meta.msg.push({name'root',list:wordPos.root});
 	//   // console.log('save?',wordPos,wordBase)
 	// }
 	return status;
@@ -207,9 +244,9 @@ async function getDefinition(raw, wordNormal) {
 async function rowDefinition(raw, word, other = []) {
 	var status = false;
 	// NOTE: force from MySQL
-	// var rowMeaning = await clue.definition(word, true);
+	var rowMeaning = await clue.definition(word, true);
 	// NOTE: force from JSON
-	var rowMeaning = await clue.definition(word);
+	// var rowMeaning = await clue.definition(word);
 	if (rowMeaning.length) {
 		// EXAM: us britian
 		var rowTerm = rowMeaning
@@ -231,7 +268,7 @@ async function rowDefinition(raw, word, other = []) {
 		var rowNumber = clue.wordNumber(word);
 		if (rowNumber) {
 			// settings.result.meta.todo.push('notation');
-			settings.result.meta.msg.push({ msg: "notation", list: [word] });
+			settings.result.meta.msg.push({ name: "notation", list: [word] });
 			rowMeaning.push(rowNumber);
 			if (!rowMeaning.find(e => e.pos == "thesaurus")) {
 				var rowThesaurus = clue.wordThesaurus(word);
@@ -251,61 +288,23 @@ async function rowDefinition(raw, word, other = []) {
 }
 
 /**
- * get has row
- * @param {any} e
+ * unwarrantable
+ * @typedef {Object.<string, any>} options
+ * @param {options} req
  */
-export default async function search(e) {
-	/**
-	 * @typedef options
-	 * @property {Object.<string, string>} options.query
-	 */
-	let options = {
-		/**
-		 * type {Object.<string, any>
-		 */
-		query: {
-			/**
-			 * @property
-			 */
-			_localSearch: "",
-			get q() {
-				return check.isValid(this._localSearch);
-			},
-			/**
-			 * @param {string} str
-			 */
-			set q(str) {
-				this._localSearch = str;
-			},
-			language: ""
-		},
-		cookies: {
-			solId: ""
-		},
-		originalUrl: ""
-	};
-
-	if (e) {
-		if (check.isObject(e)) {
-			// NOTE: gui
-			options = e;
-		} else if (check.isString(e)) {
-			// NOTE: cli
-			options.query.q = e;
-		}
-	}
-
-	if (options.query.q) {
+export default async function search(req) {
+	const keyword = check.isValid(req.query.q);
+	if (keyword) {
 		// NOTE: since its already built!
 		// TODO: if the language change, settings.result.lang.tar = options.cookies.solId;
-		if (options.query.q == settings.result.meta.q) {
+		if (keyword == settings.result.meta.q) {
 			return settings.result;
 		}
 	}
 
-	settings.result = {
+	Object.assign(settings.result, {
 		meta: {
-			q: options.query.q,
+			q: keyword,
 			type: settings.type[0],
 			name: "",
 			msg: [],
@@ -316,26 +315,34 @@ export default async function search(e) {
 			tar: settings.lang.tar,
 			src: settings.lang.src
 		},
+		revised: new Date().toLocaleDateString("en-GB", {
+			weekday: "long",
+			day: "2-digit",
+			month: "long",
+			year: "numeric"
+		}),
 		data: []
-	};
+	});
 
-	if (options.cookies.solId) {
-		settings.result.lang.tar = options.cookies.solId;
+	if (req.cookies.solId) {
+		settings.result.lang.tar = req.cookies.solId;
 	} else {
+		// curl http://localhost:8082/definition?q=love
 		// NOTE: possibly attacks
 	}
 
-	// NOTE: test purpose ?language=no,en,ja
-	if (options.query.language) {
-		settings.result.lang.tar = options.query.language;
+	// NOTE: test purpose ?language=[no,en,ja]
+	if (req.query.language) {
+		settings.result.lang.tar = req.query.language;
 	}
 
-	var keyword = settings.result.meta.q;
-	// settings.result.mathjstest = evaluate("12%20/%20(2.3%20+%200.7)");
-	if (check.isMyanmarText(keyword)) {
-		// NOTE: from Myanmar
-		settings.result.meta.unicode = true;
-	} else if (keyword) {
+	const cacheResult = await settings.cache.read();
+	if (cacheResult && Object.keys(cacheResult).length) {
+		console.log("from cache", settings.result.meta.q);
+		return cacheResult;
+	}
+
+	if (keyword) {
 		// NOTE: to Myanmar
 		if (settings.result.lang.tar == settings.result.lang.src) {
 			// NOTE: definition
@@ -386,6 +393,7 @@ export default async function search(e) {
 					// Note: sentence
 					for (const word of fire.array.unique(wordlist)) {
 						var t2 = await clue.translation(word, settings.result.lang.tar);
+						console.log("word", word);
 						if (t2.length) {
 							for (const row of t2) {
 								var raw = {
@@ -413,5 +421,6 @@ export default async function search(e) {
 		// NOTE: pleaseenter
 		setPageProperty(1);
 	}
+
 	return settings.result;
 }

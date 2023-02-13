@@ -18,6 +18,9 @@ html(lang='en' dir='ltr' class=appTheme)
       //- link(rel='icon', href='favicon.png' type='image/png')
       link(ref="icon", href="favicon.png")
 
+      if revised
+        meta(name="revised", content=revised)
+
       meta(property="og:image", content="/screenshot-home.png")
 
       link(rel="apple-touch-icon", sizes="180x180" href="/apple-touch-icon.png")
@@ -72,8 +75,8 @@ html(lang='en' dir='ltr' class=appTheme)
       //-   });
   body(class=pageClass)
     //- Google Tag Manager (noscript)
-    noscript
-      iframe(src='https://www.googletagmanager.com/ns.html?id=GTM-WMP5B6F' height=0 width=0 style='display:none;visibility:hidden')
+    //- noscript
+    //-   iframe(src='https://www.googletagmanager.com/ns.html?id=GTM-WMP5B6F' height=0 width=0 style='display:none;visibility:hidden')
 
     div#myordbok.primary
       block bar

@@ -41,8 +41,7 @@ export function upperCaseFirstString(str) {
  * @param {string} str
  */
 export function replaceSpaceWithDot(str) {
-	return str
-		.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g)
+	return (str.match(/[a-zA-Z]+|[0-9]+(?:\.[0-9]+|)/g) || [])
 		.join(".")
 		.toLowerCase();
 }

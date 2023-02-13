@@ -116,6 +116,7 @@ const settings = {
 		zero: "glossary/zero/EN.csv", //no result
 		info: "glossary/info/EN.json",
 		thesaurus: "glossary/thesaurus.json",
+		cache: "./cache/version/page-lang-query.json",
 		sqlite: "glossary/tmp-sqlite.db"
 	},
 	grammar: {
@@ -128,7 +129,12 @@ const settings = {
 		character: "orthography/character.json",
 		word: "orthography/word.json",
 		sense: "orthography/sense.json"
-	}
+	},
+	/**
+	 * if true: get search result from Database
+	 * if not get data from JSON
+	 */
+	fromDatabase: "true"
 };
 
 export default set.merge(settings);

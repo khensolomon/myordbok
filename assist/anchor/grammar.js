@@ -5,13 +5,23 @@ import * as docket from "./json.js";
 import * as chat from "./chat.js";
 
 const { fileName, synmap, synset } = config;
-
+/**
+ * @typedef {{w:number; v:string}[]} grammar - {"w":1,"v":"0"}
+ * @typedef {{w:number; v:string; d:number; t:number}[]} form - {"w":1,"v":"0s","d":1,"t":0}
+ * @typedef {{term:string; pos:string; type:string; kind:string[], v:any, exam:any}[]} partOf - ??
+ */
 /**
  * @param {number} Id
+ * @returns {string}
  */
 function posName(Id) {
-	return synmap.find(i => i.id == Id).name;
+	let has = synmap.find(i => i.id == Id);
+	if (has) {
+		has.name;
+	}
+	return synmap[0].name;
 }
+
 // export function grammar(){
 //   return synmap.map((v,index) =>(v.id=index,v));
 // }
@@ -19,6 +29,7 @@ function posName(Id) {
 /**
  * @param {Array<any>} associate
  * @param {Array<any>} raw
+ * returns {partOf}
  */
 function partOf(associate, raw) {
 	fire.array
@@ -102,9 +113,22 @@ function rootOf(row) {
  * @param {boolean} pluralize_attempt
  */
 export async function main(keyword, pluralize_attempt = false) {
+	/**
+	 * @type {grammar}
+	 */
 	const grammar = await docket.get(fileName.synset);
+	/**
+	 * @type {form}
+	 */
 	const form = await docket.get(fileName.synmap);
-	const result = { root: [], form: [], kind: [] };
+	/**
+	 * @type {{root:string[]; form:string[]; kind:string[]}}
+	 */
+	const result = {
+		root: [],
+		form: [],
+		kind: []
+	};
 
 	var type = form
 		.filter(
@@ -118,7 +142,11 @@ export async function main(keyword, pluralize_attempt = false) {
 	if (type.length > 0) {
 		var formAssociate = form
 			.filter(m => m.d > 0 && type.filter(e => e.w == m.w).length)
-			.map(o => Object.assign({}, o, { term: type.find(e => e.w == o.w).v }));
+			.map(o =>
+				Object.assign({}, o, {
+					term: type.find(e => e.w == o.w).v
+				})
+			);
 		partOf(formAssociate, result.kind);
 		formOf(formAssociate, result.form, keyword);
 		result.root = rootOf(type);
@@ -128,7 +156,11 @@ export async function main(keyword, pluralize_attempt = false) {
 	if (pos.length > 0) {
 		var posAssociate = form
 			.filter(m => m.d > 0 && pos.filter(e => e.w == m.w).length)
-			.map(o => Object.assign({}, o, { term: pos.find(e => e.w == o.w).v }));
+			.map(o =>
+				Object.assign({}, o, {
+					term: pos.find(e => e.w == o.w).v
+				})
+			);
 		partOf(posAssociate, result.form);
 		if (result.root.length == 0) {
 			result.root = rootOf(pos);

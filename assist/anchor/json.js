@@ -88,6 +88,7 @@ export async function get(file, watchIt = false) {
 	/**
 	 * @type {keyof data}
 	 */
+
 	// @ts-ignore
 	const id = path.parse(file).name;
 	if (data.hasOwnProperty(id) && Array.isArray(data[id]) && data[id].length) {
@@ -96,7 +97,6 @@ export async function get(file, watchIt = false) {
 		data[id] = await read(src);
 		if (watchIt) watch(src, id);
 		return data[id];
-	} else {
-		return [];
 	}
+	return [];
 }
