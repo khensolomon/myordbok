@@ -1,6 +1,7 @@
 *.v[0-9]*.*
 *tmp/
 /static
+/cache/*/*
 # *-lock.json
 ecosystem.json
 
