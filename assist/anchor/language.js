@@ -1,4 +1,4 @@
-import config from "./config.js";
+import config from "./env.js";
 
 const { dictionaries } = config;
 

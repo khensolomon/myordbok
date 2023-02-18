@@ -1,25 +1,33 @@
-import { fire } from "lethil";
+import { fire, check, utility } from "lethil";
 
-import config from "./config.js";
+import * as env from "./env.js";
 import * as docket from "./json.js";
-import * as chat from "./chat.js";
 
-const { fileName, synmap, synset } = config;
 /**
- * @typedef {{w:number; v:string}[]} grammar - {"w":1,"v":"0"}
- * @typedef {{w:number; v:string; d:number; t:number}[]} form - {"w":1,"v":"0s","d":1,"t":0}
- * @typedef {{term:string; pos:string; type:string; kind:string[], v:any, exam:any}[]} partOf - ??
- */
-/**
+ * name of part of speech from config.synset
+ * not in used ???
  * @param {number} Id
- * @returns {string}
+ * @returns {env.PosOfSynset}
  */
-function posName(Id) {
-	let has = synmap.find(i => i.id == Id);
+export function posSynset(Id) {
+	let has = env.config.synset[Id];
 	if (has) {
-		has.name;
+		return has;
 	}
-	return synmap[0].name;
+	return env.config.synset[0];
+}
+
+/**
+ * type of part of speech from config.synmap
+ * @param {number} Id
+ * @returns {env.PosOfSynmap}
+ */
+export function posSynmap(Id) {
+	let has = env.config.synmap.find(i => i.id == Id);
+	if (has) {
+		return has;
+	}
+	return env.config.synmap[0];
 }
 
 // export function grammar(){
@@ -27,147 +35,124 @@ function posName(Id) {
 // }
 
 /**
- * @param {Array<any>} associate
- * @param {Array<any>} raw
- * returns {partOf}
- */
-function partOf(associate, raw) {
-	fire.array
-		.category(associate, e => e.term)
-		.forEach((grammar, term) =>
-			fire.array
-				.category(grammar, e => e.t)
-				.forEach((row, gId) => {
-					var dId = gId == 1 && row.length == 3 ? 3 : 0;
-					var value = row
-						.map(e =>
-							"(-~-) {-*-} (?)"
-								.replace("*", e.v)
-								.replace("?", posName(dId == e.d ? 0 : e.d))
-						)
-						.join("; ");
-					raw.push({
-						term: term,
-						pos: synset[gId].name,
-						type: "meaning",
-						kind: ["partof"],
-						v: value,
-						exam: []
-					});
-				})
-		);
-}
-
-/**
- * @param {Array<any>} associate
- * @param {Array<any>} raw
- * @param {string} keyword
- */
-function formOf(associate, raw, keyword) {
-	fire.array
-		.category(associate, e => e.term)
-		.forEach((grammar, term) =>
-			fire.array
-				.category(grammar, e => e.t)
-				.forEach((row, gId) => {
-					var posOf = row.find(e => chat.compare(e.v, keyword));
-					if (!posOf) return;
-
-					var dId = gId == 1 && row.length == 3 ? 0 : posOf.d;
-					var tpl = {
-						main: "(-~-) $formOf; form of {-$word;-}",
-						// main:'~ $keyword; is $formOf; form of {-$word;-}',
-						// keyword:posOf.v,
-						formOf: posName(dId),
-						word: term
-					};
-
-					var value = tpl.main.replace(/\$(.+?);/g, (_, e) => tpl[e] || "-?-");
-					raw.push({
-						term: posOf.v,
-						pos: synset[gId].name,
-						type: "meaning",
-						kind: ["formof"],
-						v: value,
-						exam: []
-					});
-				})
-		);
-}
-
-/**
- * @param {Array<any>} row
- */
-function rootOf(row) {
-	return row.filter((v, i, a) => a.indexOf(v) === i);
-	// result.root = form.map(
-	//   e => e.v
-	// ).filter(
-	//   (v, i, a) => a.indexOf(v) === i
-	// );
-}
-
-/**
  * org: wordPos
+ * @typedef {{time:any; root:env.TypeOfSynset[]; part:env.TypeOfSynmap[]; form:env.RowOfMeaning[]; test:boolean}} TypeOfPartOfSpeech
  * @param {string} keyword
- * @param {boolean} pluralize_attempt
+ * @returns {Promise<TypeOfPartOfSpeech>}
  */
-export async function main(keyword, pluralize_attempt = false) {
+export async function main(keyword) {
+	const timeStart = utility.timeCheck();
+	const synset = await docket.getSynset();
+	const synmap = await docket.getSynmap();
 	/**
-	 * @type {grammar}
-	 */
-	const grammar = await docket.get(fileName.synset);
-	/**
-	 * @type {form}
-	 */
-	const form = await docket.get(fileName.synmap);
-	/**
-	 * @type {{root:string[]; form:string[]; kind:string[]}}
+	 * @type {TypeOfPartOfSpeech}
 	 */
 	const result = {
+		time: "",
 		root: [],
+		part: [],
 		form: [],
-		kind: []
+		test: false
 	};
 
-	var type = form
-		.filter(
-			s =>
-				chat.compare(s.v, keyword) &&
-				s.t < 10 &&
-				grammar.filter(e => e.w == s.w).length
-		)
-		.map(o => grammar.find(s => s.w == o.w))
-		.filter((v, i, a) => a.indexOf(v) === i);
-	if (type.length > 0) {
-		var formAssociate = form
-			.filter(m => m.d > 0 && type.filter(e => e.w == m.w).length)
-			.map(o =>
-				Object.assign({}, o, {
-					term: type.find(e => e.w == o.w).v
-				})
-			);
-		partOf(formAssociate, result.kind);
-		formOf(formAssociate, result.form, keyword);
-		result.root = rootOf(type);
-	}
-
-	var pos = grammar.filter(s => chat.compare(s.v, keyword));
-	if (pos.length > 0) {
-		var posAssociate = form
-			.filter(m => m.d > 0 && pos.filter(e => e.w == m.w).length)
-			.map(o =>
-				Object.assign({}, o, {
-					term: pos.find(e => e.w == o.w).v
-				})
-			);
-		partOf(posAssociate, result.form);
-		if (result.root.length == 0) {
-			result.root = rootOf(pos);
+	// NOTE: oops -> irregular Verbs ??? /s|ed|ing$/i.test(keyword) &&
+	if (/less|sing|king$/i.test(keyword) == false) {
+		// NOTE: loves, fetched
+		for (let index = 0; index < synmap.length; index++) {
+			const elm = synmap[index];
+			if (elm.t < 10 && check.isMatch(elm.v, keyword)) {
+				if (!result.root.find(i => i.w == elm.w)) {
+					var rt = synset.find(i => i.w == elm.w);
+					if (rt) {
+						result.root.push(rt);
+					}
+				}
+			}
+			const se = result.root.find(i => i.w == elm.w);
+			if (elm.d > 0 && se) {
+				// var pt = Object.assign({}, elm, {
+				// 	term: se.v
+				// });
+				result.part.push(elm);
+			}
 		}
 	}
 
+	result.test = result.root.length > 0;
+
+	if (!result.test) {
+		// NOTE: love, fetch
+		for (let index = 0; index < synset.length; index++) {
+			const elm = synset[index];
+			if (check.isMatch(elm.v, keyword)) {
+				result.root.push(elm);
+				// var pt = synmap.filter(i => i.d > 0 && i.w == elm.w);
+				var pt = synmap.filter(i => i.w == elm.w && i.d > 0);
+				result.part.push(...pt);
+			}
+		}
+	}
+
+	fire.array
+		.category(result.part, e => e.w)
+		.forEach(function(wordList, wordId) {
+			var wordMain = result.root.find(e => e.w == wordId)?.v;
+			fire.array
+				.category(wordList, e => e.t)
+				.forEach(function(raw, typeId) {
+					/**
+					 * @type {env.RowOfMeaning}
+					 */
+					var row = {
+						term: wordMain || "",
+						pos: posSynset(typeId).name,
+						type: "meaning",
+						cast: "exam_meaning",
+						kind: ["part-of-speech"],
+						v: formOfDescription(typeId, raw, wordMain, result.test),
+						exam: []
+					};
+					result.form.push(row);
+				});
+		});
+
+	result.time = utility.timeCheck(timeStart);
 	return result;
+}
+
+/**
+ * get description of part of speech
+ * @param {number} type
+ * @param {env.TypeOfSynmap[]} raw
+ * @param {string} word
+ * @param {boolean} test
+ */
+function formOfDescription(type, raw, word = "", test = false) {
+	// (-~-) {-loves-} (plural)
+	// (-~-) {-loves-} (plural) forms of {->-}
+	// (-~-) {-loves-} (plural) derived forms of {->-}
+	var res = raw.map(e => {
+		return "(-~-) {-*-} (?)"
+			.replace("*", e.v)
+			.replace("?", posSynmap(e.d).name);
+	});
+
+	if (test) {
+		if (type == 0) {
+			// NOTE: noun
+			// (-~-) {-kings-} (plural) forms of {-king-}
+			res.push("forms of {->-}".replace(">", word));
+		} else if (type == 1) {
+			// NOTE: verb
+			// (-~-) {-kings-} (3rd person); (-~-) {-kinged-} (past tense); (-~-) {-kinging-} (present participle) derived forms of {-king-}
+			res.push("derived forms of {->-}".replace(">", word));
+		} else if (type == 2) {
+			// NOTE: adjective
+			// (-~-) {-happier-} (comparative); (-~-) {-happiest-} (superlative) forms of {-happy-}
+			res.push("forms of {->-}".replace(">", word));
+		}
+	}
+	return res.join("; ");
 }
 
 /**
@@ -175,24 +160,17 @@ export async function main(keyword, pluralize_attempt = false) {
  * @param {string} keyword
  */
 export async function pos(keyword) {
-	const grammar = await docket.get(fileName.synset);
+	const timeStart = utility.timeCheck();
 	/**
-	 * @type {any}
+	 * @type {{time:any;root:env.TypeOfSynset[]; part:any;}}
 	 */
-	const form = await docket.get(fileName.synmap);
-	var result = {
-		// root, pos, form
-		form: [],
-		root: []
+	const result = {
+		time: "",
+		root: [],
+		part: []
 	};
 
-	var root = grammar.filter(s => chat.compare(s.v, keyword));
-
-	result.pos = form
-		.filter(m => m.d > 0 && root.filter(e => e.w == m.w).length)
-		.map(o => Object.assign({}, o, { term: root.find(s => s.w == o.w).v }));
-
-	result.root = root.map(e => e.v).filter((v, i, a) => a.indexOf(v) === i);
+	result.time = utility.timeCheck(timeStart);
 	return result;
 }
 
@@ -201,30 +179,14 @@ export async function pos(keyword) {
  * @param {string} keyword
  */
 export async function base(keyword) {
-	const grammar = await docket.get(fileName.synset);
-	const form = await docket.get(fileName.synmap);
+	var start = utility.timeCheck();
 	const result = {
-		form: [],
-		root: []
+		timeEnd: "",
+		root: [],
+		part: [],
+		form: []
 	};
 
-	result.pos = form
-		.filter(
-			s =>
-				chat.compare(s.v, keyword) &&
-				s.t < 10 &&
-				grammar.filter(e => e.w == s.w).length
-		)
-		.map(
-			// e => {
-			//   e.w = grammar.find(s=>s.w == e.w).v
-			//   return e;
-			// }
-			o => Object.assign({}, o, { term: grammar.find(s => s.w == o.w).v })
-		);
-
-	result.root = result.pos
-		.map(e => e.term)
-		.filter((v, i, a) => a.indexOf(v) === i);
+	result.timeEnd = utility.timeCheck(start);
 	return result;
 }

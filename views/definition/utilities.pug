@@ -1,10 +1,13 @@
 mixin wordlink(q)
   a(href='definition?q='+encodeURI(q))= q
+mixin sentencelink(q)
+  a(href='definition?q='+encodeURI(query.input+"~"+q))= q
 //- mixin test(q)
 //-   q.replace(/\{-(.*?)\-}/g, '<a href="definition?q=$1">$1</a>')
 
 //- mixin example(eg)
   //- eg.replace(/{-/g,'<a href="definition?q=').replace(/-:-/g,'">').replace(/-}/g,'</a>')
+
 mixin format(tagName,e)
   #{tagName}(class!=attributes.class)!= e.replace(/\"(.+?)\"/g, '<q>$1</q>').replace(/\(-(.+?)-\)/g, '<small>$1</small>').replace(/\((.+?)\)/g, '<em>$1</em>').replace(/\{-(.+?)-\}/g, (_,q)=>'<a href="definition?q='+encodeURI(q)+'">'+q+'</a>').replace(/\[(.*?)\]/g, '<b>$1</b>')
 
@@ -28,10 +31,7 @@ mixin meaning(row)
         each mean,ty in define
           div(class=mean.kind)
             +format('p',mean.v)
-            if mean.exam
-              ul
-                each eg in mean.exam
-                  +format('li',eg)
+            +internal_example_casting(mean.exam, mean.cast)
 
 mixin suggestion(raw)
   each row,name in raw
@@ -44,10 +44,21 @@ mixin thesaurus(raw)
   if raw && raw.length
     each row in raw
       div(class=row.kind)
-        ol
-          each word in row.v
-            li
-              +wordlink(word)
+        +exam_thesaurus(row.v)
+
+mixin internal_example_casting(raw, type)
+  +#{type}(raw)
+
+mixin exam_meaning(raw)
+  ul
+    each eg in raw
+      +format('li',eg)
+
+mixin exam_thesaurus(raw)
+  ol
+    each eg in raw
+      li
+        +wordlink(eg)
 
 //- mixin notation(row)
 //-   div.notation
@@ -98,6 +109,11 @@ mixin definition(raw)
       //- span.speech.en.zA.icon-volume-up
       speech-engine(word=raw.word lang=lang.src)
       //- speech-engine(word=raw.word lang=lang.src) @click="apple('Form cannot be submitted yet.', $event)"
+    if query.status
+      p
+        each eg in query.sentence
+          +sentencelink(eg)
+          span ~
     div.meaning
       each row, name in raw.clue
         +#{name}(row)

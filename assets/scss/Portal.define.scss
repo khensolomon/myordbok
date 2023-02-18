@@ -41,11 +41,21 @@
 				}
 				> p {
 					font-weight: normal;
-					font-size: 170%;
-					line-height: 110%;
+					font-size: 150%;
+					line-height: 130%;
 					padding-left: 25px;
 					word-wrap: break-word;
+					color: rgba(var(--color-text), 0.7);
 				}
+			}
+			> p {
+				text-align: center;
+				font-weight: normal;
+				font-size: 150%;
+				line-height: 130%;
+				padding-left: 25px;
+				word-wrap: break-word;
+				color: rgba(var(--color-text), 0.7);
 			}
 		}
 		span.speech {
@@ -90,8 +100,10 @@
 			}
 			> div {
 				// NOTE: meaning Block
+
 				> div {
 					// NOTE: meaning Each
+
 					> h2,
 					h3 {
 						// NOTE: pos, thesaurus
@@ -102,7 +114,7 @@
 						padding: 4px 5px 2px 20px;
 						position: relative;
 						// text-transform: capitalize;
-						text-transform: uppercase;
+						// text-transform: uppercase;
 						// text-shadow: #fff 1px 0px 1px;
 						color: rgba(var(--color-highlight), 0.9);
 						// text-shadow: #fff 1px 0px 1px;
@@ -113,17 +125,16 @@
 							// NOTE: pos Each (partof, formof)
 							em,
 							b {
-								font-style: normal;
+								// font-style: normal;
 								font-weight: normal;
+								font-size: 80%;
 								&::before,
 								&::after {
 									// font-style: normal;
 									color: rgba(var(--color-highlight), 0.9);
 									// font-size: 100%;
+									font-weight: normal;
 								}
-							}
-							em {
-								font-size: 80%;
 								&::before {
 									content: "(";
 								}
@@ -131,15 +142,12 @@
 									content: ")";
 								}
 							}
+							em {
+								font-size: 80%;
+								font-style: italic;
+							}
 							b {
 								font-size: 80%;
-								color: darken(red, 10%);
-								&::before {
-									content: "[";
-								}
-								&::after {
-									content: "]";
-								}
 							}
 							a {
 								font-weight: lighter;
@@ -179,7 +187,10 @@
 									color: rgba(var(--color-text), 0.7);
 								}
 								b {
-									color: rgba(var(--color-surround), 0.6);
+									color: rgba(var(--color-text), 0.4);
+								}
+								em {
+									color: rgba(var(--color-text), 0.6);
 								}
 							}
 							> ul {
@@ -230,10 +241,12 @@
 								list-style: none;
 								padding: 1% 0;
 								// font-size: 95%;
+
 								li {
 									display: inline-block;
 									position: relative;
 									padding: 2px 3px;
+
 									a {
 										// font-size: 110%;
 										display: inline-block;
@@ -300,6 +313,42 @@
 							&::before {
 								content: "...";
 								padding-right: 7px;
+							}
+						}
+					}
+					&.thesaurus {
+						> div {
+							> div {
+								> ol {
+									// NOTE: thesarus
+									// background-color: red;
+
+									// li {
+									// 	// background-color: red;
+									// 	// display: inline-block;
+									// 	// margin: 0px 1px;
+									// }
+									li {
+										display: inline-block;
+										position: relative;
+										padding: 2px 3px;
+
+										a {
+											// font-size: 110%;
+											display: inline-block;
+											border-radius: 7px;
+											padding: 1px 7px;
+											// background-color: rgba(var(--color-surround), 0.5);
+											&:hover {
+												text-decoration: underline;
+												// color: darken(#0000EE,1%);
+											}
+											&:active {
+												color: red;
+											}
+										}
+									}
+								}
 							}
 						}
 					}

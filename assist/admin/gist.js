@@ -3,10 +3,10 @@
  */
 
 import { ask } from "lethil";
-import { config } from "../anchor/index.js";
+import { env } from "../anchor/index.js";
 
 // @ts-ignore
-const { gistToken, gistId } = config;
+const { gistToken, gistId } = env.config;
 
 const gist = new ask.gistData({ token: gistToken, id: gistId });
 

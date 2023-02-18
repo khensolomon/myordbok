@@ -1,39 +1,37 @@
 import path from "path";
 import { seek } from "lethil";
-import config from "./config.js";
+import * as env from "./env.js";
+import * as glossary from "./glossary.js";
 
 export const data = {
 	/**
 	 * definition
 	 * {"i":132,"w":66048,"t":0,"v":"..."}
-	 * @type {{i:number,w:number,t:number,v:string}[]}
+	 * @type {env.TypeOfSense[]}
 	 */
 	sense: [],
 
 	/**
 	 * example
 	 * {"i":132,"v":"..."}
-	 * @type {{i:number,v:string}[]}
+	 * @type {env.TypeOfUsage[]}
 	 */
 	usage: [],
 
 	/**
 	 * words
-	 * {"w":2,"v":"..."}
-	 * @type {{w:number, v:string}[]}
+	 * @type {env.TypeOfSynset[]}
 	 */
 	synset: [],
 
 	/**
 	 * derives
-	 * {"w":1,"v":"...","d":1,"t":0}
-	 * @type {{w:number, v:string, d:number, t:number}[]}
+	 * @type {env.TypeOfSynmap[]}
 	 */
 	synmap: [],
 
 	/**
-	 * {"w":132,"v":"..."}
-	 * @type {{w:number,v:string}[]}
+	 * @type {env.TypeOfSynset[]}
 	 */
 	en: [],
 
@@ -80,11 +78,11 @@ export function watch(file, id) {
 
 /**
  * @param {string} file
- * @param {boolean} watchIt
+ * @param {boolean} [watchIt]
  * @returns {Promise<Array<any>>}
  */
 export async function get(file, watchIt = false) {
-	const src = path.resolve(config.media, file);
+	const src = path.resolve(env.config.media, file);
 	/**
 	 * @type {keyof data}
 	 */
@@ -99,4 +97,40 @@ export async function get(file, watchIt = false) {
 		return data[id];
 	}
 	return [];
+}
+
+/**
+ * todo return type
+ * @template R
+ * @param {R} [lang] - lang || primary.id
+ * returns {Promise<env.RowOfLangTar||env.RowOfLangSrc>}
+ */
+export function getWord(lang) {
+	return get(glossary.word(lang));
+}
+/**
+ * @param {boolean} [watchIt]
+ * @returns {Promise<env.TypeOfSense[]>}
+ */
+export function getSense(watchIt) {
+	return get(env.config.fileName.sense, watchIt);
+}
+/**
+ * @param {boolean} [watchIt]
+ * @returns {Promise<env.TypeOfUsage[]>}
+ */
+export function getUsage(watchIt) {
+	return get(env.config.fileName.usage, watchIt);
+}
+/**
+ * @returns {Promise<env.TypeOfSynset[]>}
+ */
+export function getSynset() {
+	return get(env.config.fileName.synset);
+}
+/**
+ * @returns {Promise<env.TypeOfSynmap[]>}
+ */
+export function getSynmap() {
+	return get(env.config.fileName.synmap);
 }

@@ -2,7 +2,7 @@ import { resolve } from "path";
 import { access, createWriteStream, createReadStream } from "fs";
 import { createInterface } from "readline";
 import { zero } from "./glossary.js";
-import config from "./config.js";
+import config from "./env.js";
 
 /**
  * @param {string} file

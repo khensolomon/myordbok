@@ -1,7 +1,7 @@
 import { db, load, seek } from "lethil";
-import { config, json } from "../anchor/index.js";
+import { env, json } from "../anchor/index.js";
 
-const { table } = config;
+const { table } = env.config;
 
 /**
  * JSON

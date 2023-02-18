@@ -7,11 +7,9 @@ In order to fixed the issue, there are 2 options.
 1. browser (client)
 2. website (server)
 
-## A quick fix and problem (browser)
-
 ...
 
-### Problem
+## Problem
 
 ...was, yours browser is forcing to display any Myanmar Text in the form of Zawgyi. If you could restore to the default font setting will solved the issue, however any webpage written in Zawgyi and the required font is not embedded/installed(O/S) will be a problem.
 

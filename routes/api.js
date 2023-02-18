@@ -1,5 +1,11 @@
 import { route } from "lethil";
-import { config, search, speech, suggestion } from "../assist/index.js";
+import {
+	config,
+	search,
+	speech,
+	suggestion,
+	grammar
+} from "../assist/index.js";
 
 const routes = new route.gui("_", "/api");
 
@@ -47,13 +53,25 @@ routes.get("/suggestion", (req, res) => {
 		.catch(e => res.status(404).end(e.message));
 });
 
-// routes.get('/grammar', (req, res) => {
-//   assist.getGrammar().then(
-//     raw=> res.send(raw)
-//   ).catch(
-//     ()=>res.status(404).end()
-//   )
-// });
+// 150-180ms upto 555ms
+routes.get("/grammar", (req, res) => {
+	grammar
+		.main(req.query.q)
+		.then(raw => res.json(raw))
+		.catch(() => res.json([]));
+});
+routes.get("/grammar/pos", (req, res) => {
+	grammar
+		.pos(req.query.q)
+		.then(raw => res.json(raw))
+		.catch(() => res.json([]));
+});
+routes.get("/grammar/base", (req, res) => {
+	grammar
+		.base(req.query.q)
+		.then(raw => res.json(raw))
+		.catch(() => res.json([]));
+});
 
 // // /orths-:name
 // routes.get('/orth', (req, res) => {

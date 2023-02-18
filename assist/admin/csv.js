@@ -1,9 +1,9 @@
 import { db, seek } from "lethil";
 import path from "path";
-import { config } from "../anchor/index.js";
+import { env } from "../anchor/index.js";
 import * as csv from "csv";
 
-const { table } = config;
+const { table } = env.config;
 
 const outputDirectory = "/dev/lidea/assets/tmp/";
 

@@ -3,9 +3,9 @@ import path from "path";
 // import util from 'util';
 
 import { db } from "lethil";
-import { config, json, chat } from "../anchor/index.js";
+import { env, json, chat } from "../anchor/index.js";
 
-const { table } = config;
+const { table } = env.config;
 
 // import {table,docket,makeup,fileName,chat,language,information} from './dictionary.Config.js';
 

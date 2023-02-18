@@ -1,7 +1,7 @@
 import { db } from "lethil";
-import { config, json, glossary } from "../anchor/index.js";
+import { env, json, glossary } from "../anchor/index.js";
 
-const { dictionaries, table } = config;
+const { dictionaries, table } = env.config;
 
 /**
  * @typedef {Object<string,any>} TypeOfInfoProgress

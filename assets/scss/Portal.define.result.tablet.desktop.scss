@@ -5,8 +5,15 @@
 	> div {
 		margin: 2%;
 		// border-left: 3px solid rgba(var(--color-highlight), 0.6);
-		border-left: 3px solid rgba(var(--color-text), 0.6);
+		border-left: 1px solid rgba(var(--color-text), 0.4);
 		&.translation {
+			&::before {
+				// content: attr(data-lang);
+				display: inline-block;
+				// background-color: red;
+				background-color: rgb(var(--color-background));
+				border: 1px solid rgba(var(--color-text), 0.4);
+			}
 			> div {
 				> div.definition {
 					border-left-style: dotted;
@@ -49,11 +56,21 @@
 					padding-left: 5%;
 					border-left: 1px solid rgba(var(--color-highlight), 0.6);
 				}
-				// &.thesaurus{
-				//   >div{
-				//     padding-left: 0;
-				//     border-left: 0;
-				//   }
+				// &.thesaurus {
+				// 	> div {
+				// 		padding-left: 0;
+				// 		border-left: 0;
+				// 	}
+				// }
+				// &.thesaurus {
+				// 	> div {
+				// 		> div {
+				// 			p {
+				// 			}
+				// 			ol {
+				// 			}
+				// 		}
+				// 	}
 				// }
 			}
 		}

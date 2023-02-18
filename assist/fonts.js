@@ -3,7 +3,7 @@ import { resolve } from "path";
 // import util from "util";
 import ttfMeta from "ttfmeta";
 
-import config from "./anchor/config.js";
+import config from "./anchor/env.js";
 
 // const { media } = config;
 

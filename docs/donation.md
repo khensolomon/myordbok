@@ -23,6 +23,8 @@ Thank you so much for your generous donation.It is not going to be enough to say
 
 It's not just going to be enough "thank you", but you've shown that MyOrdbok could have the right standpoint within it logic, and I am deeply grateful for your support.It's not just going to be enough "thank you", but you've shown that MyOrdbok could have the right standpoint within it's logic, and I am deeply grateful and honored that the way you lead.
 
+Thank you very much for supporting MyOrdbok, and I wanted you to know that I am working on... At Github, its possible to see how MyOrdbok development goes at <https://github.com/khensolomon/myordbok>
+
 @progress@welcome@extra@istheremore
 Yours sincerely@name, MyOrdbok
 
