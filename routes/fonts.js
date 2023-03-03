@@ -9,14 +9,20 @@
 // gsutil -r gs://storage.lethil.me/media/fonts
 
 import * as fs from "fs";
-import { seek, route } from "lethil";
+import { seek, server } from "lethil";
 import fonts from "../assist/fonts.js";
 
 // const {media} = core.config();
-const routes = new route.gui("navPage", "/myanmar-fonts");
 
-routes.get(
-	{ url: "/:type?", route: "fonts", text: "Fonts" },
+const app = server();
+const routes = app.routes("/myanmar-fonts", "page");
+
+routes.register(
+	{
+		url: "/:type?",
+		name: "fonts",
+		text: "Fonts"
+	},
 
 	async function(req, res) {
 		var fontType = req.params.type;
@@ -49,7 +55,7 @@ routes.get(
 	}
 );
 
-routes.get("/download/:type?", function(req, res) {
+routes.register("/download/:type?", function(req, res) {
 	var fontType = req.params.type;
 	var fontName = req.query.font;
 
@@ -72,7 +78,7 @@ routes.get("/download/:type?", function(req, res) {
 		});
 });
 
-// routes.get('/scan-:type', function(req, res) {
+// routes.register('/scan-:type', function(req, res) {
 //   var fontType = req.params.type;
 //   var fontName = req.query.font;
 //   new fonts(fontType).scan(fontName).then(function(e){

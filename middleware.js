@@ -1,18 +1,26 @@
-import { config, route, parse } from "lethil";
-
+import { server, config, parse } from "lethil";
+import cookieParser from "cookie-parser";
+import compression from "compression";
 import { language } from "./assist/index.js";
 
-const routes = new route.gui();
+const app = server();
 
-if (config.development) {
-	import("./webpack.middleware.js").then(mwa => {
-		routes.use(mwa.dev);
-		routes.use(mwa.hot);
-	});
-}
+app.disable("x-powered-by");
 
-routes.use(function(req, res, next) {
-	// res.setHeader("X-Powered-By", "lethil");
+app.use(cookieParser());
+
+app.use(app.middleware.static("static"));
+// if (config.development) {
+// 	import("./webpack.middleware.js").then(mwa => {
+// 		app.use(mwa.dev);
+// 		app.use(mwa.hot);
+// 	});
+// }
+
+app.use(compression());
+app.use(app.middleware.menu);
+
+app.use(function(req, res, next) {
 	var Id = "";
 	const l0 = language.primary;
 
@@ -20,17 +28,18 @@ routes.use(function(req, res, next) {
 		Id = l0.id;
 	}
 
-	if (req.cookies.solId || req.cookies.solId != undefined) {
+	if (req.cookies.solId != undefined) {
 		Id = req.cookies.solId;
 	} else {
-		res.cookies("solId", Id);
+		res.cookie("solId", Id);
 	}
+
 	var theme = "light";
 	if (req.cookies.theme || req.cookies.theme != undefined) {
 		theme = req.cookies.theme;
 	} else {
 		// NOTE: No need to set, client script should do it
-		// res.cookies("theme", theme);
+		// res.cookie("theme", theme);
 	}
 	if (req.url) {
 		const [name, solName] = req.url.split("/").filter(e => e);
@@ -38,7 +47,7 @@ routes.use(function(req, res, next) {
 			var l1 = language.byName(solName);
 			if (l1 && l1.id != Id) {
 				Id = l1.id;
-				res.cookies("solId", Id);
+				res.cookie("solId", Id);
 			}
 		}
 	}
@@ -63,12 +72,12 @@ routes.use(function(req, res, next) {
 /**
  * org: restrictMiddleWare
  */
-// routes.use("/api", function(req, res, next) {
+// app.use("/api", function(req, res, next) {
 // 	if (res.locals.referer) return next();
 // 	res.status(404).end();
 // 	// if (req.xhr || req.headers.range) next();
 // });
-routes.use("/api", function(req, res, next) {
+app.use("/api", function(req, res, next) {
 	// config.referer.test(req.headers.host);
 	if (req.headers.referer) {
 		var ref = parse.url(req.headers.referer);

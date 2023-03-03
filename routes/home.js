@@ -1,8 +1,9 @@
-import { route } from "lethil";
+import { server } from "lethil";
 
-const routes = new route.gui("navPage", "/");
+const app = server();
+const routes = app.routes("/", "page");
 
-routes.get({ url: "", route: "home", text: "Home" }, function(req, res) {
+routes.register({ name: "home", text: "Home" }, function(req, res) {
 	res.render("home", {
 		title: "Myanmar dictionary",
 		keywords: "Myanmar, dictionary, grammar, font, definition, Burmese, online",

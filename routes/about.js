@@ -1,12 +1,10 @@
-import { route } from "lethil";
+import { server } from "lethil";
 import { config, visits, language } from "../assist/index.js";
 
-const routes = new route.gui("navPage", "/");
+const app = server();
+const routes = app.routes("/about", "page");
 
-routes.get({ url: "/about", route: "about", text: "About" }, function(
-	_req,
-	res
-) {
+routes.register({ name: "about", text: "About" }, function(req, res) {
 	res.render("about", {
 		title: "About",
 		keywords:

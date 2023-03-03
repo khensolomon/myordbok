@@ -1,7 +1,8 @@
-import { route } from "lethil";
+import { server } from "lethil";
 
-const routes = new route.gui("navTerms", "/privacy");
+const app = server();
+const routes = app.routes("/privacy", "terms");
 
-routes.get({ url: "/", route: "privacy", text: "Privacy" }, function(req, res) {
+routes.register({ name: "privacy", text: "Privacy" }, function(req, res) {
 	res.render("privacy", { title: "Privacy" });
 });

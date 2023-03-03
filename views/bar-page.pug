@@ -2,7 +2,7 @@ ul
   li.showMobileMenu
     nav-engine
     mixin li(v)
-      li(class=v.route class={active: v.active || v.parent} class={hasChild: v.child})
+      li(class=v.class class={hasChild: v.child})
         a(href=(v.url=='*' ? '/' : v.url.replace(/:\w+\?/g,'')))
           span #{v.text}
         if v.child
@@ -11,5 +11,5 @@ ul
               +li(s)
 
     ol.menu.page
-      each v, route in navPage
+      each v, route in nav.page
         +li(v)

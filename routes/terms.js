@@ -1,7 +1,8 @@
-import { route } from "lethil";
+import { server } from "lethil";
 
-const routes = new route.gui("navTerms", "/terms");
+const app = server();
+const routes = app.routes("/terms", "terms");
 
-routes.get({ url: "/", route: "terms", text: "Terms" }, function(req, res) {
+routes.register({ name: "terms", text: "Terms" }, function(req, res) {
 	res.render("terms", { title: "Terms" });
 });

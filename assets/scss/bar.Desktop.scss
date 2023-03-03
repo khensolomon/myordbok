@@ -87,7 +87,8 @@ ol {
 		}
 	}
 	> li {
-		&.active {
+		&.active,
+		&.current {
 			> a {
 				// color: #236ea9;
 				color: var(--color-text-active);
@@ -139,7 +140,8 @@ ol {
 						border-left: 0;
 					}
 				}
-				&.active {
+				&.active,
+				&.current {
 					border: 0;
 					// border-bottom-width: 1px;
 					// border-bottom-color: transparent;
@@ -316,7 +318,8 @@ ol {
 							color: #fff;
 						}
 					}
-					&.active {
+					&.active,
+					&.current {
 						> a {
 							color: #236ea9;
 						}

@@ -3,13 +3,13 @@ div.ptl#header
     div.row
       div.column
         ol.menu.dictionary#MyOrdbok-logo(data-lang=sol.id, title=title)
-          each v, route in navDictionary
+          each v, route in nav.dictionary
             li(class=v.route class={active: v.active})
               a(href='/dictionary')
                 span #{sol.name}
                 span Myanmar
       div.column.wide
-        each v, route in navDefinition
+        each v, route in nav.definition
           form(name='search' method='get' action=v.url ref="form" v-bind:class="hasActive" @submit.prevent="input_submit")
             p
               input(

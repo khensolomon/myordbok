@@ -1,11 +1,17 @@
 // import {seek,route} from 'lethil';
-import { route } from "lethil";
+import { server } from "lethil";
 
 import { language, glossary } from "../assist/index.js";
-const routes = new route.gui("navDictionary");
 
-routes.get(
-	{ url: "/dictionary/:id?", route: "dictionary", text: "Dictionary" },
+const app = server();
+const routes = app.routes("/dictionary", "dictionary");
+
+routes.register(
+	{
+		url: "/:id?",
+		name: "dictionary",
+		text: "Dictionary"
+	},
 	function(req, res) {
 		// read(info(lang), {});
 		// const src = path.resolve(config.media, file);

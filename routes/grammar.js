@@ -1,12 +1,10 @@
-import { route } from "lethil";
+import { server } from "lethil";
 import { thuddar } from "../assist/index.js";
 
-const routes = new route.gui("navPage", "/grammar");
+const app = server();
+const routes = app.routes("/grammar", "page");
 
-routes.get({ url: "/", route: "grammar", text: "Grammar" }, async function(
-	req,
-	res
-) {
+routes.register({ name: "grammar", text: "Grammar" }, async function(req, res) {
 	// var grammar = await assist.grammarMain();
 	var result = await thuddar.main();
 	res.render("grammar", {
@@ -17,7 +15,7 @@ routes.get({ url: "/", route: "grammar", text: "Grammar" }, async function(
 	});
 });
 
-routes.get("/:id", function(req, res) {
+routes.register("/:id", function(req, res) {
 	thuddar
 		.pos(req.params.id)
 		.then(function(result) {
@@ -45,10 +43,10 @@ const app = require('..');
 const assist = require('../assist');
 const routes = app.Router();
 
-routes.get('/pos-:id', async function(req, res) {
+routes.register('/pos-:id', async function(req, res) {
   res.redirect(301, '/grammar/' + req.params.id.toLowerCase())
 });
-routes.get('/:id', async function(req, res) {
+routes.register('/:id', async function(req, res) {
   var id = req.params.id;
   assist.grammarPos(id).then(function(grammar){
     if (Object.keys(grammar).length) {
@@ -86,7 +84,7 @@ routes.get('/:id', async function(req, res) {
 
 });
 
-routes.get('/pos-:id', async function(req, res) {
+routes.register('/pos-:id', async function(req, res) {
   var id = req.params.id;
   var grammar = await assist.grammarPos(id);
   if (Object.keys(grammar).length) {
@@ -117,7 +115,7 @@ routes.get('/pos-:id', async function(req, res) {
   // }
 });
 
-routes.get('/', async function(req, res) {
+routes.register('/', async function(req, res) {
   var grammar = await assist.grammarMain();
   res.render('grammar', {
     title: grammar.context.name,

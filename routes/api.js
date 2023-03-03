@@ -1,4 +1,4 @@
-import { route } from "lethil";
+import { server, seek } from "lethil";
 import {
 	config,
 	search,
@@ -7,9 +7,10 @@ import {
 	grammar
 } from "../assist/index.js";
 
-const routes = new route.gui("_", "/api");
+const app = server();
+const routes = app.routes("/api");
 
-routes.get("/", (_req, res) => {
+routes.register("", (_req, res) => {
 	// res.send({
 	// 	name: config.name,
 	// 	version: config.version,
@@ -18,20 +19,29 @@ routes.get("/", (_req, res) => {
 	res.json({
 		name: config.name,
 		version: config.version,
-		development: config.development
+		development: config.development,
+		asdf: seek.resolve(config.dir.root, config.dir.views)
 	});
 });
+routes.register("/nav", (_req, res) => {
+	// res.send({
+	// 	name: config.name,
+	// 	version: config.version,
+	// 	development: config.development
+	// });
+	res.json(res.locals.nav);
+});
 
-routes.get("/config", (_req, res) => {
+routes.register("/config", (_req, res) => {
 	res.json(config);
 });
 
-routes.get("/search", (req, res) => {
+routes.register("/search", (req, res) => {
 	search(req).then(raw => res.json(raw));
 });
 
-routes.get("/speech", (req, res) => {
-	res.setHeaders({
+routes.register("/speech", (req, res) => {
+	res.set({
 		"Content-Type": "audio/mpeg",
 		"Accept-Ranges": "bytes",
 		"Content-Transfer-Encoding": "binary",
@@ -47,26 +57,26 @@ routes.get("/speech", (req, res) => {
 });
 
 // req.cookies.solId
-routes.get("/suggestion", (req, res) => {
+routes.register("/suggestion", (req, res) => {
 	suggestion(req.query.q, res.locals.sol.id)
 		.then(raw => res.json(raw))
 		.catch(e => res.status(404).end(e.message));
 });
 
 // 150-180ms upto 555ms
-routes.get("/grammar", (req, res) => {
+routes.register("/grammar", (req, res) => {
 	grammar
 		.main(req.query.q)
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });
-routes.get("/grammar/pos", (req, res) => {
+routes.register("/grammar/pos", (req, res) => {
 	grammar
 		.pos(req.query.q)
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });
-routes.get("/grammar/base", (req, res) => {
+routes.register("/grammar/base", (req, res) => {
 	grammar
 		.base(req.query.q)
 		.then(raw => res.json(raw))
@@ -74,7 +84,7 @@ routes.get("/grammar/base", (req, res) => {
 });
 
 // // /orths-:name
-// routes.get('/orth', (req, res) => {
+// routes.register('/orth', (req, res) => {
 //   // req.params.name req.query.name
 //   assist.orthCharacter(req.query.name).then(
 //     raw=> res.send(raw)
@@ -83,28 +93,28 @@ routes.get("/grammar/base", (req, res) => {
 //   )
 // });
 // // orthword orthord orthnse orthble ortheak
-// routes.get('/orth-word', (req, res) => {
+// routes.register('/orth-word', (req, res) => {
 //   assist.orthWord(req.query.ord).then(
 //     raw=> res.send(raw)
 //   ).catch(
 //     ()=>res.status(404).end()
 //   )
 // });
-// routes.get('/orth-sense', (req, res) => {
+// routes.register('/orth-sense', (req, res) => {
 //   assist.orthSense(req.query.ord).then(
 //     raw=> res.send(raw)
 //   ).catch(
 //     ()=>res.status(404).end()
 //   )
 // });
-// routes.get('/orth-syllable', (req, res) => {
+// routes.register('/orth-syllable', (req, res) => {
 //   assist.orthSyllable(req.query.str).then(
 //     raw=> res.send(raw)
 //   ).catch(
 //     ()=>res.status(404).end()
 //   )
 // });
-// routes.get('/orth-break', (req, res) => {
+// routes.register('/orth-break', (req, res) => {
 //   assist.orthBreak(req.query.str).then(
 //     raw=> res.send(raw)
 //   ).catch(

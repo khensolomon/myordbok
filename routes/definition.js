@@ -1,12 +1,10 @@
-import { route } from "lethil";
+import { server } from "lethil";
 import { search } from "../assist/index.js";
 
-const routes = new route.gui("navDefinition", "/definition");
+const app = server();
+const routes = app.routes("/definition", "definition");
 
-routes.get({ url: "/", route: "definition", text: "Definition" }, function(
-	req,
-	res
-) {
+routes.register({ text: "Definition" }, function(req, res) {
 	search(req)
 		.then(raw => res.render("definition/layout", raw))
 		.catch(e => res.status(404).send(e.message));
