@@ -6,18 +6,19 @@ import { language } from "./assist/index.js";
 const app = server();
 
 app.disable("x-powered-by");
-
+app.use(app.middleware.urlencoded({ extended: true }));
+app.use(app.middleware.json());
 app.use(cookieParser());
-
-app.use(app.middleware.static("static"));
-// if (config.development) {
-// 	import("./webpack.middleware.js").then(mwa => {
-// 		app.use(mwa.dev);
-// 		app.use(mwa.hot);
-// 	});
-// }
-
 app.use(compression());
+
+if (config.development) {
+	app.use(app.middleware.static("static"));
+	// import("./webpack.middleware.js").then(mwa => {
+	// 	app.use(mwa.hot);
+	// 	app.use(mwa.dev);
+	// });
+}
+
 app.use(app.middleware.menu);
 
 app.use(function(req, res, next) {
@@ -69,50 +70,4 @@ app.use(function(req, res, next) {
 	next();
 });
 
-/**
- * org: restrictMiddleWare
- */
-// app.use("/api", function(req, res, next) {
-// 	if (res.locals.referer) return next();
-// 	res.status(404).end();
-// 	// if (req.xhr || req.headers.range) next();
-// });
-app.use("/api", function(req, res, next) {
-	// config.referer.test(req.headers.host);
-	if (req.headers.referer) {
-		var ref = parse.url(req.headers.referer);
-		res.locals.referer = req.headers.host == ref.host;
-
-		// ref.host == host;
-		// req.headers.referer -> https://myordbok.lethil.me
-		// req.headers.host -> myordbok
-		// req.headers.host -> myordbok.lethil.me
-		// ref.host - myordbok.lethil.me
-	}
-	if (res.locals.referer) {
-		// NOTE: internal
-		return next();
-	} else {
-		// NOTE: external
-		const base = Object.keys(config.restrict),
-			user = Object.keys(req.query),
-			key = base.find(e => user.includes(e));
-		if (key && config.restrict[key] == req.query[key]) {
-			return next();
-		}
-	}
-
-	// if (res.locals.referer) {
-	// 	// NOTE: internal
-	// 	return next();
-	// } else {
-	// 	// NOTE: external
-	// 	const base = Object.keys(config.restrict),
-	// 		user = Object.keys(req.query),
-	// 		key = base.find(e => user.includes(e));
-	// 	if (key && config.restrict[key] == req.query[key]) {
-	// 		return next();
-	// 	}
-	// }
-	res.status(404).end();
-});
+app.use("/api", app.middleware.guard);

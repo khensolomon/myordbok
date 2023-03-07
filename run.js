@@ -10,13 +10,17 @@ import "./assist/command.js";
 const app = core.command();
 app.environment();
 
-// NOTE: on error
-app.on("error", e => console.log("...", e));
+app.listen(function(msg) {
+	// const usage = app.memoryUsage();
+	// for (var name in usage) console.log(usage, app.byteToMB(usage[name]), "mb");
+	if (msg) {
+		console.log("...", msg);
+	}
+});
 
-// NOTE: on success
-app.listen(e => {
-	// const mus = app.memoryUsage();
-	// for (var k in mus) console.log(`${k} ${Math.round(mus[k] / 1024 / 1024 * 100) / 100} MB`);
-	// app.exit();
-	console.log("...", e);
+app.close(function(error) {
+	if (error) {
+		console.log("...", error);
+	}
+	core.db.mysql.close();
 });

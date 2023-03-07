@@ -153,8 +153,8 @@ const app = createApp({
 			this.dataStore.wordIndex = -1;
 			this.dataStore.wordInput = this.dataStore.q;
 			if (this.dataStore.q) {
-				console.log("q", this.dataStore.q);
-				this.dataStore.suggests = await this.suggestion(this.dataStore.q);
+				// console.log("q", this.dataStore.q);
+				// this.dataStore.suggests = await this.suggestion(this.dataStore.q);
 				// if (/[\u1000-\u109F]/.test(this.dataStore.q)) {
 				//   // console.log('?',this.dataStore.q)
 				//   this.dataStore.suggests = await this.$parent.orthword(this.dataStore.q);

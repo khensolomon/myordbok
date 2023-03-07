@@ -265,12 +265,17 @@ export function wordCategory(raw, arr) {
  * @example suggestion('love') -> ["love","loves","loved",...]
  */
 export async function suggestion(word, lang) {
-	var res = [];
+	const res = [];
+	var count = 0;
 	const raw = await docket.getWord(lang);
 	for (let index = 0; index < raw.length; index++) {
 		const elm = raw[index];
 		if (elm.v.toLowerCase().startsWith(word.toLowerCase())) {
 			res.push(elm.v);
+			count++;
+		}
+		if (count >= 10) {
+			break;
 		}
 	}
 	return res;

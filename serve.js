@@ -8,16 +8,19 @@ app.environment();
 
 app.pug(file => pug.compileFile(file));
 
-app.listen(app.config.listen, () => {
-	// if (typeof app.address == "object") {
-	// 	console.log(app.config.name, app.address.address, app.address.port);
-	// } else {
-	// 	console.log(app.config.name, app.address);
-	// }
-	console.log("listen", app.config.listen);
-	// app.close();
+app.listen(app.config.listen, function() {
+	var now = new Date().toLocaleDateString("en-GB", {
+		weekday: "long",
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+		hour: "numeric",
+		minute: "numeric",
+		second: "numeric"
+	});
+	console.log("...", Number(app.config.listen.port), now);
 });
 
-// app.on("error", function(e) {
-// 	console.error("...", e);
-// });
+app.close(function() {
+	core.db.mysql.close();
+});

@@ -1,4 +1,4 @@
-import { command, seek } from "lethil";
+import { command } from "lethil";
 import { thuddar } from "./anchor/index.js";
 import * as dictionary from "./admin/dictionary.js";
 import * as gist from "./admin/gist.js";
@@ -13,10 +13,6 @@ const routes = app.routes();
 routes.register("/", () => "?");
 routes.register("/apple", () => "Did you know apple is fruit?");
 routes.register("orange", () => "Orange is good for health");
-routes.register("test", function() {
-	var file = "./cache/delete/abs/abc.txt";
-	return seek.write(file, "abc");
-});
 
 routes.register("ecosystem", async function(req) {
 	return import("./admin/deployment.js").then(e => e.createOrUpdate(req));
