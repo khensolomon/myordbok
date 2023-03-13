@@ -47,7 +47,7 @@
     "mysql2": "^3.2.0",
     "pluralize": "^8.0.0",
     "pug": "^3.0.2",
-    "sqlite3": "^5.1.3",
+    "sqlite3": "^5.1.5",
     "tar": "^6.1.12",
     "ttfmeta": "^1.1.0",
     "word-thesaurus": "^1.0.2"
