@@ -1,5 +1,6 @@
 import { resolve } from "path";
-import { seek, config } from "lethil";
+import { seek } from "lethil";
+import { config } from "./env.js";
 
 /**
  * @param {any} str

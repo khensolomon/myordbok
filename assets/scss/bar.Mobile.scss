@@ -100,8 +100,11 @@ ul {
 				}
 
 				> div {
-					> button {
-						transform: scale(1.8);
+					&.theme-switch {
+						margin-bottom: 40px;
+						> button {
+							transform: scale(1.8);
+						}
 					}
 				}
 			}

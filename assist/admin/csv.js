@@ -15,11 +15,13 @@ const outputDirectory = "/dev/lidea/assets/tmp/";
  * SQLite testing
  */
 export async function main(req) {
-	await wordListUnique(req);
-	await wordMapDerive(req);
-	await senseList(req);
-	await thesaurusList(req);
-	return "done";
+	// await wordListUnique(req);
+	// await wordMapDerive(req);
+	// await senseList(req);
+	// await thesaurusList(req);
+
+	// return "done";
+	return env.config.speechUrl;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { server, config, parse } from "lethil";
+import { server } from "lethil";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import { language } from "./assist/index.js";
@@ -11,7 +11,7 @@ app.use(app.middleware.json());
 app.use(cookieParser());
 app.use(compression());
 
-if (config.development) {
+if (app.config.development) {
 	app.use(app.middleware.static("static"));
 	// import("./webpack.middleware.js").then(mwa => {
 	// 	app.use(mwa.hot);
@@ -53,17 +53,17 @@ app.use(function(req, res, next) {
 		}
 	}
 
-	res.locals.app_locale = config.locale;
+	res.locals.app_locale = app.config.locale;
 	res.locals.appTheme = theme;
 
-	res.locals.appName = config.name;
-	res.locals.appVersion = config.version;
-	res.locals.appDescription = config.description;
-	res.locals.environment = config.development;
+	res.locals.appName = app.config.name;
+	res.locals.appVersion = app.config.version;
+	res.locals.appDescription = app.config.description;
+	res.locals.environment = app.config.development;
 
 	// if (req.headers.referer) {
 	// 	var ref = parse.url(req.headers.referer);
-	// 	res.locals.referer = req.headers.host == ref.host; // || config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
+	// 	res.locals.referer = req.headers.host == ref.host; // || app.config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
 	// 	res.locals.host = ref.protocol + "//" + req.headers.host;
 	// }
 	res.locals.sol = language.byId(Id) || l0;

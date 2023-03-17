@@ -42,7 +42,9 @@ export class Cache {
 	 * @returns {Promise<boolean>}
 	 */
 	async write(raw) {
-		return docket.write(this.file, raw, 2);
+		console.log("Cache write is disabled");
+		// return docket.write(this.file, raw, 2);
+		return false;
 	}
 }
 

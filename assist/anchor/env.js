@@ -1,4 +1,4 @@
-import { set } from "lethil";
+import core from "lethil";
 
 /**
  * import * as env from "./env.js"; access both default individual
@@ -35,9 +35,18 @@ import { set } from "lethil";
  * @property {string} pageClass - page classname
  * @property {any[]} data
  *
- * @typedef { {w:number, v:string, d:number, t:number} } TypeOfSynmap - {"w":1, "v":"0s", "d":1, "t":0}
+ * @typedef { {w:number, v:string, d:number, t:number} } TypeOfSynmap
+ * ```js
+ * {"w":1, "v":"0s", "d":1, "t":0}
+ * ```
  * @typedef { {w:number, v:string} } TypeOfSynset - {"w":1, "v":"0"}
+ * ```js
+ * {"w":1, "v":"0"}
+ * ```
  * @typedef { {i:number, w:number, t:number, v:string} } TypeOfSense - definition
+ * ```js
+ * {"i":1, "w":"0", "t":1, "v":"0s"}
+ * ```
  * @typedef { {i:number, v:string} } TypeOfUsage - example
  *
  * @typedef { {w:number, v:string} } RowOfLangTar - English
@@ -85,7 +94,8 @@ export const result = {
 	query: {
 		input: "",
 		word: "",
-		sentence: []
+		sentence: [],
+		status: false
 	},
 	meta: {
 		searchQuery: "",
@@ -233,7 +243,7 @@ export const orthography = {
 	sense: "orthography/sense.json"
 };
 
-export const config = set.merge({
+export const config = core.config.merge({
 	name: "MyOrdbok",
 	// description: 'package.description',
 	// version: 'package.version',
@@ -243,6 +253,10 @@ export const config = set.merge({
 		// {id:'my',name:'Myanmar'},
 		// {id:'zo',name:'Zolai'}
 	],
+	/**
+	 * apple
+	 */
+	speechUrl: "",
 
 	table: {
 		senses: "list_sense",

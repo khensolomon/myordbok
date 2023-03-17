@@ -334,3 +334,7 @@ export async function definition(word) {
 		return [];
 	}
 }
+
+export function tmp() {
+	env.config.name;
+}
