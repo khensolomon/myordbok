@@ -1,10 +1,12 @@
 import { server } from "lethil";
 import cookieParser from "cookie-parser";
 import compression from "compression";
+import helmet from "helmet";
 import { language } from "./assist/index.js";
 
 const app = server();
 
+app.use(helmet());
 app.disable("x-powered-by");
 app.use(app.middleware.urlencoded({ extended: true }));
 app.use(app.middleware.json());
