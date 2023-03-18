@@ -1,12 +1,10 @@
 import { server } from "lethil";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import helmet from "helmet";
 import { language } from "./assist/index.js";
 
 const app = server();
 
-app.use(helmet());
 app.disable("x-powered-by");
 app.use(app.middleware.urlencoded({ extended: true }));
 app.use(app.middleware.json());
@@ -22,41 +20,24 @@ if (app.config.development) {
 }
 
 app.use(app.middleware.menu);
+app.use(app.middleware.theme);
 
 app.use(function(req, res, next) {
-	var Id = "";
-	const l0 = language.primary;
+	var lang = language.byId(req.cookies.solId);
+	res.locals.sol = lang || language.primary;
 
-	if (l0) {
-		Id = l0.id;
-	}
-
-	if (req.cookies.solId != undefined) {
-		Id = req.cookies.solId;
-	} else {
-		res.cookie("solId", Id);
-	}
-
-	var theme = "light";
-	if (req.cookies.theme || req.cookies.theme != undefined) {
-		theme = req.cookies.theme;
-	} else {
-		// NOTE: No need to set, client script should do it
-		// res.cookie("theme", theme);
-	}
-	if (req.url) {
-		const [name, solName] = req.url.split("/").filter(e => e);
-		if (name == "dictionary" && solName) {
-			var l1 = language.byName(solName);
-			if (l1 && l1.id != Id) {
-				Id = l1.id;
-				res.cookie("solId", Id);
-			}
-		}
-	}
+	// if (req.url) {
+	// 	const [name, solName] = req.url.split("/").filter(e => e);
+	// 	if (name == "dictionary" && solName) {
+	// 		var l1 = language.byName(solName);
+	// 		if (l1 && l1.id != Id) {
+	// 			Id = l1.id;
+	// 			res.cookie("solId", Id);
+	// 		}
+	// 	}
+	// }
 
 	res.locals.app_locale = app.config.locale;
-	res.locals.appTheme = theme;
 
 	res.locals.appName = app.config.name;
 	res.locals.appVersion = app.config.version;
@@ -68,7 +49,7 @@ app.use(function(req, res, next) {
 	// 	res.locals.referer = req.headers.host == ref.host; // || app.config.user.referer.filter((e)=>e.exec(ref.host)).length > 0;
 	// 	res.locals.host = ref.protocol + "//" + req.headers.host;
 	// }
-	res.locals.sol = language.byId(Id) || l0;
+
 	next();
 });
 

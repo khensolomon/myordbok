@@ -1,4 +1,3 @@
-// import {seek,route} from 'lethil';
 import { server } from "lethil";
 
 import { language, glossary } from "../assist/index.js";
@@ -15,6 +14,14 @@ routes.register(
 	function(req, res) {
 		// read(info(lang), {});
 		// const src = path.resolve(config.media, file);
+
+		if (req.params.id) {
+			var lang = language.byName(req.params.id);
+			if (lang && lang.id != req.cookies.solId) {
+				res.cookie("solId", lang.id);
+				res.locals.sol = lang;
+			}
+		}
 		glossary
 			.stats(res.locals.sol.id)
 			.then(raw =>
