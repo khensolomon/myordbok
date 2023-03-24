@@ -38,33 +38,8 @@ export const data = {
 	no: []
 };
 
-/**
- * @param {string} file
- * @param {any[]|any} raw
- * @param {number} [space]
- * @returns {Promise<boolean>}
- */
-export async function write(file, raw, space = 0) {
-	return await seek
-		.write(file, JSON.stringify(raw, null, space))
-		.then(() => true)
-		.catch(() => false);
-}
-
-/**
- * @template T
- * @param {string} file
- * param {Array<any> | object} catchWith
- * returns {Promise<Array<any> | object>}
- * @param {T | []} [catchWith]
- * @returns {Promise<T>}
- */
-export async function read(file, catchWith = []) {
-	return await seek
-		.read(file)
-		.then(e => JSON.parse(e.toString()))
-		.catch(() => catchWith);
-}
+export const read = seek.ReadJSON;
+export const write = seek.WriteJSON;
 
 /**
  * typedef {[keyof data]} abc
