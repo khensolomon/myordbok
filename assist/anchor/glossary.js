@@ -12,8 +12,8 @@ export class Cache {
 	file = "";
 	/**
 	 * @param {string} page
-	 * @param {string} [query] - empty
-	 * @param {string} [lang="en"] - language
+	 * @param {string} [query=""] - empty
+	 * @param {string} [lang=en] - language
 	 * version-page-query
 	 * @example cache("definition", keyword, lange
 	 * ./cache/version/page-lang-query.json
@@ -49,6 +49,7 @@ export class Cache {
 }
 
 /**
+ * Get resolved file path
  * @param {string} file
  * @param {string} [lang] - lang || primary.id
  */
