@@ -39,9 +39,9 @@ function info_read(file) {
 }
 /**
  * export definition [en, sense, usage]
- * @param {any} _req
+ * @param {any} req
  */
-export async function definition(_req) {
+export async function exportDefinition(req) {
 	// NOTE: info record
 	const infoFile = glossary.info();
 
@@ -121,9 +121,9 @@ export async function definition(_req) {
 
 /**
  * export translation [ar, da, de, el ...]
- * @param {any} _req
+ * @param {any} req
  */
-export async function translation(_req) {
+export async function exportTranslation(req) {
 	for (const continental of dictionaries) {
 		for (const lang of continental.lang) {
 			if (!lang.hasOwnProperty("default")) {
@@ -161,7 +161,11 @@ export async function translation(_req) {
  * @param {any} req
  * id AS w, word AS v, derived AS d  LIMIT 10;
  */
-export async function wordSynset(req) {
+export async function exportWordSynset(req) {
+	// NOTE: wait
+	await info_read(glossary.info());
+
+	// await db.mysql.connect();
 	// id AS w, word AS v, derived AS d  LIMIT 10;
 	// throw '...needed to enable manually';
 	await db.mysql
@@ -173,16 +177,19 @@ export async function wordSynset(req) {
 			console.info(" >", "words->synset", raw.length, _wi);
 		})
 		.catch(e => console.error(e));
-	return "Done";
+
+	return "Done " + table.synset;
 }
 
 /**
  * export word [synmap]
- * @param {any} _req
+ * @param {any} req
  * SELECT root_id AS w, wrid AS v, derived_type AS d, word_type AS t FROM ??;
  * SELECT wrid AS v, dete AS d, wrte AS t FROM ??;
  */
-export async function wordSynmap(_req) {
+export async function exportWordSynmap(req) {
+	// NOTE: wait
+	await info_read(glossary.info());
 	// throw ' >needed to enable manually, column have been changed, word into wordid (wrid)';
 	await db.mysql
 		.query("SELECT id AS w, word AS v, dete AS d, wrte AS t FROM ??;", [
@@ -195,4 +202,40 @@ export async function wordSynmap(_req) {
 		})
 		.catch(e => console.error(e));
 	return "Done ";
+}
+
+/**
+ * Development purpose only
+ * @param {string} word
+ */
+export async function search(word) {
+	const res = [];
+
+	// return raw.length ? true : false;
+	const synmap = await db.mysql.query(
+		"SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
+		[table.synmap, word]
+	);
+	const sense = await db.mysql.query(
+		"SELECT word AS term FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
+		[table.senses, word]
+	);
+
+	if (synmap.length) {
+		if (sense.length == 0) {
+			res.push("synmap");
+		}
+	} else {
+		const synset = await db.mysql.query(
+			"SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
+			[table.synset, word]
+		);
+		if (synset.length && sense.length == 0) {
+			res.push("synset");
+		}
+	}
+	// if (sense.length) {
+	// 	res.push("sense");
+	// }
+	return res;
 }
