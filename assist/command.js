@@ -4,7 +4,6 @@ import * as dictionary from "./admin/dictionary.js";
 import * as gist from "./admin/gist.js";
 import * as working from "./admin/working.js";
 import * as sqlite from "./admin/sqlite.js";
-import * as csv from "./admin/csv.js";
 
 const app = command();
 const routes = app.routes();
@@ -24,13 +23,12 @@ routes.register("environment", async function(req) {
 
 routes.register("export-grammar", thuddar.update);
 
-routes.register("export-definition", dictionary.definition);
-routes.register("export-translation", dictionary.translation);
-routes.register("export-synset", dictionary.wordSynset);
-routes.register("export-synmap", dictionary.wordSynmap);
+routes.register("export-definition", dictionary.exportDefinition);
+routes.register("export-translation", dictionary.exportTranslation);
+routes.register("export-synset", dictionary.exportWordSynset);
+routes.register("export-synmap", dictionary.exportWordSynmap);
 
 routes.register("export-sqlite-test", sqlite.main);
-routes.register("export-csv-test", csv.main);
 
 routes.register("gist-get", gist.get);
 routes.register("gist-list", gist.list);
@@ -46,9 +44,17 @@ routes.register("works", working.main);
 // });
 
 routes.register("wordbreak", async function(req) {
-	return import("./wordbreak/test.js").then(async e => e.default(req));
+	return import("./wordbreak/test.js").then(e => e.default(req));
 });
 
-routes.register("upgrade/:id?", req =>
-	import("./admin/upgrade.js").then(e => e.default(req))
-);
+routes.register("flat:task?", async function(req) {
+	return import("./admin/flat.js").then(async e => await e.default(req));
+});
+
+routes.register("saing/:task?", async function(req) {
+	return import("./admin/saing.js").then(e => e.default(req));
+});
+
+// routes.register("upgrade/:id?", req =>
+// 	import("./admin/upgrade.md").then(e => e.default(req))
+// );
