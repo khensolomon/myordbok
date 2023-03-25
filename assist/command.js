@@ -23,6 +23,12 @@ routes.register("environment", async function(req) {
 
 routes.register("export-grammar", thuddar.update);
 
+// routes.register("testing", dictionary.testing);
+// routes.register("/testings", async function(req) {
+// 	return await dictionary.testing(req);
+// });
+// routes.register("/testings", req => "this is testing");
+routes.register("testing/:word?", dictionary.testing);
 routes.register("export-definition", dictionary.exportDefinition);
 routes.register("export-translation", dictionary.exportTranslation);
 routes.register("export-synset", dictionary.exportWordSynset);
@@ -47,7 +53,7 @@ routes.register("wordbreak", async function(req) {
 	return import("./wordbreak/test.js").then(e => e.default(req));
 });
 
-routes.register("flat:task?", async function(req) {
+routes.register("flat/:task?", async function(req) {
 	return import("./admin/flat.js").then(async e => await e.default(req));
 });
 
