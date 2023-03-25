@@ -13,7 +13,7 @@
       "-instances": 1,
       "-exec_mode": "cluster",
       "autorestart": true,
-      "max_memory_restart": "300M",
+      "max_memory_restart": "700M",
       "env": {
         "NODE_ENV": "production"
       },
