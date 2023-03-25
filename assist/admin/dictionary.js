@@ -244,15 +244,23 @@ export async function search(word) {
  * @param {any} req
  */
 export async function testing(req) {
-	const infoFile = glossary.info();
-	await info_read(infoFile);
+	try {
+		const infoFile = glossary.info();
+		await info_read(infoFile);
 
-	return await db.mysql
-		.query("SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);", [
-			table.synmap,
-			req.params.word
-		])
-		.catch(function(err) {
-			console.log("error", err);
-		});
+		await db.mysql
+			.query("SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);", [
+				table.synmap,
+				req.params.word
+			])
+			.then(function(e) {
+				console.log(e);
+			})
+			.catch(function(err) {
+				console.log("error", err);
+			});
+	} catch (error) {
+	} finally {
+		process.exit();
+	}
 }
