@@ -6,6 +6,9 @@
   - ?q=court card
   - ref
     - ?q=natural action -> ok
+- Word (Not found)
+  - bypast
+  - first
 - API referer
   - Not working
 

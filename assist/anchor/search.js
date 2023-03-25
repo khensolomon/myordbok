@@ -298,10 +298,10 @@ async function asMeaning(word) {
 	}
 
 	if (row.length) {
-		const thesaurus = clue.wordThesaurus(word);
-		if (thesaurus.length) {
-			row.push(...thesaurus);
-		}
+		// const thesaurus = clue.wordThesaurus(word);
+		// if (thesaurus.length) {
+		// 	row.push(...thesaurus);
+		// }
 		res.row = row;
 		// console.log("write cache");
 		cache_control.write(res);

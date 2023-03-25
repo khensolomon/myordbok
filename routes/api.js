@@ -19,8 +19,8 @@ routes.register("", (_req, res) => {
 	res.json({
 		name: config.name,
 		version: config.version,
-		development: config.development,
-		asdf: seek.resolve(config.dir.root, config.dir.views)
+		development: config.development
+		// asdf: seek.resolve(config.dir.root, config.dir.views)
 	});
 });
 routes.register("/nav", (_req, res) => {
