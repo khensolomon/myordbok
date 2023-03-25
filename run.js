@@ -15,9 +15,9 @@ app.listen(function(msg) {
 	// for (var name in usage) console.log(usage, app.byteToMB(usage[name]), "mb");
 	if (msg) {
 		console.log("...", msg);
-		app.exit();
+		// app.exit();
 	} else {
-		app.exit(1);
+		// app.exit(1);
 	}
 });
 
