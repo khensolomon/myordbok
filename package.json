@@ -92,16 +92,16 @@
     "webpack-merge": "^5.8.0"
   },
   "docs": {
-    "development": {
-      "lethil": "file:../lethil",
-      "myanmar-notation": "file:../myanmar-notation",
-      "ttfmeta": "file:../ttfmeta"
-    },
     "deployment": {
       "npm run setup": "pm2 setup(initiate) on live server",
       "npm run deploy": "pm2 update on live server",
       "npm run ecosystem": "Create ecosystem.json",
       "npm run environment": "Transfer .env"
+    },
+    "development": {
+      "lethil": "file:../lethil",
+      "myanmar-notation": "file:../myanmar-notation",
+      "ttfmeta": "file:../ttfmeta"
     }
   },
   "repository": {
