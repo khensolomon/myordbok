@@ -19,15 +19,20 @@ export class Cache {
 	 * ./cache/version/page-lang-query.json
 	 */
 	constructor(page, query = "", lang = "en") {
-		this.file = path
-			.resolve(env.config.fileName.cache)
-			// .replace("version", this.version)
-			.replace("page", page)
-			.replace("lang", lang)
-			.replace("query", query.replace(/\s+/g, "_").trim());
+		if (this.enable) {
+			this.file = path
+				.resolve(env.config.fileName.cache)
+				// .replace("version", this.version)
+				.replace("page", page)
+				.replace("lang", lang)
+				.replace("query", query.replace(/\s+/g, "_").trim());
+		}
 	}
 	get version() {
 		return env.config.version.replace(/\./g, "");
+	}
+	get enable() {
+		return env.config.cacheDefinition == "true";
 	}
 	/**
 	 * @template R
@@ -35,7 +40,10 @@ export class Cache {
 	 * @returns {Promise<R>}
 	 */
 	async read(raw) {
-		return docket.read(this.file, raw);
+		if (this.enable) {
+			return docket.read(this.file, raw);
+		}
+		return raw;
 	}
 	/**
 	 * @param {*} raw
@@ -43,8 +51,10 @@ export class Cache {
 	 */
 	async write(raw) {
 		// console.log("Cache write is disabled");
-		return docket.write(this.file, raw, 2);
-		// return false;
+		if (this.enable) {
+			return docket.write(this.file, raw, 2);
+		}
+		return false;
 	}
 }
 
