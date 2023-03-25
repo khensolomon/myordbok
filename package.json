@@ -15,6 +15,11 @@
     "test:port": "set PORT=5000 && node serve",
     "test:listen": "set LISTEN= && node serve",
     "test:production": "set NODE_ENV=production && node serve",
+    "setup": "pm2 deploy ecosystem.json production setup",
+    "deploy": "pm2 deploy ecosystem.json production",
+    "ecosystem": "node run ecosystem",
+    "environment": "node run environment",
+    "pm2-test": "echo \"Error: no test specified\" && exit 1",
     "pm2:start": "pm2 start",
     "pm2:startJSON": "pm2 start process.json",
     "pm2:reload": "pm2 reload MyOrdbok",
@@ -87,10 +92,16 @@
     "webpack-merge": "^5.8.0"
   },
   "docs": {
-    "dev": {
+    "development": {
       "lethil": "file:../lethil",
       "myanmar-notation": "file:../myanmar-notation",
       "ttfmeta": "file:../ttfmeta"
+    },
+    "deployment": {
+      "npm run setup": "pm2 setup(initiate) on live server",
+      "npm run deploy": "pm2 update on live server",
+      "npm run ecosystem": "Create ecosystem.json",
+      "npm run environment": "Transfer .env"
     }
   },
   "repository": {
