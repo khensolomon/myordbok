@@ -1,4 +1,4 @@
-import path from "path";
+import { seek } from "lethil";
 import * as env from "./env.js";
 import { primary } from "./language.js";
 import * as docket from "./json.js";
@@ -20,7 +20,7 @@ export class Cache {
 	 */
 	constructor(page, query = "", lang = "en") {
 		if (this.enable) {
-			this.file = path
+			this.file = seek
 				.resolve(env.config.fileName.cache)
 				// .replace("version", this.version)
 				.replace("page", page)
@@ -64,7 +64,7 @@ export class Cache {
  * @param {string} [lang] - lang || primary.id
  */
 export function get(file, lang) {
-	return path.resolve(env.config.media, file).replace(/EN/, lang || primary.id);
+	return seek.resolve(env.config.media, file).replace(/EN/, lang || primary.id);
 }
 
 /**

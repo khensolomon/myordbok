@@ -161,23 +161,46 @@ export function wordThesaurus(word, sensitive = false) {
 	 */
 	var row = thesaurus.find(word.toLowerCase());
 
-	return row.map(function(e) {
-		const pos = thesaurus.posName(e.pos);
+	const res = [];
+
+	for (let index = 0; index < row.length; index++) {
+		const e = row[index];
+		const pos = thesaurus.posName(e.pos).toLowerCase();
 		const total = e.raw.length.toString();
-		return {
+		res.push({
 			term: word,
 			type: "meaning",
 			cast: "exam_thesaurus",
 			// pos: thesaurus.posName(e.pos),
 			pos: "Thesaurus",
-			kind: ["odd", pos.toLowerCase()],
+			kind: ["odd", pos],
 			v: "(-~ total-) words related to {-query-} as {-*?-}."
 				.replace(/total/, total)
 				.replace(/query/, word)
-				.replace(/\*\?/, pos.toLowerCase()),
+				.replace(/\*\?/, pos),
 			exam: e.raw
-		};
-	});
+		});
+	}
+
+	return res;
+
+	// return row.map(function(e) {
+	// 	const pos = thesaurus.posName(e.pos);
+	// 	const total = e.raw.length.toString();
+	// 	return {
+	// 		term: word,
+	// 		type: "meaning",
+	// 		cast: "exam_thesaurus",
+	// 		// pos: thesaurus.posName(e.pos),
+	// 		pos: "Thesaurus",
+	// 		kind: ["odd", pos.toLowerCase()],
+	// 		v: "(-~ total-) words related to {-query-} as {-*?-}."
+	// 			.replace(/total/, total)
+	// 			.replace(/query/, word)
+	// 			.replace(/\*\?/, pos.toLowerCase()),
+	// 		exam: e.raw
+	// 	};
+	// });
 
 	// row.map(e => e.raw);
 	// var a1 = row.map(e => e.raw);

@@ -1,4 +1,4 @@
-import { server, seek } from "lethil";
+import { server } from "lethil";
 import {
 	config,
 	search,
@@ -20,7 +20,6 @@ routes.register("", (_req, res) => {
 		name: config.name,
 		version: config.version,
 		development: config.development
-		// asdf: seek.resolve(config.dir.root, config.dir.views)
 	});
 });
 routes.register("/nav", (_req, res) => {

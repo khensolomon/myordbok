@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import { seek } from "lethil";
 import { config } from "./env.js";
 
@@ -29,7 +28,7 @@ const result = {
 };
 export function visits() {
 	if (result.created == "") {
-		var file = resolve(config.media, "log", "myordbok.visit.log");
+		var file = seek.resolve(config.media, "log", "myordbok.visit.log");
 		if (seek.exists(file)) {
 			var tpl = Object.keys(result);
 			seek

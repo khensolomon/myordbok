@@ -236,17 +236,17 @@ async function asMeaning(word) {
 		row: []
 	};
 
-	const cache_control = settings.cacheController(word, "en");
+	const cache_controller = settings.cacheController(word, "en");
 
-	const caches = await cache_control.read(res);
+	const caches = await cache_controller.read(res);
 	if (check.isObject(caches)) {
-		if (caches.version == cache_control.version) {
+		if (caches.version == cache_controller.version) {
 			console.log("read cache");
 			return caches;
 		}
 	}
 
-	res.version = cache_control.version;
+	res.version = cache_controller.version;
 
 	var row = await clue.definition(word);
 	var pos = await grammar.main(word);
@@ -298,13 +298,12 @@ async function asMeaning(word) {
 	}
 
 	if (row.length) {
-		// const thesaurus = clue.wordThesaurus(word);
-		// if (thesaurus.length) {
-		// 	row.push(...thesaurus);
-		// }
+		const thesaurus = clue.wordThesaurus(word);
+		if (thesaurus.length) {
+			row.push(...thesaurus);
+		}
 		res.row = row;
-		// console.log("write cache");
-		cache_control.write(res);
+		cache_controller.write(res);
 	}
 
 	return res;
