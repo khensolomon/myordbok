@@ -275,7 +275,8 @@ export const config = core.config.merge({
 	 * if "true" get search result from Database
 	 * if not get data from JSON
 	 */
-	fromDatabase: "false"
+	fromDatabase: "false",
+	cacheDefinition: "false"
 });
 
 // to get latest merge, config must be used
