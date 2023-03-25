@@ -9,6 +9,9 @@
 - Word (Not found)
   - bypast
   - first
+- Word (timeout)
+  - (number)
+  - kings
 - API referer
   - Not working
 
