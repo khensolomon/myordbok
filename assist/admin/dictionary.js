@@ -257,9 +257,10 @@ export async function testing(req) {
 				console.log(e);
 			})
 			.catch(function(err) {
-				console.log("error", err);
+				console.log("error-0", err);
 			});
 	} catch (error) {
+		console.log("error-1", error);
 	} finally {
 		process.exit();
 	}
