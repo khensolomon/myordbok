@@ -12,6 +12,7 @@ const routes = app.routes();
 routes.register("/", () => "?");
 routes.register("/apple", () => "Did you know apple is fruit?");
 routes.register("orange", () => "Orange is good for health");
+routes.register("req", req => req);
 
 routes.register("ecosystem", async function(req) {
 	return import("./admin/deployment.js").then(e => e.createOrUpdate(req));
