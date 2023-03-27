@@ -9,7 +9,15 @@ import * as docket from "./json.js";
  * @example cache("definition", keyword, lang)
  */
 export class Cache {
+	/**
+	 * @private
+	 */
 	file = "";
+
+	/**
+	 * @private
+	 */
+	lang = "";
 	/**
 	 * @param {string} page
 	 * @param {string} [query=""] - empty
@@ -19,6 +27,8 @@ export class Cache {
 	 * ./cache/version/page-lang-query.json
 	 */
 	constructor(page, query = "", lang = "en") {
+		this.query = query;
+		this.lang = lang;
 		if (this.enable) {
 			this.file = seek
 				.resolve(env.config.fileName.cache)
@@ -27,6 +37,10 @@ export class Cache {
 				.replace("lang", lang)
 				.replace("query", query.replace(/\s+/g, "_").trim());
 		}
+	}
+
+	async info() {
+		return docket.getInfo(this.lang);
 	}
 	get version() {
 		return env.config.version.replace(/\./g, "");
@@ -109,16 +123,4 @@ export function zero(lang) {
  */
 export function thesaurus() {
 	return get(env.config.fileName.thesaurus);
-}
-
-/**
- * read fileName 'info.*.json' and return
- * @param {string} lang - language shortname
- * returns {Promise<{title:string,keyword:string,description:string,info:[]}>}
- * @returns {Promise<any>}
- */
-export async function stats(lang) {
-	const src = info(lang);
-	return await docket.read(src, {});
-	// return await docket.read(info(lang), {});
 }
