@@ -230,6 +230,7 @@ async function asMeaning(word) {
 	 */
 	const res = {
 		status: false,
+		dated: 0,
 		id: 0,
 		version: "",
 		msg: [],
@@ -238,19 +239,25 @@ async function asMeaning(word) {
 
 	const cache_controller = settings.cacheController(word, "en");
 
+	const info = await cache_controller.info();
 	const caches = await cache_controller.read(res);
-	if (check.isObject(caches)) {
-		if (caches.version == cache_controller.version) {
-			console.log("read cache");
+	// check.isObject(caches)
+	// caches.dated > 0;
+	// caches.version == cache_controller.version;
+	if (caches.dated > 0) {
+		if (caches.dated >= info.dated) {
 			return caches;
 		}
 	}
 
 	res.version = cache_controller.version;
+	res.dated = Date.now();
 
 	var row = await clue.definition(word);
 	var pos = await grammar.main(word);
+
 	const hasPos = pos.form.length > 0;
+
 	/**
 	 * [love] (noun, verb)
 	 * [?] (adjective)
@@ -272,6 +279,7 @@ async function asMeaning(word) {
 	if (notation) {
 		row.push(notation);
 	}
+
 	/**
 	 * [loves kings] (plural)
 	 * [happier] (adjective)
@@ -282,7 +290,7 @@ async function asMeaning(word) {
 		const words = fire.array.unique(pos.root.map(e => e.v), true);
 		for (let index = 0; index < words.length; index++) {
 			const elm = words[index];
-			console.log("hasPos", elm);
+
 			const a1 = await clue.definition(elm);
 			row.push(...a1);
 			if (!notation) {
