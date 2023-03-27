@@ -70,8 +70,9 @@ import core from "lethil";
  *
  * @typedef {Object} TypeOfMeaning - each word clue
  * @property {boolean} status
- * @property {string} version - used in cache control
+ * @property {number} dated - timestamp
  * @property {number} id - 0:default 1:match 2:synset
+ * @property {string} version - used in cache control
  * @property {string[]} msg
  * @property {RowOfMeaning[]} row
  *
@@ -139,6 +140,7 @@ export const synset = [
 	{ name: "Punctuation", shortname: "punc" },
 	{ name: "Particle", shortname: "part" },
 	{ name: "Post-positional Marker", shortname: "ppm" },
+	{ name: "Suffix", shortname: "" },
 	{ name: "Acronym", shortname: "" },
 	{ name: "Article", shortname: "" },
 	{ name: "Number", shortname: "tn" }
