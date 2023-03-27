@@ -13,5 +13,7 @@ export const {
 	grammar,
 	env
 } = anchor;
+
+export const docket = anchor.json;
 export const { translation, definition, suggestion, query } = anchor.clue;
 export const config = anchor.env.default;
