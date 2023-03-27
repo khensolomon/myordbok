@@ -1,5 +1,13 @@
 # Version
 
+## 1.7.7
+
+Glossary
+
+- word: 58845
+- definition: 100855
+- example: 54138
+
 ## 1.7.6
 
 Package
