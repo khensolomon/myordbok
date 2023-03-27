@@ -15,7 +15,7 @@ const { dictionaries, table } = env.config;
  * @property {string} title
  * @property {string} keyword
  * @property {string} description
- * @property {string} description
+ * @property {number} dated
  * @property {Object} info
  * @property {string} info.header
  * @property {TypeOfInfoProgress[]} info.progress
@@ -47,6 +47,11 @@ export async function exportDefinition(req) {
 
 	const infoRaw = await info_read(infoFile);
 
+	// infoRaw.dated = new Date()
+	// 	.toISOString()
+	// 	.replace(/T/, " ")
+	// 	.replace(/\..+/, "");
+	infoRaw.dated = Date.now();
 	/**
 	 * @param {string} identity
 	 * @param {any} digit
@@ -129,6 +134,7 @@ export async function exportTranslation(req) {
 			if (!lang.hasOwnProperty("default")) {
 				var infoFile = glossary.info(lang.id);
 				const infoRaw = await info_read(infoFile);
+				infoRaw.dated = Date.now();
 				await db.mysql
 					.query(
 						"SELECT word AS v, sense AS e FROM ?? WHERE word IS NOT NULL AND sense IS NOT NULL AND sense <> '';",
