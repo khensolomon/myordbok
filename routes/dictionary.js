@@ -1,6 +1,6 @@
 import { server } from "lethil";
 
-import { language, glossary } from "../assist/index.js";
+import { language, docket } from "../assist/index.js";
 
 const app = server();
 const routes = app.routes("/dictionary", "dictionary");
@@ -22,8 +22,8 @@ routes.register(
 				res.locals.sol = lang;
 			}
 		}
-		glossary
-			.stats(res.locals.sol.id)
+		docket
+			.getInfo(res.locals.sol.id)
 			.then(raw =>
 				res.render("dictionary", {
 					title: raw.title,
