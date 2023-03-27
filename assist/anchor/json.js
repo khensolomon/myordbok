@@ -34,8 +34,11 @@ export const data = {
 	 * @type {env.TypeOfSynset[]}
 	 */
 	en: [],
-
-	no: []
+	no: [],
+	/**
+	 * @type {any}
+	 */
+	info: {}
 };
 
 export const read = seek.ReadJSON;
@@ -108,4 +111,18 @@ export function getSynset() {
  */
 export function getSynmap() {
 	return get(env.config.fileName.synmap);
+}
+
+/**
+ * read fileName 'info.*.json' and return
+ * @param {string} lang - language shortname
+ * returns {Promise<{title:string,keyword:string,description:string,info:[],dated:number}>}
+ * @returns {Promise<any>}
+ */
+export async function getInfo(lang) {
+	if (data.info.hasOwnProperty(lang)) {
+		return data.info[lang];
+	}
+	const src = glossary.info(lang);
+	return await read(src, {});
 }
