@@ -1,12 +1,18 @@
 # Version
 
-## 1.7.7
+## 1.7.8
+
+Font noticed
 
 Glossary
 
 - word: 58845
 - definition: 100855
 - example: 54138
+
+## 1.7.7
+
+testing
 
 ## 1.7.6
 
