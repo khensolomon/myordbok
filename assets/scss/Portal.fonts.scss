@@ -166,6 +166,14 @@
 				}
 			}
 		}
+
+		&.noticed {
+			color: var(--color-text-disable);
+			> p {
+				margin: 2% 20%;
+				font-size: 120%;
+			}
+		}
 		&.gallery {
 			ul {
 				// background-color: red;
@@ -497,6 +505,11 @@
 						padding-top: 7px;
 						border-top: 1px dotted #c5c9b6;
 					}
+				}
+			}
+			&.noticed {
+				> p {
+					margin: 2% 5%;
 				}
 			}
 			&.gallery {
