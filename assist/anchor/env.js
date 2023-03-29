@@ -256,7 +256,7 @@ export const config = core.config.merge({
 		// {id:'zo',name:'Zolai'}
 	],
 	/**
-	 * apple
+	 * custom
 	 */
 	speechUrl: "",
 
