@@ -33,9 +33,10 @@ routes.register(
 			description: "Myanmar Unicode and fonts",
 			keywords: "Myanmar fonts"
 		};
-		try {
-			var o = new fonts(fontType);
-			await o.view(fontName).then(function(e) {
+		var o = new fonts(fontType);
+		await o
+			.view(fontName)
+			.then(async function(e) {
 				if (e instanceof Object) {
 					// context = e;
 					Object.assign(context, e);
@@ -44,14 +45,13 @@ routes.register(
 						context.download = fontName;
 					}
 				}
+				context.secondary = await o.read("secondary");
+				context.external = await o.read("external");
+				res.render("fonts", context);
+			})
+			.catch(function(e) {
+				res.status(404).end();
 			});
-			context.secondary = await o.read("secondary");
-			context.external = await o.read("external");
-		} catch (error) {
-			console.log(error);
-		}
-
-		res.render("fonts", context);
 	}
 );
 
