@@ -24,6 +24,7 @@ import * as language from "./language.js";
  * goat~me~string ???
  */
 export function query(str) {
+	var str = str || "";
 	/**
 	 * @type {env.TypeOfSearchQuery}
 	 */
