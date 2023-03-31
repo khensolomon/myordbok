@@ -212,8 +212,9 @@ div.sch-definition {
 				width: 100%;
 				// top:calc(100% + 1px);
 				top: calc(100% + 0.58px);
-				// background-color: rgba(var(--color-surround), 1);
-				background-color: rgba(var(--color-surround));
+
+				background-color: rgba(var(--color-surround), 1);
+				// background-color: rgba(var(--color-surround));
 				overflow: hidden;
 
 				border-radius: 0 0 10px 10px;
