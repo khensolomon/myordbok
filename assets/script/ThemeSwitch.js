@@ -12,7 +12,8 @@ export default {
 			} else {
 				this.$parent.cookieStore.write(themeId, "dark", 30);
 			}
-			this.classList.toggle("dark");
+			var theme = this.classList.toggle("dark");
+			this.themeColor.setAttribute("content", theme ? "#222222" : "#3390d7");
 		}
 	},
 	computed: {
@@ -21,6 +22,9 @@ export default {
 		 */
 		classList() {
 			return this.$parent.querySelector("html").classList;
+		},
+		themeColor() {
+			return this.$parent.querySelector('meta[name="theme-color"]');
 		}
 	},
 	render() {
