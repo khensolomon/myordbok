@@ -1,0 +1,11 @@
+div.modest
+  div.logo
+    ol.menu.dictionary#MyOrdbok-logo(data-lang=sol.id)
+      each v, route in nav.dictionary
+        li(class=v.route class={active: v.active})
+          a(href=v.url.replace(':id',sol.name.toLowerCase()).replace('?',''))
+            span #{sol.my}
+            | -
+            span မြန်မာ
+  div.search
+    include search-form

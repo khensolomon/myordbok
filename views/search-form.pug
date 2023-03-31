@@ -1,16 +1,11 @@
-div.modest
-  div.logo
-    ol.menu.dictionary#MyOrdbok-logo(data-lang=sol.id)
-      each v, route in nav.dictionary
-        li(class=v.route class={active: v.active})
-          a(href=v.url.replace(':id',sol.name.toLowerCase()).replace('?',''))
-            span #{sol.my}
-            | -
-            span မြန်မာ
-  div.search
-    each v, route in nav.definition
-      form(name='search' method='get' action=v.url ref="form" v-bind:class="hasActive" @submit.prevent="input_submit")
-        p
+div.sch-definition.testing(v-bind:class="hasActive")
+  each v, route in nav.definition
+    form(name='search' method='get' action=v.url ref="form" v-bind:class="hasActive" @submit.prevent="input_submit")
+      div
+        p.sch-unfocus
+          //- span.icon-slim-left( @click = "input_unfocus")
+          button.icon-slim-left(type="button" @click = "input_unfocus")
+        p.sch-input
           input(
             type="search" ref="input" name="q" placeholder=" ...Search" autocomplete="off"
             v-model = "dataStore.q"
@@ -21,15 +16,19 @@ div.modest
             @click = "input_click"
             @blur = "input_blur"
           )
-        p
-          button(type="submit" id="search") &#xe83d;
+        p.sch-submit
+          //- button(type="submit" id="search") &#xe83d;
+          button.icon-lookup(type="submit" id="search")
 
-        ul(v-if=hasFocus)
+      div(v-if=hasFocus)
+        ul
           li(
             v-for="(word,index) in dataStore.suggests" :key="index"
             class="hover-active"
             v-bind:class = "{'selected': isCurrent(index)}"
             @mousemove = "suggestion_hover(index)"
             @click = "suggestion_click(word)"
-            v-html = "wordHighlight(word)"
+
           )
+            span.icon-dot3
+            span(v-html = "wordHighlight(word)")
