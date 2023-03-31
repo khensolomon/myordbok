@@ -1,5 +1,5 @@
 &.modest {
-	// NOTE: used in -> home
+	// NOTE: used in -> home, dictionary
 	// padding: 12vh 2% 1vh 2%;
 	// padding: 12vh 2% 1vh 2%;
 	max-width: 600px;
@@ -12,9 +12,8 @@
 	> div {
 		// position: relative;
 		position: inherit;
-		// margin-bottom: 2vh;
 		&.logo {
-			padding-bottom: 15px;
+			margin-bottom: 2vh;
 			ol#MyOrdbok-logo {
 				li {
 					a {
@@ -27,8 +26,6 @@
 		&.search {
 			// margin-top: 25px;
 			form[name="search"] {
-				// @include box-shadow(0px, 0px, 1px, 1px, rgba(var(--color-twitter), 0.5));
-				// @include box-shadow(0px, 0px, 0px, 1px, rgba(var(--color-twitter), 0.5));
 				div {
 					> p {
 						input,
@@ -75,6 +72,7 @@
 		> div {
 			&.logo {
 				padding: 0;
+				margin-bottom: 0;
 				ol#MyOrdbok-logo {
 					max-width: 300px;
 				}
