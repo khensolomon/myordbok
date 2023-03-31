@@ -142,7 +142,7 @@ export default {
 		if (this.query) {
 			this.setHistory(this.query);
 		}
-		this.$refs.input.focus();
+		// this.$refs.input.focus();
 	}
 	// created() {}
 };
