@@ -97,7 +97,7 @@ function setPageProperty(raw, id) {
  * @param {options} req
  */
 export default async function search(req) {
-	const keyword = check.isValid(req.query.q);
+	const keyword = check.isValid(req.query.q || "");
 
 	const raw = Object.assign({}, settings.result, {
 		meta: {
