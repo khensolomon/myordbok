@@ -104,6 +104,9 @@ const app = createApp({
 		input_focus() {
 			this.dataStore.hasFocus = true;
 		},
+		input_unfocus() {
+			this.dataStore.hasFocus = false;
+		},
 		input_blur() {
 			setTimeout(() => {
 				if (!this.dataStore.OverrideFocus) {
@@ -228,7 +231,7 @@ const app = createApp({
 		}
 
 		if (this.$refs.input != null) {
-			this.$refs.input.focus();
+			// this.$refs.input.focus();
 		}
 	},
 	// render: () => h(layout),
