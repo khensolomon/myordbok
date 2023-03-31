@@ -1,6 +1,6 @@
 {
   "name": "myordbok",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "online Myanmar dictionary",
   "main": "./index.js",
   "type": "module",
@@ -59,8 +59,8 @@
     "word-thesaurus": "^1.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.3",
-    "@babel/preset-env": "^7.20.2",
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
     "@types/jsdom": "^21.1.1",
     "@types/pluralize": "^0.0.29",
     "@types/pug": "^2.0.6",
@@ -86,7 +86,7 @@
     "vue-router": "^4.1.6",
     "vue-template-compiler": "^2.7.14",
     "vue-template-loader": "^1.1.0",
-    "webpack": "^5.76.3",
+    "webpack": "^5.77.0",
     "webpack-dev-middleware": "^6.0.2",
     "webpack-hot-middleware": "^2.25.3",
     "webpack-merge": "^5.8.0"

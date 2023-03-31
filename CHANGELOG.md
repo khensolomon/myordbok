@@ -1,5 +1,10 @@
 # Version
 
+## 1.7.9
+
+- Customized input form for mobile
+- Update dependencies
+
 ## 1.7.8
 
 Font noticed
