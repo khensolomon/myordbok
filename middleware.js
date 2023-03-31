@@ -43,6 +43,7 @@ app.use(function(req, res, next) {
 	res.locals.appVersion = app.config.version;
 	res.locals.appDescription = app.config.description;
 	res.locals.environment = app.config.development;
+	res.locals.appColor = res.locals.appTheme == "dark" ? "#222222" : "#3390d7";
 
 	// if (req.headers.referer) {
 	// 	var ref = parse.url(req.headers.referer);
