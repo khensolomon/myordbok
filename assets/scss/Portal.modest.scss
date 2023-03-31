@@ -3,15 +3,18 @@
 	// padding: 12vh 2% 1vh 2%;
 	// padding: 12vh 2% 1vh 2%;
 	max-width: 600px;
-	padding-top: 12vh;
-	margin: 0 auto;
-	z-index: 9999;
+	// padding-top: 12vh;
+
+	// margin: 0 auto;
+	margin: 10vh auto;
+
+	// z-index: 9999;
 	> div {
 		// position: relative;
-		// position: inherit;
-		margin-bottom: 2vh;
+		position: inherit;
+		// margin-bottom: 2vh;
 		&.logo {
-			padding: 0 3%;
+			padding-bottom: 15px;
 			ol#MyOrdbok-logo {
 				li {
 					a {
@@ -22,21 +25,23 @@
 			}
 		}
 		&.search {
-			position: inherit;
+			// margin-top: 25px;
 			form[name="search"] {
 				// @include box-shadow(0px, 0px, 1px, 1px, rgba(var(--color-twitter), 0.5));
 				// @include box-shadow(0px, 0px, 0px, 1px, rgba(var(--color-twitter), 0.5));
-				> p {
-					input,
-					button {
-						// height: 40px;
-						// line-height: 40px;
-						// &[type="search"] {
-						// 	padding-left:10px;
-						// }
-						&[type="submit"] {
-							border: 0px;
-							// background-color: #fff;
+				div {
+					> p {
+						input,
+						button {
+							// height: 40px;
+							// line-height: 40px;
+							// &[type="search"] {
+							// 	padding-left:10px;
+							// }
+							&[type="submit"] {
+								border: 0px;
+								// background-color: #fff;
+							}
 						}
 					}
 				}
@@ -51,14 +56,58 @@
 			}
 		}
 	}
+	// @media #{$media-mobile-tablet} {
+	// 	div.sch-definition {
+	// 		position: fixed;
+	// 		&.focus,
+	// 		&.active {
+	// 			// padding-top: 15px;
+	// 			// margin-top: 15%;
+	// 			padding-top: 8vh;
+	// 			// height: 93vh;
+	// 		}
+	// 	}
+	// }
 	@media #{$media-mobile} {
-		margin-left: 7px;
-		margin-right: 7px;
+		// margin-left: 7px;
+		// margin-right: 7px;
+		margin: 0vh 7px;
+		> div {
+			&.logo {
+				padding: 0;
+				ol#MyOrdbok-logo {
+					max-width: 300px;
+				}
+			}
+		}
+
+		// form[name="search"] {
+		// 	&.focus,
+		// 	&.active {
+		// 		position: fixed;
+		// 		top: 15px;
+		// 		z-index: 999;
+		// 		// height: 100%;
+		// 	}
+		// }
+		// div.search {
+		// 	position: fixed;
+		// 	top: 0;
+		// 	left: 0;
+		// 	padding-top: 15px;
+		// 	z-index: 9999;
+		// 	background-color: gray;
+		// 	height: 100%;
+		// 	width: 100%;
+		// 	-webkit-text-size-adjust: 100%;
+		// }
 
 		@media (max-width: 300px) {
 			form {
-				> p:nth-child(2) {
-					display: none;
+				> div:first-child {
+					> p:nth-child(2) {
+						display: none;
+					}
 				}
 			}
 		}
