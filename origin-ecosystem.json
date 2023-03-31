@@ -37,7 +37,7 @@
       "fetch": "all",
       "path": "<APP_ROOT>-git",
       "pre-deploy": "",
-      "post-deploy": "",
+      "post-deploy": "npm install && npm run build && pm2 reload ecosystem.json --env production",
       "pre-setup": "",
       "post-setup": "ln -s <APP_ROOT>-git/current <APP_ROOT>",
       "pre-deploy-local": ""
