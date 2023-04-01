@@ -40,10 +40,10 @@ export default {
 				},
 				[
 					h("i", {
-						class: this.dark
+						class: this.light
 					}),
 					h("i", {
-						class: this.light
+						class: this.dark
 					}),
 					h("span", {})
 				]
