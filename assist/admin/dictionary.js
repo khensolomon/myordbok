@@ -254,17 +254,21 @@ export async function testing(req) {
 		const infoFile = glossary.info();
 		await info_read(infoFile);
 
-		await db.mysql
-			.query("SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);", [
-				table.synmap,
-				req.params.word
-			])
-			.then(function(e) {
-				console.log(e);
-			})
-			.catch(function(err) {
-				console.log("error-0", err);
-			});
+		// await db.mysql
+		// 	.query("SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);", [
+		// 		table.synmap,
+		// 		req.params.word
+		// 	])
+		// 	.then(function(e) {
+		// 		console.log(e);
+		// 	})
+		// 	.catch(function(err) {
+		// 		console.log("error-0", err);
+		// 	});
+		await db.mysql.query(
+			"INSERT INTO ?? SET word=?, status=? ON DUPLICATE KEY UPDATE view = view + 1, status=?;",
+			[env.config.table.cache, "kings", 0, "abc"]
+		);
 	} catch (error) {
 		console.log("error-1", error);
 	} finally {

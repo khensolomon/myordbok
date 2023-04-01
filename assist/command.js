@@ -25,9 +25,9 @@ routes.register("environment", async function(req) {
 routes.register("export-grammar", thuddar.update);
 
 // routes.register("testing", dictionary.testing);
-// routes.register("/testings", async function(req) {
-// 	return await dictionary.testing(req);
-// });
+routes.register("/testings", async function(req) {
+	return await dictionary.testing(req);
+});
 // routes.register("/testings", req => "this is testing");
 routes.register("testing/:word?", dictionary.testing);
 routes.register("export-definition", dictionary.exportDefinition);
