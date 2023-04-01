@@ -4,6 +4,8 @@
 
 - Customized input form for mobile
 - Update dependencies
+- Add list_cache
+- Change file.cache directory
 
 ## 1.7.8
 
