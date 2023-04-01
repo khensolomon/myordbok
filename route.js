@@ -1,4 +1,3 @@
-// import core from 'lethil';
 import "./routes/home.js";
 import "./routes/about.js";
 import "./routes/grammar.js";
