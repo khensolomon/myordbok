@@ -81,6 +81,7 @@ export async function fromJSON(word, watchIt = false) {
 	 */
 	const res = [];
 
+	// var raw = docket.data.en.filter(e => check.isMatch(word, e.v));
 	var raw = docket.data.en.filter(e => check.isMatch(word, e.v));
 	if (raw.length) {
 		for (let index = 0; index < docket.data.sense.length; index++) {
@@ -357,4 +358,24 @@ export async function definition(word) {
 	} catch (error) {
 		return [];
 	}
+}
+
+/**
+ * Record cached
+ * @param {string} word
+ * @param {number} [status]
+ * @returns {Promise<void>}
+ */
+export async function cache(word, status) {
+	if (typeof status != "number") {
+		status = 0;
+	}
+	// db.mysql.query(
+	// 	"INSERT INTO ?? SET word=? ON DUPLICATE KEY UPDATE view = view + 1;",
+	// 	[env.config.table.cache, word]
+	// );
+	db.mysql.query(
+		"INSERT INTO ?? SET word=?, status=? ON DUPLICATE KEY UPDATE view = view + 1, status=?;",
+		[env.config.table.cache, word, status, status]
+	);
 }
