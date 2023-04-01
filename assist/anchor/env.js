@@ -228,7 +228,7 @@ export const fileName = {
 	info: "glossary/info/EN.json",
 	thesaurus: "glossary/thesaurus.json",
 	// cache: "./cache/version/page-lang-query.json",
-	cache: "./cache/page/lang-query.json",
+	cache: "./cache/page/lang/query.json",
 	sqlite: "glossary/tmp-sqlite.db"
 };
 
@@ -265,7 +265,8 @@ export const config = core.config.merge({
 		other: "ord_0",
 		synset: "list_word",
 		synmap: "map_derive",
-		thesaurus: "map_thesaurus"
+		thesaurus: "map_thesaurus",
+		cache: "list_cache"
 	},
 	dictionaries: dictionaries,
 	synset: synset,
