@@ -125,8 +125,8 @@ export default async function search(req) {
 	if (req.cookies.solId) {
 		raw.lang.tar = req.cookies.solId;
 	} else {
-		// curl http://localhost:8082/definition?q=love
 		// NOTE: possibly attacks
+		// curl http://localhost:8082/definition?q=love
 	}
 
 	// NOTE: testing purpose ?language=[no,en,ja]
