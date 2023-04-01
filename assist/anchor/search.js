@@ -156,7 +156,7 @@ export default async function search(req) {
 		setPageProperty(raw, 1);
 	}
 
-	clue.cache(raw.query.word, raw.data.length);
+	clue.cache(raw.query.word, raw.lang.tar, raw.data.length);
 	// if (keyword) {
 	// 	// NOTE: to Myanmar
 	// 	if (result.lang.tar == result.lang.src) {

@@ -363,10 +363,11 @@ export async function definition(word) {
 /**
  * Record cached
  * @param {string} word
+ * @param {string} lang - en, no
  * @param {number} [status]
  * @returns {Promise<void>}
  */
-export async function cache(word, status) {
+export async function cache(word, lang, status) {
 	if (typeof status != "number") {
 		status = 0;
 	}
@@ -375,7 +376,7 @@ export async function cache(word, status) {
 	// 	[env.config.table.cache, word]
 	// );
 	db.mysql.query(
-		"INSERT INTO ?? SET word=?, status=? ON DUPLICATE KEY UPDATE view = view + 1, status=?;",
-		[env.config.table.cache, word, status, status]
+		"INSERT INTO ?? SET word=?, status=?, lang=? ON DUPLICATE KEY UPDATE view = view + 1, status=?, lang=?;",
+		[env.config.table.cache, word, status, lang, status, lang]
 	);
 }
