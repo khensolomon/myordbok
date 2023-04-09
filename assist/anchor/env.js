@@ -225,9 +225,8 @@ export const fileName = {
 	synset: "glossary/synset.json", // words
 	synmap: "glossary/synmap.json", //derives
 	zero: "glossary/zero/EN.csv", //no result
-	info: "glossary/info/EN.json",
+	info: "./docs/info/EN.json",
 	thesaurus: "glossary/thesaurus.json",
-	// cache: "./cache/version/page-lang-query.json",
 	cache: "./cache/page/lang/query.json",
 	sqlite: "glossary/tmp-sqlite.db"
 };
