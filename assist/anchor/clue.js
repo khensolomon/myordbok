@@ -371,12 +371,24 @@ export async function cache(word, lang, status) {
 	if (typeof status != "number") {
 		status = 0;
 	}
-	// db.mysql.query(
-	// 	"INSERT INTO ?? SET word=? ON DUPLICATE KEY UPDATE view = view + 1;",
-	// 	[env.config.table.cache, word]
-	// );
 	db.mysql.query(
 		"INSERT INTO ?? SET word=?, status=?, lang=? ON DUPLICATE KEY UPDATE view = view + 1, status=?, lang=?;",
 		[env.config.table.cache, word, status, lang, status, lang]
 	);
 }
+
+/**
+ * Record cached
+ * @param {string} word
+ * @returns {Promise<number>}
+ */
+// export async function cacheDate(word) {
+// 	var info = await db.mysql.query("SELECT dated FROM ?? WHERE word LIKE ?;", [
+// 		"view_sense_date",
+// 		word
+// 	]);
+// 	if (info.length) {
+// 		return new Date(info[0].dated).getTime();
+// 	}
+// 	return 0;
+// }
