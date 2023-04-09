@@ -239,3 +239,29 @@ CREATE TABLE "updates" (
 );
 
 INSERT INTO updates ("id","param","note","task") VALUES (1,19810708,"built-in",1);
+
+
+SELECT word, MAX(dated) as dated
+  FROM list_sense 
+  GROUP BY word
+SELECT word, MAX(dated)  as dated
+  FROM list_sense 
+  WHERE word LIKE 'love'
+  GROUP BY word
+
+SELECT *
+FROM list_sense 
+WHERE dated IN (
+  SELECT MAX(dated)
+  FROM list_sense 
+  WHERE word LIKE 'love'
+  GROUP BY word )
+ORDER BY dated ASC;
+
+SELECT * 
+FROM (
+    SELECT * FROM list_sense
+    ORDER BY dated DESC
+) AS sub
+WHERE word LIKE 'love'
+GROUP BY word

@@ -124,7 +124,7 @@ export default async function search(req) {
 
 	if (req.cookies.solId) {
 		raw.lang.tar = req.cookies.solId;
-	} else {
+	} else if (raw.lang.tar == "") {
 		// NOTE: possibly attacks
 		// curl http://localhost:8082/definition?q=love
 	}
@@ -240,12 +240,16 @@ async function asMeaning(word) {
 
 	const cache_controller = settings.cacheController(word, "en");
 
-	const info = await cache_controller.info();
 	const caches = await cache_controller.read(res);
 	// check.isObject(caches)
 	// caches.dated > 0;
 	// caches.version == cache_controller.version;
 	if (caches.dated > 0) {
+		// var cacheDate = await clue.cacheDate(word);
+		// if (caches.dated >= cacheDate) {
+		// 	return caches;
+		// }
+		const info = await cache_controller.info();
 		if (caches.dated >= info.dated) {
 			return caches;
 		}

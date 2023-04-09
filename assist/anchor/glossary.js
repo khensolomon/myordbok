@@ -35,19 +35,28 @@ export class Cache {
 				// .replace("version", this.version)
 				.replace("page", page)
 				.replace("lang", lang)
-				.replace("query", query.replace(/\s+/g, "_").trim());
+				.replace(
+					"query",
+					query
+						.replace(/\\/g, "")
+						.replace(/\//g, "")
+						.replace(/\s+/g, "_")
+						.trim()
+				);
 		}
 	}
 
 	async info() {
 		return docket.getInfo(this.lang);
 	}
+
 	get version() {
 		return env.config.version.replace(/\./g, "");
 	}
 	get enable() {
 		return env.config.cacheDefinition == "true";
 	}
+	// 2023-04-02 03:46:01
 	/**
 	 * @template R
 	 * @param {R} raw
@@ -77,8 +86,17 @@ export class Cache {
  * @param {string} file
  * @param {string} [lang] - lang || primary.id
  */
+function modifyFileName(file, lang) {
+	return file.replace(/EN/, lang || primary.id);
+}
+/**
+ * Get resolved file path
+ * @param {string} file
+ * @param {string} [lang] - lang || primary.id
+ */
 export function get(file, lang) {
-	return seek.resolve(env.config.media, file).replace(/EN/, lang || primary.id);
+	return modifyFileName(seek.resolve(env.config.media, file), lang);
+	// return seek.resolve(env.config.media, file).replace(/EN/, lang || primary.id);
 }
 
 /**
@@ -108,7 +126,9 @@ export function synmap() {
  * @param {string} [lang] - lang || primary.id
  */
 export function info(lang) {
-	return get(env.config.fileName.info, lang);
+	// return get(env.config.fileName.info, lang);
+	var file = seek.resolve(env.config.fileName.info);
+	return modifyFileName(file, lang);
 }
 
 /**
