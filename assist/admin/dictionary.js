@@ -121,7 +121,9 @@ export async function exportDefinition(req) {
 		})
 		.catch(e => console.error(e));
 	await json.write(infoFile, infoRaw, 2);
-	return "updated " + infoFile;
+	console.log("  >", "updated", infoFile);
+	// return "updated " + infoFile;
+	return "done";
 }
 
 /**
@@ -154,6 +156,7 @@ export async function exportTranslation(req) {
 					})
 					.catch(e => console.error(e));
 				await json.write(infoFile, infoRaw, 2);
+				console.log(" ", "updated", infoFile);
 			} else {
 				console.info(" >", lang.id, "skip");
 			}
@@ -265,10 +268,21 @@ export async function testing(req) {
 		// 	.catch(function(err) {
 		// 		console.log("error-0", err);
 		// 	});
-		await db.mysql.query(
-			"INSERT INTO ?? SET word=?, status=? ON DUPLICATE KEY UPDATE view = view + 1, status=?;",
-			[env.config.table.cache, "kings", 0, "abc"]
-		);
+		// await db.mysql.query(
+		// 	"INSERT INTO ?? SET word=?, status=? ON DUPLICATE KEY UPDATE view = view + 1, status=?;",
+		// 	[env.config.table.cache, "kings", 0, "abc"]
+		// );
+		await db.mysql
+			.query("SELECT dated FROM ?? WHERE word LIKE ?;", [
+				"view_sense_date",
+				"word"
+			])
+			.then(function(e) {
+				console.log(e);
+			})
+			.catch(function(err) {
+				console.log("error-0", err);
+			});
 	} catch (error) {
 		console.log("error-1", error);
 	} finally {
