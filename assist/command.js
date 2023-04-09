@@ -59,7 +59,10 @@ routes.register("flat/:task?", async function(req) {
 });
 
 routes.register("saing/:task?", async function(req) {
-	return import("./admin/saing.js").then(e => e.default(req));
+	return import("./saing/index.js").then(e => e.default(req));
+});
+routes.register("sea/:task-:name?", async function(req) {
+	return import("./sea/index.js").then(e => e.default(req).catch(console.log));
 });
 
 // routes.register("upgrade/:id?", req =>
