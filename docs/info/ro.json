@@ -1,0 +1,40 @@
+{
+  "title": "Romanian - Myanmar dictionary",
+  "keyword": "Romanian, Myanmar, dictionary",
+  "description": "Romanian to Myanmar dictionary",
+  "info": {
+    "header": "ရိုမေးနီးယား-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.7
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 0.4
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 2538
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ရိုမေးနီးယားမှ မြန်မာအဘိဓာန်ကို ရိုမေးနီးယားနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064182
+}

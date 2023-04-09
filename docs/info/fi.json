@@ -1,0 +1,40 @@
+{
+  "title": "Finnish - Myanmar dictionary",
+  "keyword": "Finnish, Myanmar, dictionary",
+  "description": "Finnish to Myanmar dictionary",
+  "info": {
+    "header": "ဖင်လန်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 1.3
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 1.2
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 30109
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ဖင်လန်-မြန်မာအဘိဓာန်ကို ဖင်လန်နှင့်အဆက်အစပ်ရှိသူ သို့မဟုတ် ဖင်လန်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064133
+}

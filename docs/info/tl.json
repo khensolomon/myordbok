@@ -1,0 +1,40 @@
+{
+  "title": "Filipion - Myanmar dictionary",
+  "keyword": "Filipion, Myanmar, dictionary",
+  "description": "Filipion to Myanmar dictionary",
+  "info": {
+    "header": "ဖိလစ်ပိုင်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.2
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 0.3
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 868
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ဖိလစ်ပိုင်-မြန်မာအဘိဓာန်ကို ဖိလစ်ပိုင်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064687
+}

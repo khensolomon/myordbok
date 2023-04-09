@@ -1,0 +1,40 @@
+{
+  "title": "Hebrew - Myanmar dictionary",
+  "keyword": "Hebrew, Myanmar, dictionary, ဟေဗြဲ",
+  "description": "Hebrew to Myanmar dictionary",
+  "info": {
+    "header": "ဟေဗြဲ-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.4
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 2.3
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 612
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ဟေဗြဲမှ မြန်မာအဘိဓာန်ကို သမ္မာကျမ်းစာ လေ့လာဆည်းပူးသူများအတွက် အဓိကရည်ရွယ်ထားပါသည်။ ၂၀ ရာစုအစောပိုင်း မှစ၍ အစ္စရေးဘာသာစကား၏ ခေတ်သစ်ဘာသာစကားဖြစ်သည်။"
+    ]
+  },
+  "dated": 1680407063824
+}

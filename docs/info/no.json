@@ -1,0 +1,40 @@
+{
+  "title": "Norwegian - Myanmar dictionary",
+  "keyword": "Norwegian, Myanmar, dictionary",
+  "description": "Norwegian to Myanmar dictionary",
+  "info": {
+    "header": "နော်ဝေ-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.2
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 0.12
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 103563
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "နော်ဝေ-မြန်မာအဘိဓာန်ကို နော်ဝေနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407063972
+}

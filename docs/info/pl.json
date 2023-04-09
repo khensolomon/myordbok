@@ -1,0 +1,40 @@
+{
+  "title": "Polish - Myanmar dictionary",
+  "keyword": "Polish, Myanmar, dictionary",
+  "description": "Polish to Myanmar dictionary",
+  "info": {
+    "header": "ပိုလန်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.2
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 0.1
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 968
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ပိုလန်-မြန်မာအဘိဓာန်ကို ပိုလန်နိုင်ငံရှိ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064189
+}

@@ -1,0 +1,40 @@
+{
+  "title": "Chinese - Myanmar dictionary",
+  "keyword": "Chinese, Myanmar, dictionary",
+  "description": "Chinese to Myanmar dictionary",
+  "info": {
+    "header": "တရုတ်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 3.5
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 2.6
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 18599
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "တရုတ်-မြန်မာအဘိဓာန်ကို တရုတ်နှင့်အဆက်အစပ်ရှိသူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064608
+}

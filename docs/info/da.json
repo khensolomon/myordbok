@@ -1,0 +1,40 @@
+{
+  "title": "Danish - Myanmar dictionary",
+  "keyword": "Danish, Myanmar, dictionary, ဒိန်းမတ်, မြန်မာအဘိဓာန်",
+  "description": "Danish to Myanmar dictionary",
+  "info": {
+    "header": "ဒိန်းမတ်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 2.3
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 13.2
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 42645
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ဒိန်းမတ်-မြန်မာအဘိဓာန်ကို ဒိန်းမတ်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064198
+}

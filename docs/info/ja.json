@@ -1,0 +1,40 @@
+{
+  "title": "Japanese - Myanmar dictionary",
+  "keyword": "Japanese, Myanmar, dictionary",
+  "description": "Japanese to Myanmar dictionary",
+  "info": {
+    "header": "ဂျပန်-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 1.3
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 1.2
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 28877
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ဂျပန်-မြန်မာအဘိဓာန်ကို ဂျပန်နှင့်အဆက်အစပ်ရှိသူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+    ]
+  },
+  "dated": 1680407064562
+}

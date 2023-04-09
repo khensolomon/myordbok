@@ -1,0 +1,40 @@
+{
+  "title": "Portuguese - Myanmar dictionary",
+  "keyword": "Portuguese, Myanmar, dictionary",
+  "description": "Portuguese to Myanmar dictionary",
+  "info": {
+    "header": "ပေါ်တူဂီ-မြန်မာအဘိဓာန်",
+    "progress": [
+      {
+        "name": "Usage",
+        "my": "အသုံးပြုမှု",
+        "percentage": 0.7
+      },
+      {
+        "name": "Completion",
+        "my": "ပြီးစီးမှု",
+        "percentage": 1.5
+      },
+      {
+        "name": "Word",
+        "my": "ဝေါဟာရ",
+        "id": "word",
+        "status": 1570
+      },
+      {
+        "name": "Definition",
+        "my": "အနက်",
+        "status": false
+      },
+      {
+        "name": "Example",
+        "my": "သာဓက",
+        "status": false
+      }
+    ],
+    "context": [
+      "ပေါ်တူဂီဘာသာစကားသည် အနောက်တိုင်းဘာသာစကားများတွင် တတိယအများဆုံးဘာသာစကားတစ်ခုဖြစ်ပါသည်။ ပေါ်တူဂီဘာသာစကားနှင့် ယဉ်ကျေးမှု အရေးပါသော အရပ်ဒေသတွင် နေထိုင်သည့် မြန်မာများအတွက် ရည်မှန်းထားပါသည်။"
+    ]
+  },
+  "dated": 1680407063872
+}
