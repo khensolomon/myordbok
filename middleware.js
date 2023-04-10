@@ -12,11 +12,11 @@ app.use(cookieParser());
 app.use(compression());
 
 if (app.config.development) {
-	app.use(app.middleware.static("static"));
-	// import("./webpack.middleware.js").then(mwa => {
-	// 	app.use(mwa.hot);
-	// 	app.use(mwa.dev);
-	// });
+	// app.use(app.middleware.static("static"));
+	import("./webpack.middleware.js").then(mwa => {
+		app.use(mwa.hot);
+		app.use(mwa.dev);
+	});
 }
 
 app.use(app.middleware.menu);

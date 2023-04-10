@@ -231,7 +231,7 @@ const app = createApp({
 		}
 
 		if (this.$refs.input != null) {
-			// this.$refs.input.focus();
+			this.$refs.input.focus();
 		}
 	},
 	// render: () => h(layout),
