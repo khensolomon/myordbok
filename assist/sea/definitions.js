@@ -69,6 +69,8 @@ function taskFilter(row) {
 		return row.status == 0 && row.block == 0;
 	} else if (taskId == "unsuccess") {
 		return row.status == 1 && row.block == 0;
+	} else if (taskId == "error") {
+		return row.status == 1;
 	} else if (taskId == "block") {
 		return row.status == 0 && row.block > 0;
 	} else if (taskId == "none") {
