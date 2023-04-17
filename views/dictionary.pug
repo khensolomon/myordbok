@@ -13,8 +13,8 @@ block content
               div.progress.percentage
                 div(title=o.name)
                   span= o.my
-                  span= o.percentage
-                div(style={width:o.percentage+'%'})
+                  span= o.status
+                div(style={width:o.status+'%'})
             else if (o.status)
               div.progress.status
                 div(title=o.name)
