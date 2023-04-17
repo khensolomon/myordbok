@@ -22,7 +22,7 @@ let taskId = "";
  * Manually Trigger
  * @param {TypeOfRequests} req - {query:{identify?:string, timeout?:number}}
  */
-export async function request(req) {
+export async function doRequest(req) {
 	// taskId = req.params.identify;
 	if (req.query.identify) {
 		taskId = req.query.identify;

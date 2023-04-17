@@ -8,7 +8,7 @@ import { alphabets, codeToString } from "./base.js";
  * Manually Trigger
  * @param {any} req
  */
-export async function request(req) {
+export async function doRequest(req) {
 	const dom = await JSDOM.fromURL(alphabets.url);
 	var imgs = dom.window.document.querySelectorAll("img");
 	for (const img of imgs) {

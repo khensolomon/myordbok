@@ -7,7 +7,9 @@ import { alphabets, keywords } from "./base.js";
  * Manually Trigger
  * @param {any} req
  */
-export async function request(req) {
+export async function doRequest(req) {
+	await keywords.read();
+	const totalKeywordsBefore = keywords.raw.length;
 	var task = await alphabets.read();
 	for (let index = 0; index < task.letter.length; index++) {
 		let row = task.letter[index];
@@ -18,7 +20,11 @@ export async function request(req) {
 		await scanner(row.char, 0);
 	}
 
-	keywords.write();
+	await keywords.write();
+
+	const totalKeywordsAfter = keywords.raw.length;
+
+	console.log("before", totalKeywordsBefore, "after", totalKeywordsAfter);
 	return "done";
 }
 
@@ -58,7 +64,8 @@ async function scanner(word, level) {
 			// If not contains
 			keywords.raw.push(row);
 		} else {
-			keywords.raw[index] = row;
+			// keywords.raw[index] = row;
+			// Object.assign(keywords.raw[index], row);
 		}
 		raw.push(row);
 	}

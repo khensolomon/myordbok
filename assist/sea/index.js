@@ -3,53 +3,50 @@
  * @param {any} req
  * @example
  * node run sea
- * node run sea/request-alphabets
- * node run sea/request-keywords
- * node run sea/request-definitions
- * node run sea/request-definitions?identify=[unsuccess,block,all,none]
+ * node run sea request alphabets
+ * node run sea request keywords
+ * node run sea request definitions
+ * node run sea request definitions --identify=[unsuccess,block,all,none]
  */
-async function main(req) {
+
+export default async function main(req) {
 	switch (req.params.task) {
 		case "request":
-			return await request(req.params.name)
-				.then(e => e(req))
-				.catch(e => e);
-
+			return await doRequest(req.params.name).then(e => e(req));
 		default:
-			return "What todo?";
+			return noTask(req);
 	}
 }
 
 /**
  * @param {string} [name]
  */
-async function request(name) {
+async function doRequest(name) {
 	switch (name) {
 		case "alphabets":
-			return (await import("./alphabets.js")).request;
+			return (await import("./alphabets.js")).doRequest;
 		case "keywords":
-			return (await import("./keywords.js")).request;
+			return (await import("./keywords.js")).doRequest;
 		case "definitions":
-			return (await import("./definitions.js")).request;
+			return (await import("./definitions.js")).doRequest;
 		default:
-			return requestNone;
+			return noName;
 	}
-	// switch (name) {
-	// 	case "alphabets":
-	// 		return (await import("./alphabets.js")).default();
-	// 	case "keywords":
-	// 		return (await import("./keywords.js")).default();
-	// 	case "definitions":
-	// 		return (await import("./definitions.js")).default();
-	// 	default:
-	// 		return requestNone;
-	// }
 }
 
 /**
  * @param {any} req
  */
-async function requestNone(req) {
-	return "request what?";
+function noTask(req) {
+	if (req.params.task) {
+		return `Sea has no such task '${req.params.task}' name!`;
+	}
+	return `Provide a task name for Sea!`;
 }
-export default main;
+
+/**
+ * @param {any} req
+ */
+function noName(req) {
+	return `What to ${req.params.task} from ${req.params.name} of Sea?`;
+}
