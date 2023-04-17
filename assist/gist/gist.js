@@ -1,19 +1,9 @@
-/**
- * testing
- */
-
-import { ask } from "lethil";
-import { env } from "../anchor/index.js";
-
-// @ts-ignore
-const { gistToken, gistId } = env.config;
-
-const gist = new ask.gistData({ token: gistToken, id: gistId });
+import { gist } from "./base.js";
 
 /**
  * @param {any} req
  */
-export async function get(req) {
+export async function doGet(req) {
 	// const file = fs.createWriteStream('/tmp/abc/test.json');
 	// var abc = await ask.stream('https://gist.githubusercontent.com/khensolomon/c657c5ba9308e9cae81c8d8a748c26ec/raw/c4ebda9216484ec963245439456e44fdc98ac48d/test.json').then(
 	//   e => e.pipe(fs.createWriteStream('/tmp/abc/test.json'))
@@ -30,7 +20,7 @@ export async function get(req) {
 /**
  * @param {any} req
  */
-export async function list(req) {
+export async function doList(req) {
 	var abc = await gist.get();
 	var result = [];
 	for (const item in abc.files) {
@@ -46,7 +36,7 @@ export async function list(req) {
 /**
  * @param {any} req
  */
-export async function patch(req) {
+export async function doPatch(req) {
 	const postData = JSON.stringify(
 		{ updates: false, dates: "10.10.21" },
 		null,
@@ -58,6 +48,6 @@ export async function patch(req) {
 /**
  * @param {any} req
  */
-export async function remove(req) {
+export async function doDelele(req) {
 	return await gist.delete("deleteme.json");
 }
