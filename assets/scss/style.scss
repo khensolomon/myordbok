@@ -17,6 +17,8 @@ html {
 	// &.portrait{}
 
 	background-color: rgb(var(--color-background));
+	transition: all 2s;
+	-webkit-transition: all 2s;
 }
 // COMMON
 // .cursor-hand{cursor:pointer;}

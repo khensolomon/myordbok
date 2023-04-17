@@ -53,22 +53,34 @@
 					}
 					span {
 						padding-right: 5px;
-						font-size: 0.9em;
+						font-size: 1em;
 						// background-color: #fff;
 						// display: inline-block;
 						// padding: 0 10px;
 						// margin: 0 5px;
 						// border-radius: 20px;
+						color: white;
+						&:first-child {
+							// color: red;
+							color: rgba(white, 0.7);
+							&::before {
+								content: "(";
+							}
+							&::after {
+								content: ")";
+							}
+						}
 						&:last-child {
 							// padding-right: 0;
-							color: rgba(var(--color-text));
+							// color: rgba(var(--color-text));
+							// color: rgba(var(--color-text), 1);
 							text-shadow: 1px 0px 1px rgba(var(--color-text) 0.2);
 							// text-shadow: 1px 0px 1px #fff;
 						}
 					}
 					&.percentage {
 						// color: #fff;
-						background-color: rgba(var(--color-main), 0.3);
+						background-color: rgba(var(--color-main), 0.5);
 						position: relative;
 						overflow: hidden;
 						> div {
@@ -82,13 +94,16 @@
 							}
 							&:last-child {
 								z-index: 0;
+								// background-color: rgba(var(--color-main), 0.5);
+								// border-right: 1px solid rgba(var(--color-main), 0.15);
 								background-color: rgba(var(--color-main), 0.5);
 								border-right: 1px solid rgba(var(--color-main), 0.15);
 							}
 						}
 					}
 					&.status {
-						background-color: rgba(var(--color-main), 0.5);
+						// background-color: rgba(var(--color-main), 0.5);
+						background-color: rgba(var(--color-main), 0.7);
 					}
 				}
 				&.header {
