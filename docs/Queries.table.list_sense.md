@@ -1,0 +1,21 @@
+# List of sense
+
+```sql
+CREATE TABLE `list_sense` (
+ `id` INT(10) NOT NULL AUTO_INCREMENT,
+ `word` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `wrte` INT(10) NOT NULL DEFAULT '0',
+ `sense` TEXT NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `exam` TEXT NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `wseq` INT(10) NOT NULL DEFAULT '0',
+ `wrkd` INT(10) NOT NULL DEFAULT '0',
+ `wrid` INT(10) NOT NULL DEFAULT '0',
+ `dated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY (`id`) USING BTREE,
+ INDEX `indexed` (`id`, `word`) USING BTREE,
+ INDEX `Pos` (`wrte`) USING BTREE,
+ INDEX `Source` (`wrkd`) USING BTREE,
+ FULLTEXT INDEX `texted` (`word`),
+ CONSTRAINT `Pos` FOREIGN KEY (`wrte`) REFERENCES `type_word` (`id`) ON UPDATE RESTRICT ON DELETE RESTRICT,
+ CONSTRAINT `Source` FOREIGN KEY (`wrkd`) REFERENCES `type_sense` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+)

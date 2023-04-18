@@ -1,0 +1,18 @@
+# countries
+
+```sql
+CREATE TABLE `blog` (
+ `id` INT(10) NOT NULL AUTO_INCREMENT,
+ `catalog` INT(10) NOT NULL DEFAULT '0',
+ `user` INT(10) NOT NULL DEFAULT '0',
+ `name` VARCHAR(150) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `email` VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `code` VARCHAR(150) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `title` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `content` TEXT NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `reply` TEXT NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `dated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ `ip` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb3_general_ci',
+ `status` INT(10) NOT NULL DEFAULT '0',
+ PRIMARY KEY (`id`) USING BTREE
+)
