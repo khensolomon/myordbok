@@ -5,28 +5,21 @@ const suffix_pattern = /(.*)(ly|tory|ful|ness|less|able|ed|ing|tion)s?$/;
 // var test = /(re)/;
 
 /**
- * @typedef {{word:string, id:number, skip?:boolean, s?:string}} TypeOfResultContent
- * @type {TypeOfResultContent[]} result
+ * @typedef {{word:string, id:number, skip?:boolean, s?:string}} TypeOfWordBreak
+ * @type {TypeOfWordBreak[]} result
  */
 let result = [];
 
 /**
- * amiable
- * comply family apply daily holy imply jolly only empty molly
- * king ding ling ping ring ting wing zing something
- *
- * word seperator
- * Bob begin breaking Bubby broken bed
- * download upload freeload reailroaded
- * nl el fl rl
+ * -ble -ly -ty -ing
  */
 const suffix_pattern_skip = /^(^:?fam|am|com|vi|mon|hi|or|aw|ap|eq|h|im|jo|mo|o|k|d|l|p|r|s|t|w|z).?(ly|tory|able|ful|ing)$/;
 
 /**
- * Mosty adjective and adverb
+ * Mostly adjective & adverb, but noun and verb are also there
  */
 const suffix_root = [
-	// NOTE: noun ness
+	// NOTE: ness
 	{
 		w: /ness$/,
 		s: [
@@ -76,6 +69,7 @@ const suffix_root = [
 			/^(a|bu|je)l$/
 		]
 	},
+	// NOTE: able
 	{
 		w: /able$/,
 		s: [
@@ -93,6 +87,7 @@ const suffix_root = [
 		],
 		skip: []
 	},
+	// NOTE: ful
 	{
 		w: /ful$/,
 		s: [
@@ -103,6 +98,7 @@ const suffix_root = [
 		],
 		skip: []
 	},
+	// NOTE: less
 	{
 		w: /less$/,
 		s: [
@@ -111,6 +107,7 @@ const suffix_root = [
 		],
 		skip: []
 	},
+	// NOTE: tory
 	{
 		w: /tory$/,
 		s: [
@@ -138,6 +135,7 @@ const suffix_root = [
 		],
 		skip: []
 	},
+	// NOTE: tion
 	{
 		w: /tion$/,
 		s: [
@@ -219,7 +217,7 @@ const suffix_root = [
 			/(escrip|ndi|ump|(?<!abs|ev).lu|\bm?posi|ques|ap|lo|dormit|voca|nip)$/
 		]
 	},
-	// NOTE: verb (past tense) ed,regular or adjective
+	// NOTE: ed - verb (past tense) ed,regular or adjective
 	// ?: -ibed -ybed -obed
 	{
 		w: /ed$/,
@@ -350,7 +348,7 @@ const suffix_root = [
 			/(ab)$/
 		]
 	},
-	// NOTE: verb (present tense)  ing
+	// NOTE: ing - verb (present tense)
 	{
 		w: /ing$/,
 		s: [
@@ -453,8 +451,9 @@ function joiner(str) {
 }
 
 /**
+ * Provide a string of word and lets break it
  * @param {string} str
- * @returns {result}
+ * @returns {TypeOfWordBreak[]}
  * @example
  * start(str.toLowerCase())
  */

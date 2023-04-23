@@ -1,7 +1,7 @@
 import path from "path";
 // import fs from "fs";
 // import util from "util";
-import { seek, parse, param, fire } from "lethil";
+import { seek, parse, fire } from "lethil";
 // import { config } from "../anchor/index.js";
 import { default as wordbreak } from "./index.js";
 
@@ -133,14 +133,15 @@ const cliTask = new Assignments();
  * node run wordbreak file ./assist/wordbreak/word.csv
  */
 export default function(req) {
-	if (param.length > 1) {
+	const abc = process.argv;
+	if (abc.length > 1) {
 		/**
 		 * @type {keyof cliTask}
 		 */
 		// @ts-ignore - nothing is wrong with es6
-		const name = param[1];
+		const name = abc[1];
 		if (name in cliTask && typeof cliTask[name] == "function") {
-			return cliTask[name](param[2]);
+			return cliTask[name](abc[2]);
 		}
 		return cliTask.default(name);
 	}
