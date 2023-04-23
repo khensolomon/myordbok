@@ -1,5 +1,12 @@
 # Version
 
+## 1.8.0
+
+- Move thuddar and glossary.info to rep
+- Improved flat, gist, orth, sea, setup, sqlite, thuddar, wordbreak
+- Move  to rep
+- Fixed thuddar section
+
 ## 1.7.9
 
 - Customized input form for mobile
