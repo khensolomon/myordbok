@@ -8,7 +8,4 @@ routes.register({ text: "Definition" }, function(req, res) {
 	search(req)
 		.then(raw => res.render("definition/layout", raw))
 		.catch(e => res.status(404).send(e.message));
-	// search(req)
-	// 	.then(raw => res.render("definition/layout", raw))
-	// 	.catch(e => res.status(404).send(e.message));
 });
