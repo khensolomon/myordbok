@@ -231,19 +231,6 @@ export const fileName = {
 	sqlite: "glossary/tmp-sqlite.db"
 };
 
-export const grammar = {
-	live: "grammar/_live.json",
-	pos: "grammar/pos-*.json",
-	structure: "grammar/structure.json"
-	// context:'grammar/*.json'
-};
-
-export const orthography = {
-	character: "orthography/character.json",
-	word: "orthography/word.json",
-	sense: "orthography/sense.json"
-};
-
 export const config = core.config.merge({
 	name: "MyOrdbok",
 	// description: 'package.description',
@@ -271,8 +258,6 @@ export const config = core.config.merge({
 	synset: synset,
 	synmap: synmap,
 	fileName: fileName,
-	grammar: grammar,
-	orthography: orthography,
 	/**
 	 * if "true" get search result from Database
 	 * if not get data from JSON
