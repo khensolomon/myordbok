@@ -6,6 +6,7 @@
 - Improved flat, gist, orth, sea, setup, sqlite, thuddar, wordbreak
 - Move  to rep
 - Fixed thuddar section
+- Update time of individual dictionary
 
 ## 1.7.9
 
