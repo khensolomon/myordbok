@@ -77,11 +77,3 @@ routes.register("/download/:type?", function(req, res) {
 			res.status(404).end(e.message);
 		});
 });
-
-// routes.register('/scan-:type', function(req, res) {
-//   var fontType = req.params.type;
-//   var fontName = req.query.font;
-//   new fonts(fontType).scan(fontName).then(function(e){
-//     res.send(e);
-//   });
-// });
