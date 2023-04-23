@@ -8,6 +8,7 @@ block content
           h1= info.header
           each abc in info.context
             p.test= abc
+          p.dated= dated
           each o in info.progress
             if o.percentage
               div.progress.percentage

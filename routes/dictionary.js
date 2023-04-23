@@ -31,7 +31,8 @@ routes.register(
 					description: raw.description,
 					pageClass: "dictionary",
 					dictionaries: language.list,
-					info: raw.info
+					info: raw.info,
+					dated: new Date(raw.dated)
 				})
 			)
 			.catch(() => res.status(404).end());
