@@ -1,0 +1,85 @@
+{
+  "chapter": [],
+  "note": {
+    "author": "Khen Solomon Lethil",
+    "url": "myordbok.com",
+    "version": "1.171030"
+  },
+  "structure": {
+    "file": [
+      {
+        "id": "context",
+        "name_notInUsed": "*.json"
+      },
+      {
+        "id": "pos",
+        "name_notInUsed": "pos-*.json",
+        "child": [
+          "noun",
+          "pronoun",
+          "verb",
+          "adjective",
+          "adverb",
+          "preposition",
+          "conjunction",
+          "article",
+          "interjection",
+          "alphabet",
+          "word",
+          "punctuation",
+          "sentence",
+          "tense",
+          "gender",
+          "number",
+          "part of speech",
+          "phrasal"
+        ]
+      }
+    ],
+    "pos": {
+      "info": {
+        "name": "??",
+        "desc": "",
+        "status": "0 or 1",
+        "uniqueId": "dynamic"
+      },
+      "root": {
+        "name": "",
+        "desc": "",
+        "note": ""
+      },
+      "cate": [
+        {
+          "name": "",
+          "desc": "",
+          "row": []
+        }
+      ],
+      "word": [
+        {
+          "name": "သာဓက",
+          "desc": [],
+          "row": []
+        }
+      ],
+      "exam": [
+        {
+          "name": "",
+          "desc": [],
+          "form": [
+            {
+              "header": [],
+              "chain": ""
+            },
+            []
+          ]
+        }
+      ],
+      "kind": [
+        {
+          "repeat here": "value"
+        }
+      ]
+    }
+  }
+}
