@@ -33,6 +33,7 @@ export async function main(req) {
 	return "Yes " + env.config.fileName.sqlite;
 	// return 'Yes '+ env.config.fileName.synmap;
 }
+
 /**
  * Word list -> list
  * param {sqliteDatabase.Database} sqlite
