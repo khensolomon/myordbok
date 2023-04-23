@@ -3,9 +3,9 @@
  * @example
  * node run flat
  * node run flat test --file ./cache/saidict.csv delimiter comma header true
- * node run flat --file=./cache/saidict.tsv delimiter=tab header=true quoted=double|single
- * node run flat --file=./cache/saidict.json delimiter=tab header=true quoted=double|single
- * node run flat --file=./cache/ruenmmeleengdict.tsv header=true
+ * node run flat test --file=./cache/saidict.tsv delimiter=tab header=true quoted=double|single
+ * node run flat test --file=./cache/saidict.json delimiter=tab header=true quoted=double|single
+ * node run flat test --file=./cache/ruenmmeleengdict.tsv header=true
  */
 export default async function main(req) {
 	switch (req.params.task) {

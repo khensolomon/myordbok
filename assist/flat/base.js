@@ -8,7 +8,6 @@ export const flat = db.flat;
  * @property {string} delimiter [comma, tab]
  * @property {boolean} [header] - 87.5
  * @property {string} [quoted] - [double, single]
- *
  */
 
 /**
