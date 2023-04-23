@@ -53,7 +53,8 @@ mixin categoryLink(o)
   each e in o
     section
       //- p= e.desc
-      p!= o.map(e => e.desc.replace(/\'(.*?)\'/g, " <q>$1</q> ")).join(' ')
+      //- p!= o.map(e => e.desc.replace(/\'(.*?)\'/g, " <q>$1</q> ")).join(' ')
+      p!= e.desc.replace(/\'(.*?)\'/g, " <q>$1</q> ")
       ol.mynum
         each i in e.row
           li
