@@ -1,3 +1,81 @@
+import { seek } from "lethil";
+
+/**
+ * @typedef {{file:string, save?:string} | string} TypeOfQuery
+ * property {string} file
+ * property {string} [save]
+ */
+
+/**
+ * @param {string} file
+ */
+export function reader(file) {
+	return seek.readSync(file).toString();
+}
+/**
+ * @param {string} file
+ * @param {string | NodeJS.ArrayBufferView} raw
+ */
+export function writer(file, raw) {
+	return seek.writeSync(file, raw);
+}
+
+export const wordThesaurus = {
+	file: "./docs/orth/thesaurus.csv",
+	/**
+	 * @type {String[]}
+	 */
+	raw: [],
+	read: function() {
+		if (wordThesaurus.raw.length == 0) {
+			wordThesaurus.raw = reader(wordThesaurus.file).split("\n");
+		}
+		return wordThesaurus.raw;
+	}
+};
+
+export const wordCommon = {
+	file: "./docs/orth/common.csv",
+	/**
+	 * @type {String[]}
+	 */
+	raw: [],
+	read: function() {
+		if (wordCommon.raw.length == 0) {
+			wordCommon.raw = reader(wordCommon.file).split("\n");
+		}
+		return wordCommon.raw;
+	}
+};
+
+export const wordStop = {
+	file: "./docs/orth/stop.csv",
+	/**
+	 * @type {String[]}
+	 */
+	raw: [],
+	read: function() {
+		if (wordStop.raw.length == 0) {
+			wordStop.raw = reader(wordStop.file).split("\n");
+		}
+
+		return wordStop.raw;
+	}
+};
+
+// const settings = {
+// 	lang: 0,
+// 	syllable: {
+// 		unknown: 0,
+// 		consonant: 1,
+// 		medial: 2,
+// 		vowel:3
+// 	},
+// 	pair: {
+// 		illegal: 0
+// 	}
+// };
+
 var MY_SYLLABLE_UNKNOWN = 0;
 var MY_SYLLABLE_CONSONANT = 1;
 var MY_SYLLABLE_MEDIAL = 2;
@@ -180,14 +258,17 @@ var MY_PAIR_CONTEXT = 5; // needs further context analysis
 var MY_PAIR_EOL = 6; // end of line
 
 var LANG_MY = 0; // Myanmar
+// var MM_MAX_CONTEXT_LENGTH = 4;
 
-var MM_MAX_CONTEXT_LENGTH = 4;
-
+/**
+ * @param {string} char
+ */
 function get_char_class(char) {
 	// var identifiedClass = MY_SYLLABLE_UNKNOWN;
 
 	if ("\u1000" > char || char > "\u109F") {
-		if ("\uAA60" <= char < "\uAA7C") {
+		// if ("\uAA60" <= char < "\uAA7C") {
+		if ("\uAA60" <= char && char < "\uAA7C") {
 			if (char == "\uAA70") {
 				return MY_SYLLABLE_TONE;
 			} else if (char == "\uAA7B") {
@@ -200,6 +281,10 @@ function get_char_class(char) {
 	return CHAR_PART[char.charCodeAt(0) - "\u1000".charCodeAt(0)];
 }
 
+/**
+ * @param {string} before
+ * @param {string} after
+ */
 function get_break_status(before, after) {
 	// first char = row, second char = column
 	// 0=illegal, 1=no, 2=yes, 3=yes-line, 4=punctuation, 5=context,
@@ -217,17 +302,20 @@ function get_break_status(before, after) {
 		[3, 2, 0, 0, 0, 0, 0, 2, 0] // S
 	];
 
-	firstClass = get_char_class(before);
-	secondClass = get_char_class(after);
+	let firstClass = get_char_class(before);
+	let secondClass = get_char_class(after);
 
 	return BKSTATUS[firstClass][secondClass];
 }
 
+/**
+ * @param {string} contextText
+ * @param {any} offset
+ * @param {number} langHint
+ */
 function evaluate_context(contextText, offset, langHint) {
 	var text = contextText.substring(offset, contextText.length);
-
 	var length = text.length;
-
 	if (length < 4) {
 		for (var x = 1; x <= 4 - length; x++) {
 			text += " ";
@@ -262,7 +350,12 @@ function evaluate_context(contextText, offset, langHint) {
 	return MY_PAIR_SYL_BREAK;
 }
 
-function get_next_syllable(text, length, offset) {
+/**
+ * @param {string} text
+ * @param {number} length
+ * @param {number} offset
+ */
+export function syllable(text, length, offset) {
 	var breakType = MY_PAIR_NO_BREAK;
 	var i = offset;
 	var foundCluster = false;
@@ -305,55 +398,51 @@ function get_next_syllable(text, length, offset) {
 	return [breakType, i + 1];
 }
 
-function is_myanmar_char(char) {
-	if ("\u1000" <= char <= "\u109f" || "\uaa60" <= char <= "\uaa7f") {
-		return true;
-	}
+// /**
+//  * @param {string} char
+//  */
+// function is_myanmar_char(char) {
+// 	if (
+// 		("\u1000" <= char && char <= "\u109f") ||
+// 		("\uaa60" <= char && char <= "\uaa7f")
+// 	) {
+// 		return true;
+// 	}
 
-	return false;
-}
+// 	return false;
+// }
 
-function is_not_myanmar(char) {
-	var charClass = get_char_class(char);
-	if (
-		charClass == MMC_OT ||
-		charClass == MMC_RQ ||
-		charClass == MMC_LQ ||
-		charClass == MMC_SP
-	) {
-		return true;
-	}
+// /**
+//  * @param {string} char
+//  */
+// function is_not_myanmar(char) {
+// 	var charClass = get_char_class(char);
+// 	if (
+// 		charClass == MMC_OT ||
+// 		charClass == MMC_RQ ||
+// 		charClass == MMC_LQ ||
+// 		charClass == MMC_SP
+// 	) {
+// 		return true;
+// 	}
 
-	return false;
-}
+// 	return false;
+// }
 
-function is_neutral(char) {
-	var charClass = get_char_class(char);
-	if (
-		charClass == MMC_WJ ||
-		charClass == MMC_RQ ||
-		charClass == MMC_LQ ||
-		charClass == MMC_SP ||
-		charClass == MMC_NJ
-	) {
-		return true;
-	}
+// /**
+//  * @param {string} char
+//  */
+// function is_neutral(char) {
+// 	var charClass = get_char_class(char);
+// 	if (
+// 		charClass == MMC_WJ ||
+// 		charClass == MMC_RQ ||
+// 		charClass == MMC_LQ ||
+// 		charClass == MMC_SP ||
+// 		charClass == MMC_NJ
+// 	) {
+// 		return true;
+// 	}
 
-	return false;
-}
-
-module.exports = async str => {
-	var offset = 0,
-		result = [];
-
-	while (offset < str.length) {
-		var output = get_next_syllable(str, str.length, offset);
-		var type = output[0];
-		var next = output[1];
-
-		result.push(str.substring(offset, next));
-		offset = next;
-	}
-
-	return result;
-};
+// 	return false;
+// }
