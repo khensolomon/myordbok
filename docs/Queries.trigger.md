@@ -3,6 +3,20 @@
 ## list-sense
 
 ```sql
+-- list_sense_created
+BEGIN
+  SET new.dated := NOW();
+END
+
+-- list_sense_updated
+BEGIN
+IF (new.word != old.word OR new.wrte != old.wrte OR new.sense != old.sense OR new.exam != old.exam OR new.wseq != old.wseq OR new.wrkd != old.wrkd) THEN
+   SET new.dated := NOW();
+ END IF;
+END,
+```
+
+```sql
 DELIMITER |
 --  create date on insert
 DROP TRIGGER IF EXISTS list_sense_created;

@@ -31,7 +31,12 @@ routes.register(
 		const context = {
 			title: "Myanmar fonts",
 			description: "Myanmar Unicode and fonts",
-			keywords: "Myanmar fonts"
+			keywords: "Myanmar fonts",
+			type: "",
+			download: "",
+			unrestrict: [],
+			secondary: [],
+			external: []
 		};
 		var o = new fonts(fontType);
 		await o
