@@ -340,9 +340,9 @@ export const config = core.config.merge({
 		synmap: "map_derive",
 		thesaurus: "map_thesaurus",
 		/**
-		 * log_keywords
+		 * log_keyword
 		 */
-		keyword: "list_cache"
+		keyword: "log_keyword"
 	},
 	dictionaries: dictionaries,
 	synset: synset,
