@@ -1,5 +1,4 @@
 import { server } from "lethil";
-// import { thuddar } from "../assist/index.js";
 import { snap, partOfSpeech } from "../assist/thuddar/index.js";
 
 const app = server();

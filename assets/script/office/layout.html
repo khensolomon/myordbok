@@ -1,0 +1,20 @@
+<div class="ltrt">
+  <div v-if="ready" class="workspace">
+    <!-- <div class="menu">
+      <ul class="nav">
+        <li v-for="route in routes" :key="route.path">
+          <router-link :to="route.path">
+            {{route.name}}
+          </router-link>
+        </li>
+        <li class="signout" @click="signOutHandle" v-if="dataStore.userAuthenticate" title="Sign out">
+          <span>Sign out</span>
+        </li>
+      </ul>
+    </div> -->
+    <router-view class="wrapper"></router-view>
+  </div>
+  <div v-else class="amoment">
+    <p>A moment</p>
+  </div>
+</div>

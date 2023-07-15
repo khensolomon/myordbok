@@ -2,8 +2,8 @@
 import path from "path";
 // import util from 'util';
 
-import { db } from "lethil";
-import { env, json, chat } from "../anchor/index.js";
+import { db, seek } from "lethil";
+import { env, chat } from "../anchor/index.js";
 
 const { table } = env.config;
 
@@ -78,11 +78,14 @@ export default async function(q) {
 	}
 
 	var rawFile = path.join("./test", "_test_makeup_result.json");
-	await json.write(rawFile, raw, 2);
+	await seek.WriteJSON(rawFile, raw, 2);
 	return [rawFile, raw.length];
 }
 
-const createParenthesisWithBold = function(str) {
+/**
+ * @param {string} str
+ */
+function createParenthesisWithBold(str) {
 	// not between: \{\{[^\}]*\}\}
 	// match words: (\w+\s?\/?\-?\w+\s?\w+\s?\w+)
 	// match word but not between: \b(?<!\[)[(\w+\s?\/?\-?\w+\s?\w+\s?\w+)]+(?!\])\b
@@ -98,7 +101,11 @@ const createParenthesisWithBold = function(str) {
 	];
 	var noteRound = " (~ $1) ";
 	var brackets = {
-		round: function(str, reg) {
+		/**
+		 * @param {string} str
+		 * @param {any} reg
+		 */
+		round(str, reg) {
 			// TODO: ??
 			console.log("round", str);
 			if (/\~/.test(str)) {
@@ -116,7 +123,11 @@ const createParenthesisWithBold = function(str) {
 				return str;
 			}
 		},
-		square: function(str, reg) {
+		/**
+		 * @param {string} str
+		 * @param {any} reg
+		 */
+		square(str, reg) {
 			// console.log('square',str)
 			if (/[:~]/.test(str)) {
 				// NOTE: nothing todo
@@ -129,12 +140,20 @@ const createParenthesisWithBold = function(str) {
 				return str.replace(reg, noteRound);
 			}
 		},
-		curly: function(str, reg) {
+		/**
+		 * @param {any} str
+		 * @param {any} reg
+		 */
+		curly(str, reg) {
 			// TODO: ??
 			console.log("curly", str);
 			return str;
 		},
-		makeup: function(str, keyName) {
+		/**
+		 * @param {string} str
+		 * @param {string | undefined} [keyName]
+		 */
+		makeup(str, keyName) {
 			if (/\~/.test(str)) {
 				// ~ A (on/to B); ~ A and B
 				// return '??'+str
@@ -212,13 +231,13 @@ const createParenthesisWithBold = function(str) {
 			return hackedString;
 		}
 	);
-};
+}
 
 /**
  *
  * @param {string} str
  */
-const formatParenthesisWithBold = function(str) {
+function formatParenthesisWithBold(str) {
 	// Array<(string | RegExp)[]>.filter(predicate: (value: (string | RegExp)[], index: number, array: (string | RegExp)[][]) => unknown, thisArg?: any): (string | RegExp)[][]
 
 	/**
@@ -296,9 +315,12 @@ const formatParenthesisWithBold = function(str) {
 			return fullMatch;
 		}
 	});
-};
+}
 
-const formatNameKey = function(str) {
+/**
+ * @param {string} str
+ */
+function formatNameKey(str) {
 	// brit -> Brit/UK
 	var upperCase = ["uk", "us"];
 	var replaceCase = [
@@ -348,9 +370,12 @@ const formatNameKey = function(str) {
 		str = str.replace(i[0], i[1]);
 	});
 	return str;
-};
+}
 
-const updateSense = async function(row) {
+/**
+ * @param {{ sense: any; id: any; word: any; }} row
+ */
+async function updateSense(row) {
 	await db.mysql
 		.query("UPDATE ?? SET sense = ? WHERE id = ?;", [
 			table.senses,
@@ -359,9 +384,12 @@ const updateSense = async function(row) {
 		])
 		.then(() => console.log("--- updated:", row.word))
 		.catch(e => console.error(e.message));
-};
+}
 
-const update2NULL = async function(row) {
+/**
+ * @param {{ word: any; }} row
+ */
+async function update2NULL(row) {
 	// UPDATE `senses` SET `tid` = 0, `sense` = NULL, `exam` = NULL, `seq` = 0, `kid` = 0, `wid` = 0 WHERE `word` IS NULL;
 	return await db.mysql
 		.query(
@@ -370,4 +398,4 @@ const update2NULL = async function(row) {
 		)
 		.then(() => console.log("-- to reset:", row.word))
 		.catch(e => console.error(e.message));
-};
+}

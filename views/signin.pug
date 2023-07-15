@@ -1,0 +1,23 @@
+extends layout
+block content
+  div.ptl.about#content
+    div.resz.ltrt
+      div.wrapper
+        div.row
+          div.header
+            h1(class=environment) Sign in
+
+          div
+            form(action="/signin" method="POST" novalidate)
+              div.email
+                label(for="email") E-mail
+                input(type="text" name="email" id="email" value=email)
+              div.password
+                label(for="password") Password
+                input(type="password" name="password" id="password" value=password)
+              div.submit
+                button(type="submit") SignIn
+              div.message
+                p #{message}
+block footer
+  include footer

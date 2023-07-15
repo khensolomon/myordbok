@@ -5,6 +5,7 @@ import * as base from "./base.js";
 
 const definitions = base.definitions;
 const keywords = base.keywords;
+const wordlist = base.wordlist;
 
 let taskId = "";
 /**
@@ -16,6 +17,28 @@ let taskId = "";
  * @property {string?} query.identify - [unsuccess,block,all,none]
  * @property {number?} query.timeout - [2000]
  */
+/**
+ * @param {TypeOfRequests} req
+ */
+export async function doExportWord(req) {
+	await wordlist.read();
+	await definitions.read();
+	for (let index = 0; index < definitions.raw.length; index++) {
+		let row = definitions.raw[index];
+
+		let word = row.word.trim();
+
+		if (wordlist.raw.findIndex(e => e.v == word) == -1) {
+			wordlist.raw.push({ v: word });
+		}
+	}
+
+	// wordlist.raw = [{ word: "a" }, { word: "b" }];
+	await wordlist.write();
+	// console.log(wordlist.raw);
+	return wordlist.file;
+	// return wordlist.raw;
+}
 
 /**
  * Get definitions

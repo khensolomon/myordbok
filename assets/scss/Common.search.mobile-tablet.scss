@@ -59,7 +59,7 @@ form[name="search"] {
 			}
 		}
 		// css position fixed inside position fixed scroll
-		&:last-child {
+		&.sug {
 			// display: none;
 			// position: fixed;
 			// position: inherit;
@@ -92,9 +92,7 @@ form[name="search"] {
 						&:first-child {
 							padding: 0 15px;
 						}
-						// &:last-child {
-
-						// }
+						// &:last-child { }
 					}
 				}
 			}

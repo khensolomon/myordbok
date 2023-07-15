@@ -6,7 +6,7 @@ ul
     ol.menu.user
       //- li.suggest
       //-   span(@click="theme_switch") Mode:{{dataStore.themeMode}}
-      li
+      li.theme
         theme-switch(light="icon-sun" dark="icon-moon")
         //- div.theme-switch
         //-   input#theme-switcher(type="checkbox" v-model="dataStore.themeCheck" @click="theme_switch")
@@ -19,6 +19,12 @@ ul
         //-     i.icon-moon
         //-     i.icon-sun
         //-     span
+
+      //- each v, route in nav.office
+      //-   li(class=v.name class=v.class)
+      //-     office-user(href=v.url text=v.text, active=v.class)
+          //- a(href=v.url)
+          //-   span #{v.text}
 
       //- li.signin
       //-   a(href="/signin")

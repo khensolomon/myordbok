@@ -236,6 +236,59 @@ ol {
 					font-size: 12px;
 					color: #a3a3a3;
 				}
+				&.office {
+					// max-width: 30px;
+					// border-radius: 100%;
+					a {
+						&.active {
+							&:before {
+								color: red;
+							}
+						}
+						span {
+							display: table-cell;
+							width: auto;
+							&.img {
+								width: 25px;
+								border: 2px outset rgba(var(--color-text), 0.7);
+								border-radius: 100%;
+								background-size: 100%;
+								background-position: center center;
+								background-repeat: no-repeat;
+								&:before {
+									border-radius: 100%;
+									width: 25px;
+									height: 21.5px;
+									box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+									background-color: rgba(var(--color-main), 0.5);
+									color: #fff;
+									content: "\e80c";
+									font-family: "myordbok";
+									font-style: normal;
+									font-weight: normal;
+									font-size: 18px;
+									// font-size: 15px;
+									padding-top: 3.5px;
+									// line-height: 13px;
+									// padding: 3px 1px;
+									display: block;
+									text-decoration: inherit;
+									text-align: center;
+								}
+								&.withImage {
+									border: 2px outset rgba(var(--color-text), 1);
+									&::before {
+										content: "";
+										background-color: transparent;
+									}
+								}
+							}
+							&.label {
+								display: none;
+							}
+						}
+					}
+				}
 				&.signin {
 					// max-width:30px;
 					a {

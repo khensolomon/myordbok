@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 
 export const useCookieStore = defineStore("cookie", {
-	state: () => ({}),
-	getters: {},
+	// state: () => ({}),
+	// getters: {},
 	actions: {
 		/**
 		 * @param {string} name

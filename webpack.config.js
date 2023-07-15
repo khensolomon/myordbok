@@ -1,7 +1,9 @@
 import path from "path";
 import { VueLoaderPlugin } from "vue-loader";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-
+// import { fileURLToPath } from "url";
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 export default {
 	// target: "node",
 	mode: "development",

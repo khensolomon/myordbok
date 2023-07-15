@@ -2,7 +2,7 @@
 	// NOTE: used in -> home, dictionary
 	// padding: 12vh 2% 1vh 2%;
 	// padding: 12vh 2% 1vh 2%;
-	max-width: 600px;
+	max-width: 620px;
 	// padding-top: 12vh;
 
 	// margin: 0 auto;
@@ -103,7 +103,7 @@
 		@media (max-width: 300px) {
 			form {
 				> div:first-child {
-					> p:nth-child(2) {
+					> p:nth-child(4) {
 						display: none;
 					}
 				}

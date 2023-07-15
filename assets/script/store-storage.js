@@ -2,7 +2,21 @@ import { defineStore } from "pinia";
 
 export const useStorageStore = defineStore("storage", {
 	state: () => ({}),
-	getters: {},
+	getters: {
+		isSupport() {
+			// return typeof(Storage) !== "undefined"
+			var test = "test";
+			try {
+				localStorage.setItem(test, test);
+				// var abc =localStorage.getItem(test);
+				localStorage.removeItem(test);
+
+				return true;
+			} catch (e) {
+				return false;
+			}
+		}
+	},
 	actions: {
 		/**
 		 * refer to: aid.check.isValid (xss)
@@ -46,6 +60,20 @@ export const useStorageStore = defineStore("storage", {
 			const val = this.isValid(value);
 			if (val != "") {
 				localStorage.setItem(id, val);
+			}
+		},
+
+		/**
+		 * @example .setItem('key','value)
+		 * @param {string} id
+		 * @returns {boolean}
+		 */
+		removeItem(id) {
+			try {
+				localStorage.removeItem(id);
+				return true;
+			} catch (error) {
+				return false;
 			}
 		},
 

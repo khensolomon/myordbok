@@ -1,7 +1,7 @@
 import { fire, check, utility } from "lethil";
 
 import * as env from "./env.js";
-import * as docket from "./json.js";
+import { defSynset, defSynmap } from "./seed.js";
 
 /**
  * name of part of speech from config.synset
@@ -36,14 +36,19 @@ export function posSynmap(Id) {
 
 /**
  * org: wordPos
- * @typedef {{time:any; root:env.TypeOfSynset[]; part:env.TypeOfSynmap[]; form:env.RowOfMeaning[]; test:boolean}} TypeOfPartOfSpeech
+ * @typedef {{time:any; root:env.TypeOfSynset[]; part:env.TypeOfSynmap[]; form:env.BlockOfMeaning[]; test:boolean}} TypeOfPartOfSpeech
  * @param {string} keyword
  * @returns {Promise<TypeOfPartOfSpeech>}
  */
 export async function main(keyword) {
 	const timeStart = utility.timeCheck();
-	const synset = await docket.getSynset();
-	const synmap = await docket.getSynmap();
+	const synset = new defSynset();
+	await synset.read();
+	const synmap = new defSynmap();
+	await synmap.read();
+
+	// const synset = await listSynset();
+	// const synmap = await listSynmap();
 	/**
 	 * @type {TypeOfPartOfSpeech}
 	 */
@@ -58,11 +63,11 @@ export async function main(keyword) {
 	// NOTE: oops -> irregular Verbs ??? /s|ed|ing$/i.test(keyword) &&
 	if (/less|sing|king$/i.test(keyword) == false) {
 		// NOTE: loves, fetched
-		for (let index = 0; index < synmap.length; index++) {
-			const elm = synmap[index];
+		for (let index = 0; index < synmap.raw.length; index++) {
+			const elm = synmap.raw[index];
 			if (elm.t < 10 && check.isMatch(elm.v, keyword)) {
 				if (!result.root.find(i => i.w == elm.w)) {
-					var rt = synset.find(i => i.w == elm.w);
+					var rt = synset.raw.find(i => i.w == elm.w);
 					if (rt) {
 						result.root.push(rt);
 					}
@@ -82,12 +87,12 @@ export async function main(keyword) {
 
 	if (!result.test) {
 		// NOTE: love, fetch
-		for (let index = 0; index < synset.length; index++) {
-			const elm = synset[index];
+		for (let index = 0; index < synset.raw.length; index++) {
+			const elm = synset.raw[index];
 			if (check.isMatch(elm.v, keyword)) {
 				result.root.push(elm);
 				// var pt = synmap.filter(i => i.d > 0 && i.w == elm.w);
-				var pt = synmap.filter(i => i.w == elm.w && i.d > 0);
+				var pt = synmap.raw.filter(i => i.w == elm.w && i.d > 0);
 				result.part.push(...pt);
 			}
 		}
@@ -101,16 +106,19 @@ export async function main(keyword) {
 				.category(wordList, e => e.t)
 				.forEach(function(raw, typeId) {
 					/**
-					 * @type {env.RowOfMeaning}
+					 * @type {env.BlockOfMeaning}
 					 */
 					var row = {
 						term: wordMain || "",
 						pos: posSynset(typeId).name,
 						type: "meaning",
-						cast: "exam_meaning",
 						kind: ["part-of-speech"],
 						v: formOfDescription(typeId, raw, wordMain, result.test),
-						exam: []
+
+						exam: {
+							type: "examSentence",
+							value: []
+						}
 					};
 					result.form.push(row);
 				});
@@ -157,9 +165,9 @@ function formOfDescription(type, raw, word = "", test = false) {
 
 /**
  * org: partOfSpeech_pos
- * @param {string} keyword
+ * param {string} keyword
  */
-export async function pos(keyword) {
+export async function pos() {
 	const timeStart = utility.timeCheck();
 	/**
 	 * @type {{time:any;root:env.TypeOfSynset[]; part:any;}}
@@ -176,9 +184,8 @@ export async function pos(keyword) {
 
 /**
  * org: partOfSpeech_base
- * @param {string} keyword
  */
-export async function base(keyword) {
+export async function base() {
 	var start = utility.timeCheck();
 	const result = {
 		timeEnd: "",

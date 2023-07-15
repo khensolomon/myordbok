@@ -27,11 +27,11 @@ ol {
 			font-variant: normal;
 			position: inherit;
 		}
-		&:hover {
-			> a {
-				// color:#236ea9;
-			}
-		}
+		// &:hover {
+		// 	> a {
+		// 		// color:#236ea9;
+		// 	}
+		// }
 		ol {
 			display: none;
 			position: absolute;
@@ -48,7 +48,7 @@ ol {
 				width: 0px;
 				height: 0px;
 				text-align: center;
-				vertical-align: middle;
+				// vertical-align: middle;
 				border: solid transparent;
 			}
 			&:before {
@@ -233,10 +233,10 @@ ol {
 						}
 					}
 				}
-				&:hover {
-					&.hasChild {
-					}
-				}
+				// &:hover {
+				// 	&.hasChild {
+				// 	}
+				// }
 			}
 		}
 		&.user {
@@ -245,34 +245,62 @@ ol {
 					font-size: 12px;
 					// color: #A3A3A3;
 				}
-				&.signin {
-					// max-width:30px;
+				&.office {
+					// max-width: 30px;
+					// border-radius: 100%;
 					a {
-						&:before {
-							box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
-							background-color: rgba(var(--color-main), 0.8);
-							color: #fff;
-							border-radius: 30px;
-							width: 20px;
-							height: 20px;
-							content: "\f061";
-							font-family: "myordbok";
-							font-style: normal;
-							font-weight: normal;
-							speak: none;
-							font-size: 1.2em;
-							padding: 1px;
-							display: block;
-							text-decoration: inherit;
-							text-align: center;
-						}
-						&:hover {
+						&.active {
 							&:before {
-								color: #c5c5c5;
+								color: red;
 							}
 						}
 						span {
-							display: none;
+							display: table-cell;
+							width: auto;
+							&.img {
+								// display: inline-block;
+								width: 25px;
+								height: 25px;
+								border: 1px solid rgba(var(--color-text), 0.5);
+								border-radius: 100%;
+								// background-size: 100%;
+								background-size: cover;
+								background-position: center center;
+								background-repeat: no-repeat;
+								&:before {
+									border-radius: 50px;
+									width: 25px;
+									height: 22px;
+									// box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+									// background-color: rgba(var(--color-main), 0.8);
+									background-color: rgba(var(--color-text), 0.2);
+									// border: 1px solid rgba(var(--color-text), 0.2);
+									// color: #fff;
+									color: var(--color-text-disable);
+									content: "\e80c";
+									font-family: "myordbok";
+									font-style: normal;
+									font-weight: normal;
+									font-size: 18px;
+									// font-size: 15px;
+									padding-top: 3.5px;
+									// line-height: 13px;
+									// padding: 3px 1px;
+									display: block;
+									text-decoration: inherit;
+									text-align: center;
+								}
+								&.withImage {
+									border-color: rgba(var(--color-text), 1);
+									&::before {
+										content: "";
+										background-color: transparent;
+									}
+								}
+							}
+							&.label {
+								display: none;
+							}
 						}
 					}
 				}
@@ -305,7 +333,6 @@ ol {
 							font-style: normal;
 							font-weight: normal;
 							color: #fff;
-							speak: none;
 							font-size: 1em;
 							line-height: 18px;
 							display: block;

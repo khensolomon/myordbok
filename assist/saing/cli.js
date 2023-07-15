@@ -2,7 +2,7 @@ import { JSDOM } from "jsdom";
 // import * as csv from "csv";
 import { seek, burglish } from "lethil";
 // import { env, json } from "../anchor/index.js";
-import * as glossary from "../anchor/glossary.js";
+import seedMain from "../anchor/seed.js";
 
 // const { table } = env.config;
 
@@ -34,17 +34,21 @@ const blog = {
  */
 async function main(req) {
 	// return req;
-	const file = glossary.get("saing/blog.json");
-	const tmp = await seek.ReadJSON(file, blog);
-	Object.assign(blog, tmp);
+	let obj = new seedMain({ file: "saing/blog.json" });
+	obj.fileCatch = blog;
+	obj.fileCache = false;
+	await obj.read();
+	// const file = glossary.get("saing/blog.json");
+	// const tmp = await seek.ReadJSON(file, blog);
+	Object.assign(blog, obj.raw);
 
 	if (req.params.task) {
 		await exportCSV();
 		console.log("task", req.params.task);
 	} else {
 		await get_alphabet();
-		await get_loop(file);
-		await seek.WriteJSON(file, blog, 2);
+		await get_loop(obj.file);
+		await seek.WriteJSON(obj.file, blog, 2);
 	}
 	return "done";
 }
@@ -178,20 +182,24 @@ async function get_definition(job, dom) {
 		try {
 			dom = await JSDOM.fromURL(blog.url + job.url);
 		} catch (error) {
-			const file = glossary.get("saing/error.json");
-			/**
-			 * @type {{string:any}}
-			 */
-			const tmp = await seek.ReadJSON(file);
+			let obj = new seedMain({ file: "saing/error.json" });
 
-			// @ts-ignore
-			tmp[job.word] = {
+			obj.fileCatch = {};
+			obj.fileCache = false;
+			await obj.read();
+
+			// const file = glossary.get("saing/error.json");
+			// const tmp = await seek.ReadJSON(file);
+
+			// ts-ignore
+			obj.raw[job.word] = {
 				word: job.word,
 				url: job.url,
 				error: error
 			};
 			console.log(" >> def", error);
-			await seek.WriteJSON(file, tmp, 2);
+			// await seek.WriteJSON(file, tmp, 2);
+			await obj.write({ space: 2 });
 			return [];
 		}
 	}
@@ -264,18 +272,16 @@ function makeupDefinition(text) {
 }
 
 async function exportCSV() {
-	const file = glossary.get("saing/context.csv");
-	// const tmp = await seek.write(file);
-	var content = "";
-
-	for (const key in blog.context) {
-		if (Object.hasOwnProperty.call(blog.context, key)) {
-			const element = blog.context[key];
-			content += element.join("\r\n");
-			content += "\r\n";
-		}
-	}
-
-	await seek.write(file, content);
+	// const file = glossary.get("saing/context.csv");
+	// // const tmp = await seek.write(file);
+	// var content = "";
+	// for (const key in blog.context) {
+	// 	if (Object.hasOwnProperty.call(blog.context, key)) {
+	// 		const element = blog.context[key];
+	// 		content += element.join("\r\n");
+	// 		content += "\r\n";
+	// 	}
+	// }
+	// await seek.write(file, content);
 }
 export default main;

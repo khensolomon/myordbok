@@ -20,9 +20,9 @@ export default {
 		// 	})
 		// ]);
 		return h("div", {}, [
-			h("div", {
-				class: "name navMobile"
-			}),
+			// h("div", {
+			// 	class: "name navMobile"
+			// }),
 			h(
 				"div",
 				{

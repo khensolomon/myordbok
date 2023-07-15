@@ -12,12 +12,32 @@ routes.register("setup/:task?", async function(req) {
 	return import("./setup/cli.js").then(e => e.default(req));
 });
 
+routes.register("ome/:task?/:name?", async function(req) {
+	return import("./ome/index.js").then(e => e.default(req));
+});
+
+routes.register("oem/:task?/:name?", async function(req) {
+	return import("./oem/index.js").then(e => e.default(req));
+});
+
+routes.register("search/:task?", async function(req) {
+	return import("./search/index.js").then(async e => await e.default(req));
+});
+
 routes.register("sqlite", async function(req) {
 	return import("./sqlite/cli.js").then(e => e.default(req));
 });
 
 routes.register("test", async function(req) {
 	return import("./test/cli.js").then(e => e.default(req));
+});
+
+routes.register("saing/:task?", async function(req) {
+	return import("./saing/cli.js").then(e => e.default(req));
+});
+
+routes.register("sea/:task?/:name?", async function(req) {
+	return import("./sea/cli.js").then(e => e.default(req));
 });
 
 routes.register("thuddar", async function(req) {
@@ -42,12 +62,4 @@ routes.register("gist/:task?/:name?", async function(req) {
 
 routes.register("flat/:task?/:name?", async function(req) {
 	return import("./flat/cli.js").then(e => e.default(req));
-});
-
-routes.register("saing/:task?", async function(req) {
-	return import("./saing/cli.js").then(e => e.default(req));
-});
-
-routes.register("sea/:task?/:name?", async function(req) {
-	return import("./sea/cli.js").then(e => e.default(req));
 });

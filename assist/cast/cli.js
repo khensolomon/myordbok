@@ -7,6 +7,7 @@
  * node run cast export translation
  * node run cast export synset
  * node run cast export synmap
+ * node run cast export mew
  * node run cast search synmap --word=loves
  * node run cast test
  */
@@ -36,6 +37,8 @@ async function doExport(name) {
 			return (await import("./synset.js")).doExport;
 		case "synmap":
 			return (await import("./synmap.js")).doExport;
+		case "mew":
+			return (await import("./mew.js")).doExport;
 		default:
 			return noName;
 	}

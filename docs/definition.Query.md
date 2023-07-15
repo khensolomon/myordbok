@@ -363,6 +363,7 @@ ALTER TABLE `*_word`
 ```
 
 ## Import Old version
+
 ```sql
 -- Import word
 INSERT INTO mo_en_word (word) SELECT source FROM mo_en_sense GROUP BY source ORDER BY source ASC;

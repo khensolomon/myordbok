@@ -48,7 +48,8 @@ ul {
 					position: absolute;
 					// background-color: red;
 					top: 0;
-					right: 20px;
+					// right: 20px;
+					left: 20px;
 					font-size: 24px;
 					// background-color: red;
 					> span {
@@ -98,12 +99,68 @@ ul {
 						color: var(--color-text-hover);
 					}
 				}
+				&.theme {
+					> div {
+						&.theme-switch {
+							margin-bottom: 40px;
+							> button {
+								transform: scale(1.8);
+							}
+						}
+					}
+				}
+				&.office {
+					a {
+						overflow: hidden;
+						span {
+							display: table-cell;
 
-				> div {
-					&.theme-switch {
-						margin-bottom: 40px;
-						> button {
-							transform: scale(1.8);
+							&.img {
+								width: 25px;
+								border: 2px outset rgba(var(--color-text), 0.7);
+								border-radius: 100%;
+								background-size: 100%;
+								background-position: center center;
+								background-repeat: no-repeat;
+								&:before {
+									border-radius: 100%;
+									// width: 25px;
+									// height: 21.5px;
+									width: 25px;
+									height: 23px;
+									box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+									background-color: rgba(var(--color-main), 0.8);
+									color: #fff;
+									content: "\e80c";
+									font-family: "myordbok";
+									font-style: normal;
+									font-weight: normal;
+									font-size: 18px;
+									// font-size: 15px;
+									// padding-top: 3.5px;
+									// line-height: 13px;
+									// padding: 3px 1px;
+									display: block;
+									text-decoration: inherit;
+									text-align: center;
+								}
+								&.withImage {
+									border: 2px outset rgba(var(--color-text), 1);
+									&::before {
+										content: "";
+										background-color: transparent;
+									}
+								}
+							}
+							&.label {
+								width: 100%;
+								text-align: center;
+								white-space: nowrap;
+								text-overflow: ellipsis;
+								overflow: hidden;
+								// padding-left: 7px;
+								// display: none;
+							}
 						}
 					}
 				}
@@ -124,6 +181,7 @@ ul {
 	// 	}
 	// }
 	&.active {
+		margin-bottom: 30px;
 		> div {
 			display: block;
 

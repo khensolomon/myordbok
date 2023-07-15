@@ -1,9 +1,11 @@
-import * as base from "./base.js";
+// import * as base from "./base.js";
+import { mysql, seed, table, number_format, percentage } from "./base.js";
 
 export async function doExport() {
-	const infoFile = base.glossary.info();
+	let ifd = new seed.infoDict();
+	await ifd.read();
 
-	const infoRaw = await base.info_read(infoFile);
+	let infoRaw = ifd.raw;
 
 	// infoRaw.dated = new Date()
 	// 	.toISOString()
@@ -27,51 +29,72 @@ export async function doExport() {
 	// UPDATE ?? AS o INNER JOIN (select id,word from ?? GROUP BY word ) AS i ON o.word = i.word SET o.wrid = i.id;
 	// UPDATE ?? AS o INNER JOIN (select id,word from ?? GROUP BY word ) AS i ON o.word = i.word SET o.wrid = i.id;'
 	// UPDATE ?? AS o INNER JOIN (select id, word from ?? GROUP BY word COLLATE UTF8_BIN) AS i ON o.word COLLATE UTF8_BIN = i.word SET o.wrid = i.id;
-	await base.mysql.query(
+	await mysql.query(
 		"UPDATE ?? AS o INNER JOIN (select id, word from ?? GROUP BY word) AS i ON o.word = i.word SET o.wrid = i.id;",
-		[base.table.senses, base.table.senses]
+		[table.senses, table.senses]
 	);
-	console.log(" >", "reset wrid");
+	console.info(" >", "reset wrid");
 
+	// const word = await base.mysql.query(
+	// 	"SELECT wrid AS w, word AS v FROM ?? WHERE word IS NOT NULL GROUP BY wrid ORDER BY word ASC;",
+	// 	[base.table.senses]
+	// 	);
+
+	// var _wi = base.glossary.word();
+	// await base.json.write(_wi, word);
+
+	// wot wos des deu de
+	// wta wse dse dua dsm dst
+
+	let wordTarget = new seed.wordTarget();
 	// Change wrid AS w to wrid AS k
-	const word = await base.mysql.query(
+	wordTarget.raw = await mysql.query(
 		"SELECT wrid AS w, word AS v FROM ?? WHERE word IS NOT NULL GROUP BY wrid ORDER BY word ASC;",
-		[base.table.senses]
+		[table.senses]
 	);
+	await wordTarget.write();
 
-	var _wi = base.glossary.word();
-	await base.json.write(_wi, word);
-	const totalSense = word.length;
-	_record_info("word", base.number_format(totalSense));
-	const percentage = await base.percentageDefinition(totalSense);
+	const _wtt = wordTarget.raw.length;
+	_record_info("word", number_format(_wtt));
+	const completion = await percentage(_wtt);
 
-	_record_info("completion", percentage);
-	console.log(" >", "en(word):", word.length, _wi);
+	_record_info("completion", completion);
+	console.info(" >", "Word (en):", _wtt, wordTarget.file);
 
-	/*
-	word:{w:wrid, v:word}
-	sense:{i:id,w:wrid,t:wrte,v:sense}
-	usage:{i:id,v:exam}
-	*/
-	const sense = await base.mysql.query(
+	// /*
+	// word:{w:wrid, v:word}
+	// sense:{i:id,w:wrid,t:wrte,v:sense}
+	// usage:{i:id,v:exam}
+	// */
+	let defSense = new seed.defSense();
+	defSense.raw = await mysql.query(
 		"SELECT id AS i, wrid AS w, wrte AS t, sense AS v FROM ?? WHERE word IS NOT NULL AND sense IS NOT NULL ORDER BY wrte, wseq;",
-		[base.table.senses]
+		[table.senses]
 	);
-	var _wi = base.glossary.sense();
-	await base.json.write(_wi, sense);
-	_record_info("definition", base.number_format(sense.length));
-	console.log(" >", "Sense:", sense.length, _wi);
+	await defSense.write();
+	let _dst = defSense.raw.length;
 
-	const example = await base.mysql.query(
+	_record_info("definition", number_format(_dst));
+	console.info(" >", "Sense:", _dst, defSense.file);
+
+	// const example = await base.mysql.query(
+	// 	"SELECT id AS i, exam AS v FROM ?? WHERE exam IS NOT NULL AND exam <> '' ORDER BY wrte, wseq;",
+	// 	[base.table.senses]
+	// );
+
+	let defUsage = new seed.defUsage();
+
+	defUsage.raw = await mysql.query(
 		"SELECT id AS i, exam AS v FROM ?? WHERE exam IS NOT NULL AND exam <> '' ORDER BY wrte, wseq;",
-		[base.table.senses]
+		[table.senses]
 	);
+	await defUsage.write();
+	let _dut = defUsage.raw.length;
 
-	var _wi = base.glossary.usage();
-	await base.json.write(_wi, example);
-	_record_info("example", base.number_format(example.length));
-	console.log(" >", "Usage:", example.length, _wi);
+	_record_info("example", number_format(_dut));
+	console.info(" >", "Usage:", _dut, defUsage.file);
 
-	await base.json.write(infoFile, infoRaw, 2);
-	console.log("  +", infoFile);
+	await ifd.write({ space: 2 });
+
+	console.info(" >", "Info (updated):", ifd.file);
 }

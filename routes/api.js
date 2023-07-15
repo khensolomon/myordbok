@@ -1,11 +1,13 @@
 import { server } from "lethil";
-import {
-	config,
-	search,
-	speech,
-	suggestion,
-	grammar
-} from "../assist/index.js";
+import { config, speech, grammar } from "../assist/index.js";
+
+// import * as med from "../assist/med/index.js";
+/**
+ * deftype {undefined | string | any} q
+ * @typedef {undefined | string | any} q
+ */
+
+// import * as bude from "../assist/med/index.js";
 
 const app = server();
 const routes = app.routes("/api");
@@ -22,22 +24,19 @@ routes.register("", (_req, res) => {
 		development: config.development
 	});
 });
-routes.register("/nav", (_req, res) => {
-	// res.send({
-	// 	name: config.name,
-	// 	version: config.version,
-	// 	development: config.development
-	// });
-	res.json(res.locals.nav);
-});
 
-routes.register("/config", (_req, res) => {
-	res.json(config);
-});
+// routes.register("/nav", (_req, res) => {
+// 	// res.send({
+// 	// 	name: config.name,
+// 	// 	version: config.version,
+// 	// 	development: config.development
+// 	// });
+// 	res.json(res.locals.nav);
+// });
 
-routes.register("/search", (req, res) => {
-	search(req).then(raw => res.json(raw));
-});
+// routes.register("/config", (_req, res) => {
+// 	res.json(config);
+// });
 
 routes.register("/speech", (req, res) => {
 	res.set({
@@ -55,29 +54,76 @@ routes.register("/speech", (req, res) => {
 	speech(req.query).then(e => e.pipe(res));
 });
 
-// req.cookies.solId
-routes.register("/suggestion", (req, res) => {
-	suggestion(req.query.q, res.locals.sol.id)
-		.then(raw => res.json(raw))
-		.catch(e => res.status(404).end(e.message));
+// /**
+//  * req.cookies.solId
+//  */
+// routes.register("/suggestion", (req, res) => {
+// 	var q = req.query.q;
+// 	suggestion(q, res.locals.sol.id)
+// 		.then(raw => res.json(raw))
+// 		.catch(e => res.status(404).end(e.message));
+// });
+
+/**
+ * org: bude med
+ * Myanmar English definition
+ */
+routes.register("/ome/:task?/:name?", async (req, res) => {
+	return await import("../assist/ome/index.js")
+		.then(async e => res.json(await e.default(req)))
+		.catch(() => res.status(404).end(res.json([])));
 });
 
-// 150-180ms upto 555ms
+/**
+ * org: eod ome emo
+ * English & other definition
+ * req.cookies.solId
+ */
+routes.register("/oem/:task?/:name?", async (req, res) => {
+	if (!req.query.lang || req.query.lang == "") {
+		req.query.lang = res.locals.sol.id;
+	}
+	return await import("../assist/oem/index.js")
+		.then(async e => res.json(await e.default(req)))
+		.catch(() => res.status(404).end(res.json([])));
+});
+
+/**
+ * search definition
+ * @todo [search-prev] should be removed once it completed the new one
+ */
+// routes.register("/search-prev", (req, res) => {
+// 	search(req).then(raw => res.json(raw));
+// });
+
+routes.register("/search/:task?", async (req, res) => {
+	return await import("../assist/search/index.js")
+		.then(async e => res.json(await e.default(req)))
+		.catch(() => res.status(404).end(res.json([])));
+});
+
+/**
+ * 150-180ms upto 555ms
+ */
 routes.register("/grammar", (req, res) => {
+	/**
+	 * @type {q}
+	 */
+	var q = req.query.q;
 	grammar
-		.main(req.query.q)
+		.main(q)
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });
 routes.register("/grammar/pos", (req, res) => {
 	grammar
-		.pos(req.query.q)
+		.pos()
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });
 routes.register("/grammar/base", (req, res) => {
 	grammar
-		.base(req.query.q)
+		.base()
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });

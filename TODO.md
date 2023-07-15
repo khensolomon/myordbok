@@ -1,5 +1,10 @@
 # Todo
 
+- [x] Firebase Auth
+- [ ] Like button
+- [ ] Word suggestion form
+- [ ] Privacy and Terms
+
 - Must fixed
 - Reduce of empty array with no initial value
   - ?q=word form
@@ -17,6 +22,9 @@
 - Lookup
   - [x] get rootWord when no definition found
   - [x] unexpected error on [dialer]
+
+- Suggestion
+  - [ ] CSS on none result (EN)
 
 - Template
   - [x] definition
@@ -80,3 +88,11 @@
   - `glossary/zero.*.csv` change to `glossary/zero/*.csv`
     - [x] development
     - [ ] production (gstorage)
+
+## 15.07.23
+
+- Push JSON to cloud
+- Disable incompleted API
+- Commit Github
+- Prepare ecosystem.json for instances (at least 2) NOT folk
+  - max_memory_restart: 3

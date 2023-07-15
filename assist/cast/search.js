@@ -1,4 +1,4 @@
-import * as base from "./base.js";
+import { mysql, table } from "./base.js";
 
 /**
  * Development purpose only
@@ -8,13 +8,13 @@ export async function doSynmap(word) {
 	const res = [];
 
 	// return raw.length ? true : false;
-	const synmap = await base.mysql.query(
+	const synmap = await mysql.query(
 		"SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
-		[base.table.synmap, word]
+		[table.synmap, word]
 	);
-	const sense = await base.mysql.query(
+	const sense = await mysql.query(
 		"SELECT word AS term FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
-		[base.table.senses, word]
+		[table.senses, word]
 	);
 
 	if (synmap.length) {
@@ -22,9 +22,9 @@ export async function doSynmap(word) {
 			res.push("synmap");
 		}
 	} else {
-		const synset = await base.mysql.query(
+		const synset = await mysql.query(
 			"SELECT word AS v FROM ?? WHERE LOWER(word) LIKE LOWER(?);",
-			[base.table.synset, word]
+			[table.synset, word]
 		);
 		if (synset.length && sense.length == 0) {
 			res.push("synset");

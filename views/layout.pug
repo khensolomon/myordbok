@@ -1,5 +1,5 @@
 doctype html
-html(lang='en' dir='ltr' class=appTheme)
+html(lang='en' dir='ltr' class=themeMode)
   head
     block head
       meta(charset='UTF-8')
@@ -8,7 +8,7 @@ html(lang='en' dir='ltr' class=appTheme)
       meta(name='author' content='Khen Solomon Lethil')
       meta(name='apple-mobile-web-app-capable' content='yes')
       meta(name='apple-mobile-web-app-status-bar-style' content='red')
-      meta(name='theme-color' content=appColor)
+      meta(name='theme-color' content=themeColor)
 
       if title
         title= title
@@ -16,7 +16,7 @@ html(lang='en' dir='ltr' class=appTheme)
         meta(name="keywords" content=keywords)
       if description
         meta(name="description" content=description)
-      meta(name="application-name" content=appName version=appVersion)
+      meta(name="application-name" content=appName data-version=appVersion)
       base(href='/')
       //- link(rel='api', href='api')
       //- link(rel='icon', href='/favicon.png' type='image/png')
@@ -75,7 +75,6 @@ html(lang='en' dir='ltr' class=appTheme)
     //- Google Tag Manager (noscript)
     //- noscript
     //-   iframe(src='https://www.googletagmanager.com/ns.html?id=GTM-WMP5B6F' height=0 width=0 style='display:none;visibility:hidden')
-
     div#myordbok.primary
       block bar
         div.ptl#bar

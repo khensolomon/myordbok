@@ -7,4 +7,9 @@ import "./routes/definition.js";
 
 import "./routes/privacy.js";
 import "./routes/terms.js";
+
+// import "./routes/signin.js";
+// import "./routes/signup.js";
+
 import "./routes/api.js";
+import "./routes/office.js";

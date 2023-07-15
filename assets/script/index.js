@@ -1,69 +1,92 @@
-import { createApp } from "vue";
+import { createApp, h } from "vue";
+
 import { createPinia, mapStores } from "pinia";
 
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
 import axios from "axios";
+
+// @ts-ignore
+import layout from "./office/layout.vue";
+import router from "./office/router.js";
+
+import tools from "./tools.js";
 
 import { useDataStore } from "./store-data.js";
 import { useStorageStore } from "./store-storage.js";
 import { useCookieStore } from "./store-cookie.js";
+// import { useSearchStore } from "./store-search.js";
 
 import NavEngine from "./NavEngine.js";
 import SpeechEngine from "./SpeechEngine.js";
 import ThemeSwitch from "./ThemeSwitch.js";
+import SearchEngine from "./SearchEngine.js";
+import OfficeUser from "./OfficeUser.js";
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+	apiKey: "AIzaSyCnqrfzlqIPzEmODfZRudYXlz7MSJjaSzc",
+	authDomain: "myordbok-app.firebaseapp.com",
+	projectId: "myordbok-app",
+	storageBucket: "myordbok-app.appspot.com",
+	messagingSenderId: "75095486220",
+	appId: "1:75095486220:web:1a29b88abfb0e80eb72329",
+	measurementId: "G-4JM6R8RWSP"
+};
+
+// Initialize Firebase
+initializeApp(firebaseConfig);
 // Vue.config.productionTip = true;
 // Vue.config.devtools = true;
 // Vue.use(VueRouter);
 
 const pinia = createPinia();
 
+function getCurrentUser() {
+	return new Promise((resolve, reject) => {
+		let listener = onAuthStateChanged(
+			getAuth(),
+			user => {
+				listener();
+				resolve(user);
+			},
+			reject
+		);
+	});
+}
+
 const app = createApp({
 	components: {
 		NavEngine,
 		SpeechEngine,
-		ThemeSwitch
+		ThemeSwitch,
+		SearchEngine,
+		OfficeUser
 		// NavTest
 	},
 	methods: {
-		test() {
-			console.log("test yesss");
-		},
 		/**
-		 * @param {any} e
+		 * @param {string} e
 		 */
 		querySelector(e) {
-			return document.querySelector(e);
+			return tools.selectElement(e);
 		},
 
-		/**
-		 * @param {string} q
-		 */
-		async suggestion(q) {
-			return await axios
-				.get(this.reverse(this.dataStore.api.suggestion), {
-					params: { q: q }
-				})
-				.then(response => response.data, () => new Array());
-		},
 		/**
 		 * @param {string} ord
 		 */
 		async orthword(ord) {
 			return await axios
-				.get(this.reverse(this.dataStore.api.orthword), {
+				.get(tools.reverse(this.dataStore.api.orthword), {
 					params: { ord: ord }
 				})
 				.then(response => response.data, () => new Array());
 		},
-		/**
-		 * @param {string} str
-		 */
-		reverse(str) {
-			return str
-				.split("")
-				.reverse()
-				.join("");
-		},
+
 		/**
 		 * Myanmar font description toggle
 		 * @param {any} str
@@ -77,18 +100,20 @@ const app = createApp({
 				this.dataStore.activeFontToggle = "";
 			}
 		},
+
 		/**
 		 * @param {string} str
 		 */
 		fontActive(str) {
 			return this.dataStore.activeFontToggle == str;
 		},
+
 		/**
 		 * @param {{ [x: string]: any; }} params
 		 */
 		speech(params) {
 			return (
-				this.reverse(this.dataStore.api.speech) +
+				tools.reverse(this.dataStore.api.speech) +
 				"?" +
 				Object.keys(params)
 					.map(function(key) {
@@ -96,142 +121,82 @@ const app = createApp({
 					})
 					.join("&")
 			);
-		},
-
-		/**
-		 * search-engine
-		 */
-		input_focus() {
-			this.dataStore.hasFocus = true;
-		},
-		input_unfocus() {
-			this.dataStore.hasFocus = false;
-		},
-		input_blur() {
-			setTimeout(() => {
-				if (!this.dataStore.OverrideFocus) {
-					this.dataStore.hasFocus = false;
-					this.dataStore.OverrideFocus = false;
-				}
-			}, 150);
-		},
-		arrow_up() {
-			console.log("up");
-			if (this.dataStore.wordIndex > 0) {
-				this.dataStore.wordIndex--;
-			} else {
-				if (this.dataStore.wordIndex == -1) {
-					this.dataStore.wordIndex = this.lastIndex;
-				} else {
-					this.dataStore.wordIndex = -1;
-				}
-			}
-			this.updateQuery();
-		},
-		arrow_down() {
-			console.log("down");
-			if (this.dataStore.wordIndex <= this.lastIndex) {
-				this.dataStore.wordIndex++;
-			} else {
-				if (this.dataStore.wordIndex > 0) {
-					this.dataStore.wordIndex = 0;
-				} else {
-					this.dataStore.wordIndex = -1;
-				}
-			}
-			this.updateQuery();
-		},
-		input_click() {
-			if (!this.dataStore.q) {
-				this.dataStore.suggests = this.load_history.slice(0, 10);
-			}
-		},
-		/**
-		 * @param {any} index
-		 */
-		suggestion_hover(index) {
-			this.dataStore.wordIndex = index;
-		},
-		async input_change() {
-			this.dataStore.wordIndex = -1;
-			this.dataStore.wordInput = this.dataStore.q;
-			if (this.dataStore.q) {
-				// console.log("q", this.dataStore.q);
-				// this.dataStore.suggests = await this.suggestion(this.dataStore.q);
-				// if (/[\u1000-\u109F]/.test(this.dataStore.q)) {
-				//   // console.log('?',this.dataStore.q)
-				//   this.dataStore.suggests = await this.$parent.orthword(this.dataStore.q);
-				// } else {
-				//   this.dataStore.suggests = await this.$parent.suggestion(this.dataStore.q);
-				// }
-				this.dataStore.suggests = await this.suggestion(this.dataStore.q);
-			} else {
-				this.dataStore.suggests = this.load_history.slice(0, 10);
-			}
-		},
-		/**
-		 * @param {any} index
-		 */
-		isCurrent(index) {
-			return index === this.dataStore.wordIndex;
-		},
-		/**
-		 * @param {any} w
-		 */
-		updateQuery(w) {
-			if (w) {
-				return (this.dataStore.q = w);
-			} else if (this.dataStore.suggests[this.dataStore.wordIndex]) {
-				this.dataStore.q = this.dataStore.suggests[this.dataStore.wordIndex];
-			} else if (this.dataStore.wordInput) {
-				this.dataStore.q = this.dataStore.wordInput;
-			}
-		},
-		/**
-		 * @param {string} w
-		 */
-		wordHighlight(w) {
-			return w.replace(
-				new RegExp(this.dataStore.wordInput, "i"),
-				"<mark>$&</mark>"
-			);
-		},
-		/**
-		 * @param {any} w
-		 */
-		async suggestion_click(w) {
-			this.$refs.input.focus();
-			// this.dataStore.OverrideFocus=true;
-			await this.updateQuery(w);
-			this.$refs.form.submit();
-			// setTimeout(()=>{
-			//   this.dataStore.OverrideFocus=false;
-			// },150);
-		},
-		/**
-		 * @param {any} w
-		 */
-		async save_history(w) {
-			this.storageStore.setItemAsList(this.dataStore.historyId, w);
-		},
-
-		async input_submit() {
-			this.$refs.form.submit();
-			this.save_history(this.dataStore.q);
 		}
 	},
 	watch: {},
 	// async created() {},
 	// beforeCreate() {},
-	created() {},
+	// created() {},
 	// beforeMount() {},
-	mounted() {
-		if (this.query) {
-			this.save_history(this.query);
-		}
+	async mounted() {
+		// this.searchStore.$refs = this.$refs;
+		// let lang = this.cookieStore.read("solId");
+		// await this.searchStore.onMountedWE(lang);
+		// await this.searchStore.onMounted();
+		// if (this.$refs.searchForm != null && this.$refs.searchInput != null) {
+		// 	this.$refs.searchInput.focus();
+		// }
+		// if (this.$refs.input != null) {
+		// 	this.$refs.input.focus();
+		// }
 
-		if (this.$refs.input != null) {
-			this.$refs.input.focus();
+		let auth = getAuth();
+		onAuthStateChanged(auth, user => {
+			if (user) {
+				this.dataStore.userInfo = user;
+				this.dataStore.userAuthenticate = true;
+			} else {
+				this.dataStore.userInfo = {};
+				this.dataStore.userAuthenticate = false;
+			}
+			this.dataStore.ready = true;
+		});
+
+		if (tools.selectElement("#office")) {
+			router.beforeEach(async (to, from, next) => {
+				if (to.matched.some(record => record.meta.mustAuthenticate)) {
+					// getCurrentUser;
+					// auth.currentUser;
+					if (await getCurrentUser()) {
+						next();
+					} else {
+						next("/");
+					}
+				} else {
+					next();
+				}
+			});
+
+			const office = createApp({
+				components: {},
+				methods: {
+					test() {},
+					metadata() {},
+					async fetch(uri) {},
+					async init() {}
+				},
+				watch: {},
+				// template: "",
+				// async created() {},
+				// beforeCreate() {},
+				created() {},
+				// beforeMount() {},
+				mounted() {},
+				render: () => h(layout),
+				// ready: () {},
+				computed: {
+					// note we are not passing an array, just one store after the other
+					// each store will be accessible as its id + 'Store'
+					...mapStores(useDataStore, useStorageStore)
+				}
+			});
+
+			office.use(pinia);
+			office.use(router);
+
+			office.provide("dataStore", useDataStore());
+			office.provide("storageStore", useStorageStore());
+			office.mount("#office");
 		}
 	},
 	// render: () => h(layout),
@@ -239,35 +204,18 @@ const app = createApp({
 	computed: {
 		// note we are not passing an array, just one store after the other
 		// each store will be accessible as its id + 'Store'
-		...mapStores(useDataStore, useCookieStore, useStorageStore),
-		lastIndex() {
-			return this.dataStore.suggests.length - 1;
-		},
-		hasActive() {
-			if (this.dataStore.hasFocus && this.dataStore.suggests.length) {
-				return "active";
-			} else if (this.dataStore.hasFocus) {
-				return "focus";
-			}
-		},
-		/**
-		 *
-		 * @returns {number[]}
-		 */
-		load_history() {
-			return this.storageStore.getItemAsList(this.dataStore.historyId);
-		}
-	}
+		...mapStores(useDataStore, useCookieStore, useStorageStore)
+	},
 	// NOTE: without setup {useDataStore} can be accessed at {dataStore}
-	// setup() {
-	//   const data = useDataStore();
-	//   data.count++;
-	//   // with autocompletion ✨
-	//   data.$patch({ count: data.count + 1 });
-	//   // or using an action instead
-	//   data.increment();
-	//   return { data };
-	// },
+	setup() {
+		// const data = useDataStore();
+		// data.count++;
+		// // with autocompletion ✨
+		// data.$patch({ count: data.count + 1 });
+		// // or using an action instead
+		// data.increment();
+		// return { data };
+	}
 });
 
 app.use(pinia);
@@ -275,4 +223,41 @@ app.use(pinia);
 // app.provide("dataStore", useDataStore());
 // app.provide("storageStore", useStorageStore());
 
+const clickOutside = {
+	beforeMount: (el, binding) => {
+		el.eventSetDrag = () => {
+			el.setAttribute("data-dragging", "yes");
+		};
+		el.eventClearDrag = () => {
+			el.removeAttribute("data-dragging");
+		};
+		el.eventOnClick = event => {
+			const dragging = el.getAttribute("data-dragging");
+			// Check that the click was outside the el and its children, and wasn't a drag
+			if (!(el == event.target || el.contains(event.target)) && !dragging) {
+				// call method provided in attribute value
+				binding.value(event);
+			}
+		};
+		if (el.classList.contains("thatClass")) {
+			console.log("beforeMount", el);
+		}
+		document.addEventListener("touchstart", el.eventClearDrag);
+		document.addEventListener("touchmove", el.eventSetDrag);
+		document.addEventListener("click", el.eventOnClick);
+		document.addEventListener("touchend", el.eventOnClick);
+	},
+	unmounted: el => {
+		console.log("unmounted", el);
+		document.removeEventListener("touchstart", el.eventClearDrag);
+		document.removeEventListener("touchmove", el.eventSetDrag);
+		document.removeEventListener("click", el.eventOnClick);
+		document.removeEventListener("touchend", el.eventOnClick);
+		el.removeAttribute("data-dragging");
+	}
+};
+app.directive("click-outside", clickOutside);
+
 app.mount("#myordbok");
+
+// document.addEventListener("DOMContentLoaded", function() { });

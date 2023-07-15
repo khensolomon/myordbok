@@ -1,5 +1,5 @@
 import { server } from "lethil";
-import { search } from "../assist/index.js";
+import search from "../assist/search/index.js";
 
 const app = server();
 const routes = app.routes("/definition", "definition");

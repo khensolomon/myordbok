@@ -48,6 +48,8 @@ $max-width: 950px;
 
 	// --color-background-rgb: rgb(255, 255, 255);
 	--color-background: 255, 255, 255;
+	// --color-office-background: rgb(243, 243, 243);
+	--color-office-background: rgb(243, 242, 242);
 
 	// Normally surround is darker than current active background color
 	// --color-surround-rgb: rgb(240, 241, 241);
@@ -83,6 +85,7 @@ $max-width: 950px;
 
 	--filter-logo: grayscale(0%);
 
+	// [data-theme="dark"] {}
 	&.dark {
 		// --color-bar-rgb: rgb(34, 34, 34);
 		--color-bar: 34, 34, 34;
@@ -99,30 +102,45 @@ $max-width: 950px;
 		// --color-surround-rgb: rgb(71, 71, 71);
 		--color-surround: 71, 71, 71;
 
-		--color-text-rgb: rgb(231, 231, 231);
+		// --color-text-rgb: rgb(231, 231, 231);
 		--color-text: 231, 231, 231;
 		--color-text-hover: rgba(var(--color-text), 0.5);
 		--color-text-active: rgba(var(--color-text), 0.99);
 		--color-text-disable: rgba(var(--color-text), 0.6);
 		--color-text-enable: rgba(var(--color-text), 0.8);
 
-		--color-link-rgb: rgb(199, 202, 172);
+		// --color-link-rgb: rgb(199, 202, 172);
 		--color-link: 199, 202, 172;
-		--color-link-visited-rgb: rgb(177, 192, 187);
+		// --color-link-visited-rgb: rgb(177, 192, 187);
 		--color-link-visited: 177, 192, 187;
-		--color-link-active-rgb: rgb(238, 0, 0);
+		// --color-link-active-rgb: rgb(238, 0, 0);
 		--color-link-active: 238, 0, 0;
-		--color-link-hover-rgb: rgb(190, 183, 162);
+		// --color-link-hover-rgb: rgb(190, 183, 162);
 		--color-link-hover: 190, 183, 162;
 
 		// --color-highlight-rgb: rgb(201, 201, 201);
 		--color-highlight: 201, 201, 201;
-		--color-danger-rgb: rgb(235, 227, 126);
+		// --color-danger-rgb: rgb(235, 227, 126);
 		--color-danger: 235, 227, 126;
 
 		--filter-logo: grayscale(100%);
 	}
 }
+
+// a {
+// 	// color: lighten($linkcolour, 50%);
+// 	// color: lighten($linkcolour, 50%);
+// 	// color: --linkcolours !important;
+// 	// color: #{} !important;
+// 	// color: #{$linkcolour} !important;
+// 	// color: #{var(--linkcolours)} !important;
+// 	// color: lighten($linkcolour, 10%) !important;
+// 	color: darken($linkcolour, 10%) !important;
+// }
+
+// @media (prefers-color-scheme: no-preference) {}
+// @media (prefers-color-scheme: light) {}
+// @media (prefers-color-scheme: dark) {}
 
 @mixin text-size-adjust($value: none) {
 	-webkit-text-size-adjust: $value;

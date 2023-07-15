@@ -21,6 +21,7 @@ import core from "lethil";
  * @property {Object} meta
  * @property {string} meta.searchQuery
  * @property {string} meta.q
+ * @property {boolean} meta.isMyanmar
  * @property {string} meta.type
  * @property {string} meta.name
  * @property {{name:string, list?:string[]}[]} meta.msg
@@ -49,36 +50,73 @@ import core from "lethil";
  * ```
  * @typedef { {i:number, v:string} } TypeOfUsage - example
  *
- * @typedef { {w:number, v:string} } RowOfLangTar - English
- * @typedef { {v:string, e:string[]} } RowOfLangSrc - Other than english
+ * @typedef { {v:string} } RowOfWordMed - English words
+ * @typedef { {w:number, v:string} } RowOfLangTar - English words
+ * @typedef { {v:string, e:any} } RowOfLangSrc - Other than english words
  *
- * typedef { {id?:number, pos:string, term:string, type:string, v:string, exam:string[], kind:string[]} } RowOfMeaning - data.clue.meaning.pos.?
+ * @typedef {{mean:string[]; exam:string[]}} RowOfMean
  *
- * @typedef {Object} RowOfMeaning  - data.clue.meaning.pos.?
+ * @typedef {Object} RowOfExam - in sense
+ * @property {string} type - how to be shown [exam] in html examSentence, examWord
+ * @property {string[]} value
+ *
+ * @typedef {Object} RowOfUsage - Used in [MED] related words, can be used to display [thesaurus]
+ * @property {string} type - how to be shown [usage] in html [usageSentence, usageWord]
+ * @property {string[]} value - rel usage usage_sentence, usage_word
+ *
+ * @typedef {Object} BlockOfMeaning  - data.clue.meaning.pos.?
  * @property {number} [id]
- * @property {string} pos
- * @property {string} term
+ * @property {string} pos - part of speech
+ * @property {string} term - Word
  * @property {string} type
- * @property {string} cast - how to be shown in html [exam_meaning, exam_thesaurus]
  * @property {string[]} kind
- * @property {string} v
- * @property {string[]} exam
+ * @property {RowOfMean[]|string} v - meaning
+ * @property {RowOfMean[]} [mean]
+ * @property {RowOfExam} [exam]
+ * @property {RowOfUsage} [usage]
  *
- * @typedef { Object<string,RowOfMeaning[]> } RowOfClue - { meaning; suggestion }
+ * @typedef { Object<string,BlockOfMeaning[]> } RowOfClue - { meaning; suggestion }
  * @typedef { {word:string, clue:Object<string,RowOfClue>} } RowOfDefinition - { word: term, clue: {} }
  * @typedef { {word:string, clue:RowOfDefinition[]} } RowOfTranslation - { }
  *
  * @typedef {Object} TypeOfMeaning - each word clue
  * @property {boolean} status
- * @property {number} dated - timestamp
+ * @property {number} dated - timestamp `new Date(?).getTime()`
  * @property {number} id - 0:default 1:match 2:synset
  * @property {string} version - used in cache control
  * @property {string[]} msg
- * @property {RowOfMeaning[]} row
+ * @property {BlockOfMeaning[]} row
  *
- * @typedef { {name:string, shortname:string} } PosOfSynset
+ * @typedef { {id:number, name:string, shortname:string, thesaurus:string[] } } PosOfSynset
  * @typedef { {id:number, type:number, name:string} } PosOfSynmap
+ *
+ * @typedef {Object<string,any>} RowOfInfoProgress
+ * @property {string} name
+ * @property {string} my
+ * @property {number} [percentage] - 87.5
+ * @property {string} [id] - word
+ * @property {number} [status] - 58497
+ *
+ * @typedef {Object} RowOfInfo
+ * @property {string} title
+ * @property {string} keyword
+ * @property {string} description
+ * @property {number} dated
+ * @property {Object} info
+ * @property {string} info.header
+ * @property {RowOfInfoProgress[]} info.progress
+ * @property {string[]} info.context
+ * property {Object} info.progress
+ * property {string} info.progress.name
+ * property {string} info.progress.my
+ * property {string} info.progress.my
+ * property {number} [info.progress.percentage] - 87.5
+ * property {string} [info.progress.id] - word
+ * property {number} [info.progress.status] - 58497
+ * property {{name:string,my:string,percentage?:number, id?:string, status?:number}[]} info.progress
+ * typedef {{word:string, lang:string}} TypeOfCacheController
  */
+
 /**
  *@type {TypeOfSearchMeta}
  */
@@ -101,6 +139,7 @@ export const result = {
 	meta: {
 		searchQuery: "",
 		q: "",
+		isMyanmar: false,
 		type: "",
 		name: "",
 		msg: [],
@@ -120,30 +159,91 @@ export const result = {
 	pageClass: "definition",
 	data: []
 };
+
 /**
  * @type { PosOfSynset[] }
  */
 export const synset = [
-	{ name: "Noun", shortname: "n" },
-	{ name: "Verb", shortname: "v" },
-	{ name: "Adjective", shortname: "adj" },
-	{ name: "Adverb", shortname: "adv" },
-	{ name: "Preposition", shortname: "prep" },
-	{ name: "Conjunction", shortname: "conj" },
-	{ name: "Pronoun", shortname: "pron" },
-	{ name: "Interjection", shortname: "int" },
-	{ name: "Abbreviation", shortname: "abb" },
-	{ name: "Prefix", shortname: "" },
-	{ name: "Combining form", shortname: "" },
-	{ name: "Phrase", shortname: "phra" },
-	{ name: "Contraction", shortname: "" },
-	{ name: "Punctuation", shortname: "punc" },
-	{ name: "Particle", shortname: "part" },
-	{ name: "Post-positional Marker", shortname: "ppm" },
-	{ name: "Suffix", shortname: "" },
-	{ name: "Acronym", shortname: "" },
-	{ name: "Article", shortname: "" },
-	{ name: "Number", shortname: "tn" }
+	{ id: 0, name: "Noun", shortname: "n", thesaurus: [] },
+	{ id: 1, name: "Verb", shortname: "v", thesaurus: [] },
+	{
+		id: 2,
+		name: "Adjective",
+		shortname: "adj",
+		thesaurus: ["adj & adv"]
+	},
+	{
+		id: 3,
+		name: "Adverb",
+		shortname: "adv",
+		thesaurus: []
+	},
+	{
+		id: 4,
+		name: "Preposition",
+		shortname: "prep",
+		thesaurus: []
+	},
+	{
+		id: 5,
+		name: "Conjunction",
+		shortname: "conj",
+		thesaurus: []
+	},
+	{
+		id: 6,
+		name: "Pronoun",
+		shortname: "pron",
+		thesaurus: ["pron & adj"]
+	},
+	{
+		id: 7,
+		name: "Interjection",
+		shortname: "int",
+		thesaurus: ["pron & int"]
+	},
+	{
+		id: 8,
+		name: "Abbreviation",
+		shortname: "abb",
+		thesaurus: ["abbr"]
+	},
+	{ id: 9, name: "Prefix", shortname: "", thesaurus: [] },
+	{
+		id: 10,
+		name: "Combining form",
+		shortname: "",
+		thesaurus: []
+	},
+	{
+		id: 11,
+		name: "Phrase",
+		shortname: "phra",
+		thesaurus: ["exp"]
+	},
+	{ id: 12, name: "Contraction", shortname: "", thesaurus: [] },
+	{
+		id: 13,
+		name: "Punctuation",
+		shortname: "punc",
+		thesaurus: []
+	},
+	{
+		id: 14,
+		name: "Particle",
+		shortname: "part",
+		thesaurus: []
+	},
+	{
+		id: 15,
+		name: "Postpositional Marker",
+		shortname: "ppm",
+		thesaurus: []
+	},
+	{ id: 16, name: "Suffix", shortname: "", thesaurus: [] },
+	{ id: 17, name: "Acronym", shortname: "", thesaurus: [] },
+	{ id: 18, name: "Article", shortname: "", thesaurus: [] },
+	{ id: 19, name: "Number", shortname: "tn", thesaurus: [] }
 ];
 
 /**
@@ -218,19 +318,6 @@ export const dictionaries = [
 	}
 ];
 
-export const fileName = {
-	word: "glossary/EN.json",
-	sense: "glossary/sense.json", // definition
-	usage: "glossary/usage.json", // example
-	synset: "glossary/synset.json", // words
-	synmap: "glossary/synmap.json", //derives
-	zero: "glossary/zero/EN.csv", //no result
-	info: "./docs/info/EN.json",
-	thesaurus: "glossary/thesaurus.json",
-	cache: "./cache/page/lang/query.json",
-	sqlite: "glossary/tmp-sqlite.db"
-};
-
 export const config = core.config.merge({
 	name: "MyOrdbok",
 	// description: 'package.description',
@@ -252,12 +339,15 @@ export const config = core.config.merge({
 		synset: "list_word",
 		synmap: "map_derive",
 		thesaurus: "map_thesaurus",
-		cache: "list_cache"
+		/**
+		 * log_keywords
+		 */
+		keyword: "list_cache"
 	},
 	dictionaries: dictionaries,
 	synset: synset,
 	synmap: synmap,
-	fileName: fileName,
+	// fileName: fileName,
 	/**
 	 * if "true" get search result from Database
 	 * if not get data from JSON

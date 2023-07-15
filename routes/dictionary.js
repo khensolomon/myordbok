@@ -1,6 +1,7 @@
 import { server } from "lethil";
 
-import { language, docket } from "../assist/index.js";
+// import { language, docket } from "../assist/index.js";
+import { language, seed } from "../assist/index.js";
 
 const app = server();
 const routes = app.routes("/dictionary", "dictionary");
@@ -22,9 +23,11 @@ routes.register(
 				res.locals.sol = lang;
 			}
 		}
-		docket
-			.getInfo(res.locals.sol.id)
-			.then(raw =>
+		let info = new seed.infoDict({ lang: res.locals.sol.id });
+
+		info
+			.read()
+			.then(raw => {
 				res.render("dictionary", {
 					title: raw.title,
 					keywords: raw.keyword,
@@ -33,8 +36,22 @@ routes.register(
 					dictionaries: language.list,
 					info: raw.info,
 					dated: new Date(raw.dated)
-				})
-			)
+				});
+			})
 			.catch(() => res.status(404).end());
+		// docket
+		// 	.getInfo(res.locals.sol.id)
+		// 	.then(raw =>
+		// 		res.render("dictionary", {
+		// 			title: raw.title,
+		// 			keywords: raw.keyword,
+		// 			description: raw.description,
+		// 			pageClass: "dictionary",
+		// 			dictionaries: language.list,
+		// 			info: raw.info,
+		// 			dated: new Date(raw.dated)
+		// 		})
+		// 	)
+		// 	.catch(() => res.status(404).end());
 	}
 );

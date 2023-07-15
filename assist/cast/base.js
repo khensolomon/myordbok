@@ -1,9 +1,9 @@
 import { db } from "lethil";
-import * as anchor from "../anchor/index.js";
 
-export const { json, glossary } = anchor;
-export const { dictionaries, table } = anchor.env.config;
+import { env } from "../anchor/index.js";
+export { seed } from "../anchor/index.js";
 
+export const { dictionaries, table } = env.config;
 export const mysql = db.mysql;
 
 /**
@@ -19,33 +19,8 @@ export const settings = {
 };
 
 /**
- * @typedef {Object<string,any>} TypeOfInfoProgress
- * @property {string} name
- * @property {string} my
- * @property {number} [percentage] - 87.5
- * @property {string} [id] - word
- * @property {number} [status] - 58497
  *
- * @typedef {Object} TypeOfInfo
- * @property {string} title
- * @property {string} keyword
- * @property {string} description
- * @property {number} dated
- * @property {Object} info
- * @property {string} info.header
- * @property {TypeOfInfoProgress[]} info.progress
- * @property {string[]} info.context
- * property {Object} info.progress
- * property {string} info.progress.name
- * property {string} info.progress.my
- * property {string} info.progress.my
- * property {number} [info.progress.percentage] - 87.5
- * property {string} [info.progress.id] - word
- * property {number} [info.progress.status] - 58497
- * property {{name:string,my:string,percentage?:number, id?:string, status?:number}[]} info.progress
- */
-
-/**
+ * numFormat numPercentage
  * @param {number} number
  * @returns {string}
  */
@@ -53,20 +28,22 @@ export function number_format(number) {
 	return new Intl.NumberFormat("en-GB").format(number);
 }
 
-/**
- * @param {string} file
- * @returns {Promise<TypeOfInfo>}
- */
-export function info_read(file) {
-	return json.read(file);
-}
+// /**
+//  * @param {string} file
+//  * @returns {Promise<anchor.env.RowOfInfo>}
+//  */
+// export function info_read(file) {
+// 	return json.read(file);
+// }
 
 /**
- * Percentage for definition
+ * Percentage of definition completion
+ * pecDef defPers p
+ * percentage
  * @param {number} [total] - completed words count
  * @returns {Promise<number>}
  */
-export async function percentageDefinition(total) {
+export async function percentage(total) {
 	if (!total) {
 		const raw = await mysql.query(
 			"SELECT wrid FROM ?? WHERE word IS NOT NULL GROUP BY wrid;",
@@ -88,7 +65,7 @@ export async function percentageDefinition(total) {
  */
 export async function percentageTranslation(total) {
 	if (settings.percentageCompletion == 0) {
-		await percentageDefinition();
+		await percentage();
 	}
 	let completion = (total / settings.totalWord) * 100;
 	return (settings.percentageCompletion * completion) / 100;

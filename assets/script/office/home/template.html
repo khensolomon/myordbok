@@ -1,0 +1,244 @@
+<div class="home">
+  <div class="profile" v-if="dataStore.userAuthenticate">
+    <div class="table">
+      <div class="cell info">
+        <div>
+          <div class="photo">
+            <p v-if="photoURL" :style="{ 'background-image': 'url(' + photoURL + ')' }"></p>
+            <p v-else><i class="icon-user"></i></p>
+          </div>
+          <div class="status">
+            <div class="name">
+              <p><span :class="displayName ? '' : 'unavailable'">{{displayName||"Unavailable"}}</span>
+              </p>
+            </div>
+            <div class="email">
+              <p><span
+                  :class="dataStore.userInfo?.email ? '' : 'unavailable'">{{dataStore.userInfo?.email||"Unavailable"}}</span>
+              </p>
+            </div>
+            <div class="signout">
+              <p @click="signOutHandle" title="Sign out"><span>Sign out</span></p>
+            </div>
+
+
+            <!-- <p class="phone">phone?</p> -->
+          </div>
+
+        </div>
+
+      </div>
+      <div class="cell tasks">
+        <ul>
+          <li>
+            <p class="emailVerified" :class="dataStore.userInfo?.emailVerified?'active icon-ok':'icon-dot3'"
+              @click="handleEmailVerification"><span>Verify
+                email</span></p>
+          </li>
+          <li>
+            <p class="icon-dot3" @click="enrollmentStep = 3"><span>Update name</span></p>
+          </li>
+          <li>
+            <p class="icon-dot3" @click="enrollmentStep = 4"><span>Change email</span></p>
+          </li>
+          <li>
+            <p class="icon-dot3" @click="enrollmentStep = 5"><span>Update password</span></p>
+          </li>
+          <li>
+            <p class="icon-dot3" @click="enrollmentStep = 6"><span>Delete account</span></p>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="tmp">
+      <div class="message">{{enrollmentMessage}}</div>
+      <div v-if="enrollmentStep==3">
+        <form method="post" @submit.prevent="" class="enrollment">
+          <div>
+            <h3>Update <em>display name</em></h3>
+            <p>a simply formality</p>
+          </div>
+          <div>
+            <label>Display name</label>
+            <input type="text" placeholder="Display name" v-model="enrollmentName" required>
+          </div>
+          <div>
+            <button type="submit" @click="handleUpdateName">Update</button>
+            <button type="button" @click="enrollmentStep = 0">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div v-if="enrollmentStep==4">
+        <form method="post" @submit.prevent="" class="enrollment">
+          <div>
+            <h3>Change <em>email</em></h3>
+            <p>a new verification for email will be required</p>
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="text" placeholder="Email" v-model="enrollmentEmail" required>
+          </div>
+          <div>
+            <button type="submit" @click="handleChangeEmail">Change</button>
+            <button type="button" @click="enrollmentStep = 0">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div v-if="enrollmentStep==5">
+        <form method="post" @submit.prevent="" class="enrollment">
+          <div>
+            <h3>Update <em>password</em></h3>
+            <p>...</p>
+          </div>
+          <div>
+            <label>Password</label>
+            <!-- <input type="text" placeholder="Password" v-model="enrollmentPassword" required> -->
+            <input :type="enrollmentPasswordShow ? 'text' : 'password'" placeholder="Password"
+              v-model="enrollmentPassword" required>
+            <i :class="enrollmentPasswordShow ? 'icon-eye' : 'icon-eye-off'"
+              @click="enrollmentPasswordShow = !enrollmentPasswordShow"></i>
+          </div>
+          <div>
+            <button type="submit" @click="handleUpdatePassword">Update</button>
+            <button type="button" @click="enrollmentStep = 0">Cancel</button>
+          </div>
+        </form>
+      </div>
+      <div v-if="enrollmentStep==6">
+        <form method="post" @submit.prevent="" class="enrollment">
+          <div>
+            <h3>Are you sure to <em>delete</em> your account?</h3>
+          </div>
+          <div>
+            <button type="submit" @click="handleDeleteAccount">Delete</button>
+            <button type="button" @click="enrollmentStep = 0">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="linking">
+      <h3>Link accounts</h3>
+      <p><span>accounts</span></p>
+      <ul>
+        <li @click="linkAccountWithGoogle" :class="linkedWithGoogle?'active':''" class="icon-google">
+          <span>Google</span>
+          <i class="icon-ok"></i>
+        </li>
+        <li @click="linkAccountWithApple" :class="linkedWithApple?'active':''" class="icon-apple">
+          <span>Apple</span>
+          <i class="icon-ok"></i>
+        </li>
+        <li @click="linkAccountWithGithub" :class="linkedWithGithub?'active':''" class="icon-github">
+          <span>Github</span>
+          <i class="icon-ok"></i>
+        </li>
+
+      </ul>
+      <ul>
+        <li v-for="route in routes" :key="route.path">
+          <router-link :to="route.path">
+            {{route.name}}
+          </router-link>
+        </li>
+      </ul>
+      <ul>
+        <li v-for="data in dataStore.userInfo.providerData" :key="data.providerId">
+          <p>
+            <span>{{data.providerId}}</span> <span>{{data.uid}}</span> <span>{{data.displayName}}</span>
+            <span>{{data.email}}</span> <span>{{data.photoURL}}</span>
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="registration" v-else>
+    <div class="withProvider">
+      <div class="icon-google" @click="signInWithGoogle">Sign in with Google</div>
+      <div class="icon-apple" @click="signInWithApple">Sign in with Apple</div>
+      <div class="icon-github" @click="signInWithGithub">Sign in with Github</div>
+    </div>
+    <div class="or">
+      <p><span>or</span></p>
+    </div>
+
+    <div class="signUp" v-if="enrollmentStep==1">
+      <form method="post" @submit.prevent="" class="enrollment">
+        <div>
+          <h3>Create new account using <em>email</em> and <em>password</em></h3>
+          <p>It is safer and easier to sign in using one of the provider.</p>
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="text" placeholder="E-mail address" v-model="enrollmentEmail" required>
+        </div>
+        <div>
+          <label>Password</label>
+          <!-- <input type="text" placeholder="Password" v-model="enrollmentPassword" required> -->
+          <input :type="enrollmentPasswordShow ? 'text' : 'password'" placeholder="Password" id="password"
+            v-model="enrollmentPassword" required>
+          <i :class="enrollmentPasswordShow ? 'icon-eye' : 'icon-eye-off'"
+            @click="enrollmentPasswordShow = !enrollmentPasswordShow"></i>
+        </div>
+        <div>
+          <button type="submit" @click="signUpHandle">Create account</button>
+          <button type="button" @click="enrollmentStep = 0">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="resetPassword" v-else-if="enrollmentStep==2">
+      <form method="post" @submit.prevent="" class="enrollment">
+        <div>
+          <h3>Reset your <em>password</em> using your <em>email</em></h3>
+          <p>A link will be sent to your email.</p>
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="text" placeholder="E-mail address" v-model="enrollmentEmail" required>
+        </div>
+        <div>
+          <button type="submit" @click="handleResetPassword">Reset password</button>
+          <button type="button" @click="enrollmentStep = 0">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="signIn" v-else>
+      <form method="post" @submit.prevent="" class="enrollment">
+        <div>
+          <h3>Sign in with <em>email</em> and <em>password</em></h3>
+          <p>It is recommended to sign in using one of the provider.</p>
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="text" placeholder="E-mail address" v-model="enrollmentEmail" required>
+        </div>
+        <div>
+          <label>Password</label>
+          <input :type="enrollmentPasswordShow ? 'text' : 'password'" placeholder="Password" id="password"
+            v-model="enrollmentPassword" required>
+          <i :class="enrollmentPasswordShow ? 'icon-eye' : 'icon-eye-off'"
+            @click="enrollmentPasswordShow = !enrollmentPasswordShow"></i>
+        </div>
+        <div>
+          <button type="submit" @click="signInHandle">Sign in</button>
+          <button type="button" @click="enrollmentStep = 1">Create new account</button>
+        </div>
+        <div>
+          <ul>
+            <!-- <li>
+              <p @click="enrollmentStep = 1">Create new account</p>
+            </li> -->
+            <li>
+              <p @click="enrollmentStep = 2">Forgot your password?</p>
+            </li>
+          </ul>
+        </div>
+      </form>
+    </div>
+
+    <div class="message">{{enrollmentMessage}}</div>
+
+  </div>
+</div>

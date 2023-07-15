@@ -32,7 +32,7 @@ import { seek } from "lethil";
  * @property {string} chain
  * @property {[string[]]} row
  *
- * @typedef {[{root:TypeOfRoot, word:TypeOfWord, exam?:TypeOfExam[], kind?: TypeOfKind[]}]} TypeOfKind - repeat
+ * @typedef {{root:TypeOfRoot, word:TypeOfWord, exam?:TypeOfExam[], kind?: TypeOfKind[]}} TypeOfKind - repeat
  *
  * @typedef {object} TypeOfPartOfSpeech
  * @property {TypeOfInfo} info

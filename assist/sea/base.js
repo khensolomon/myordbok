@@ -1,4 +1,4 @@
-import { seek, config } from "lethil";
+import { seek, config, db } from "lethil";
 
 /**
  * @typedef {Object} TypeOfAlphabets
@@ -74,7 +74,8 @@ const settings = {
 	file: {
 		alphabets: "",
 		keywords: "",
-		definitions: ""
+		definitions: "",
+		wordlist: ""
 	}
 };
 
@@ -127,6 +128,9 @@ const file = {
 	},
 	get definitions() {
 		return resolve(settings.file.definitions);
+	},
+	get wordlist() {
+		return resolve(settings.file.wordlist);
 	}
 };
 
@@ -160,6 +164,71 @@ async function readJSON(file, raw) {
 async function writeJSON(file, raw) {
 	return seek.WriteJSON(file, raw, 2);
 }
+
+// export const wordlist = {
+// 	file: file.wordlist,
+// 	/**
+// 	 * @type {string[]}
+// 	 */
+// 	raw: [],
+// 	read: async function() {
+// 		wordlist.raw = await readJSON(wordlist.file, wordlist.raw);
+// 		return wordlist.raw;
+// 	},
+// 	write: async function() {
+// 		return writeJSON(wordlist.file, wordlist.raw);
+// 	},
+// 	test() {
+// 		var flat = new db.flat({ file: file.wordlist });
+// 		flat.readFlat();
+// 	}
+// };
+export const wordlist = {
+	file: file.wordlist,
+	flat: new db.flat({ file: file.wordlist }),
+	/**
+	 * @type {Array<{v:string}>}
+	 */
+	raw: [],
+	read: async function() {
+		wordlist.raw = await wordlist.flat.readJSON();
+		// return new Promise(function(resolve, reject) {
+		// 	try {
+		// 		var reader = wordlist.flat.readFlat();
+		// 		reader.on("finish", raw => {
+		// 			wordlist.raw = raw;
+		// 			resolve("reader.finish");
+		// 			console.log("finish");
+		// 		});
+		// 		reader.on("error", error => {
+		// 			resolve(error);
+		// 			console.log(error.message);
+		// 		});
+		// 	} catch (error) {
+		// 		console.log("error", error);
+		// 		reject(error);
+		// 	}
+		// });
+	},
+	write: async function() {
+		return wordlist.flat.writeJSON({ raw: wordlist.raw });
+		// return new Promise(function(resolve, reject) {
+		// 	try {
+		// 		var writer = wordlist.flat.writeFlat({
+		// 			raw: wordlist.raw,
+		// 			suffix: ".abc"
+		// 			// header: ["word"]
+		// 		});
+		// 		writer.on("finish", () => {
+		// 			console.log("finish");
+		// 			resolve("finish");
+		// 		});
+		// 	} catch (error) {
+		// 		reject(error);
+		// 	}
+		// });
+	}
+};
 
 export const alphabets = {
 	url: url.alphabets,

@@ -9,7 +9,6 @@
     "strict": true,
     "checkJs": true,
     "allowJs": true,
-    "watch": false,
     "declaration": true,
     "alwaysStrict": true,
     "noImplicitThis": true,

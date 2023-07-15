@@ -1,5 +1,12 @@
 # Version
 
+## 1.8.1
+
+- MED
+- Theme mode
+- js interactive with vue (component)
+- Authentication (firebase)
+
 ## 1.8.0
 
 - Move thuddar and glossary.info to rep

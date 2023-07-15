@@ -30,8 +30,9 @@ mixin meaning(row)
       div
         each mean,ty in define
           div(class=mean.kind)
-            +format('p',mean.v)
-            +internal_example_casting(mean.exam, mean.cast)
+            +internal_casting_mean(mean.v)
+            +internal_casting_exam(mean.exam)
+            +internal_casting_usage(mean.usage)
 
 mixin suggestion(raw)
   each row,name in raw
@@ -44,21 +45,67 @@ mixin thesaurus(raw)
   if raw && raw.length
     each row in raw
       div(class=row.kind)
-        +exam_thesaurus(row.v)
+        +examWord(row.v)
 
-mixin internal_example_casting(raw, type)
-  +#{type}(raw)
+mixin internal_casting_mean(o)
+  if o
+    if (typeof o === 'string')
+      +format('p',o)
+    else
+      each e in o
+        if (e.mean.length)
+          div.mean
+            each eg in e.mean
+              +format('p',eg)
+        if (e.exam.length)
+          ul
+            each eg in e.exam
+              +format('li',eg)
 
-mixin exam_meaning(raw)
-  ul
-    each eg in raw
-      +format('li',eg)
+    //- else if(o.mean.length)
+    //-   +#{o.type}(o.mean)
 
-mixin exam_thesaurus(raw)
+mixin meanWord(raw)
   ol
     each eg in raw
       li
         +wordlink(eg)
+
+mixin meanSentence(raw)
+  ul
+    each eg in raw
+      +format('li',eg)
+
+mixin internal_casting_exam(o)
+  if o && o.value.length
+    +#{o.type}(o.value)
+
+mixin examWord(raw)
+  ol
+    each eg in raw
+      li
+        +wordlink(eg)
+
+mixin examSentence(raw)
+  ul
+    each eg in raw
+      +format('li',eg)
+
+mixin internal_casting_usage(o)
+  if o && o.value.length
+    +#{o.type}(o.value)
+
+mixin usageWord(raw)
+  ol
+    each eg in raw
+      li
+        +wordlink(eg)
+
+mixin usageSentence(raw)
+  ul
+    each eg in raw
+      +format('li',eg)
+
 
 //- mixin notation(row)
 //-   div.notation
@@ -104,10 +151,10 @@ mixin translation(row, w)
         +definition(e)
 
 mixin definition(raw)
-  div.definition(data-lang=lang.src)
+  div.definition(data-lang=lang.tar)
     h1= raw.word
       //- span.speech.en.zA.icon-volume-up
-      speech-engine(word=raw.word lang=lang.src)
+      speech-engine(word=raw.word lang=lang.tar)
       //- speech-engine(word=raw.word lang=lang.src) @click="apple('Form cannot be submitted yet.', $event)"
     if query.status
       p
