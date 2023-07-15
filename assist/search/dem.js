@@ -75,7 +75,6 @@ async function asMeaning(word) {
 			}
 		}
 	}
-	console.log("new date", word);
 	res.version = cache.version;
 	res.dated = cache.now;
 	var row = await seed.definition(word);
