@@ -10,10 +10,12 @@
       ],
       "error_file": "./logs/pm2-err.log",
       "out_file": "./logs/pm2-out.log",
-      "-instances": 1,
-      "-exec_mode": "cluster",
+      "instances": 2,
+      "exec_mode": "cluster",
+      "listen-timeout": 10000,
+      "restart_delay": 10000,
       "autorestart": true,
-      "max_memory_restart": "700M",
+      "max_memory_restart": "350M",
       "env": {
         "NODE_ENV": "production"
       },
