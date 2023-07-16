@@ -55,7 +55,16 @@
 				line-height: 130%;
 				padding-left: 25px;
 				word-wrap: break-word;
-				color: rgba(var(--color-text), 0.7);
+				// color: rgba(var(--color-text), 0.7);
+				a {
+					&::after {
+						content: " ";
+					}
+
+					&:last-child {
+						content: "";
+					}
+				}
 			}
 		}
 		span.speech {
