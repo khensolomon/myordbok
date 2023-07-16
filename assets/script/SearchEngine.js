@@ -640,6 +640,10 @@ export default {
 		suggestions() {
 			return [...this.my.suggests, ...this.en.suggests];
 		},
+
+		hasSuggestion() {
+			return this.my.suggests.length || this.en.suggests.length ? "has" : "not";
+		},
 		/**
 		 * total index of suggestions
 		 */
@@ -700,7 +704,7 @@ export default {
 		let self = this;
 		return h(
 			"div",
-			{ class: ["sch-definition", this.focusClass] },
+			{ class: ["sch-definition", this.focusClass, this.hasSuggestion] },
 			h(
 				"form",
 				{
