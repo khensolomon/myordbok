@@ -173,6 +173,11 @@ async function asMeaning(word) {
 			res.row.push(rowSense);
 		}
 	}
+
+	let notation = seed.wordNumber(word);
+	if (notation) {
+		res.row.push(notation);
+	}
 	res.status = res.row.length > 0;
 	return res;
 }

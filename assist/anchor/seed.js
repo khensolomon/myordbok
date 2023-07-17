@@ -1,7 +1,8 @@
 import { seek, db, parse, check, fire } from "lethil";
 
-import thesaurus from "word-thesaurus";
 import myanmarNotation from "myanmar-notation";
+import thesaurus from "word-thesaurus";
+import numberToWords from "number-to-words";
 
 import * as env from "./env.js";
 import { primary } from "./language.js";
@@ -72,7 +73,8 @@ export function query(str) {
  * @type {Object.<string,string>}
  */
 const fileList = {
-	word: "glossary/EN.json",
+	// word: "glossary/EN.json",
+	word: "./docs/word/EN.json",
 	sense: "glossary/sense.json", // definition
 	usage: "glossary/usage.json", // example
 	synset: "glossary/synset.json", // words
@@ -83,7 +85,8 @@ const fileList = {
 	cache: "./cache/page/lang/query.json",
 	// sqlite: "glossary/tmp-sqlite.db",
 
-	mew: "glossary/med/words.json",
+	// mew: "glossary/med/words.json",
+	mew: "./docs/word/my.json",
 	med: "glossary/med/definitions.json"
 };
 
@@ -740,6 +743,11 @@ export function wordThesaurus(word, sensitive = false) {
 export function wordNumber(word) {
 	var rowNotation = myanmarNotation.get(word);
 	if (rowNotation.number && rowNotation.number != "NaN") {
+		let eng = numberToWords.toWords(rowNotation.digit);
+		if (eng) {
+			// rule, size, list;
+			rowNotation.notation.push({ sense: eng, rule: 0, size: 0, list: [] });
+		}
 		return {
 			term: word,
 			type: "meaning",

@@ -26,6 +26,8 @@ export default {
 		alias: {
 			// 'vue$': 'vue/dist/vue.esm-browser.js'
 			vue$: "vue/dist/vue.esm-bundler.js"
+			// "firebase/app$": "firebase/app/dist/index.esm.js",
+			// "firebase/auth$": "firebase/auth/dist/index.esm.js"
 		}
 	},
 	plugins: [

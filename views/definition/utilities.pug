@@ -160,7 +160,7 @@ mixin definition(raw)
       p
         each eg in query.sentence
           +sentencelink(eg)
-          span ~
+          | !{' '}
     div.meaning
       each row, name in raw.clue
         +#{name}(row)
