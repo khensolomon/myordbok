@@ -4,6 +4,9 @@
 
 - NEN
 - Style (search)
+  - word: 59254
+  - sense: 101333
+  - usage: 54756
 
 ## 1.8.1
 
