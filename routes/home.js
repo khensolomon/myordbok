@@ -12,3 +12,11 @@ routes.register({ name: "home", text: "Home" }, function(req, res) {
 		pageClass: "home"
 	});
 });
+
+/**
+ * Redirect to about page
+ */
+routes.register("myordbok", function(req, res) {
+	// res.redirect("/about");
+	res.redirect(301, "/about");
+});
