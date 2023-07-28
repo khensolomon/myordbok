@@ -3,7 +3,7 @@
   "keyword": "Japanese, Myanmar, dictionary",
   "description": "Japanese to Myanmar dictionary",
   "info": {
-    "header": "ဂျပန်-မြန်မာအဘိဓာန်",
+    "header": "Japanese",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဂျပန်-မြန်မာအဘိဓာန်ကို ဂျပန်နှင့်အဆက်အစပ်ရှိသူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Japanese-Myanmar dictionary is intended for Myanmar individuals who have a connection with Japan."
     ]
   },
   "dated": 1689614099910

@@ -3,7 +3,7 @@
   "keyword": "Vietnamese, Myanmar, dictionary",
   "description": "Vietnamese to Myanmar dictionary",
   "info": {
-    "header": "ဗီယက်နမ်-မြန်မာအဘိဓာန်",
+    "header": "Vietnamese",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဗီယက်နမ်-မြန်မာအဘိဓာန်ကို ဗီယက်နမ်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Vietnamese-Myanmar dictionary is intended for Myanmar people living in Vietnam."
     ]
   },
   "dated": 1689614100104

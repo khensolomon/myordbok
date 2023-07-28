@@ -2,12 +2,17 @@
 	padding: 2% 1%;
 	h1 {
 		padding: 2%;
-		text-shadow: #000 0px -1px 1px;
-		color: rgba(var(--color-highlight), 1);
+		// text-shadow: #000 0px -1px 1px;
+		// color: rgba(var(--color-highlight), 1);
+		font-size: calc(1vw + 80%);
+		// line-height: 430%;
+		text-shadow: rgba(var(--color-background), 0.5) 0px 0px 1px;
+		color: rgba(var(--color-text), 0.6);
 	}
 	h2 {
 		padding: 2% 3%;
-		color: var(--color-text-disabled);
+		// color: var(--color-text-disabled);
+		color: rgba(var(--color-text), 0.7);
 	}
 	h3 {
 		padding: 2% 4%;
@@ -15,9 +20,25 @@
 	}
 	p {
 		padding: 1% 5%;
+		//appName
+		strong {
+			color: rgba(var(--color-text), 0.7);
+		}
+		&.date {
+			color: rgba(var(--color-text), 0.6);
+			font-size: 80%;
+			span {
+				color: rgba(var(--color-text), 0.5);
+			}
+			q {
+				color: rgba(var(--color-text), 0.9);
+			}
+		}
 	}
 	ul {
-		margin: 20px 40px;
+		margin: 20px calc(1vw + 7%);
+		color: rgba(var(--color-text), 0.9);
+		font-size: 95%;
 		li {
 			padding: 3px 7px;
 		}

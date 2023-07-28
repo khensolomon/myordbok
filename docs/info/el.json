@@ -3,7 +3,7 @@
   "keyword": "Greek, Myanmar, dictionary",
   "description": "Greek to Myanmar dictionary",
   "info": {
-    "header": "ဂရိ-မြန်မာအဘိဓာန်",
+    "header": "Greek",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဂရိမှ မြန်မာအဘိဓာန်ကို သမိုင်း (သို့) ရာဇဝင်၊ ဒဏာရီနှင့် ဒဿနိကဗေဒ(သဘောတရား၊ အယူအဆ၊ အတွေးအမြင်) လိုက်လံရှာဖွေသူများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Greek to Myanmar dictionary provides a history of ideas and concepts, primarily intended for those who are interested in philosophy and its philosophical pursuits."
     ]
   },
   "dated": 1689614099086

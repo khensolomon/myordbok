@@ -67,13 +67,13 @@ a {
 body {
 	// @extend html;
 	font-family: $Font;
-	color: rgb(var(--color-text));
-	font-size: $FontSize;
+	// color: rgb(var(--color-text));
+	// font-size: $FontSize;
 	direction: ltr;
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
+	// font-synthesis: none;
+	// text-rendering: optimizeLegibility;
 	transition: color 0.5s, background-color 0.5s;
-	-webkit-font-smoothing: antialiased;
+	// -webkit-font-smoothing: antialiased;
 
 	// background: -webkit-gradient( linear, left top, left bottom, from(rgba(var(--color-bar), 0.2)), to(rgba(var(--color-background), 0.2)) ) fixed;
 	// background: linear-gradient( 0deg, rgb(255, 255, 255) 0%, rgba(49, 142, 215, 1) 100% );
@@ -208,6 +208,8 @@ div.ptl {
 			@import "Portal.define";
 			// NOTE: myanmar-fonts
 			@import "Portal.fonts";
+			// NOTE: sponsor
+			@import "Portal.sponsor";
 			// NOTE: grammar
 			@import "Portal.grammar";
 		}

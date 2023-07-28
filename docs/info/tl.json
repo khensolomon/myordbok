@@ -3,7 +3,7 @@
   "keyword": "Filipion, Myanmar, dictionary",
   "description": "Filipion to Myanmar dictionary",
   "info": {
-    "header": "ဖိလစ်ပိုင်-မြန်မာအဘိဓာန်",
+    "header": "Filipion",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဖိလစ်ပိုင်-မြန်မာအဘိဓာန်ကို ဖိလစ်ပိုင်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Filipino-Myanmar dictionary is intended for Myanmar people living in the Philippines."
     ]
   },
   "dated": 1689614100083

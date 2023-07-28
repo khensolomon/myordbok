@@ -4,8 +4,9 @@ div.modest
       each v, route in nav.dictionary
         li(class=v.route class={active: v.active})
           a(href=v.url.replace(':id',sol.name.toLowerCase()).replace('?',''))
-            span #{sol.my}
+            //- span #{sol.my} - မြန်မာ
+            span #{sol.name}
             | -
-            span မြန်မာ
+            span Myanmar
   div.search
     include search-form

@@ -3,7 +3,7 @@
   "keyword": "Thai, Myanmar, dictionary",
   "description": "Thai to Myanmar dictionary",
   "info": {
-    "header": "ယိုးဒယား-မြန်မာအဘိဓာန်",
+    "header": "Thai",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ယိုးဒယား-မြန်မာအဘိဓာန်ကို ယိုးဒယားနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Thai-Myanmar dictionary is intended for Myanmar people living in Thailand."
     ]
   },
   "dated": 1689614100115

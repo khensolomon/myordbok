@@ -3,7 +3,7 @@
   "keyword": "Romanian, Myanmar, dictionary",
   "description": "Romanian to Myanmar dictionary",
   "info": {
-    "header": "ရိုမေးနီးယား-မြန်မာအဘိဓာန်",
+    "header": "Romainian",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ရိုမေးနီးယားမှ မြန်မာအဘိဓာန်ကို ရိုမေးနီးယားနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Romanian to Myanmar dictionary is intended for Myanmar residents of Romania."
     ]
   },
   "dated": 1689614099474

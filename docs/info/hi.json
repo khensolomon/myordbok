@@ -3,7 +3,7 @@
   "keyword": "Hindi, Myanmar, dictionary",
   "description": "Hindi to Myanmar dictionary",
   "info": {
-    "header": "ဟိန္ဒီ-မြန်မာအဘိဓာန်",
+    "header": "Hindi",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဟိန္ဒီ-မြန်မာအဘိဓာန်ကို အိန္ဒိယနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Hindi-Myanmar dictionary is intended for Myanmar people living in India."
     ]
   },
   "dated": 1689614100150

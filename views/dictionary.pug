@@ -5,39 +5,47 @@ block content
       include search-modest
       div.wrapper
         div.row.text-center
-          h1= info.header
-          each abc in info.context
-            p.test= abc
+          h1
+            = info.header
+            |
+            | -
+            |
+            em Myanmar
+            = " "
+            span dictionary
+          each desc in info.context
+            p.description= desc
           p.dated= dated
           each o in info.progress
             if o.percentage
               div.progress.percentage
-                div(title=o.name)
-                  span= o.my
+                div(title=o.my)
+                  span= o.name
                   span= o.status
                 div(style={width:o.status+'%'})
             else if (o.status)
               div.progress.status
-                div(title=o.name)
-                  span= o.my
+                div(title=o.my)
+                  span= o.name
                   span= o.status
           p.feedback
-            a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" target="_blank" title="Feedback") အကြံဉာဏ်များ
-            | နှင့်
+            | Any creative
             |
-            a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" target="_blank" title="Suggestion") ဝေါဟာရများ
-            | ကို
+            a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" target="_blank" title="Feedback") ideas
             |
-            span Google Form
+            | and missing
             |
-            | မှတစ်ဆင့် ပေးနိုင်ပါသည်
+            a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" target="_blank" title="Suggestion") words & definitions
+            |
+            | can be sent via Google Form.
+
         div.row
           div.dictionaries
             ol
               each conti in dictionaries
                 li(class=conti.name.toLowerCase() class={active: conti.lang.find(e=>e.id == sol.id)})
-                  h3 #{conti.my}
+                  h3(title=conti.my) #{conti.name}
                   ol
                     each lang in conti.lang
                       li(class=lang.id class={active: lang.id == sol.id})
-                        a(data-lag=lang.id href='/dictionary/'+lang.name.toLowerCase() title=lang.name) #{lang.my}
+                        a(data-lag=lang.id href='/dictionary/'+lang.name.toLowerCase() title=lang.my) #{lang.name}

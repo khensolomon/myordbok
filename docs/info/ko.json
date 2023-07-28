@@ -3,7 +3,7 @@
   "keyword": "Korean, Myanmar, dictionary",
   "description": "Korean to Myanmar dictionary",
   "info": {
-    "header": "ကိုရီးယား-မြန်မာအဘိဓာန်",
+    "header": "Korean",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ကိုရီးယား-မြန်မာအဘိဓာန်ကို ကိုရီးယားနှင့်အဆက်အစပ်ရှိသူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Korean-Myanmar dictionary is intended for Myanmar people who have a connection with Korea."
     ]
   },
   "dated": 1689614100026

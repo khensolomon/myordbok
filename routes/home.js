@@ -8,7 +8,7 @@ routes.register({ name: "home", text: "Home" }, function(req, res) {
 		title: "Myanmar dictionary",
 		keywords: "Myanmar, dictionary, grammar, font, definition, Burmese, online",
 		description:
-			"A comprehensive online Myanmar dictionary, grammar, and fonts at MyOrdbok",
+			"A comprehensive Myanmar dictionary online, grammar, and fonts at MyOrdbok",
 		pageClass: "home"
 	});
 });

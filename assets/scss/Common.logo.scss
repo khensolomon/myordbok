@@ -11,6 +11,7 @@ ol#MyOrdbok-logo {
 	text-align: center;
 	list-style: none;
 	filter: var(--filter-logo);
+	@include user-select();
 	li {
 		a {
 			display: block;

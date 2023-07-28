@@ -3,7 +3,7 @@
   "keyword": "Danish, Myanmar, dictionary, ဒိန်းမတ်, မြန်မာအဘိဓာန်",
   "description": "Danish to Myanmar dictionary",
   "info": {
-    "header": "ဒိန်းမတ်-မြန်မာအဘိဓာန်",
+    "header": "Danish",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဒိန်းမတ်-မြန်မာအဘိဓာန်ကို ဒိန်းမတ်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Danish-Myanmar dictionary is intended for Myanmar people living in Denmark."
     ]
   },
   "dated": 1689614099521

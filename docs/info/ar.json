@@ -3,7 +3,7 @@
   "keyword": "Arabic, Myanmar, dictionary, အာရဗီ, မြန်မာအဘိဓာန်",
   "description": "Arabic to Myanmar dictionary",
   "info": {
-    "header": "အာရဗီ-မြန်မာအဘိဓာန်",
+    "header": "Arabic",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "အာရဗီ-မြန်မာအဘိဓာန်ကို အဓိကအားဖြင့် အစ္စလာမ်ဘာသာအယူဝါဒဆိုင်ရာ ပင်မ ဘာသာစကားဖြစ်ပြီး လိုက်လံရှာဖွေသူများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Arabic-Myanmar dictionary is mainly intended for those seeking the primary language of Islamic doctrine."
     ]
   },
   "dated": 1689614099227

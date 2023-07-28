@@ -1,8 +1,9 @@
 # Version
 
-## 1.8.2
+## 1.8.2-3
 
 - NEN
+- Privacy policy, Terms of service and Cookie policy are updated
 - Style (search)
   - word: 59254
   - sense: 101333

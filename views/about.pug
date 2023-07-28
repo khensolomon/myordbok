@@ -5,118 +5,150 @@ block content
       div.wrapper
         div.row
           div.header
-            h1(class=environment) မိုင်အိုလ်ဗို့
+            h1(class=environment) #{appName}
+            p A comprehensive Myanmar dictionary online.
           div
             p
-              | #[q Ordbok] ဆိုသည့် စကားလုံးသည် နော်ဝေစကားလုံးဖြစ်ပြီး အဘိဓါန်ဟု အဓိပ္ပာယ်သက်ရောက်သည်။ ဒါ့ကြောင့် #[strong=appName] ကို မြန်မာအဘိဓါန်လို့လည်း ဆိုလိုနိုင်သည်။
-              | ၂၀၁၀ မှစ ယခုလက်ရှိအချိန်ထိ မြန်မာအွန်လိုင်းအဘိဓါန်များမှ အသုံးများဆုံးအဘိဓါန် တစ်ခုလည်းဖြစ်သည်။ အဘိဓါန် (ဘာသာ) #[em=dictionaries_total] ခုနှင့် ဆိုက်(ဘာသာ) #[em=locale_total] ခုကို အသုံးပြုနိုင်ပါသည်။
+              | #[q Ordbok] is directly translated as
+              |
+              a(href='/definition?q=wordbook') wordbook
+              |
+              | in
+              |
+              a(href='/definition?q=norwegian') Norwegian
+              |, representing a list of words with their meanings described in their own terms.
+              | Therefore, #[strong=appName] can be referred to as the #[q.mdic Myanmar dictionary] where #[q My] stands for Myanmar and #[q Ordbok] denotes a form of dictionary.
+              | Since 2010, #[em=appName] has become one of the most widely used Myanmar online dictionaries among others.
+              | Currently, #[em=dictionaries_total] continental languages and #[em=locale_total] site(UI) languages are available on the platform, making it a valuable resource for users from diverse linguistic backgrounds.
 
         div.row
           div.header
-           h3.ico လာရောက်လည်ပတ်မှုအချက်အလက်
+           h3.ico Visits
           div.data
-            p မိုင်အိုလ်ဗို့ လာရောက်လည်ပတ်မှုအချက်အလက်များကို ပြီးခဲ့သည့် #[q=visits.created] မှ ပြန်လည်တွက်ချက်အရ ဧည့်သည် #[em=visits.user] ဦးနှင့် လာရောက်လည်ပတ်မှု #[em=visits.request] ကြိမ်ရှိသည်။ စုစုပေါင်း လာရောက်သူ #[em=visits.by] ဦး၏ အလည်အပတ်ပေါင်း #[em=visits.total] ကြိမ်ရှိပါသည်။
-
+            p
+              | Based on the recalculated visitation data from #[q=visits.created], there were a total of #[em=visits.user] unique visitors and #[em=visits.request] total visits recorded.
+              | Among these visits, #[em=visits.total] were legitimate visits made by genuine #[em=visits.by] visitors, excluding bot and API requests.
 
         div.row
           div.dictionaries
             ol.dictionary
               each conti in dictionaries
                 li(class=conti.name.toLowerCase() class={active: conti.lang.find(e=>e.id == sol.id)})
-                  h3 #{conti.my}
+                  h3 #{conti.name}
                   ol
                     each lang in conti.lang
                       li(class=lang.id class={active: lang.id == sol.id})
-                        a(data-lag=lang.id href='/dictionary/'+lang.name.toLowerCase() title=lang.name) #{lang.my}
+                        a(data-lag=lang.id href='/dictionary/'+lang.name.toLowerCase() title=lang.my) #{lang.name}
 
         div.row
           div.data.social.text-center
-            a.icon-google-plus(title="+MyOrdbok dictionary")
+            a.icon-google(title="+MyOrdbok dictionary")
               span +MyOrdbok dictionary
             a.icon-google-circles(title="share on Google+")
               span ...share on Google+
-            a.icon-facebook(href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fmyordbok.com" target="_blank")
+            a.icon-facebook(href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fmyordbok.com" target="_blank" title="share on Facebook")
               span ...share on Facebook
-            a.icon-twitter(href="http://twitter.com/share?url=https%3A%2F%2Fmyordbok.com%26amp%3Btext%3Donline%20Myanmar%20dictionary&amp;hashtags=MyOrdbok" target="_blank" )
+            a.icon-twitter(href="http://twitter.com/share?url=https%3A%2F%2Fmyordbok.com%26amp%3Btext%3Donline%20Myanmar%20dictionary&amp;hashtags=MyOrdbok" target="_blank"  title="share on Twitter")
               span ...share on Twitter
 
         div.row
           div.header
-           h3 ရည်ရွယ်ချက်
+           h3 Aim and Objective
           div.data
             p
-              | စက်ကိရိယာတိုင်းမှာသုံးရန်လွယ်ကူပြီး အဓိပ္ပာယ်များပိုမိုပြည့်စုံစေရန်နှင့် အသုံးပြုသူတိုင်းအတွက်
-              | အကျိုးဖြစ်စေမည့် ပညာရပ်နှင့်ဗဟုသုတဆိုင်ရာများကိုလည်း မိုင်အိုလ်ဗို့မှ ဆက်လက်ထည့်သွင်းရန် ရည်ရွယ်ထားပါသည်။
+              | The primary aim and objective is to serve as an online dictionary, providing practical and meaningful definitions.
+              | We are committed to continually expanding the knowledge and skills essential for the learning process, ensuring ease of use and relevance for all users across various devices.
+              | Our goal is to make the app accessible on widely used devices, and the content we provide is designed to cater to both beginner and advanced learners.
 
         div.row
           div.header
-           h3.ico.function(title="Protocol") အစီအစဉ်
+           h3.ico.function(title="Protocol") Scheme
           div.data
             p
-              | ရှာရတာ ပိုမိုလွယ်ကူပြီး၊ အနက်များအလျှင်မြန်ဆုံးပြသနိုင်ရန်အတွက် အချိန်နှင့်ကာလအလျှောက် နည်းပညာအပြောင်းအလဲမှုအပေါ်မှုတည်ပြီး
-              | ၎င်း၏ ဆောင်ရွက်ချက်များအပါအဝင်၊ ဝေါဟာရများနှင့် အစီအစဉ်များကို စနစ်တကျ တိုးမြင့်နေပါသည်။
+              | As technology advances over time, the complexity of vocabularies and semantics is addressed proactively.
+              | Our app, #[strong=appName], is committed to providing users with a readable context that stimulates their imagination, enabling a better understanding of the terms they define.
+              | While we continuously strive to stay up-to-date, we also ensure that vocabularies and semantics are preemptively included to enhance user experience.
 
         div.row
           div.header
-            h3.ico.function(title="function") ဆောင်ရွက်မှု
+            h3.ico.function(title="function") Action
           div.data
             p
-              | လေ့လာဆည်းပူးသူတိုင်းအတွက် ဒေသအလိုက်မတတ်မဖြစ်အဓိကဘာသာစကားများအား အဓိကထားပြီး ပြုစုထားသည့်အလျောက်
-              | ရည်ရွယ်ချက်များနှင့်ကိုက်ညီသည့်အစီအစဉ်များကို မိုင်အိုလ်ဗို့ ဆက်လက်ကြိုးစားဆောင်ရွက်သွားပါမည်။
+              | #[q=appName] will continue its commitment to working on and developing programs that align with its objectives.
+              | Our primary focus will be on languages that require adaptation to cater to regional linguistic preferences (leaning).
+              | By addressing these linguistic variations, we aim to ensure better regional relevance and user engagement in our app.
 
         div.row
           div.header
-            h3.ico.function(title="Help") ဝိုင်းဝန်းကူညီရန်
+            h3.ico.function(title="Help") Help
           div.data
             p
-              | အချက်အလက်များထည့်သွင်းနေဆဲဖြစ်ပါသဖြင့်အမှားအယှင်းများတွေ့ရှိပါက အကြောင်းကြားပေးရန်နှင့် ရည်ရွယ်ချက်များနှင့်ကိုက်ညီသည့် သင့်ထင်မြင်ချက်အသစ်များ
-              | (သို့) ရည်ရွယ်ချက်များနှင့်မကိုက်ညီသည့် လုပ်ဆောင်မှုများကို အသိပေးအကြောင်းကြားရန်
+              | As the definitions continue to update over time, #[em=appName] would like to invite you to participate in this process.
+              | If you come across any errors or have new insights that don't align with our objectives, we encourage you to notify us through the
               |
-              a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" title="Feedback") Google form
-              | မှတစ်ဆင့် ဖိတ်ခေါ်လိုပါသည်။
+              a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" title="အကြောင်းကြားပေးရန်") Google form
+              |. Your feedback is valuable in helping us improve the accuracy and quality of our content. Moreover, we welcome your input on
               |
-              a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" title="Suggestion") ဝေါဟာရနှင့် အနက်
-              | များကိုလည်း အကြံပေးနိုင်ပါသည်။
+              a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" title="ဝေါဟာရနှင့် အနက်များ") vocabulary and interpretation
+              |, as it aids us in enhancing the overall user experience. Your contributions are highly appreciated!
 
         div.row
           div.header
-            h3.ico.function(title="Donate") လှူဒါန်းရန်
+            h3.ico.function(title="Donate") Contribute
           div.data
             p
-              | လိုအပ်နေသည့် အနက်အဓိပ္ပာယ်များထည့်သွင့်နိုင်ရန်နှင့် ရှိထားသည့်အနက်အဓိပ္ပာယ်များပိုမိုပြည့်စုံနိုင်ရန်အတွက် သော်လည်းကောင်း၊ မိုင်အိုလ်ဗို့ဆက်လက်ရှင်သန်ပြီး
-              | စက်ကိရိယာများ၏သတ်မှတ်ချက်နှင့်အညီ ပြေးဆွဲနိုင်ရန်အတွက် သင့်ကူညီမှုသည် မိုင်အိုလ်ဗို့၏တစ်ခုသော
-              | အနာဂတ်ဖြစ်ပါသည်။ မည်သည့်ပမာဏဖြစ်စေ သင့်ရဲ့ပံ့ပိုးမှုကို ဖိတ်ခေါ်လျှင့် အသုံးပြုသူအားလုံး ဉာဏ်ပညာအပေါင်းနှင့်ပြည့်စုံပါစေ။
+              | To ensure that our app, #[em=appName], continues to thrive and provide comprehensive definitions, we rely on the generosity of users like you.
+              | Your support is crucial to keep the app alive and running, in accordance with equipment specifications.
+              | We kindly invite you to contribute any amount you can, as it will directly contribute to the growth and enrichment of the platform.
+              | With your generosity, we aspire to provide wisdom and knowledge to all users, creating a positive impact on everyone within your reach.
+              | Together, let's empower others with the gift of wisdom and knowledge!
 
         div.row
-          div.data.paypal.text-center
-            form(action="https://www.paypal.com/donate" method="post")
-              p မိုင်အိုလ်ဗို့ ဆက်လက်ရှင်သန်နိုင်ရန်နှင့် အချက်အလက်များ ပြည့်ပြည့်စုံစုံထည့်သွင်းနိုင်ရန်အတွက် ကူညီပံ့ပိုးလိုပါသည်။
-              input(type="hidden" name="hosted_button_id" value="C9PDG3T47WJ26")
-              p.icon-paypal PayPal မှတောက်လျှောက်
-              button(type="submit" name="submit") လှူဒါန်းရန်
+          div.data.donation.text-center
+            div
+              p
+                | I would like to support #[em=appName] to ensure its continued growth and to enable the addition of complete information.
+                | My contribution will play a crucial role in helping the app thrive and provide comprehensive content.
+                | I am dedicated to enhancing the app's functionality and usefulness, and I appreciate the opportunity to contribute to its success.
+              form(action="https://www.paypal.com/donate" method="post" class="paypal")
+                input(type="hidden" name="hosted_button_id" value="C9PDG3T47WJ26")
+                button.icon-paypal(type="submit" name="submit" title="Donate with Paypal") Donate with Paypal
+              form(action="https://github.com/sponsors/khensolomon" method="get" class="github")
+                button.icon-github(type="submit" title="Github Sponsor") Github Sponsor
 
         div.row
           div.header
-            h3.ico.function(title="Version") မိုင်အိုလ်ဗို့
+            h3.ico.function(title="Version") #{appName}
               sup #{appVersion}
           div.data
             p
-              | ပထမနံပါတ်သည် မည်မျှအပြောင်းအလဲ လုပ်ထားခြင်းကိုဆိုလိုပြီး၊
-              | ဒုတိယနံပါတ်သည် အဓိက အပြောင်းအလဲနဲ့ဆက်စပ်ပြီး မည်မျှထိန်းသိမ်းပြုပြင်ခဲ့ခြင်း ကိုဆိုလိုသည်။
-              | တတိယနံပါတ်သည် အခြေခံလိုအပ်ချက်များ ပြုပြင်မွမ်းမံခြင်း အဆင့်ဖြစ်ပြီး၊ အဓိက လုပ်ဆောင်ချက်မှာ
+              | The first version number indicates the total number of changes that have been made, while the second number represents the extent of maintenance and modifications relative to the major change.
+              | The third number reflects basic needs modifications and is primarily used as the key for the
               |
-              a(href="/definition?q=cookie") cookie
-              |
-              | အချက်အလက်များ၏ သော့အဖြစ်သုံးထားသည်။ ထိုကြောင့် အမှတ်စဉ်များအပြောင်းအလဲရှိတိုင်း #[i cookie] အသစ်ပြုလုပ်ပါလိမ့်မည်။
+              a(href="/definition?q=cookie") cookies
+              |.
+              | Additionally, a new cookie will be created whenever these numbers change.
 
         div.row.note
           div.header
-           h3.ico.function(title="Note") မှတ်ရန်
+           h3.ico.function(title="Note") Note
           div.data
-            p အဘိဓါန်ကိုအဓိကထားပြီး အနက်အဓိပ္ပာယ်များကို နေ့စဉ်နှင့်အမျှရှာဖွေစုဆောင်းနေပါသည်။
-            p ငွေကြေးထောက်ပံ့မှုနှင့်ပတ်သက်သည့် အလှူဒါနများကို #[strong=appName] တိုးတက်ဖွံ့ဖြိုးမှု အရေး၌သာ အသုံးပြုသွားမည်ဖြစ်ပါသည်။
-            p သဒ္ဒါကို မြန်မာသဒ္ဒါ အတွဲ (၁) နှင့် (၂) မှ တိုက်ရိုက်ကူးယူထားခြင်းဖြစ်သော်လည်း သာဓကအချို့နှင့် လေ့ကျင့်ခန်းများ ချန်ထားပါသည်။
-
+            ul
+              li The data of the dictionary is primarily collected daily.
+              li Any financial donations received will be solely dedicated to the development and improvement of #[strong=appName].
+              li
+                | The grammar section, directly sourced from
+                |
+                a(href="https://my.wikipedia.org/wiki/%E1%80%99%E1%80%BC%E1%80%94%E1%80%BA%E1%80%99%E1%80%AC%E1%80%9E%E1%80%92%E1%80%B9%E1%80%92%E1%80%AB" class="mtxt") မြန်မာသဒ္ဒါ
+                |
+                | Volumes (1) and (2), initially included some examples and exercises, but due to limited user attention, we have decided to remove it from our online app in the near future.
+                ul
+                  li
+                    | However, the source will be preserved and remain accessible within
+                    |
+                    a(href="https://github.com/khensolomon/myordbok/tree/master/docs/thuddar" class="icon-github") Github repository
+                    |
+                    | as a reference.
 
 block footer
   include footer

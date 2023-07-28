@@ -3,7 +3,7 @@
   "keyword": "Polish, Myanmar, dictionary",
   "description": "Polish to Myanmar dictionary",
   "info": {
-    "header": "ပိုလန်-မြန်မာအဘိဓာန်",
+    "header": "Polish",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ပိုလန်-မြန်မာအဘိဓာန်ကို ပိုလန်နိုင်ငံရှိ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Polish-Myanmar dictionary is intended for Myanmar in Poland."
     ]
   },
   "dated": 1689614099494

@@ -3,7 +3,7 @@
   "keyword": "Swedish, Myanmar, dictionary",
   "description": "Swedish to Myanmar dictionary",
   "info": {
-    "header": "ဆွီဒင်-မြန်မာအဘိဓာန်",
+    "header": "Swedish",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဆွီဒင်-မြန်မာအဘိဓာန်ကို ဆွီဒင်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Swedish-Myanmar dictionary is intended for Myanmar residents of Sweden."
     ]
   },
   "dated": 1689614099509

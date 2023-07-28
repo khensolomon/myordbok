@@ -3,7 +3,7 @@
   "keyword": "Finnish, Myanmar, dictionary",
   "description": "Finnish to Myanmar dictionary",
   "info": {
-    "header": "ဖင်လန်-မြန်မာအဘိဓာန်",
+    "header": "Finnish",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ဖင်လန်-မြန်မာအဘိဓာန်ကို ဖင်လန်နှင့်အဆက်အစပ်ရှိသူ သို့မဟုတ် ဖင်လန်နိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Finnish-Myanmar dictionary is intended for Myanmar people who have ties to Finland or live in Finland."
     ]
   },
   "dated": 1689614099422

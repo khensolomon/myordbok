@@ -3,7 +3,7 @@
   "keyword": "Russian, Myanmar, dictionary",
   "description": "Russian to Myanmar dictionary",
   "info": {
-    "header": "ရုရှ-မြန်မာအဘိဓာန်",
+    "header": "Russian",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "ရုရှ-မြန်မာအဘိဓာန်ကို ရုရှနှင့်အဆက်အစပ်ရှိသူ သို့မဟုတ် ရုရှားနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Russian-Myanmar dictionary is intended for Myanmar people who have Russian connections or live in Russia."
     ]
   },
   "dated": 1689614099671

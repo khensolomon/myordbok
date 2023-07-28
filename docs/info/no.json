@@ -1,9 +1,9 @@
 {
-  "title": "Norwegian - Myanmar dictionary",
-  "keyword": "Norwegian, Myanmar, dictionary",
-  "description": "Norwegian to Myanmar dictionary",
+  "title": "Norwegian - Burmese dictionary",
+  "keyword": "Norwegian, Burmese, dictionary",
+  "description": "Norwegian to Burmese dictionary",
   "info": {
-    "header": "နော်ဝေ-မြန်မာအဘိဓာန်",
+    "header": "Norwegian",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "နော်ဝေ-မြန်မာအဘိဓာန်ကို နော်ဝေနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Norwegian-Myanmar dictionary is intended for Myanmar residents of Norway."
     ]
   },
   "dated": 1689614099260

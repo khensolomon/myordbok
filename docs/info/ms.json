@@ -3,7 +3,7 @@
   "keyword": "Malay, Myanmar, dictionary",
   "description": "Malay to Myanmar dictionary",
   "info": {
-    "header": "မလေးရှား-မြန်မာအဘိဓာန်",
+    "header": "Malay",
     "progress": [
       {
         "name": "Usage",
@@ -34,7 +34,7 @@
       }
     ],
     "context": [
-      "မလေးရှား-မြန်မာအဘိဓာန်ကို မလေးရှားနိုင်ငံနေထိုင်သူ မြန်မာများအတွက် ရည်ရွယ်ထားပါသည်။"
+      "The Malay-Myanmar dictionary is intended for Myanmar people living in Malaysia."
     ]
   },
   "dated": 1689614100056
