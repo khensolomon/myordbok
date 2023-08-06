@@ -412,6 +412,7 @@ export default {
 			setTimeout(() => {
 				this.focusOverride = false;
 			}, 150);
+			console.log("onMousedown", e);
 		},
 
 		/**
@@ -426,6 +427,19 @@ export default {
 					this.focusStatus = 0;
 				}
 			}, 100);
+			console.log("onFocusOut", e);
+		},
+		/**
+		 * Form unfocus
+		 * @param {*} e
+		 */
+		doUnfocus(e) {
+			// this.onMousedown(e);
+			// console.log("doUnfocus", e);
+			setTimeout(() => {
+				this.focusOverride = false;
+				this.focusStatus = 0;
+			}, 180);
 		},
 
 		/**
@@ -736,7 +750,8 @@ export default {
 									h("button", {
 										class: "icon-slim-left",
 										type: "button",
-										onClick: "searchStore.form_unfocus"
+										// onClick: "searchStore.form_unfocus"
+										onClick: this.doUnfocus
 									})
 								]
 							),
