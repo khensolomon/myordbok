@@ -84,10 +84,11 @@ html(lang='en' dir='ltr' class=themeMode)
                 include bar-page
               div.column.two
                 include bar-user
-              //- div.column
-              //-   include bar-user
       block header
       block content
       block footer
+      block consent
+        div.ptl#consent
+          cookie-consent(name="cookie" act="Ok" )
 
     script(src='/script.js?v='+appVersion)
