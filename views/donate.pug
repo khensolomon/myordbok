@@ -1,0 +1,37 @@
+extends layout
+block content
+  div.ptl.content
+    div
+      div.donate
+        div.row.hero
+          div
+            h1 Donation
+            //- p.app Let's plant a seeds together
+            p.app your support makes a significant difference
+            //- p.journey #[q MyOrdbok] - #[span.embrace Embrace Myanmar's timeless language, expand horizons], #[span.fuel fuel our journey together].
+            //- p.journey #[span.embrace Embrace Myanmar's timeless language, expand horizons], #[span.fuel fuel our journey together].
+            p.journey #[span.embrace Let's plant a seeds] #[span.fuel together].
+        div.row.valuable
+          div
+            div.visual
+            div.context
+              p Your valuable donations not only play a crucial role in helping us serve others and expand our services but also assist us in covering our monthly server costs. We utilize Google Compute Engine to host our services, and your support makes a significant difference.
+        div.row.donation
+          //- h2(alt="Enabling Growth") Elaboration
+          div
+            div.context
+              //- h3 Sponsorship
+              p  Help us cover our monthly server costs, ongoing development, practical services, and expand into more comprehensive content.
+              p Thank you for being an essential part of our endeavor.
+            div.visual
+              form(action="https://www.paypal.com/donate" method="post" class="paypal")
+                input(type="hidden" name="hosted_button_id" value="C9PDG3T47WJ26")
+                button.icon-paypal(type="submit" name="submit" title="Donate with Paypal") Donate with Paypal
+              form(action="https://github.com/sponsors/khensolomon" method="get" class="github")
+                button.icon-github(type="submit" title="Github Sponsor") Github Sponsor
+        div.row.tmp
+          div
+              abc
+
+block footer
+  include footer

@@ -6,7 +6,7 @@ import core from "lethil";
  */
 
 /**
- * @typedef {{src:string, tar:string}} TypeOfSearchLanguage
+ * @typedef {{src:string, tar:string, srcName:string, tarName:string}} TypeOfSearchLanguage
  *
  * @typedef {{title:string, description:string; keywords:string}} TypeOfSearchMeta
  *
@@ -15,6 +15,7 @@ import core from "lethil";
  * @property {string} word - selected search keyword
  * @property {string[]} sentence - exploded space
  * @property {boolean} status - is sentence
+ * @property {object[]} wordbreak - word breaking
  *
  * @typedef {Object} TypeOfSearchResult
  * @property {TypeOfSearchQuery} query
@@ -133,6 +134,7 @@ export const result = {
 	query: {
 		input: "",
 		word: "",
+		wordbreak: [],
 		sentence: [],
 		status: false
 	},
@@ -148,7 +150,9 @@ export const result = {
 	},
 	lang: {
 		tar: "",
-		src: ""
+		tarName: "",
+		src: "",
+		srcName: ""
 	},
 
 	title: "",
@@ -164,86 +168,86 @@ export const result = {
  * @type { PosOfSynset[] }
  */
 export const synset = [
-	{ id: 0, name: "Noun", shortname: "n", thesaurus: [] },
-	{ id: 1, name: "Verb", shortname: "v", thesaurus: [] },
+	{ id: 0, name: "noun", shortname: "n", thesaurus: [] },
+	{ id: 1, name: "verb", shortname: "v", thesaurus: [] },
 	{
 		id: 2,
-		name: "Adjective",
+		name: "adjective",
 		shortname: "adj",
 		thesaurus: ["adj & adv"]
 	},
 	{
 		id: 3,
-		name: "Adverb",
+		name: "adverb",
 		shortname: "adv",
 		thesaurus: []
 	},
 	{
 		id: 4,
-		name: "Preposition",
+		name: "preposition",
 		shortname: "prep",
 		thesaurus: []
 	},
 	{
 		id: 5,
-		name: "Conjunction",
+		name: "conjunction",
 		shortname: "conj",
 		thesaurus: []
 	},
 	{
 		id: 6,
-		name: "Pronoun",
+		name: "pronoun",
 		shortname: "pron",
 		thesaurus: ["pron & adj"]
 	},
 	{
 		id: 7,
-		name: "Interjection",
+		name: "interjection",
 		shortname: "int",
 		thesaurus: ["pron & int"]
 	},
 	{
 		id: 8,
-		name: "Abbreviation",
+		name: "abbreviation",
 		shortname: "abb",
 		thesaurus: ["abbr"]
 	},
 	{ id: 9, name: "Prefix", shortname: "", thesaurus: [] },
 	{
 		id: 10,
-		name: "Combining form",
+		name: "combining form",
 		shortname: "",
 		thesaurus: []
 	},
 	{
 		id: 11,
-		name: "Phrase",
+		name: "phrase",
 		shortname: "phra",
 		thesaurus: ["exp"]
 	},
-	{ id: 12, name: "Contraction", shortname: "", thesaurus: [] },
+	{ id: 12, name: "contraction", shortname: "", thesaurus: [] },
 	{
 		id: 13,
-		name: "Punctuation",
+		name: "punctuation",
 		shortname: "punc",
 		thesaurus: []
 	},
 	{
 		id: 14,
-		name: "Particle",
+		name: "particle",
 		shortname: "part",
 		thesaurus: []
 	},
 	{
 		id: 15,
-		name: "Postpositional Marker",
+		name: "postpositional marker",
 		shortname: "ppm",
 		thesaurus: []
 	},
-	{ id: 16, name: "Suffix", shortname: "", thesaurus: [] },
-	{ id: 17, name: "Acronym", shortname: "", thesaurus: [] },
-	{ id: 18, name: "Article", shortname: "", thesaurus: [] },
-	{ id: 19, name: "Number", shortname: "tn", thesaurus: [] }
+	{ id: 16, name: "suffix", shortname: "", thesaurus: [] },
+	{ id: 17, name: "acronym", shortname: "", thesaurus: [] },
+	{ id: 18, name: "article", shortname: "", thesaurus: [] },
+	{ id: 19, name: "number", shortname: "tn", thesaurus: [] }
 ];
 
 /**

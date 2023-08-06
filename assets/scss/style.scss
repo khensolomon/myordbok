@@ -33,10 +33,9 @@ img {
 
 a {
 	text-decoration: none;
-	// outline:none;
+	outline: none;
 	// -webkit-tap-highlight-color:rgba(0,0,0,0); -webkit-tap-highlight-color:transparent; -webkit-user-select:none; -webkit-touch-callout:none;
 	color: rgb(var(--color-link));
-
 	&:visited {
 		color: rgb(var(--color-link-visited));
 	}
@@ -44,6 +43,7 @@ a {
 		color: rgb(var(--color-link-active));
 	}
 	&:hover {
+		text-decoration: underline;
 		color: rgb(var(--color-link-hover));
 	}
 }
@@ -67,8 +67,8 @@ a {
 body {
 	// @extend html;
 	font-family: $Font;
-	// color: rgb(var(--color-text));
-	// font-size: $FontSize;
+	color: rgb(var(--color-text));
+	font-size: $FontSize;
 	direction: ltr;
 	// font-synthesis: none;
 	// text-rendering: optimizeLegibility;
@@ -90,7 +90,6 @@ body {
 		display: block;
 		background-color: rgb(var(--color-bar));
 		height: 2px;
-		width: 100%;
 		content: "";
 	}
 
@@ -131,8 +130,8 @@ div.ptl {
 		}
 		&::before {
 			z-index: -2;
-			border: 1px solid rgba(var(--color-main), 0.1);
-			background-color: rgba(var(--color-main), 0.5);
+			border: 1px solid rgba(var(--color-bar), 0.1);
+			background-color: rgba(var(--color-bar), 0.5);
 			border-width: 1px 0px 1px 0px;
 		}
 		&::after {
@@ -208,8 +207,8 @@ div.ptl {
 			@import "Portal.define";
 			// NOTE: myanmar-fonts
 			@import "Portal.fonts";
-			// NOTE: sponsor
-			@import "Portal.sponsor";
+			// NOTE: donate
+			@import "Portal.donate";
 			// NOTE: grammar
 			@import "Portal.grammar";
 		}
@@ -252,6 +251,67 @@ div.ptl {
 		// z-index: 1;
 		> div {
 			@import "footer.Common";
+		}
+	}
+	&#consent {
+		// position: fixed;
+		z-index: 11;
+		> div {
+			&.cookie-consent {
+				position: fixed;
+				bottom: 0;
+				right: 0;
+				// left: 0;
+				// max-width: 350px;
+				// font-size: 0.9rem;
+				font-size: calc(0.2vw + 80%);
+				float: right;
+				// width: 92%;
+				margin: 2% 2.5%;
+				// padding: 16px 25px;
+				padding: 15px 20px;
+				// margin-top: 8px;
+				// margin-bottom: 8px;
+				// inset-inline-end: 8px;
+				// margin-inline-start: 8px;
+				// margin-inline-end: 8px;
+				z-index: 52;
+				display: inline-flex;
+				justify-content: space-between;
+				flex-direction: row;
+				align-items: center;
+				max-width: 600px;
+				// padding: 16px;
+				// color: rgba(var(--color-text), 0.8);
+				font-weight: lighter;
+				border-radius: 9px;
+				background: rgb(var(--color-background));
+				box-shadow: 0 2px 16px rgba(var(--color-text), 0.2);
+				// background: hsla(0, 0%, 100%, 0.9);
+				// box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+				// backdrop-filter: blur(8px);
+				// filter: drop-shadow(0 1px 12px rgba(18, 18, 18, 0.08));
+				button {
+					outline: none;
+					border: none;
+					// margin-bottom: 0;
+					margin-inline-start: 11px;
+					border-radius: 40px;
+					// font-weight: 700;
+					// padding: 8px 16px;
+					padding: 2% 5%;
+					// line-height: 16px;
+					// width: 52px;
+					// width: 60px;
+					background-color: rgba(var(--color-main), 0.9);
+					// border-color: rgba(var(--color-text), 0.9);
+					color: #fff;
+					flex-shrink: 0;
+				}
+				&.none {
+					display: none;
+				}
+			}
 		}
 	}
 	@media #{$media-scale} {
@@ -315,6 +375,7 @@ div.ptl {
 		// }
 	}
 }
+
 .text-center {
 	text-align: center;
 }
@@ -325,35 +386,8 @@ div.ptl {
 	text-align: right;
 }
 @media #{$media-mobile} {
-	.text-center-m {
-		text-align: center;
-	}
-	.text-left-m {
-		text-align: left;
-	}
-	.text-right-m {
-		text-align: right;
-	}
 }
 @media #{$media-tablet} {
-	.text-center-t {
-		text-align: center;
-	}
-	.text-left-t {
-		text-align: left;
-	}
-	.text-right-t {
-		text-align: right;
-	}
 }
 @media #{$media-desktop} {
-	.text-center-d {
-		text-align: center;
-	}
-	.text-left-d {
-		text-align: left;
-	}
-	.text-right-d {
-		text-align: right;
-	}
 }

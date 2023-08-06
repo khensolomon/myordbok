@@ -13,7 +13,7 @@
 		// position: relative;
 		position: inherit;
 		&.logo {
-			margin-bottom: 2vh;
+			margin-bottom: 3vh;
 			ol#MyOrdbok-logo {
 				li {
 					a {
@@ -68,13 +68,12 @@
 	@media #{$media-mobile} {
 		// margin-left: 7px;
 		// margin-right: 7px;
-		margin: 0vh 7px;
+		margin: 0 7px;
 		> div {
 			&.logo {
-				padding: 0;
-				margin-bottom: 0;
+				margin: 0 5% 3vh 5%;
 				ol#MyOrdbok-logo {
-					max-width: 300px;
+					max-width: 250px;
 				}
 			}
 		}
@@ -103,7 +102,7 @@
 		@media (max-width: 300px) {
 			form {
 				> div:first-child {
-					> p:nth-child(4) {
+					> p:nth-child(3) {
 						display: none;
 					}
 				}

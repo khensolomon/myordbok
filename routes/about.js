@@ -9,7 +9,7 @@ routes.register({ name: "about", text: "About" }, function(req, res) {
 		title: "About",
 		keywords:
 			"Myanmar dictionary, Burmesisk ordbok, Myanmar definition, Burmese, norsk ordbok, burmissk",
-		description: "About MyOrdbok, Free online Myanmar dictionaries",
+		description: "One of the most popular online Myanmar dictionary",
 		dictionaries: language.list,
 		visits: visits(),
 		locale_total: config.locale.length,

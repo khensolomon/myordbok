@@ -12,22 +12,21 @@ div
             li
               +wordlink(word)
     else
-      h1 ...ဆီလျော်သော
-      h2 အနက်ဖွင့်ဆိုနိုင်ရန်
-      //- h2 ...အဓိပ္ပာယ်ဖွင့်ဆိုချက်အတွက်
+      h1 In order to get
+      p relevant definition with your query at this time
       ul
-        li ယေဘုယျစကားလုံး #[q(id=1)=meta.q] အားဖြင့်သော်၎င်း
-        li စာလုံးပေါင်းစစ်ဆေးပေးခြင်းသော်၎င်း
-        li ဆက်စပ်သော #[em=lang.tar] ဘာသာစကား ရွေးချယ်ခြင်းဖြင့်
-        //- li try with general words!
-        //- li check the spelling!
-        //- li make sure that you are defining #[q(id=1)=meta.q] in #[em=lang.tar]!
-      p အဓိပ္ပါယ်ဖွင့်ဆို ရှင်းလင်းဖော်ပြ နိုင်ပါသည်။
+        li try with general words!
+        li check the spelling!
+        li make sure that you are defining #[q(id=1)=query.word] in #[em=lang.tarName]!
 
-  //- h1 In order to get the most relevant definition...
-  //- .helps
-  //-   div
-  //-     span Help us!
-  //-   div.word.help.zO(data-word=meta.q)
-  //- မှန်ကန်သောဘာသာစကား
-  //- ဆက်စပ်သော ဘာသာစကား ရွေးချယ်ခြင်းဖြင့်
+  div.help
+    h2 Help us with #[q=query.word] definition
+    p
+      | If you are familiar with the term
+      | #[q=query.word]
+      | , we kindly request your assistance in providing its definition in Myanmar using
+      |
+      a(class="send" href='https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform?usp=pp_url&entry.2033036872='+encodeURI(query.word))
+        | Google form #[em=query.word]
+      | .
+    p.quote Knowledge is information that has been passed down through generations. No one is intellectually apart from others. We are seeking your understanding of the term so that others may learn from it.

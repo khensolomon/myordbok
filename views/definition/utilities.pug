@@ -2,6 +2,7 @@ mixin wordlink(q)
   a(href='definition?q='+encodeURI(q))= q
 mixin sentencelink(q)
   a(href='definition?q='+encodeURI(query.input+"~"+q))= q
+
 //- mixin test(q)
 //-   q.replace(/\{-(.*?)\-}/g, '<a href="definition?q=$1">$1</a>')
 

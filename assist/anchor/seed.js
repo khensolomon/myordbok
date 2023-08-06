@@ -4,6 +4,8 @@ import myanmarNotation from "myanmar-notation";
 import thesaurus from "word-thesaurus";
 import numberToWords from "number-to-words";
 
+import * as wordbreak from "../wordbreak/index.js";
+
 import * as env from "./env.js";
 import { primary } from "./language.js";
 import * as makeup from "./makeup.js";
@@ -28,6 +30,7 @@ export function query(str) {
 	const res = {
 		input: str,
 		word: "",
+		wordbreak: [],
 		sentence: [],
 		status: false
 	};
@@ -61,6 +64,11 @@ export function query(str) {
 	if (res.sentence.length > 1) {
 		res.status = true;
 	}
+
+	// let abc = wordbreak.default(res.word);
+	// res.wordbreak = [];
+	res.wordbreak = wordbreak.default(res.word);
+	// let abc = res.word;
 	return res;
 }
 
@@ -713,16 +721,19 @@ export function wordThesaurus(word, sensitive = false) {
 	for (let index = 0; index < row.length; index++) {
 		const e = row[index];
 		const pos = thesaurus.posName(e.pos).toLowerCase();
-		const total = e.raw.length.toString();
+		const count = e.raw.length.toString();
+		const total = count == "1" ? "a" : count;
+		const item = count == "1" ? "word" : "words";
 		res.push({
 			term: word,
 			type: "meaning",
 			// pos: thesaurus.posName(e.pos),
-			pos: "Thesaurus",
+			pos: "thesaurus",
 			kind: ["odd", pos],
 			v: "(-~ total-) words related to {-query-} as {-*?-}."
 				.replace(/total/, total)
 				.replace(/query/, word)
+				.replace(/words/, item)
 				.replace(/\*\?/, pos),
 			// exam: e.raw,
 			// examCast: "exam_thesaurus"
@@ -751,7 +762,7 @@ export function wordNumber(word) {
 		return {
 			term: word,
 			type: "meaning",
-			pos: "Number",
+			pos: "number",
 			kind: ["notation"],
 			v: rowNotation.number,
 			exam: {

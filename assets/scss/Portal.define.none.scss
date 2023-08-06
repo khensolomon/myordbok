@@ -1,6 +1,103 @@
 &.notfound,
 &.pleaseenter {
+	// padding-top: 3%;
 	> div {
+		// display: flex;
+		display: table;
+		width: 90%;
+		padding: 1% 5%;
+		// display: block;
+		> div {
+			// display: inline-block;
+			display: table-cell;
+			min-height: 250px;
+			vertical-align: middle;
+			// padding: 5%;
+			&.notice {
+				font-weight: lighter;
+				h1 {
+					font-weight: lighter;
+				}
+				h2 {
+					font-weight: lighter;
+				}
+				p {
+					font-size: 95%;
+				}
+				ul {
+					padding: 20px 5%;
+
+					list-style: none;
+					// overflow-wrap: break-word;
+					li {
+						// margin: 1%;
+						line-height: 1.7rem;
+						font-size: 1.2rem;
+						&::before {
+							content: "...";
+						}
+						q {
+							color: rgba(var(--color-text), 0.8);
+
+							&::before,
+							&::after {
+								color: rgba(var(--color-text), 0.4);
+							}
+						}
+						em {
+							font-style: normal;
+							// text-transform: uppercase;
+							text-transform: capitalize;
+						}
+					}
+				}
+			}
+			&.help {
+				width: 60%;
+				max-width: 400px;
+				border-radius: 12px;
+				// box-shadow: inset 0px 0px 1px 1px #ccc;
+				// background-color: lighten(#ccc, 17%);
+				box-shadow: inset 0px 0px 7px 1px rgba(var(--color-text), 0.1);
+				background-color: rgba(var(--color-text), 0.1);
+				// background-color: rgba(var(--color-surround), 0.7);
+				// border-left: 1px solid rgba(var(--color-surround), 1);
+				padding: 2%;
+				font-weight: lighter;
+				h2 {
+					padding-bottom: 2%;
+					font-weight: lighter;
+				}
+				p {
+					font-size: 120%;
+					q {
+						color: rgba(var(--color-text), 0.7);
+					}
+					a {
+						em {
+							&::before {
+								content: "~";
+								color: rgba(var(--color-text), 0.3);
+							}
+						}
+					}
+					&.quote {
+						padding-top: 2%;
+						font-size: 90%;
+						color: rgba(var(--color-text), 0.7);
+						&::after,
+						&::before {
+							color: rgba(var(--color-main), 1);
+							font-size: 150%;
+							line-height: 0;
+							content: '"';
+						}
+					}
+				}
+			}
+		}
+	}
+	> tmp {
 		padding: 20px 3%;
 		> div {
 			&.notice {

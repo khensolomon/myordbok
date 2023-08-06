@@ -17,7 +17,7 @@ ol {
 		position: relative;
 		a {
 			display: block;
-			padding: 3px 7px;
+			padding: 3px 10px;
 			font-size: 13px;
 			color: var(--color-text-enable);
 			line-height: 19px;
@@ -25,11 +25,6 @@ ol {
 			overflow: hidden;
 			font-variant: normal;
 			position: inherit;
-		}
-		&:hover {
-			> a {
-				// color: #236ea9;
-			}
 		}
 		ol {
 			display: none;
@@ -47,11 +42,11 @@ ol {
 				width: 0px;
 				height: 0px;
 				text-align: center;
-				vertical-align: middle;
+				// vertical-align: middle;
 				border: solid transparent;
 			}
 			&:before {
-				border-bottom-color: rgba(var(--color-bar), 0.3);
+				border-bottom-color: rgba(var(--color-bar), 0.8);
 				border-width: 5px;
 				right: calc(78% - 1px);
 				top: -10px;
@@ -70,7 +65,7 @@ ol {
 					color: #fff;
 					font-size: 12px;
 					padding: 7px 7px;
-					border-bottom: 1px solid rgba(var(--color-bar), 0.5);
+					border-bottom: 1px solid rgba(var(--color-bar), 0.3);
 				}
 				&:last-child {
 					a {
@@ -86,7 +81,8 @@ ol {
 		}
 	}
 	> li {
-		&.active {
+		&.active,
+		&.current {
 			> a {
 				// color: #236ea9;
 				color: var(--color-text-active);
@@ -94,13 +90,13 @@ ol {
 			&.hasChild {
 				> a {
 					&:after {
-						// border-top-color: #236ea9;
+						// color: #236ea9;
 						border-top-color: rgba(var(--color-main), 0.15);
 					}
 					&:hover {
 						&:after {
-							// border-top-color: #236ea9;
-							border-top-color: rgba(var(--color-main), 0.15);
+							// color: #236ea9;
+							border-top-color: rgba(var(--color-bar), 0.15);
 						}
 					}
 				}
@@ -114,7 +110,8 @@ ol {
 					position: absolute;
 					content: "";
 					border: solid transparent;
-					border-top-color: #2c312b;
+					// border-top-color: #2c312b;
+					border-top-color: rgba(var(--color-bar), 0.15);
 					border-width: 4px;
 					right: 4px;
 					top: 12px;
@@ -125,18 +122,24 @@ ol {
 	&.menu {
 		&.page {
 			> li {
-				border-bottom: 1px solid rgba(var(--color-main), 0.5);
+				border-bottom: 1px solid rgba(var(--color-bar), 0.5);
+				// border-bottom-color:red;
 				> a {
+					// border-left: 1px solid #d6d4d4;
+					border-left: 1px solid rgba(var(--color-bar), 0.5);
 					font-weight: 500;
-					border-left: 1px solid rgba(var(--color-main), 0.5);
 				}
 				&:first-child {
 					> a {
 						border-left: 0;
 					}
 				}
-				&.active {
+				&.active,
+				&.current {
 					border: 0;
+					// border-bottom-width: 1px;
+					// border-bottom-color: transparent;
+					border-bottom: 1px solid transparent;
 					&:not(:first-child) {
 						border-left-width: 1px;
 						border-right-width: 1px;
@@ -145,29 +148,29 @@ ol {
 								linear,
 								0 0,
 								0 100%,
-								from(rgb(var(--color-main))),
-								to(rgba(0, 0, 0, 0))
+								from(rgb(var(--color-bar))),
+								to(rgb(var(--color-background)))
 							)
 							7 100%;
 						-webkit-border-image: -webkit-linear-gradient(
-								from(rgb(var(--color-main))),
-								rgba(0, 0, 0, 0)
+								from(rgb(var(--color-bar))),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						-moz-border-image: -moz-linear-gradient(
-								from(rgb(var(--color-main))),
-								rgba(0, 0, 0, 0)
+								from(rgb(var(--color-bar))),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						-o-border-image: -o-linear-gradient(
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						border-image: linear-gradient(
 								to top,
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						> a {
@@ -184,29 +187,29 @@ ol {
 								linear,
 								0 0,
 								0 100%,
-								from(rgb(var(--color-main))),
-								to(rgba(0, 0, 0, 0))
+								from(rgb(var(--color-bar))),
+								to(rgb(var(--color-background)))
 							)
 							7 100%;
 						-webkit-border-image: -webkit-linear-gradient(
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						-moz-border-image: -moz-linear-gradient(
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						-o-border-image: -o-linear-gradient(
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 						border-image: linear-gradient(
 								to top,
-								rgb(var(--color-main)),
-								rgba(0, 0, 0, 0)
+								rgb(var(--color-bar)),
+								rgb(var(--color-background))
 							)
 							7 100%;
 					}
@@ -224,17 +227,16 @@ ol {
 						}
 					}
 				}
-				&:hover {
-					&.hasChild {
-					}
-				}
+				// &:hover {
+				// 	&.hasChild {
+				// 	}
+				// }
 			}
 		}
 		&.user {
 			> li {
 				a {
 					font-size: 12px;
-					color: #a3a3a3;
 				}
 				&.office {
 					// max-width: 30px;
@@ -249,19 +251,25 @@ ol {
 							display: table-cell;
 							width: auto;
 							&.img {
+								// display: inline-block;
 								width: 25px;
-								border: 2px outset rgba(var(--color-text), 0.7);
+								height: 25px;
+								border: 1px solid rgba(var(--color-text), 0.5);
 								border-radius: 100%;
-								background-size: 100%;
+								// background-size: 100%;
+								background-size: cover;
 								background-position: center center;
 								background-repeat: no-repeat;
 								&:before {
-									border-radius: 100%;
+									border-radius: 50px;
 									width: 25px;
-									height: 21.5px;
-									box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
-									background-color: rgba(var(--color-main), 0.5);
-									color: #fff;
+									height: 22px;
+									// box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+									// background-color: rgba(var(--color-main), 0.8);
+									background-color: rgba(var(--color-text), 0.2);
+									// border: 1px solid rgba(var(--color-text), 0.2);
+									// color: #fff;
+									color: var(--color-text-disable);
 									content: "\e80c";
 									font-family: "myordbok";
 									font-style: normal;
@@ -276,7 +284,7 @@ ol {
 									text-align: center;
 								}
 								&.withImage {
-									border: 2px outset rgba(var(--color-text), 1);
+									border-color: rgba(var(--color-text), 1);
 									&::before {
 										content: "";
 										background-color: transparent;
@@ -286,37 +294,6 @@ ol {
 							&.label {
 								display: none;
 							}
-						}
-					}
-				}
-				&.signin {
-					// max-width:30px;
-					a {
-						&:before {
-							box-shadow: inset 0px 1px 1px 0px #666;
-							background-color: rgb(var(--color-main));
-							color: #fff;
-							border-radius: 2px;
-							width: 20px;
-							height: 20px;
-							content: "\f061";
-							font-family: "myordbok";
-							font-style: normal;
-							font-weight: normal;
-							speak: none;
-							font-size: 1.2em;
-							padding: 1px;
-							display: block;
-							text-decoration: inherit;
-							text-align: center;
-						}
-						&:hover {
-							&:before {
-								color: #c5c5c5;
-							}
-						}
-						span {
-							display: none;
 						}
 					}
 				}
@@ -337,7 +314,7 @@ ol {
 							overflow: hidden;
 						}
 						&:after {
-							background-color: rgba(var(--color-bar), 0.3);
+							background-color: rgba(var(--color-main), 0.5);
 							right: 1px;
 							top: 2px;
 							width: 19px;
@@ -349,7 +326,6 @@ ol {
 							font-style: normal;
 							font-weight: normal;
 							color: #fff;
-							speak: none;
 							font-size: 1em;
 							line-height: 18px;
 							display: block;
@@ -360,15 +336,12 @@ ol {
 					&:hover {
 						> a {
 							color: #fff;
-							&:after {
-								background-color: rgba(var(--color-bar), 0.8);
-							}
 						}
 					}
-					&.active {
+					&.active,
+					&.current {
 						> a {
 							color: #236ea9;
-							// &:after {}
 						}
 					}
 					ol {

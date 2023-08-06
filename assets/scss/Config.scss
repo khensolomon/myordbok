@@ -1,27 +1,15 @@
 @charset "utf-8";
+
 // $Font: 'Roboto', 'Lato', sans-serif;
 // $Font: sans-serif, "Myanmar Text,Myanmar3,Padauk, Thanlwin", "Roboto", "Lato";
-$Font: "Myanmar Text,Myanmar3,Padauk, Thanlwin", "Roboto", "Lato";
+$Font: "Roboto", "Lato";
 // $Font: "Roboto", "Lato",
 // 	"Masterpiece Uni Sans,Padauk,Myanmar Text,Noto Sans Myanmar", Parabaik,
 // 	Yunghkio, Thanlwin, "Myanmar3, Win Uni Innwa", "WinUni Innwa", sans-serif;
 // $Font: 'Roboto', 'Lato', sans-serif;
 // $Font: 'Roboto', 'Lato', sans-serif,mm3web,"Myanmar Text", Myanmar3, TharLon, Noto Sans Myanmar, "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk , "MyMyanmar Unicode", "WinUni Innwa", Myanmar2;
 // $Font: mm3web, "Myanmar Text", Myanmar3, TharLon, "Noto Sans Myanmar", "Masterpiece Uni Sans", Parabaik, Yunghkio, Thanlwin, "Win Uni Innwa", Padauk,  "WinUni Innwa", Myanmar2;
-$FontSize: 100%; //11pt
-
-// $Color: #333;
-// $ColorBackground: #fff;
-// $ColorMain: #318ed7;
-// $ColorSecond: #7a7a7a;
-// $ColorLinkStandard: #0000ee;
-// $ColorLinkVisited: #551a8b;
-// $ColorLinkActive: #ee0000;
-// $ColorGold: goldenrod;
-// $ColorRed: #d34836;
-// $ColorGooglePlus: #d34836;
-// $ColorTwitter: #3b5998;
-// $ColorFacebook: #0084b4;
+$FontSize: 1em;
 
 $WidthMobile: 500px;
 $WidthTablet: 820px;
@@ -35,110 +23,51 @@ $media-tablet-desktop: "(min-width:642px)";
 $media-mobile-tablet: "(max-width:960px)";
 $max-width: 950px;
 
-// rgba(var(--color-bar), 0.15);
-// rgb(var(--color-bar));
-// rgba($color: var(--color-bar), $alpha: 0.1);
 :root {
-	// --color-testing-rgb: rgb(68, 192, 120);
-	// --color-bar-rgb: rgb(51, 144, 215);
-	--color-bar: 51, 144, 215;
-	// --color-main-rgb: rgb(49, 142, 215);
 	--color-main: 49, 142, 215;
+	--color-background: 252, 251, 251;
+	--color-bar: 51, 144, 215;
+	--color-text: 0, 0, 0;
 
-	// --color-minor-rgb: rgb(122, 122, 122);
-	// --color-minor: 122, 122, 122;
-
-	// --color-background-rgb: rgb(255, 255, 255);
-	--color-background: 255, 255, 255;
-	// --color-office-background: rgb(243, 243, 243);
-	--color-office-background: rgb(243, 242, 242);
-
-	// Normally surround is darker than current active background color
-	// --color-surround-rgb: rgb(240, 241, 241);
-	--color-surround: 240, 241, 241;
-
-	// --color-text-rgb: rgb(51, 51, 51);
-	--color-text: 51, 51, 51;
-	--color-text-hover: rgba(var(--color-text), 0.5);
-	--color-text-active: rgba(var(--color-text), 0.99);
-	--color-text-disable: rgba(var(--color-text), 0.6);
-	--color-text-enable: rgba(var(--color-text), 0.8);
-
-	// --color-link-rgb: rgb(1, 121, 201);
-	--color-link: 0, 143, 238;
-	// --color-link-visited-rgb: rgb(43, 114, 161);
-	--color-link-visited: 7, 122, 199;
-	// --color-link-active-rgb: rgb(238, 0, 0);
-	--color-link-active: 238, 0, 0;
-	// --color-link-hover-rgb: rgb(96, 135, 161);
-	--color-link-hover: 96, 135, 161;
-
-	// --color-highlight-rgb: rgb(49, 142, 215);
+	--color-surround: 238, 238, 238;
 	--color-highlight: 49, 142, 215;
-	// --color-danger-rgb: rgb(168, 166, 8);
-	--color-danger: 168, 166, 8;
 
-	// --color-google-rgb: rgb(211, 72, 54);
-	--color-google: 211, 72, 54;
-	// --color-twitter-rgb: rgb(59, 89, 152);
-	--color-twitter: 59, 89, 152;
-	// --color-facebook-rgb: rgb(0, 132, 180);
-	--color-facebook: 0, 132, 180;
+	--color-link: 31, 31, 247;
+	--color-link-visited: 55, 55, 179;
+	--color-link-active: 31, 31, 247;
+	--color-link-hover: 53, 99, 110;
+
+	--color-search-bg: 247, 247, 247;
+	--color-search-border: 185, 182, 182;
+	--color-search-shadow: 185, 182, 182;
 
 	--filter-logo: grayscale(0%);
 
-	// [data-theme="dark"] {}
+	// Common
+	--color-text-disable: rgba(var(--color-text), 0.5);
+
+	&[data-theme="dark"],
 	&.dark {
-		// --color-bar-rgb: rgb(34, 34, 34);
-		--color-bar: 34, 34, 34;
+		// --color-main: 34, 34, 34;
+		--color-background: 22, 22, 22;
+		--color-bar: 78, 78, 78;
+		--color-text: 255, 255, 255;
 
-		// --color-main-rgb: rgb(34, 34, 34);
-		--color-main: 34, 34, 34;
-
-		// --color-minor-rgb: rgb(83, 82, 82);
-		// --color-minor: 83, 82, 82;
-
-		// --color-background-rgb: rgb(78, 78, 78);
-		--color-background: 78, 78, 78;
-
-		// --color-surround-rgb: rgb(71, 71, 71);
-		--color-surround: 71, 71, 71;
-
-		// --color-text-rgb: rgb(231, 231, 231);
-		--color-text: 231, 231, 231;
-		--color-text-hover: rgba(var(--color-text), 0.5);
-		--color-text-active: rgba(var(--color-text), 0.99);
-		--color-text-disable: rgba(var(--color-text), 0.6);
-		--color-text-enable: rgba(var(--color-text), 0.8);
-
-		// --color-link-rgb: rgb(199, 202, 172);
-		--color-link: 199, 202, 172;
-		// --color-link-visited-rgb: rgb(177, 192, 187);
-		--color-link-visited: 177, 192, 187;
-		// --color-link-active-rgb: rgb(238, 0, 0);
-		--color-link-active: 238, 0, 0;
-		// --color-link-hover-rgb: rgb(190, 183, 162);
-		--color-link-hover: 190, 183, 162;
-
-		// --color-highlight-rgb: rgb(201, 201, 201);
+		--color-surround: 36, 36, 36;
 		--color-highlight: 201, 201, 201;
-		// --color-danger-rgb: rgb(235, 227, 126);
-		--color-danger: 235, 227, 126;
+
+		--color-link: 199, 202, 172;
+		--color-link-visited: 177, 192, 187;
+		--color-link-hover: 190, 183, 162;
+		--color-link-active: 238, 0, 0;
+
+		--color-search-bg: 29, 29, 29;
+		--color-search-border: 59, 59, 59;
+		--color-search-shadow: 185, 182, 182;
 
 		--filter-logo: grayscale(100%);
 	}
 }
-
-// a {
-// 	// color: lighten($linkcolour, 50%);
-// 	// color: lighten($linkcolour, 50%);
-// 	// color: --linkcolours !important;
-// 	// color: #{} !important;
-// 	// color: #{$linkcolour} !important;
-// 	// color: #{var(--linkcolours)} !important;
-// 	// color: lighten($linkcolour, 10%) !important;
-// 	color: darken($linkcolour, 10%) !important;
-// }
 
 // @media (prefers-color-scheme: no-preference) {}
 // @media (prefers-color-scheme: light) {}

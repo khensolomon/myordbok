@@ -1,7 +1,7 @@
 {
   "name": "myordbok",
-  "version": "1.8.3",
-  "description": "Myanmar dictionary online",
+  "version": "1.8.4",
+  "description": "a comprehensive online Myanmar dictionary",
   "main": "./index.js",
   "type": "module",
   "scripts": {

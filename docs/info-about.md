@@ -180,3 +180,40 @@ Any financial donations received will be solely dedicated to the development and
 The grammar section, directly sourced from
 မြန်မာသဒ္ဒါ
 Volumes (1) and (2), initially included some examples and exercises, but due to limited user attention, we have decided to remove it from our online app in the near future. However, the source will be preserved and remain accessible within Github repository as a reference.
+
+## Not found
+
+...related word for
+...ဆက်စပ်သော စကားလုံးများ
+
+...ဆီလျော်သော
+အနက်ဖွင့်ဆိုနိုင်ရန်
+...အဓိပ္ပာယ်ဖွင့်ဆိုချက်အတွက်
+ul
+  li ယေဘုယျစကားလုံး #[q(id=1)=meta.q] အားဖြင့်သော်၎င်း
+  li စာလုံးပေါင်းစစ်ဆေးပေးခြင်းသော်၎င်း
+  li ဆက်စပ်သော #[em=lang.tar] ဘာသာစကား ရွေးချယ်ခြင်းဖြင့်
+  //- li try with general words!
+  //- li check the spelling!
+  //- li make sure that you are defining #[q(id=1)=meta.q] in #[em=lang.tar]!
+p အဓိပ္ပါယ်ဖွင့်ဆို ရှင်းလင်းဖော်ပြ နိုင်ပါသည်။
+
+//- h1 In order to get the most relevant definition...
+//- .helps
+//-   div
+//-     span Help us!
+//-   div.word.help.zO(data-word=meta.q)
+//- မှန်ကန်သောဘာသာစကား
+//- ဆက်စပ်သော ဘာသာစကား ရွေးချယ်ခြင်းဖြင့်
+
+In order to get 
+the most relevant definition
+
+try with general words
+check the spelling
+make sure that you are search #[q(id=1)=meta.q] in #[em=lang.tar]
+
+In order to get the most appropriate
+
+The most relevant
+Can be defined and explained.

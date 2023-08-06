@@ -132,8 +132,8 @@
 						// }
 					}
 					h1 {
-						font-size: calc(3vw + 80%);
-						// line-height: 430%;
+						font-size: calc(2vw + 80%);
+						margin: 5% 0;
 						text-shadow: rgba(var(--color-background), 0.5) 0px 0px 1px;
 						color: rgba(var(--color-text), 0.6);
 					}
@@ -185,13 +185,19 @@
 				}
 				q {
 					// color: rgba(var(--color-danger), 1);
-					color: rgba(var(--color-text), 0.8);
+					color: rgba(var(--color-text), 0.6);
+					font-size: 95%;
 					&.mdic {
-						color: rgba(var(--color-text), 1);
-						// font-weight: bold;
-						// font-style: italic;
-						text-decoration: underline;
+						color: rgba(var(--color-text), 0.7);
+						font-weight: bold;
+						font-style: italic;
 					}
+				}
+				span {
+					// color: red;
+					color: rgba(var(--color-text), 0.8);
+					// font-weight: bold;
+					font-size: 90%;
 				}
 				&.dictionaries {
 					h3 {
@@ -346,12 +352,17 @@
 				}
 				&.donation {
 					> div {
-						background-color: rgba(var(--color-main), 0.3);
+						background-color: rgba(var(--color-surround), 1);
 						// box-shadow: inset 0px 0px 1px 1px lighten(#666, 30%);
-						box-shadow: inset 0px 0px 1px 1px rgba(var(--color-main), 0.3);
-						border-radius: 12px;
-						padding: 2%;
+						// box-shadow: inset 0px 0px 1px 1px rgba(var(--color-main), 0.3);
+						box-shadow: 0px 0px 2px 1px rgba(var(--color-text), 0.3);
+						border-radius: 15px;
+						padding: 5% 2%;
+						font-weight: lighter;
+
 						> p {
+							font-weight: lighter;
+							font-size: 1.2em;
 							padding: 2%;
 							&.icon-paypal {
 								color: rgba(var(--color-text), 0.8);
@@ -367,17 +378,28 @@
 
 								background-color: rgba(var(--color-main), 0.8);
 								border: 2px solid rgba(var(--color-background), 0.9);
-								border-radius: 7px;
+								border-radius: 30px;
 								color: white;
-								font-size: 104%;
+								font-size: 110%;
 								vertical-align: middle;
 								&::before {
+									transition: transform 0.7s ease-in-out;
 									font-size: 120%;
 								}
 								&:hover {
 									background-color: rgba(var(--color-main), 1);
+									box-shadow: 0px 3px 12px 3px
+										rgba(var(--color-background), 0.5);
+									&::before {
+										transform: rotate(360deg);
+									}
 								}
 							}
+						}
+						&:hover {
+							transition: background-color 0.9s ease;
+							background-color: rgba(var(--color-bar), 0.5);
+							box-shadow: 0px 3px 12px 3px rgba(var(--color-text), 0.5);
 						}
 					}
 				}
@@ -396,23 +418,27 @@
 				padding: 20px 10px;
 				max-width: 600px;
 				margin: 20px auto;
-
 				border-radius: 10px;
 			}
 			> h1 {
-				// color: rgb(var(--color-highlight));
+				font-weight: normal;
 				display: inline-block;
-				border-radius: 100px;
 				color: rgba(var(--color-text), 0.8);
-				text-shadow: 0px 0px 1px rgba(#ccc, 0.2);
-				// padding: 5px 25px;
-				> em {
-					color: rgba(var(--color-text), 0.6);
-				}
+
 				> span {
-					color: rgba(var(--color-text), 0.5);
-					text-shadow: 3px 0px 1px rgba(#ccc, 0.1);
-					font-weight: normal;
+					color: rgba(var(--color-text), 0.4);
+					text-shadow: 0px 0px 2px 1px rgba(var(--color-surround), 1);
+
+					&.myanmar {
+						color: rgba(var(--color-text), 0.7);
+					}
+				}
+			}
+			&.note {
+				div {
+					&.data {
+						margin: 2px 3%;
+					}
 				}
 			}
 		}

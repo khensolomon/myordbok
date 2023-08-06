@@ -16,6 +16,9 @@ ol {
 			position: inherit;
 			padding: 4px 5px;
 			color: rgba(var(--color-text), 0.8);
+			&:hover {
+				text-decoration: underline;
+			}
 		}
 		span {
 			position: inherit;

@@ -2,7 +2,7 @@ import { check, utility } from "lethil";
 
 import { infoCache } from "../anchor/seed.js";
 
-import { primary } from "../anchor/language.js";
+import { primary, byId } from "../anchor/language.js";
 import * as env from "../anchor/env.js";
 
 /**
@@ -23,6 +23,20 @@ export const settings = {
 		tar: "en",
 		get src() {
 			return primary.id;
+		},
+		get tarName() {
+			let lg = byId(this.tar);
+			if (lg) {
+				return lg.name;
+			}
+			return "?";
+		},
+		get srcName() {
+			let lg = byId(this.src);
+			if (lg) {
+				return lg.name;
+			}
+			return "?";
 		}
 	},
 	type: ["notfound", "pleaseenter", "result", "definition", "translation"],
@@ -41,7 +55,11 @@ export const settings = {
 
 	cacheController(word, lang) {
 		// return new infoCache("definition", word, lang);
-		return new infoCache({ page: "definition", keyword: word, lang: lang });
+		return new infoCache({
+			page: "definition",
+			keyword: word,
+			lang: lang
+		});
 	}
 };
 
@@ -74,7 +92,9 @@ export function rawObject(req) {
 		},
 		lang: {
 			tar: settings.lang.tar,
-			src: settings.lang.src
+			src: settings.lang.src,
+			tarName: settings.lang.tarName,
+			srcName: settings.lang.srcName
 		},
 		revised: new Date().toLocaleDateString("en-GB", {
 			weekday: "long",

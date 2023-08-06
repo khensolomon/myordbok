@@ -19,6 +19,7 @@ import { useCookieStore } from "./store-cookie.js";
 
 import NavEngine from "./NavEngine.js";
 import SpeechEngine from "./SpeechEngine.js";
+import CookieConsent from "./CookieConsent.js";
 import ThemeSwitch from "./ThemeSwitch.js";
 import SearchEngine from "./SearchEngine.js";
 import OfficeUser from "./OfficeUser.js";
@@ -64,6 +65,7 @@ const app = createApp({
 		NavEngine,
 		SpeechEngine,
 		ThemeSwitch,
+		CookieConsent,
 		SearchEngine,
 		OfficeUser
 		// NavTest

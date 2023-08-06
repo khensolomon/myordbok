@@ -27,7 +27,8 @@ export const useDataStore = defineStore("data", {
 		// isMyanmar: false,
 		// suggests: [],
 		// historyId: "word",
-		themeId: "theme"
+		themeId: "theme",
+		cookiePolicyId: "cookiePolicy"
 		// my: {
 		// 	alphabet: [
 		// 		"က",

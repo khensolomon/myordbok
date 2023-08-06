@@ -5,8 +5,8 @@ block content
       div.wrapper
         div.row
           div.header
-            h1(class=environment) #{appName}
-            p A comprehensive Myanmar dictionary online.
+            h1(class=environment) A comprehensive online Myanmar dictionary
+            p Uncover knowledge through linguistic expressions that you comprehend.
           div
             p
               | #[q Ordbok] is directly translated as
@@ -17,17 +17,17 @@ block content
               |
               a(href='/definition?q=norwegian') Norwegian
               |, representing a list of words with their meanings described in their own terms.
-              | Therefore, #[strong=appName] can be referred to as the #[q.mdic Myanmar dictionary] where #[q My] stands for Myanmar and #[q Ordbok] denotes a form of dictionary.
-              | Since 2010, #[em=appName] has become one of the most widely used Myanmar online dictionaries among others.
-              | Currently, #[em=dictionaries_total] continental languages and #[em=locale_total] site(UI) languages are available on the platform, making it a valuable resource for users from diverse linguistic backgrounds.
+              | Therefore, #{appName} can be referred to as the #[q.mdic Myanmar dictionary] where #[q My] stands for Myanmar and #[q Ordbok] denotes a form of dictionary.
+              | Since 2010, #[strong=appName] has become one of the most widely used Myanmar online dictionaries among others.
+              | Currently, #[span=dictionaries_total] continental languages and #[span=locale_total] site(UI) languages are available on the platform, making it a valuable resource for users from diverse linguistic backgrounds.
 
         div.row
           div.header
            h3.ico Visits
           div.data
             p
-              | Based on the recalculated visitation data from #[q=visits.created], there were a total of #[em=visits.user] unique visitors and #[em=visits.request] total visits recorded.
-              | Among these visits, #[em=visits.total] were legitimate visits made by genuine #[em=visits.by] visitors, excluding bot and API requests.
+              | Based on the recalculated visitation data from #[q=visits.created], there were a total of #[q=visits.user] unique visitors and #[q=visits.request] total visits recorded.
+              | Among these visits, #[q=visits.total] were legitimate visits made by genuine #[q=visits.by] visitors, excluding bot and API requests.
 
         div.row
           div.dictionaries
@@ -97,7 +97,7 @@ block content
             h3.ico.function(title="Donate") Contribute
           div.data
             p
-              | To ensure that our app, #[em=appName], continues to thrive and provide comprehensive definitions, we rely on the generosity of users like you.
+              | To ensure that our app, #[strong=appName], continues to thrive and provide comprehensive definitions, we rely on the generosity of users like you.
               | Your support is crucial to keep the app alive and running, in accordance with equipment specifications.
               | We kindly invite you to contribute any amount you can, as it will directly contribute to the growth and enrichment of the platform.
               | With your generosity, we aspire to provide wisdom and knowledge to all users, creating a positive impact on everyone within your reach.
@@ -106,8 +106,9 @@ block content
         div.row
           div.data.donation.text-center
             div
+              h3 Help us covering server expenses and ongoing development
               p
-                | I would like to support #[em=appName] to ensure its continued growth and to enable the addition of complete information.
+                | I would like to support to ensure its continued growth and to enable the addition of complete information.
                 | My contribution will play a crucial role in helping the app thrive and provide comprehensive content.
                 | I am dedicated to enhancing the app's functionality and usefulness, and I appreciate the opportunity to contribute to its success.
               form(action="https://www.paypal.com/donate" method="post" class="paypal")

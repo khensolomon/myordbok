@@ -55,14 +55,27 @@
 				line-height: 130%;
 				padding-left: 25px;
 				word-wrap: break-word;
+				padding: 3% 5%;
 				// color: rgba(var(--color-text), 0.7);
 				a {
-					&::after {
-						content: " ";
+					display: inline-block;
+					font-weight: lighter;
+					// text-decoration-line: underline;
+					// text-decoration-style: wavy;
+					// text-decoration-thickness: 0.1px;
+					// text-decoration-color: rgba(var(--color-link), 0.3);
+					&::before {
+						display: inline-block;
+						content: " ~ ";
+						// color: rgba(var(--color-link), 0.2);
+						color: rgba(var(--color-text), 0.3);
 					}
-
-					&:last-child {
-						content: "";
+					&:hover {
+						// text-decoration-color: rgba(var(--color-link-hover), 0.5);
+						// text-decoration-line: underline;
+						// text-decoration-style: wavy;
+						text-decoration-thickness: 0.1px;
+						// text-decoration-color: rgba(var(--color-text), 0.2);
 					}
 				}
 			}
@@ -96,9 +109,12 @@
 				width: 27px;
 				height: 27px;
 				border-radius: 50%;
-				color: rgba(var(--color-text), 0.6);
+				color: rgba(var(--color-text), 0.3);
 				background-color: rgb(var(--color-background));
 				border: 1px solid rgba(var(--color-text), 0.3);
+				font-style: italic;
+				// letter-spacing: -1px;
+				text-indent: -2px;
 			}
 			> h1 {
 				font-weight: normal;
@@ -327,9 +343,9 @@
 									> p {
 										// line-height: 25px;
 										padding: 2px 0;
-										&::first-letter {
-											text-transform: capitalize;
-										}
+										// &::first-letter {
+										// 	text-transform: capitalize;
+										// }
 										&:not(:first-child) {
 											// padding-left: 10px;
 											position: relative;
@@ -491,22 +507,36 @@
 		@import "Portal.define.result.mobile";
 		&.notfound,
 		&.pleaseenter {
+			// > div {
+			// 	> div {
+			// 		&.notice {
+			// 			// h1{
+			// 			//   font-size: 3em;
+			// 			// }
+			// 			// h2{
+			// 			//   font-size: 2em;
+			// 			// }
+			// 			ul {
+			// 				li {
+			// 					&::before {
+			// 						display: none;
+			// 					}
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			// }
+
 			> div {
+				display: block;
 				> div {
-					&.notice {
-						// h1{
-						//   font-size: 3em;
-						// }
-						// h2{
-						//   font-size: 2em;
-						// }
-						ul {
-							li {
-								&::before {
-									display: none;
-								}
-							}
-						}
+					display: block;
+
+					&.help {
+						// display: block;
+						padding: 5% 3%;
+						max-width: 100%;
+						width: 94%;
 					}
 				}
 			}

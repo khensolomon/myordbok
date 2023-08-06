@@ -1,8 +1,10 @@
 # Version
 
-## 1.8.2-3
+## 1.8.2-3-4
 
 - NEN
+- Cookie consent
+- Improve color for light and dark
 - Privacy policy, Terms of service and Cookie policy are updated
 - Style (search)
   - word: 59254
