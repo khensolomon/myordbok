@@ -6,29 +6,34 @@
     "header": "Malay",
     "progress": [
       {
-        "name": "Usage",
+        "id": "usage",
+        "en": "Usage",
         "my": "အသုံးပြုမှု",
         "percentage": true,
         "status": 0.2
       },
       {
-        "name": "Completion",
+        "id": "progress",
+        "en": "Completion",
         "my": "ပြီးစီးမှု",
         "percentage": true,
-        "status": 1.126269332468921
+        "status": 0.3427480551665995
       },
       {
-        "name": "Word",
+        "id": "word",
+        "en": "Word",
         "my": "ဝေါဟာရ",
         "status": 5351
       },
       {
-        "name": "Definition",
+        "id": "sense",
+        "en": "Definition",
         "my": "အနက်",
         "status": false
       },
       {
-        "name": "Example",
+        "id": "exam",
+        "en": "Example",
         "my": "သာဓက",
         "status": false
       }
@@ -37,5 +42,5 @@
       "The Malay-Myanmar dictionary is intended for Myanmar people living in Malaysia."
     ]
   },
-  "dated": 1690553404799
+  "dated": 1692367038661
 }

@@ -6,29 +6,34 @@
     "header": "Swedish",
     "progress": [
       {
-        "name": "Usage",
+        "id": "usage",
+        "en": "Usage",
         "my": "အသုံးပြုမှု",
         "percentage": true,
         "status": 2.3
       },
       {
-        "name": "Completion",
+        "id": "progress",
+        "en": "Completion",
         "my": "ပြီးစီးမှု",
         "percentage": true,
         "status": 0
       },
       {
-        "name": "Word",
+        "id": "word",
+        "en": "Word",
         "my": "ဝေါဟာရ",
         "status": 0
       },
       {
-        "name": "Definition",
+        "id": "sense",
+        "en": "Definition",
         "my": "အနက်",
         "status": false
       },
       {
-        "name": "Example",
+        "id": "exam",
+        "en": "Example",
         "my": "သာဓက",
         "status": false
       }
@@ -37,5 +42,5 @@
       "The Swedish-Myanmar dictionary is intended for Myanmar residents of Sweden."
     ]
   },
-  "dated": 1690553404022
+  "dated": 1692367037968
 }

@@ -6,29 +6,34 @@
     "header": "Portuguese",
     "progress": [
       {
-        "name": "Usage",
+        "id": "usage",
+        "en": "Usage",
         "my": "အသုံးပြုမှု",
         "percentage": true,
         "status": 0.3
       },
       {
-        "name": "Completion",
+        "id": "progress",
+        "en": "Completion",
         "my": "ပြီးစီးမှု",
         "percentage": true,
-        "status": 0.33045091608600374
+        "status": 0.10056334266708301
       },
       {
-        "name": "Word",
+        "id": "word",
+        "en": "Word",
         "my": "ဝေါဟာရ",
         "status": 1570
       },
       {
-        "name": "Definition",
+        "id": "sense",
+        "en": "Definition",
         "my": "အနက်",
         "status": false
       },
       {
-        "name": "Example",
+        "id": "exam",
+        "en": "Example",
         "my": "သာဓက",
         "status": false
       }
@@ -37,5 +42,5 @@
       "Portuguese is one of the most spoken languages in the Western world. This dictionary is aimed at Myanmar people living in areas where the Portuguese language and culture are significant."
     ]
   },
-  "dated": 1690553403445
+  "dated": 1692367037503
 }

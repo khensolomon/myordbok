@@ -6,29 +6,34 @@
     "header": "Norwegian",
     "progress": [
       {
-        "name": "Usage",
+        "id": "usage",
+        "en": "Usage",
         "my": "အသုံးပြုမှု",
         "percentage": true,
         "status": 0.4
       },
       {
-        "name": "Completion",
+        "id": "progress",
+        "en": "Completion",
         "my": "ပြီးစီးမှု",
         "percentage": true,
-        "status": 21.797763199117707
+        "status": 6.633529590210904
       },
       {
-        "name": "Word",
+        "id": "word",
+        "en": "Word",
         "my": "ဝေါဟာရ",
         "status": 103563
       },
       {
-        "name": "Definition",
+        "id": "sense",
+        "en": "Definition",
         "my": "အနက်",
         "status": false
       },
       {
-        "name": "Example",
+        "id": "exam",
+        "en": "Example",
         "my": "သာဓက",
         "status": false
       }
@@ -37,5 +42,5 @@
       "The Norwegian-Myanmar dictionary is intended for Myanmar residents of Norway."
     ]
   },
-  "dated": 1690553403677
+  "dated": 1692367037667
 }

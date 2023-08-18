@@ -6,29 +6,34 @@
     "header": "Danish",
     "progress": [
       {
-        "name": "Usage",
+        "id": "usage",
+        "en": "Usage",
         "my": "အသုံးပြုမှု",
         "percentage": true,
         "status": 2.3
       },
       {
-        "name": "Completion",
+        "id": "progress",
+        "en": "Completion",
         "my": "ပြီးစီးမှု",
         "percentage": true,
-        "status": 8.975846698399764
+        "status": 2.7315437885590796
       },
       {
-        "name": "Word",
+        "id": "word",
+        "en": "Word",
         "my": "ဝေါဟာရ",
         "status": 42645
       },
       {
-        "name": "Definition",
+        "id": "sense",
+        "en": "Definition",
         "my": "အနက်",
         "status": false
       },
       {
-        "name": "Example",
+        "id": "exam",
+        "en": "Example",
         "my": "သာဓက",
         "status": false
       }
@@ -37,5 +42,5 @@
       "The Danish-Myanmar dictionary is intended for Myanmar people living in Denmark."
     ]
   },
-  "dated": 1690553404058
+  "dated": 1692367037978
 }
