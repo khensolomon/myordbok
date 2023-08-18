@@ -24,9 +24,10 @@ mixin message(raw)
                 | ~
                 +wordlink(word)
 
+//- NOTE: type
 mixin meaning(row)
   each define,grammar in row
-    div.pos(class=grammar.toLowerCase())
+    div.pos(class=grammar)
       h2= grammar
       div
         each mean,ty in define
@@ -35,18 +36,34 @@ mixin meaning(row)
             +internal_casting_exam(mean.exam)
             +internal_casting_usage(mean.usage)
 
+//- NOTE: pos
 mixin suggestion(raw)
   each row,name in raw
-    div.suggestion(class=name.toLowerCase())
+    div.suggestion(class=name)
       h3= name
       div
         +#{name}(row)
 
+//- NOTE: pos
 mixin thesaurus(raw)
   if raw && raw.length
     each row in raw
       div(class=row.kind)
         +examWord(row.v)
+
+//- NOTE: type
+mixin help(row)
+  each define,grammar in row
+    div.help(class=grammar)
+      //- h3= grammar
+      div
+        each mean,ty in define
+          helps-improve(row=mean)
+          //- p= ty
+          //- div(class=mean.kind)
+          //-   +internal_casting_mean(mean.v)
+          //-   +internal_casting_exam(mean.exam)
+          //-   +internal_casting_usage(mean.usage)
 
 mixin internal_casting_mean(o)
   if o
@@ -135,33 +152,41 @@ mixin usageSentence(raw)
 //-             li
 //-               +wordlink(word)
 
-mixin result(o)
-  each row in o
-    if Array.isArray(row.clue)
-      +translation(row)
-    else
-      +definition(row)
+mixin resultData(o)
+  div.sense
+    each row in o
+      if Array.isArray(row.clue)
+        +translation(row)
+      else
+        +definition(row)
+  div.promote
+    div.ads
+      div ads
 
 mixin translation(row, w)
-  div.translation(data-lang=lang.tar)
+  div.translation
     p= row.word
-      //- span.speech(class=lang.tar).zA.icon-volume-up
       speech-engine(word=row.word lang=lang.tar)
     div
       each e in row.clue
         +definition(e)
 
 mixin definition(raw)
-  div.definition(data-lang=lang.tar)
-    h1= raw.word
-      //- span.speech.en.zA.icon-volume-up
-      speech-engine(word=raw.word lang=lang.tar)
-      //- speech-engine(word=raw.word lang=lang.src) @click="apple('Form cannot be submitted yet.', $event)"
+  div.definition
+    div.word(data-lang=lang.tar)
+      div
+        h1= raw.word
+          speech-engine(word=raw.word lang=lang.tar)
+      div
+        p ?
     if query.status
       p
         each eg in query.sentence
           +sentencelink(eg)
           | !{' '}
-    div.meaning
-      each row, name in raw.clue
-        +#{name}(row)
+    div.lexicon
+      div.ads
+        div ads
+      div.meaning
+        each row, name in raw.clue
+          +#{name}(row)

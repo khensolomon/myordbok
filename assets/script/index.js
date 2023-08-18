@@ -21,6 +21,8 @@ import NavEngine from "./NavEngine.js";
 import SpeechEngine from "./SpeechEngine.js";
 import CookieConsent from "./CookieConsent.js";
 import ThemeSwitch from "./ThemeSwitch.js";
+import HelpsImprove from "./HelpsImprove.js";
+import FormLinks from "./FormLinks.js";
 import SearchEngine from "./SearchEngine.js";
 import OfficeUser from "./OfficeUser.js";
 
@@ -65,6 +67,8 @@ const app = createApp({
 		NavEngine,
 		SpeechEngine,
 		ThemeSwitch,
+		HelpsImprove,
+		FormLinks,
 		CookieConsent,
 		SearchEngine,
 		OfficeUser

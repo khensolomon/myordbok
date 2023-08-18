@@ -1,7 +1,8 @@
 div.sch-definition {
 	position: inherit;
 	z-index: 10;
-	form[name="search"] {
+	// form[name="search"] {
+	form {
 		position: inherit;
 		// display:table;
 		// z-index: 9999;
@@ -75,7 +76,7 @@ div.sch-definition {
 						&::-webkit-input-placeholder {
 							/* Chrome/Opera/Safari */
 							// color: rga(var(--color-search-placeholder));
-							color: rgba(var(--color-text), 0.6);
+							color: rgba(var(--color-text), 0.4);
 							text-transform: lowercase;
 						}
 						&::-webkit-search-cancel-button {
@@ -515,6 +516,11 @@ div.sch-definition {
 			// 	content: "";
 			// }
 			@import "Common.search.mobile-tablet";
+		}
+	}
+	@media #{$media-mobile} {
+		> form {
+			border-radius: 9px;
 		}
 	}
 	// &.focus {

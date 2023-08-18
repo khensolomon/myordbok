@@ -51,15 +51,25 @@ export async function doExport() {
 				// const totalSense = raw.length;
 				const percentage = await percentageTranslation(_wst);
 				infoRaw.info.progress.map(e => {
-					if (e.name) {
-						if (e.name.toLowerCase() == "word") {
+					if (e.id) {
+						if (e.id == "word") {
 							e.status = _wst;
 						}
-						if (e.name.toLowerCase() == "completion") {
+						if (e.id == "progress") {
 							e.status = percentage;
 						}
 					}
 				});
+				// infoRaw.info.progress.map(e => {
+				// 	if (e.name) {
+				// 		if (e.name.toLowerCase() == "word") {
+				// 			e.status = _wst;
+				// 		}
+				// 		if (e.name.toLowerCase() == "completion") {
+				// 			e.status = percentage;
+				// 		}
+				// 	}
+				// });
 
 				// await base.json.write(infoFile, infoRaw, 2);
 				// console.log("  +", infoFile);

@@ -11,6 +11,7 @@ ol {
 		position: inherit;
 		color: rgba(var(--color-text), 0.4);
 		font-size: 90%;
+		// margin: 0 3px;
 		a {
 			display: block;
 			position: inherit;
@@ -87,8 +88,9 @@ ol {
 			&:before,
 			&:after {
 				position: absolute;
-				top: 4px;
+				top: 0px;
 				content: "\2022";
+				font-size: 150%;
 				// color: lighten(#666, 30%);
 				color: rgba(var(--color-text), 0.3);
 				// padding-right:3px;
@@ -114,11 +116,11 @@ ol {
 		li {
 			em {
 				font-style: normal;
-				color: rgba(var(--color-text), 0.5);
+				color: rgba(var(--color-text), 0.6);
 			}
 			strong {
 				font-weight: normal;
-				color: rgba(var(--color-text), 0.6);
+				color: rgb(var(--color-text));
 			}
 		}
 	}

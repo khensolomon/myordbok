@@ -26,7 +26,6 @@ div
       | #[q=query.word]
       | , we kindly request your assistance in providing its definition in Myanmar using
       |
-      a(class="send" href='https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform?usp=pp_url&entry.2033036872='+encodeURI(query.word))
-        | Google form #[em=query.word]
+      form-links(type="suggestion" text="Google forms" title="ဝေါဟာရနှင့် အနက်များ" prefill=query.word)
       | .
     p.quote Knowledge is information that has been passed down through generations. No one is intellectually apart from others. We are seeking your understanding of the term so that others may learn from it.

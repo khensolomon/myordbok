@@ -23,7 +23,7 @@ block content
 
         div.row
           div.header
-           h3.ico Visits
+           h2 Visits
           div.data
             p
               | Based on the recalculated visitation data from #[q=visits.created], there were a total of #[q=visits.user] unique visitors and #[q=visits.request] total visits recorded.
@@ -42,10 +42,10 @@ block content
 
         div.row
           div.data.social.text-center
-            a.icon-google(title="+MyOrdbok dictionary")
-              span +MyOrdbok dictionary
-            a.icon-google-circles(title="share on Google+")
-              span ...share on Google+
+            //- a.icon-google(title="+MyOrdbok dictionary")
+            //-   span +MyOrdbok dictionary
+            //- a.icon-google-circles(title="share on Google+")
+            //-   span ...share on Google+
             a.icon-facebook(href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fmyordbok.com" target="_blank" title="share on Facebook")
               span ...share on Facebook
             a.icon-twitter(href="http://twitter.com/share?url=https%3A%2F%2Fmyordbok.com%26amp%3Btext%3Donline%20Myanmar%20dictionary&amp;hashtags=MyOrdbok" target="_blank"  title="share on Twitter")
@@ -62,7 +62,7 @@ block content
 
         div.row
           div.header
-           h3.ico.function(title="Protocol") Scheme
+           h2.function(title="Protocol") Scheme
           div.data
             p
               | As technology advances over time, the complexity of vocabularies and semantics is addressed proactively.
@@ -71,7 +71,7 @@ block content
 
         div.row
           div.header
-            h3.ico.function(title="function") Action
+            h2.function(title="function") Action
           div.data
             p
               | #[q=appName] will continue its commitment to working on and developing programs that align with its objectives.
@@ -80,21 +80,21 @@ block content
 
         div.row
           div.header
-            h3.ico.function(title="Help") Help
+            h2.function(title="Help") Help
           div.data
             p
               | As the definitions continue to update over time, #[em=appName] would like to invite you to participate in this process.
               | If you come across any errors or have new insights that don't align with our objectives, we encourage you to notify us through the
               |
-              a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" title="အကြောင်းကြားပေးရန်") Google form
+              form-links(type="feedback" text="Google forms" title="အကြောင်းကြားပေးရန်")
               |. Your feedback is valuable in helping us improve the accuracy and quality of our content. Moreover, we welcome your input on
               |
-              a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" title="ဝေါဟာရနှင့် အနက်များ") vocabulary and interpretation
+              form-links(type="suggestion" text="vocabulary and interpretation" title="ဝေါဟာရနှင့် အနက်များ")
               |, as it aids us in enhancing the overall user experience. Your contributions are highly appreciated!
 
         div.row
           div.header
-            h3.ico.function(title="Donate") Contribute
+            h2.function(title="Donate") Contribute
           div.data
             p
               | To ensure that our app, #[strong=appName], continues to thrive and provide comprehensive definitions, we rely on the generosity of users like you.
@@ -119,7 +119,7 @@ block content
 
         div.row
           div.header
-            h3.ico.function(title="Version") #{appName}
+            h2.function(title="Version") #{appName}
               sup #{appVersion}
           div.data
             p
@@ -132,7 +132,7 @@ block content
 
         div.row.note
           div.header
-           h3.ico.function(title="Note") Note
+           h2.function(title="Note") Note
           div.data
             ul
               li The data of the dictionary is primarily collected daily.

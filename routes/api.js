@@ -106,12 +106,8 @@ routes.register("/search/:task?", async (req, res) => {
  * 150-180ms upto 555ms
  */
 routes.register("/grammar", (req, res) => {
-	/**
-	 * @type {q}
-	 */
-	var q = req.query.q;
 	grammar
-		.main(q)
+		.main(req.query.q)
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
 });

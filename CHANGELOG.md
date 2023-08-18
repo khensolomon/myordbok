@@ -1,15 +1,21 @@
 # Version
 
-## 1.8.2-3-4
+## 1.8.2-3-4-5
 
 - NEN
 - Cookie consent
-- Improve color for light and dark
+- Color
+  - [x] Theme mode (light and dark)
+- SEO
+  - [x] headings
+- Add suggestion form link
+- Modified info(data)
 - Privacy policy, Terms of service and Cookie policy are updated
+  - [x] cookie SameSite=Lax
 - Style (search)
-  - word: 59254
-  - sense: 101333
-  - usage: 54756
+  - word: 59610
+  - sense: 101832
+  - usage: 55350
 
 ## 1.8.1
 

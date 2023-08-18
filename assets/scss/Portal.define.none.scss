@@ -55,13 +55,12 @@
 			&.help {
 				width: 60%;
 				max-width: 400px;
-				border-radius: 12px;
-				// box-shadow: inset 0px 0px 1px 1px #ccc;
-				// background-color: lighten(#ccc, 17%);
-				box-shadow: inset 0px 0px 7px 1px rgba(var(--color-text), 0.1);
-				background-color: rgba(var(--color-text), 0.1);
-				// background-color: rgba(var(--color-surround), 0.7);
-				// border-left: 1px solid rgba(var(--color-surround), 1);
+				border-radius: 8px;
+
+				// box-shadow: inset 0px 0px 7px 1px rgba(var(--color-text), 0.1);
+				// background-color: rgba(var(--color-text), 0.1);
+				box-shadow: 0px 0px 7px 1px rgba(var(--color-text), 0.2);
+				background-color: rgba(var(--color-text), 0.03);
 				padding: 2%;
 				font-weight: lighter;
 				h2 {
@@ -91,75 +90,6 @@
 							font-size: 150%;
 							line-height: 0;
 							content: '"';
-						}
-					}
-				}
-			}
-		}
-	}
-	> tmp {
-		padding: 20px 3%;
-		> div {
-			&.notice {
-				h1 {
-					padding: 2% 3%;
-					// font-size: calc(40vw - 45vh);
-					font-size: 2em;
-					font-weight: lighter;
-					// word-wrap: break-word;
-					overflow: hidden;
-					text-overflow: ellipsis;
-					sup {
-						font-size: 15px;
-						// display: inline-block;
-						// border-radius: 3px;
-						// font-size: 60%;
-						// padding: 1px 3px;
-					}
-				}
-				h2 {
-					color: var(--color-text-disable);
-					font-size: 1.5em;
-					padding: 1% 5%;
-					font-weight: lighter;
-					overflow: hidden;
-					text-overflow: ellipsis;
-					em {
-						color: var(--color-text-enable);
-					}
-				}
-				ul {
-					padding: 20px 5%;
-					font-weight: lighter;
-					list-style: none;
-					// overflow-wrap: break-word;
-					li {
-						font-size: 1rem;
-						// margin: 1%;
-						line-height: 1.7rem;
-						&::before {
-							content: "... ";
-						}
-						q {
-							color: var(--color-text-enable);
-							font-weight: lighter;
-							font-size: 130%;
-							&::before,
-							&::after {
-								color: var(--color-text-active);
-							}
-						}
-						em {
-							font-style: normal;
-							text-transform: uppercase;
-							&::before {
-								color: var(--color-text-disable);
-								font-weight: lighter;
-								content: ":";
-							}
-						}
-						a {
-							font-size: 1.2rem;
 						}
 					}
 				}

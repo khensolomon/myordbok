@@ -10,7 +10,11 @@ block content
       div.gads
         div(width='100vw' height='320' type='adsense' data-ad-client='ca-pub-2986689390924566' data-ad-slot='2945716327' data-auto-format='rspv' data-full-width='')
           div(overflow='')
-
+      //- div.ads
+      //-   div
+      //-     p This property specifies whether to clip content or to add scrollbars when an element's content is too big to fit in a specified area.
+      //-   div
+      //-     p ads
       div.define(class=meta.type)
         case meta.type
           when 'pleaseenter'
@@ -18,7 +22,7 @@ block content
           when 'notfound'
             include ./notfound
           default
-            +result(data)
+            +resultData(data)
 
 block footer
   include ../footer

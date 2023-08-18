@@ -1,85 +1,67 @@
 &.result {
-	margin: 0 2%;
-	max-width: $max-width;
-	border-radius: 3px;
 	> div {
-		margin: 2%;
-		// border-left: 3px solid rgba(var(--color-highlight), 0.6);
-		border-left: 1px solid rgba(var(--color-text), 0.4);
-		&.translation {
-			&::before {
-				// content: attr(data-lang);
-				display: inline-block;
-				// background-color: red;
-				background-color: rgb(var(--color-background));
-				border: 1px solid rgba(var(--color-text), 0.4);
-			}
+		&.sense {
 			> div {
-				> div.definition {
-					border-left-style: dotted;
-					&::before {
-						border-style: dotted;
-					}
+				&.definition {
+					margin: 1%;
+					// > div {
+					// 	&.meaning {
+					// 		// padding-left: 20%;
+					// 		> div.pos {
+					// 			// padding-left: 20%;
+					// 			padding-left: 225px;
+					// 		}
+					// 	}
+					// }
 				}
 			}
-		}
-		> div {
-			padding: 2% 5%;
-			padding-left: 150px;
-		}
-	}
+			> div.definition {
+				// border-left: 2px solid rgba(var(--color-highlight), 0.6);
+				border-left: 1px solid rgba(var(--color-text), 0.2);
 
-	div.definition {
-		// border-left: 2px solid rgba(var(--color-highlight), 0.6);
-		border-left: 1px solid rgba(var(--color-text), 0.2);
-		> h1 {
-			padding-left: 25px;
-		}
-		> div {
-			> div {
-				padding: 3% 3% 3% 7%;
-				> h2,
-				h3 {
-					&::before {
-						content: "";
-						display: inline-block;
-						width: 20px;
-						height: 20px;
-						border-radius: 50%;
-						position: absolute;
-						top: 0px;
-						left: -11px;
-						border: 1px solid rgba(var(--color-highlight), 0.6);
+				> div {
+					&.lexicon {
+						> div {
+							&.meaning {
+								margin-top: 2%;
+								> div {
+									> h2,
+									h3 {
+										&::before {
+											content: "";
+											display: inline-block;
+											border-radius: 50%;
+											position: absolute;
+
+											height: 17px;
+											width: 17px;
+											top: 0px;
+											left: -9px;
+											// border: 1px solid rgba(var(--color-highlight), 0.6);
+											border: 1px solid rgba(var(--color-text), 0.2);
+											background-color: rgb(var(--color-background));
+										}
+									}
+									> div {
+										// margin-top: 2px;
+
+										margin-bottom: 5%;
+										padding-left: 5%;
+										padding-top: 3%;
+										// border-left: 1px solid rgba(var(--color-highlight), 0.6);
+										border-left: 1px solid rgba(var(--color-text), 0.1);
+									}
+								}
+							}
+						}
 					}
 				}
-				> div {
-					padding-left: 5%;
-					border-left: 1px solid rgba(var(--color-highlight), 0.6);
-				}
-				// &.thesaurus {
-				// 	> div {
-				// 		padding-left: 0;
-				// 		border-left: 0;
-				// 	}
-				// }
-				// &.thesaurus {
-				// 	> div {
-				// 		> div {
-				// 			p {
-				// 			}
-				// 			ol {
-				// 			}
-				// 		}
-				// 	}
-				// }
 			}
 		}
 	}
-	@media #{$media-tablet} {
-		> div {
-			> div {
-				padding-left: 7%;
-			}
-		}
-	}
+}
+
+@media #{$media-tablet} {
+}
+@media #{$media-tablet} {
 }

@@ -13,15 +13,31 @@ export async function doExport() {
 	// 	.replace(/\..+/, "");
 	infoRaw.dated = Date.now();
 	/**
-	 * @param {string} identity
+	 * @param {string} identity but its string, just to avoid typescript
 	 * @param {any} digit
 	 */
 	function _record_info(identity, digit) {
-		infoRaw.info.progress.map(e => {
-			if (e.name && e.name.toLowerCase() == identity.toLowerCase()) {
-				e.status = digit;
-			}
-		});
+		var checkIdExist = infoRaw.info.progress.find(e => e.id == identity);
+		if (checkIdExist) {
+			// console.log("yes", identity);
+			// infoRaw.info.progress[identity].status = digit;
+			checkIdExist.status = digit;
+		} else {
+			console.log(identity, "not found, it's happen when syntax modified");
+		}
+		// infoRaw.info.progress.map(e => {
+		// 	if (e.id && e.id == identity) {
+		// 		e.status = digit;
+		// 		// console.log(identity, "yes", digit);
+		// 	} else {
+		// 		console.log(identity, "not", digit);
+		// 	}
+		// 	// if (e.name && e.name.toLowerCase() == identity.toLowerCase()) {
+		// 	// 	e.status = digit;
+		// 	// } else {
+		// 	// 	console.log(identity, "not found for", digit);
+		// 	// }
+		// });
 	}
 
 	// NOTE: reset wrid
@@ -58,8 +74,8 @@ export async function doExport() {
 	_record_info("word", number_format(_wtt));
 	const completion = await percentage(_wtt);
 
-	_record_info("completion", completion);
-	console.info(" >", "Word (en):", _wtt, wordTarget.file);
+	_record_info("progress", completion);
+	console.info(" >", "Word (en):", _wtt, wordTarget.file, completion);
 
 	// /*
 	// word:{w:wrid, v:word}
@@ -74,7 +90,7 @@ export async function doExport() {
 	await defSense.write();
 	let _dst = defSense.raw.length;
 
-	_record_info("definition", number_format(_dst));
+	_record_info("sense", number_format(_dst));
 	console.info(" >", "Sense:", _dst, defSense.file);
 
 	// const example = await base.mysql.query(
@@ -91,10 +107,12 @@ export async function doExport() {
 	await defUsage.write();
 	let _dut = defUsage.raw.length;
 
-	_record_info("example", number_format(_dut));
-	console.info(" >", "Usage:", _dut, defUsage.file);
+	_record_info("exam", number_format(_dut));
+	console.info(" >", "Exam:", _dut, defUsage.file);
 
-	await ifd.write({ space: 2 });
+	await ifd.write({
+		space: 2
+	});
 
 	console.info(" >", "Info (updated):", ifd.file);
 }

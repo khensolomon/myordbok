@@ -64,7 +64,8 @@
 							font-size: 1em;
 							line-height: 1em;
 							// color: #039;
-							color: rgba(var(--color-highlight), 0.9);
+							// color: rgba(var(--color-highlight), 0.9);
+							color: rgba(var(--color-text), 0.9);
 							span,
 							em {
 								display: table-cell;
@@ -78,7 +79,8 @@
 							span {
 								padding-right: 4px;
 								&:before {
-									color: rgba(var(--color-highlight), 0.7);
+									// color: rgba(var(--color-highlight), 0.7);
+									color: rgba(var(--color-text), 0.9);
 								}
 							}
 							em {
@@ -107,7 +109,7 @@
 								cursor: default;
 								// color: lighten(#666, 20%);
 								// color: var(--color-text-disable);
-								color: rgba(var(--color-text), 0.5);
+								color: rgba(var(--color-text), 0.8);
 								span {
 									&:before {
 										// color: lighten(#666, 20%);

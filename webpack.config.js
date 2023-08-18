@@ -7,7 +7,7 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 export default {
 	// target: "node",
 	mode: "development",
-	devtool: "inline-source-map",
+	// devtool: "inline-source-map",
 	// devServer: {
 	//   compress: true,
 	//   public: path.resolve('./static')

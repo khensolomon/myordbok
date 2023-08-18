@@ -12,7 +12,12 @@ import { settings } from "./base.js";
 export async function asDefinition(raw) {
 	let word = raw.meta.q;
 	const res = await asMeaning(word);
-	if (res.id == 1) {
+	if (res.id == 0) {
+		raw.title = "Help us with * definition".replace(/\*/g, word);
+		raw.description = "No definition for * at this moment".replace(/\*/g, word);
+
+		raw.keywords = word;
+	} else if (res.id == 1) {
 		// EXAM: us britian, britain
 		raw.title = settings.meta.auto.title.replace(/\*/g, word);
 		raw.description = settings.meta.auto.description.replace(/\*/g, word);
@@ -135,6 +140,24 @@ async function asMeaning(word) {
 		if (thesaurus.length) {
 			row.push(...thesaurus);
 		}
+		row.push(
+			...[
+				{
+					term: word,
+					type: "help", //meaning
+					// pos: thesaurus.posName(e.pos),
+					pos: "improve",
+					kind: ["odd"],
+					v: "what is this",
+					// exam: ["a","b"],
+					exam: {
+						type: "examWord",
+						value: ["a", "b"]
+					}
+					// examCast: "exam_thesaurus"
+				}
+			]
+		);
 		res.row = row;
 		cache.write(res);
 	}

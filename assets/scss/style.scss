@@ -51,6 +51,20 @@ a {
 	padding: 0;
 	margin: 0;
 }
+// NOTE: common
+div {
+	&.ads {
+		> div {
+			display: none;
+			background-color: rgb(var(--color-reserved-space));
+			// display: inline-block;
+			vertical-align: middle;
+			line-height: normal;
+			text-align: center;
+			color: rgba(var(--color-text), 0.4);
+		}
+	}
+}
 
 // form{
 //   input{

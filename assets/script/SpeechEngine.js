@@ -19,7 +19,7 @@ export default {
 			// console.log(e)
 			// $(clickedElement).siblings().removeClass('active');
 			// $(clickedElement).addClass('active');
-			console.log(this.word, this.lang);
+			// console.log(this.word, this.lang);
 
 			this.isplaying = true;
 			var audio = document.createElement("audio");
@@ -28,26 +28,17 @@ export default {
 			audio.play();
 			audio.addEventListener("ended", () => (this.isplaying = false));
 			// console.log(this.$parent.speech({ q: this.word, l: this.lang }));
-		},
-		apple() {
-			console.log("hellor");
 		}
 	},
 	render() {
 		// <span @click = 'speech' v-bind:class = "{'playing': isplaying}" class="speech icon-volume-up"></span>
 
 		return h("span", {
-			// attrs: {
-			//   'class': 'speech icon-volume-up isplaying'
+			// attr: {
+			// 	class: "speech icon-volume-up isplaying"
 			// },
-			class: {
-				"speech icon-volume-up apple": true
-				// playing: this.isplaying
-			},
+			class: ["speech icon-volume-up"],
 			onClick: this.speech
-			// on: {
-			// 	click: this.apple
-			// }
 		});
 	}
 };

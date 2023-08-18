@@ -322,8 +322,8 @@ export default {
 			if (this.focusStatus != 2) {
 				this.focusStatus = 2;
 			}
-			console.log("onInput currentQuery", this.currentQuery);
-			console.log("onInput target.value", e.target.value);
+			// console.log("onInput currentQuery", this.currentQuery);
+			// console.log("onInput target.value", e.target.value);
 
 			this.currentQuery = e.target.value;
 
@@ -412,7 +412,7 @@ export default {
 			setTimeout(() => {
 				this.focusOverride = false;
 			}, 150);
-			console.log("onMousedown", e);
+			// console.log("onMousedown", e);
 		},
 
 		/**
@@ -427,7 +427,7 @@ export default {
 					this.focusStatus = 0;
 				}
 			}, 100);
-			console.log("onFocusOut", e);
+			// console.log("onFocusOut", e);
 		},
 		/**
 		 * Form unfocus
@@ -524,7 +524,7 @@ export default {
 				// 	console.log("onKeyArrowRight", o.w);
 				// }
 				if (o.w != this.currentQuery && tools.isMyanmarText(o.w)) {
-					console.log("onKeyArrowRight", o.w, this.currentQuery);
+					// console.log("onKeyArrowRight", o.w, this.currentQuery);
 					this.currentQuery = o.w;
 					this.updateInput();
 				}

@@ -20,26 +20,29 @@ block content
             if o.percentage
               div.progress.percentage
                 div(title=o.my)
-                  span= o.name
+                  span= o.en
                   span= o.status
                 div(style={width:o.status+'%'})
             else if (o.status)
               div.progress.status
                 div(title=o.my)
-                  span= o.name
+                  span= o.en
                   span= o.status
           p.feedback
             | Any creative
             |
-            a(href="https://docs.google.com/forms/d/e/1FAIpQLScSyBRtQrEc1YGh3m0O96vy6YNlCtJZR5T6NIJ9hYJRfcnV2g/viewform" target="_blank" title="Feedback") ideas
+            form-links(type="feedback" text="ideas")
             |
             | and missing
             |
-            a(href="https://docs.google.com/forms/d/e/1FAIpQLSceWwVrtH5KivCR3wuvKqMn8U238-aCxOJIIWs1gK4pt994oA/viewform" target="_blank" title="Suggestion") words & definitions
+            form-links(type="suggestion" text="words & definitions")
             |
-            | can be sent via Google Form.
+            | can be sent via Google Forms.
+
 
         div.row
+          div.header.text-center
+            h2 Dictionaries
           div.dictionaries
             ol
               each conti in dictionaries

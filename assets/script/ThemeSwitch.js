@@ -36,6 +36,7 @@ export default {
 			h(
 				"button",
 				{
+					"aria-label": "Theme mode",
 					onClick: this.theme_switch
 				},
 				[
