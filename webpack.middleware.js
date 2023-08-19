@@ -8,7 +8,7 @@ import common from "./webpack.config.js";
 // @ts-ignore
 const config = merge(common, {
 	// target: "node",
-	mode: "development",
+	// mode: "development",
 	devtool: "inline-source-map",
 	entry: {
 		script: [

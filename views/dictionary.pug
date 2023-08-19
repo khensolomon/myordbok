@@ -16,18 +16,31 @@ block content
           each desc in info.context
             p.description= desc
           p.dated= dated
+          //- each o in info.progress
+          //-   if o.percentage
+          //-     div.progress.percentage
+          //-       div(title=o.my)
+          //-         span= o.en
+          //-         span= o.status
+          //-       div(style={width:o.status+'%'})
+          //-   else if (o.status)
+          //-     div.progress.status
+          //-       div(title=o.my)
+          //-         span= o.en
+          //-         span= o.status
+
           each o in info.progress
             if o.percentage
-              div.progress.percentage
+              div.progress.percentage(style="--percentage:"+ o.status)
                 div(title=o.my)
                   span= o.en
                   span= o.status
-                div(style={width:o.status+'%'})
             else if (o.status)
               div.progress.status
                 div(title=o.my)
                   span= o.en
                   span= o.status
+
           p.feedback
             | Any creative
             |
@@ -38,7 +51,6 @@ block content
             form-links(type="suggestion" text="words & definitions")
             |
             | can be sent via Google Forms.
-
 
         div.row
           div.header.text-center

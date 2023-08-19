@@ -210,9 +210,11 @@
 												&::before,
 												&::after {
 													// font-style: normal;
-													color: rgba(var(--color-highlight), 0.9);
+													// color: rgba(var(--color-highlight), 0.5);
+													color: rgba(var(--color-text), 0.3);
 													// font-size: 100%;
 													font-weight: normal;
+													font-style: normal;
 												}
 												&::before {
 													content: "(";
@@ -223,10 +225,13 @@
 											}
 											em {
 												font-size: 80%;
-												font-style: italic;
+												// font-style: italic;
 											}
 											b {
 												font-size: 80%;
+												a {
+													color: rgba(var(--color-highlight), 1);
+												}
 											}
 											a {
 												font-weight: lighter;

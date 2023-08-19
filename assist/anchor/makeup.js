@@ -15,6 +15,12 @@ export function link(str) {
 				.join(", ");
 			if (name == "list") {
 				return href;
+			} else if (name == "type") {
+				// NOTE: type (law, medical, physic, religion, grammar, biology, dated etc)
+				return "[1]".replace("1", href);
+			} else if (name == "user") {
+				// NOTE: type (suggestion, correction)
+				return "[1]".replace("1", href);
 			} else {
 				return "(-0-) 1".replace("0", name).replace("1", href);
 			}

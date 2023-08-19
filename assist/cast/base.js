@@ -12,8 +12,7 @@ export const mysql = db.mysql;
  * @property {TypeOfInfo} settings.info
  */
 export const settings = {
-	// totalWord: 167841,
-	totalWord: 305063,
+	totalWord: 171190, // 305063 167841
 	percentageCompletion: 0,
 	info: {},
 	abc: true

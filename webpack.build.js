@@ -7,7 +7,7 @@ import common from "./webpack.config.js";
 // @ts-ignore
 const config = merge(common, {
 	mode: "production",
-	devtool: "source-map",
+	// devtool: "source-map",
 	entry: {
 		script: [
 			path.resolve("./assets/script/analytics.js")

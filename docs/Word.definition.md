@@ -4,25 +4,26 @@
 
 id | name
 ---|---
-0 | Noun
-1 | Verb
-2 | Adjective
-3 | Adverb
-4 | Preposition
-5 | Conjunction
-6 | Pronoun
-7 | Interjection
-8 | Abbreviation
-9 | Prefix
-10 | Combining form
-11 | Phrase
-12 | Contraction
-13 | Adjective suffix
-14 | Noun suffix
-15 | Verb suffix
-16 | Acronym
-17 | Article
-18 | Int
+0 | noun
+1 | verb
+2 | adjective
+3 | adverb
+4 | preposition
+5 | conjunction
+6 | pronoun
+7 | interjection
+8 | abbreviation
+9 | prefix
+10 | combining form
+11 | phrase
+12 | contraction
+13 | punctuation (Adjective suffix)
+14 | particle (Noun suffix)
+15 | postpositional marker (Verb suffix)
+16 | suffix
+17 | acronym
+18 | article
+18 | number (int)
 
 ## Etymology (ety)
 
@@ -156,6 +157,10 @@ weaving | - | -
 [asin:Grammar]
 [suggested:user]
 [corrected:user]
+
+### type: (typeof)
+
+[type:law]
 
 ### asin: Usage
 

@@ -1,7 +1,7 @@
 mixin wordlink(q)
-  a(href='definition?q='+encodeURI(q))= q
+  a(href='/definition?q='+encodeURI(q))= q
 mixin sentencelink(q)
-  a(href='definition?q='+encodeURI(query.input+"~"+q))= q
+  a(href='/definition?q='+encodeURI(query.input+"~"+q))= q
 
 //- mixin test(q)
 //-   q.replace(/\{-(.*?)\-}/g, '<a href="definition?q=$1">$1</a>')
@@ -10,7 +10,7 @@ mixin sentencelink(q)
   //- eg.replace(/{-/g,'<a href="definition?q=').replace(/-:-/g,'">').replace(/-}/g,'</a>')
 
 mixin format(tagName,e)
-  #{tagName}(class!=attributes.class)!= e.replace(/\"(.+?)\"/g, '<q>$1</q>').replace(/\(-(.+?)-\)/g, '<small>$1</small>').replace(/\((.+?)\)/g, '<em>$1</em>').replace(/\{-(.+?)-\}/g, (_,q)=>'<a href="definition?q='+encodeURI(q)+'">'+q+'</a>').replace(/\[(.*?)\]/g, '<b>$1</b>')
+  #{tagName}(class!=attributes.class)!= e.replace(/\"(.+?)\"/g, '<q>$1</q>').replace(/\(-(.+?)-\)/g, '<small>$1</small>').replace(/\((.+?)\)/g, '<em>$1</em>').replace(/\{-(.+?)-\}/g, (_,q)=>'<a href="/definition?q='+encodeURI(q)+'">'+q+'</a>').replace(/\[(.*?)\]/g, '<b>$1</b>')
 
 mixin message(raw)
   div.message

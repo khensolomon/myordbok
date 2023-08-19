@@ -1,10 +1,7 @@
 &.workspace {
-	// background-color: gray;
 	form {
 		&.enrollment {
 			> div {
-				// display: table;
-				// width: 100%;
 				position: relative;
 				padding: 5px;
 				> h3 {
@@ -13,11 +10,8 @@
 				> p {
 					text-align: center;
 					padding: 5px;
-					// font-size: 130%;
 				}
 				> label {
-					// width: 100px;
-					// display: table-cell;
 					display: none;
 				}
 				> input {
@@ -33,22 +27,16 @@
 					}
 					&:focus {
 						outline: none;
-						// border-color: rgba(var(--color-text), 0.7);
 						border-color: rgba(var(--color-highlight), 0.7);
 					}
 				}
 				> button {
 					display: inline-block;
 					text-align: center;
-					// width: 80%;
-					// border-radius: 20px;
-					// background-color: rgba(var(--color-text), 0.3);
-					// font-size: 107%;
-					// color: white;
+
 					padding: 9px 25px;
 					margin: 7px 20px;
 					border-radius: 30px;
-					// font-size: 110%;
 					font-size: 100%;
 					font-weight: lighter;
 					background-color: rgba(var(--color-text), 0.2);
@@ -57,7 +45,6 @@
 					color: rgba(var(--color-text), 0.8);
 
 					&:hover {
-						// background-color: rgba(var(--color-text), 0.6);
 						background-color: rgba(var(--color-text), 0.25);
 						color: rgba(var(--color-text), 0.6);
 					}
@@ -83,14 +70,11 @@
 					-webkit-tap-highlight-color: transparent;
 					border-radius: 50px;
 					&::before {
-						// z-index: 999;
 						font-size: 120%;
 						vertical-align: middle;
 						color: rgba(var(--color-text), 0.5);
 					}
-					// &:focus {
-					// 	border-radius: 20px;
-					// }
+
 					&:hover {
 						&::before {
 							color: rgba(var(--color-text), 0.8);
@@ -104,10 +88,6 @@
 						font-style: italic;
 						font-weight: 400;
 						font-size: 90%;
-						// color: rgba(var(--color-link-visited), 1);
-						// color: rgb(114, 110, 114);
-						// color: rgba(var(--color-text), 0.7);
-						// color: var(--color-text-enable);
 					}
 				}
 				ul {
@@ -136,12 +116,10 @@
 				li {
 					display: inline-block;
 					margin: 3px 7px;
-					// background-color: rgb(216, 210, 210);
 					padding: 4px 10px;
 					border-radius: 30px;
 					&.signout {
 						background-color: rgba(49, 142, 2158);
-						// color: var(--color-text);
 						color: white;
 						cursor: default;
 					}
@@ -254,25 +232,14 @@
 					}
 				}
 				&.profile {
-					// display: table;
-					// background-color: gray;
-					// width: 100%;
-					// > div {
-					// 	width: 50%;
-					// 	display: table-cell;
-					// }
 					margin: 0 auto;
 					max-width: $max-width;
-					// background-color: antiquewhite;
-					// border: 1px solid rgba(var(--color-text), 0.3);
 
 					@media #{$media-desktop} {
 						div {
 							&.table {
 								display: table;
-								// background-color: gray;
 								width: 100%;
-								// background-color: rgba(var(--color-text), 0.1);
 								border-radius: 10px;
 								overflow: hidden;
 								margin: 5% auto;
@@ -283,12 +250,10 @@
 										vertical-align: middle;
 									}
 									&.info {
-										// background-color: rgba(var(--color-text), 0.2);
 										> div {
 											display: table;
 											width: 100%;
 
-											// height: 100%;
 											vertical-align: middle;
 
 											> div {
@@ -297,15 +262,11 @@
 												&.photo {
 													text-align: center;
 													max-width: 150px;
-													// padding: 20px 0;
-													// padding: 50px;
-													// background-color: rgb(68, 155, 111);
 													p {
 														display: inline-block;
 														width: 90px;
 														height: 90px;
 														border-radius: 100%;
-														// overflow: hidden;
 														background-size: contain;
 														// background-repeat: no-repeat;
 														background-repeat: no-repeat;
@@ -335,8 +296,6 @@
 													}
 												}
 												&.status {
-													// <p>{{userName}}</p>
-													// <p><span>Update</span></p>
 													> div {
 														p {
 															span {
@@ -380,17 +339,13 @@
 										}
 									}
 									&.tasks {
-										// margin-left: 5px;
-										// border-left: 1px solid gray;
 										width: 15%;
-										// background-color: antiquewhite;
 										ul {
 											margin: 10px;
 											list-style: none;
 											li {
 												p {
 													padding: 2px;
-													// color: rgb(var(--color-link));
 													color: rgba(var(--color-text), 0.8);
 													cursor: pointer;
 													display: inline-block;
@@ -411,13 +366,7 @@
 									}
 								}
 							}
-							&.tmp {
-								margin: 10px auto;
-								max-width: 400px;
-								> div {
-									text-align: center;
-								}
-							}
+
 							&.linking {
 								text-align: center;
 								padding: 25px 2px;
@@ -431,7 +380,6 @@
 									border-bottom: 1px solid rgba(var(--color-text), 0.2);
 									line-height: 0.1em;
 									font-weight: normal;
-									// margin: 10px 0 20px;
 									span {
 										background: rgba(var(--color-background));
 										padding: 0 10px;
@@ -442,15 +390,8 @@
 									list-style: none;
 									li {
 										margin: 10px;
-										// padding: 7px 10px;
-										// border-left: 1px solid rgba(var(--color-text), 0.2);
-										// border-top: 1px solid rgba(var(--color-text), 0.2);
+
 										display: inline-block;
-										// border: 1px solid rgba(var(--color-text), 0.2);
-										// border-bottom: 0;
-										// border-right: 0;
-										// border-top: 0;
-										// font-size: 110%;
 
 										background-color: rgba(var(--color-text), 0.2);
 										border: 1px solid rgba(var(--color-text), 0.1);
@@ -488,9 +429,6 @@
 												display: inline-block;
 											}
 										}
-										// &:first-child {
-										// 	// border-left: 0;
-										// }
 									}
 								}
 							}
@@ -498,15 +436,10 @@
 					}
 
 					@media #{$media-mobile-tablet} {
-						// background-color: red;
-						// display: block;
 						// > div {
-						// 	width: 50%;
-						// 	display: table-cell;
 						// }
 					}
 					@media #{$media-mobile} {
-						// background-color: blue;
 					}
 				}
 			}
@@ -515,7 +448,6 @@
 }
 &.amoment {
 	p {
-		// background-color: red;
 		text-align: center;
 		margin: 0 auto;
 		padding: 100px 0;

@@ -1,11 +1,16 @@
 # Version
 
-## 1.8.2-3-4-5
+## 1.8.2-3-4-5-6
 
 - NEN
 - Cookie consent
+- devtool remove on production
+- Animation
+  - [x] word progress
 - Color
   - [x] Theme mode (light and dark)
+- TypeOf
+  - [x] type (law, medical, physic, religion, grammar, biology, dated etc)
 - SEO
   - [x] headings
 - Add suggestion form link
