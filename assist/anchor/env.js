@@ -28,6 +28,7 @@ import core from "lethil";
  * @property {{name:string, list?:string[]}[]} meta.msg
  * @property {{name:string, list?:string[]}[]} meta.todo
  * @property {{name:string, list?:string[]}[]} meta.sug
+ * @property {{name:string, list?:string[]}} hint
  * @property {TypeOfSearchLanguage} result.lang
  * @property {string} title - page title
  * @property {string} description - page description
@@ -147,6 +148,10 @@ export const result = {
 		msg: [],
 		todo: [],
 		sug: []
+	},
+	hint: {
+		name: "",
+		list: []
 	},
 	lang: {
 		tar: "",

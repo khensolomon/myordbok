@@ -15,8 +15,16 @@ export async function asDefinition(raw) {
 	if (res.id == 0) {
 		raw.title = "Help us with * definition".replace(/\*/g, word);
 		raw.description = "No definition for * at this moment".replace(/\*/g, word);
-
 		raw.keywords = word;
+
+		let suggestion = await seed.wordSuggestion(word);
+		if (suggestion.length) {
+			raw.keywords = suggestion.join(",");
+			raw.meta.sug.push({
+				name: "suggestion", //similarity
+				list: suggestion
+			});
+		}
 	} else if (res.id == 1) {
 		// EXAM: us britian, britain
 		raw.title = settings.meta.auto.title.replace(/\*/g, word);

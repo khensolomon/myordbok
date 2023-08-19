@@ -627,6 +627,15 @@
 							li {
 								text-align: left;
 							}
+							&.suggestion {
+								padding: 2% 1%;
+								li {
+									padding: 0;
+									a {
+										font-size: 120%;
+									}
+								}
+							}
 						}
 					}
 

@@ -606,6 +606,18 @@ export async function fromMYSQLLastChange(word) {
 }
 
 /**
+ * Used to check cached data, to compare
+ * @param {string} word
+ * @returns {Promise.<any[]>}
+ */
+export async function fromMYSQLSoundex(word) {
+	return db.mysql.query(
+		"SELECT word, wrte FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?);",
+		[env.config.table.senses, word]
+	);
+}
+
+/**
  * NOTE: Internal
  * @param {any[]} raw
  * @returns {Promise<env.BlockOfMeaning[]>}
@@ -797,6 +809,17 @@ export function wordCategory(raw, arr) {
 				});
 			raw.push(data);
 		});
+}
+
+/**
+ * fromMYSQLSoundex and makeup
+ * @param {string} word
+ * @returns []
+ */
+export async function wordSuggestion(word) {
+	var raw = await fromMYSQLSoundex(word);
+	var lst = raw.map(e => e.word);
+	return [...new Set(lst)];
 }
 
 /**

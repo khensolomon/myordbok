@@ -1,6 +1,6 @@
 # Version
 
-## 1.8.2-3-4-5-6
+## 1.8.2-3-4-5-6-7
 
 - NEN
 - Cookie consent
@@ -13,14 +13,16 @@
   - [x] type (law, medical, physic, religion, grammar, biology, dated etc)
 - SEO
   - [x] headings
-- Add suggestion form link
+- Add suggestion
+  - [x] form link
+  - [x] soundex
 - Modified info(data)
 - Privacy policy, Terms of service and Cookie policy are updated
   - [x] cookie SameSite=Lax
 - Style (search)
-  - word: 59610
-  - sense: 101832
-  - usage: 55350
+  - word: 59652
+  - sense: 101876
+  - usage: 55418
 
 ## 1.8.1
 

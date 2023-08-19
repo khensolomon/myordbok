@@ -134,7 +134,7 @@ Vinayas | - | -
 voussoir | - | -
 weaving | - | -
 
-## Format
+## Format (type)
 
 [~:*]
 [pos:*]
