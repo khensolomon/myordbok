@@ -1,6 +1,6 @@
 {
   "name": "myordbok",
-  "version": "1.8.7",
+  "version": "1.9.0",
   "description": "a comprehensive online Myanmar dictionary",
   "main": "./index.js",
   "type": "module",
@@ -57,7 +57,7 @@
     "sqlite3": "^5.1.6",
     "tar": "^6.1.15",
     "ttfmeta": "^1.1.1",
-    "word-thesaurus": "^1.0.3"
+    "word-thesaurus": "^1.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.22.10",

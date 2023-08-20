@@ -1,5 +1,11 @@
 # Version
 
+## 1.9.0
+
+- Improved performance, rewrite data-structure
+- Todo
+  - [ ] oem word source and its relative langs
+
 ## 1.8.2-3-4-5-6-7
 
 - NEN

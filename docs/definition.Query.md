@@ -226,6 +226,9 @@ SELECT * FROM `en_src` WHERE `exam` LIKE '%[%' ORDER BY `word`, `tid`, `seq` ASC
 SELECT * FROM `en_src` WHERE `word` LIKE 'noun' ORDER BY `word`, `tid`, `seq` ASC
 
 
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "ယောကျာ်း", "ယောက်ျား") WHERE `sense` IS NOT NULL;
+
+
 -- UPDATE `en_src` SET `exam` =
 --   REPLACE(
 --     REPLACE(

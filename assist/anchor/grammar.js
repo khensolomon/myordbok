@@ -1,7 +1,7 @@
-import { fire, check, utility } from "lethil";
+import { fire, utility } from "lethil";
 
 import * as env from "./env.js";
-import { defSynset, defSynmap } from "./seed.js";
+import { searchSynset, derivedSynmap, derivedSynset } from "./seed.js";
 
 /**
  * name of part of speech from config.synset
@@ -34,6 +34,105 @@ export function posSynmap(Id) {
 //   return synmap.map((v,index) =>(v.id=index,v));
 // }
 
+// /**
+//  * org: wordPos
+//  * @typedef {{time:any; root:env.TypeOfSynset[]; part:env.TypeOfSynmap[]; form:env.BlockOfMeaning[]; test:boolean}} TypeOfPartOfSpeech
+//  * @param {string} keyword
+//  * @returns {Promise<TypeOfPartOfSpeech>}
+//  */
+// export async function main_org(keyword) {
+// 	const timeStart = utility.timeCheck();
+// 	const synset = new defSynset();
+// 	await synset.read();
+// 	const synmap = new defSynmap();
+// 	await synmap.read();
+
+// 	// const synset = await listSynset();
+// 	// const synmap = await listSynmap();
+// 	/**
+// 	 * @type {TypeOfPartOfSpeech}
+// 	 */
+// 	const result = {
+// 		time: "",
+// 		root: [],
+// 		part: [],
+// 		form: [],
+// 		test: false
+// 	};
+
+// 	// NOTE: oops -> irregular Verbs ??? /s|ed|ing$/i.test(keyword) &&
+// 	if (/less|sing|king$/i.test(keyword) == false) {
+// 		// NOTE: loves, fetched
+// 		for (let index = 0, len = synmap.raw.length; index < len; index++) {
+// 			const elm = synmap.raw[index];
+// 			if (elm.t < 10 && check.isMatch(elm.v, keyword)) {
+// 				if (!result.root.find(i => i.w == elm.w)) {
+// 					var rt = synset.raw.find(i => i.w == elm.w);
+// 					if (rt) {
+// 						result.root.push(rt);
+// 					}
+// 				}
+// 			}
+// 			const se = result.root.find(i => i.w == elm.w);
+// 			if (elm.d > 0 && se) {
+// 				// var pt = Object.assign({}, elm, {
+// 				// 	term: se.v
+// 				// });
+// 				result.part.push(elm);
+// 			}
+// 		}
+// 	} else {
+// 		console.log("?", keyword);
+// 		// console.log("synmap", keyword, synmap.raw);
+// 	}
+
+// 	result.test = result.root.length > 0;
+
+// 	if (!result.test) {
+// 		// NOTE: love, fetch
+// 		for (let index = 0, len = synset.raw.length; index < len; index++) {
+// 			const elm = synset.raw[index];
+// 			if (check.isMatch(elm.v, keyword)) {
+// 				result.root.push(elm);
+// 				// var pt = synmap.filter(i => i.d > 0 && i.w == elm.w);
+// 				var pt = synmap.raw.filter(i => i.w == elm.w && i.d > 0);
+// 				result.part.push(...pt);
+// 			}
+// 		}
+// 	}
+
+// 	fire.array
+// 		.category(result.part, e => e.w)
+// 		.forEach(function(wordList, wordId) {
+// 			var wordMain = result.root.find(e => e.w == wordId)?.v;
+// 			fire.array
+// 				.category(wordList, e => e.t)
+// 				.forEach(function(raw, typeId) {
+// 					/**
+// 					 * @type {env.BlockOfMeaning}
+// 					 */
+// 					var row = {
+// 						term: wordMain || "",
+// 						pos: posSynset(typeId).name,
+// 						type: "meaning",
+// 						kind: ["part-of-speech"],
+// 						v: formOfDescription(typeId, raw, wordMain, result.test),
+
+// 						exam: {
+// 							type: "examSentence",
+// 							value: []
+// 						}
+// 					};
+// 					result.form.push(row);
+// 				});
+// 		});
+
+// 	result.time = utility.timeCheck(timeStart);
+
+// 	console.log("?", result);
+// 	return result;
+// }
+
 /**
  * org: wordPos
  * @typedef {{time:any; root:env.TypeOfSynset[]; part:env.TypeOfSynmap[]; form:env.BlockOfMeaning[]; test:boolean}} TypeOfPartOfSpeech
@@ -42,10 +141,10 @@ export function posSynmap(Id) {
  */
 export async function main(keyword) {
 	const timeStart = utility.timeCheck();
-	const synset = new defSynset();
-	await synset.read();
-	const synmap = new defSynmap();
-	await synmap.read();
+	// const synset = new defSynset();
+	// await synset.read();
+	// const synmap = new defSynmap();
+	// await synmap.read();
 
 	// const synset = await listSynset();
 	// const synmap = await listSynmap();
@@ -60,40 +159,44 @@ export async function main(keyword) {
 		test: false
 	};
 
-	// NOTE: oops -> irregular Verbs ??? /s|ed|ing$/i.test(keyword) &&
-	if (/less|sing|king$/i.test(keyword) == false) {
-		// NOTE: loves, fetched
-		for (let index = 0; index < synmap.raw.length; index++) {
-			const elm = synmap.raw[index];
-			if (elm.t < 10 && check.isMatch(elm.v, keyword)) {
-				if (!result.root.find(i => i.w == elm.w)) {
-					var rt = synset.raw.find(i => i.w == elm.w);
-					if (rt) {
-						result.root.push(rt);
+	let wlst = await searchSynset(keyword);
+
+	if (wlst.length) {
+		for (let index = 0, len = wlst.length; index < len; index++) {
+			const elm = wlst[index];
+
+			if (elm.derived == 0) {
+				let synset = await derivedSynset(keyword);
+
+				if (synset.length) {
+					if (!result.root.find(i => i.w == elm.w)) {
+						result.root.push(elm);
+					}
+					for (let index = 0, len = synset.length; index < len; index++) {
+						const sn = synset[index];
+						result.part.push({ w: sn.w, v: sn.v, d: sn.d, t: sn.t });
 					}
 				}
 			}
-			const se = result.root.find(i => i.w == elm.w);
-			if (elm.d > 0 && se) {
-				// var pt = Object.assign({}, elm, {
-				// 	term: se.v
-				// });
-				result.part.push(elm);
-			}
-		}
-	}
+			if (!result.root.length) {
+				let synmap = await derivedSynmap(elm.v);
 
-	result.test = result.root.length > 0;
+				if (synmap.length) {
+					for (let index = 0, len = synmap.length; index < len; index++) {
+						const sm = synmap[index];
 
-	if (!result.test) {
-		// NOTE: love, fetch
-		for (let index = 0; index < synset.raw.length; index++) {
-			const elm = synset.raw[index];
-			if (check.isMatch(elm.v, keyword)) {
-				result.root.push(elm);
-				// var pt = synmap.filter(i => i.d > 0 && i.w == elm.w);
-				var pt = synmap.raw.filter(i => i.w == elm.w && i.d > 0);
-				result.part.push(...pt);
+						if (!result.root.find(i => i.w == sm.w)) {
+							result.root.push({ w: sm.w, v: sm.word });
+						}
+						if (result.root.find(i => i.w == sm.w)) {
+							result.part.push(sm);
+						}
+						// if (sm.d > 0 && se) {
+						// 	result.part.push(sm);
+						// }
+					}
+					result.test = result.root.length > 0;
+				}
 			}
 		}
 	}
@@ -108,6 +211,7 @@ export async function main(keyword) {
 					/**
 					 * @type {env.BlockOfMeaning}
 					 */
+
 					var row = {
 						term: wordMain || "",
 						pos: posSynset(typeId).name,
@@ -125,6 +229,7 @@ export async function main(keyword) {
 		});
 
 	result.time = utility.timeCheck(timeStart);
+
 	return result;
 }
 
@@ -139,26 +244,29 @@ function formOfDescription(type, raw, word = "", test = false) {
 	// (-~-) {-loves-} (plural)
 	// (-~-) {-loves-} (plural) forms of {->-}
 	// (-~-) {-loves-} (plural) derived forms of {->-}
+	const tmp = "(-~-) {-*-} (?)";
 	var res = raw.map(e => {
-		return "(-~-) {-*-} (?)"
-			.replace("*", e.v)
-			.replace("?", posSynmap(e.d).name);
+		return tmp.replace("*", e.v).replace("?", posSynmap(e.d).name);
 	});
 
+	// console.log("typeId", raw, test, posSynmap(e.d).name);
+	// console.log("typeId", raw, test, posSynset(type).name);
+
 	if (test) {
-		if (type == 0) {
-			// NOTE: noun
-			// (-~-) {-kings-} (plural) forms of {-king-}
-			res.push("forms of {->-}".replace(">", word));
-		} else if (type == 1) {
-			// NOTE: verb
-			// (-~-) {-kings-} (3rd person); (-~-) {-kinged-} (past tense); (-~-) {-kinging-} (present participle) derived forms of {-king-}
-			res.push("derived forms of {->-}".replace(">", word));
-		} else if (type == 2) {
-			// NOTE: adjective
-			// (-~-) {-happier-} (comparative); (-~-) {-happiest-} (superlative) forms of {-happy-}
-			res.push("forms of {->-}".replace(">", word));
-		}
+		// let row = "(-~-) {->-} (?)"
+		let row = tmp.replace("*", word).replace("?", posSynset(type).name);
+		// if (type == 0) {
+		// 	// NOTE: noun
+		// 	// (-~-) {-kings-} (plural) forms of {-king-}
+		// } else if (type == 1) {
+		// 	// NOTE: verb
+		// 	// (-~-) {-kings-} (3rd person); (-~-) {-kinged-} (past tense); (-~-) {-kinging-} (present participle) derived forms of {-king-}
+		// } else if (type == 2) {
+		// 	// NOTE: adjective
+		// 	// (-~-) {-happier-} (comparative); (-~-) {-happiest-} (superlative) forms of {-happy-}
+		// }
+
+		res.unshift(row);
 	}
 	return res.join("; ");
 }

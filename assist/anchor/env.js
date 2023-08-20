@@ -351,7 +351,8 @@ export const config = core.config.merge({
 		/**
 		 * log_keyword
 		 */
-		keyword: "log_keyword"
+		keyword: "log_keyword",
+		spelling: "list_spelling"
 	},
 	dictionaries: dictionaries,
 	synset: synset,

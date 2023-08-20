@@ -83,10 +83,10 @@ export function query(str) {
 const fileList = {
 	// word: "glossary/EN.json",
 	word: "./docs/word/EN.json",
-	sense: "glossary/sense.json", // definition
-	usage: "glossary/usage.json", // example
-	synset: "glossary/synset.json", // words
-	synmap: "glossary/synmap.json", //derives
+	sense: "glossary/sense.json", // definition (not in production)
+	usage: "glossary/usage.json", // example (not in production)
+	synset: "glossary/synset.json", // words (not in production)
+	synmap: "glossary/synmap.json", //derives (not in production)
 	// zero: "glossary/zero/EN.csv", //no result
 	info: "./docs/info/EN.json",
 	// thesaurus: "glossary/thesaurus.json",
@@ -335,25 +335,61 @@ export class defUsage extends main {
 /**
  * English myanmar synset
  */
-export class defSynset extends main {
-	filePath = fileList.synset;
+// export class defSynset extends main {
+// 	filePath = fileList.synset;
 
-	/**
-	 * @type {env.TypeOfSynset[]}
-	 */
-	raw = [];
-}
+// 	/**
+// 	 * @type {env.TypeOfSynset[]}
+// 	 */
+// 	raw = [];
+// }
 
 /**
  * English myanmar synmap
  */
-export class defSynmap extends main {
-	filePath = fileList.synmap;
+// export class defSynmap extends main {
+// 	filePath = fileList.synmap;
 
-	/**
-	 * @type {env.TypeOfSynmap[]}
-	 */
-	raw = [];
+// 	/**
+// 	 * @type {env.TypeOfSynmap[]}
+// 	 */
+// 	raw = [];
+// }
+
+/**
+ * @param {string} word - any word
+ * @typedef {env.TypeOfSynset & {derived:number}} searchSynsetType
+ * @typedef {env.TypeOfSynmap & {word:string}} derivedSynmapType
+ * @returns {Promise<searchSynsetType[]>}
+ */
+export function searchSynset(word) {
+	return db.mysql.query(
+		"SELECT id AS w, word AS v, derived FROM ?? WHERE word LIKE ? GROUP BY word;",
+		[env.config.table.synset, word]
+	);
+}
+
+/**
+ * @param {string} word - loving, kings, took, loves, fetched
+ * @returns {Promise<derivedSynmapType[]>}
+ */
+export async function derivedSynmap(word) {
+	return db.mysql.query(
+		"SELECT a.id AS w, a.word AS v, a.dete AS d, a.wrte AS t, b.word FROM ?? AS a JOIN ?? AS b ON a.id = b.id WHERE a.word LIKE ? AND a.wrte < 10;",
+		[env.config.table.synmap, env.config.table.synset, word]
+	);
+}
+
+/**
+ *
+ * @param {string} word - love, hate, apple
+ * @returns {Promise<derivedSynmapType[]>}
+ */
+export async function derivedSynset(word) {
+	return db.mysql.query(
+		"SELECT a.id AS w, a.word AS v, a.dete AS d, a.wrte AS t, b.word FROM ?? AS a JOIN ?? AS b ON a.id = b.id WHERE b.word LIKE ? AND a.dete > 0;",
+		[env.config.table.synmap, env.config.table.synset, word]
+	);
 }
 
 /**
@@ -610,10 +646,22 @@ export async function fromMYSQLLastChange(word) {
  * @param {string} word
  * @returns {Promise.<any[]>}
  */
-export async function fromMYSQLSoundex(word) {
+export async function fromMYSQLSuggestionSoundex(word) {
 	return db.mysql.query(
 		"SELECT word, wrte FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?);",
 		[env.config.table.senses, word]
+	);
+}
+
+/**
+ * Used to check cached data, to compare
+ * @param {string} word
+ * @returns {Promise.<any[]>}
+ */
+export async function fromMYSQLSpelling(word) {
+	return db.mysql.query(
+		"SELECT suggest FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?);",
+		[env.config.table.spelling, word]
 	);
 }
 
@@ -663,6 +711,21 @@ export async function definition(word) {
 		if (env.config.fromDatabase == "true") {
 			// NOTE: force from MySQL
 			let raw = await fromMySQL(word);
+			// if (raw.length) {
+			// 	return await fromMySQLMakeup(raw);
+			// } else {
+			// 	let sug = await fromMYSQLWordSoundex(word);
+			// 	if (sug.length) {
+			// 		let raw = await fromMySQL(sug[0].word);
+			// 		return await fromMySQLMakeup(raw);
+			// 	}
+			// }
+			if (!raw.length) {
+				let sug = await fromMYSQLSpelling(word);
+				if (sug.length) {
+					raw = await fromMySQL(sug[0].suggest);
+				}
+			}
 			return await fromMySQLMakeup(raw);
 		} else {
 			// NOTE: force from JSON
@@ -812,12 +875,12 @@ export function wordCategory(raw, arr) {
 }
 
 /**
- * fromMYSQLSoundex and makeup
+ * fromMYSQLSuggestionSoundex and makeup
  * @param {string} word
  * @returns []
  */
 export async function wordSuggestion(word) {
-	var raw = await fromMYSQLSoundex(word);
+	var raw = await fromMYSQLSuggestionSoundex(word);
 	var lst = raw.map(e => e.word);
 	return [...new Set(lst)];
 }

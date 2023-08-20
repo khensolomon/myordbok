@@ -35,6 +35,7 @@ export async function asDefinition(raw) {
 		raw.description = settings.meta.derive.description.replace(/\*/g, word);
 		raw.keywords = settings.meta.derive.keywords.replace(/\*/g, word);
 	}
+
 	seed.wordCategory(raw.data, res.row);
 
 	return res.status;
