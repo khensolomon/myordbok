@@ -5,7 +5,9 @@ import * as dme from "./dme.js";
 import * as dem from "./dem.js";
 
 /**
- * unwarrantable
+ * uncorroborated
+ * North America
+ * mythical place
  * @typedef {Object.<string, any>} TypeOfSearchRequest
  * @param {TypeOfSearchRequest} req
  */
@@ -45,8 +47,21 @@ export default async function search(req) {
 		// NOTE: pleaseenter
 		rawPage(raw, 1);
 	}
+	var logStatus = raw.data.length,
+		logWord = raw.query.input;
 
-	seed.logKeyword(raw.query.word, raw.lang.tar, raw.data.length);
+	if (logStatus) {
+		if (raw.query.status) {
+			// NOTE: has result, only from the selected word in a sentence
+			logWord = raw.query.word;
+		}
+		if (raw.meta.identity >= 3) {
+			// NOTE: has result, only from derived forms but no sense
+			logStatus = 0;
+		}
+	}
+
+	seed.logKeyword(logWord, raw.lang.tar, logStatus);
 
 	return raw;
 }

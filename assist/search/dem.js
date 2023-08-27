@@ -10,14 +10,17 @@ import { settings } from "./base.js";
  * @returns {Promise<boolean>}
  */
 export async function asDefinition(raw) {
-	let word = raw.meta.q;
-	const res = await asMeaning(word);
+	let searchWord = raw.query.input;
+	const res = await asMeaning(searchWord);
 	if (res.id == 0) {
-		raw.title = "Help us with * definition".replace(/\*/g, word);
-		raw.description = "No definition for * at this moment".replace(/\*/g, word);
-		raw.keywords = word;
+		raw.title = "Help us with * definition".replace(/\*/g, searchWord);
+		raw.description = "No definition for * at this moment".replace(
+			/\*/g,
+			searchWord
+		);
+		raw.keywords = searchWord;
 
-		let suggestion = await seed.wordSuggestion(word);
+		let suggestion = await seed.wordSuggestion(searchWord);
 		if (suggestion.length) {
 			raw.keywords = suggestion.join(",");
 			raw.meta.sug.push({
@@ -25,17 +28,25 @@ export async function asDefinition(raw) {
 				list: suggestion
 			});
 		}
-	} else if (res.id == 1) {
-		// EXAM: us britian, britain
-		raw.title = settings.meta.auto.title.replace(/\*/g, word);
-		raw.description = settings.meta.auto.description.replace(/\*/g, word);
-		raw.keywords = settings.meta.auto.keywords.replace(/\*/g, word);
-	} else if (res.id == 2) {
-		raw.title = settings.meta.derive.title.replace(/\*/g, word);
-		raw.description = settings.meta.derive.description.replace(/\*/g, word);
-		raw.keywords = settings.meta.derive.keywords.replace(/\*/g, word);
-	}
+	} else {
+		let word = res.word.join(", ");
 
+		raw.meta.identity = res.id;
+
+		if (res.id == 1) {
+			// EXAM: us britian, britain
+			raw.title = settings.meta.auto.title.replace(/\*/g, word);
+			raw.description = settings.meta.auto.description.replace(/\*/g, word);
+			raw.keywords = settings.meta.auto.keywords.replace(/\*/g, word);
+		} else if (res.id == 2) {
+			// NOTE: loved, kings
+			raw.title = settings.meta.derive.title.replace(/\*/g, word);
+			raw.description = settings.meta.derive.description.replace(/\*/g, word);
+			raw.keywords = settings.meta.derive.keywords.replace(/\*/g, word);
+		}
+	}
+	raw.query.result = res.word;
+	raw.meta.sug = res.sug;
 	seed.wordCategory(raw.data, res.row);
 
 	return res.status;
@@ -55,6 +66,7 @@ export async function asSentence(raw) {
 		if (res.status) {
 			seed.wordCategory(raw.data, res.row);
 		}
+		raw.meta.identity = res.id;
 	}
 	return raw.data.length > 0;
 }
@@ -89,25 +101,38 @@ async function asMeaning(word) {
 			}
 		}
 	}
+
+	res.word = [];
 	res.version = cache.version;
 	res.dated = cache.now;
-	var row = await seed.definition(word);
+	const defMain = await seed.definition(word);
 
-	var pos = await grammar.main(word);
-
-	const hasPos = pos.form.length > 0;
+	/**
+	 * @type {grammar.TypeOfPartOfSpeech|null}
+	 */
+	var pos = null;
+	var hasPos = false;
 
 	/**
 	 * [love] (noun, verb)
 	 * [?] (adjective)
 	 * [gone] (verb)
 	 */
-	if (row.length) {
+	if (defMain.row.length) {
 		// EXAM: us britian, britain
 		res.status = true;
 		res.id = 1;
+		res.word = defMain.ord;
+		word = res.word[0];
+
+		pos = await grammar.main(word);
+		hasPos = pos.form.length > 0;
 		if (hasPos) {
-			row.push(...pos.form);
+			/**
+			 * love loved loving
+			 */
+			defMain.row.push(...pos.form);
+			// res.sug.push(...defMain.sug);
 		}
 	}
 
@@ -116,7 +141,7 @@ async function asMeaning(word) {
 	 */
 	const notation = seed.wordNumber(word);
 	if (notation) {
-		row.push(notation);
+		defMain.row.push(notation);
 	}
 
 	/**
@@ -124,35 +149,89 @@ async function asMeaning(word) {
 	 * [happier] (adjective)
 	 * [went] (verb)
 	 */
-	if (res.status == false && hasPos) {
-		// NOTE: kings
-		const words = fire.array.unique(pos.root.map(e => e.v), true);
-		for (let index = 0; index < words.length; index++) {
-			const elm = words[index];
+	if (res.status == false) {
+		pos = await grammar.main(word);
+		hasPos = pos.form.length > 0;
+		if (hasPos) {
+			// NOTE: kings
+			const words = fire.array.unique(pos.root.map(e => e.v), true);
 
-			const a1 = await seed.definition(elm);
-			row.push(...a1);
-			if (!notation) {
-				const a2 = seed.wordNumber(elm);
-				if (a2) {
-					row.push(a2);
+			for (let index = 0; index < words.length; index++) {
+				const elm = words[index];
+
+				const defDerived = await seed.definition(elm);
+
+				defMain.row.push(...defDerived.row);
+				// res.sug.push(...defDerived.sug);
+				if (!notation) {
+					const a2 = seed.wordNumber(elm);
+					if (a2) {
+						defMain.row.push(a2);
+					}
+				}
+			}
+			if (defMain.row.length) {
+				res.id = 2;
+			} else {
+				res.id = 3;
+			}
+			defMain.row.push(...pos.form);
+
+			// res.word = [];
+
+			res.status = true;
+		}
+	}
+
+	/**
+	 * [god's, king's] (spelling)
+	 * Did you mean?
+	 * Or you might interested in
+	 */
+	if (res.status == false) {
+		const spelling = await seed.wordSpelling(word);
+		if (spelling.length) {
+			word = spelling[0];
+			const defSpelling = await seed.definition(word);
+			if (defSpelling.row.length) {
+				// EXAM: us britian, britain
+				res.status = true;
+				res.id = 1;
+				res.word = defSpelling.ord;
+				word = res.word[0];
+
+				defMain.row.push(...defSpelling.row);
+
+				pos = await grammar.main(word);
+				hasPos = pos.form.length > 0;
+				if (hasPos) {
+					defMain.row.push(...pos.form);
+					// res.sug.push(...defMain.sug);
+				}
+				if (spelling.length > 1) {
+					res.sug.push({
+						name: "spelling",
+						list: spelling.filter(e => e != word)
+					});
 				}
 			}
 		}
-		row.push(...pos.form);
-		res.id = 2;
-		res.status = true;
 	}
 
-	if (row.length) {
-		const thesaurus = seed.wordThesaurus(word);
+	if (defMain.row.length) {
+		res.word = wordUnique(defMain.row);
+		// let termThesaurus = word;
+		// const thesaurus = seed.wordThesaurus(word);
+		let termThesaurus = res.word[0];
+		const thesaurus = seed.wordThesaurus(termThesaurus);
 		if (thesaurus.length) {
-			row.push(...thesaurus);
+			defMain.row.push(...thesaurus);
 		}
-		row.push(
+		defMain.row.push(
 			...[
 				{
-					term: word,
+					// term: word,
+					term: termThesaurus,
 					type: "help", //meaning
 					// pos: thesaurus.posName(e.pos),
 					pos: "improve",
@@ -167,9 +246,23 @@ async function asMeaning(word) {
 				}
 			]
 		);
-		res.row = row;
+		res.row = defMain.row;
 		cache.write(res);
 	}
 
 	return res;
+}
+
+/**
+ * Create resultWord list unique
+ * @param {env.BlockOfMeaning[]} raw
+ * @returns {string[]}
+ */
+function wordUnique(raw) {
+	if (raw && raw.length) {
+		// var resultWord = raw.map(e => e.term.toLowerCase());
+		var resultWord = raw.map(e => e.term);
+		return [...new Set(resultWord)];
+	}
+	return [];
 }

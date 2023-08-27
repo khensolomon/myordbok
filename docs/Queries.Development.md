@@ -30,3 +30,35 @@ UPDATE `map_derive` AS dest
 SELECT * FROM `list_sense` WHERE wrid = 0 ORDER BY word;
 
 -- DELETE FROM `list_sense` WHERE wrid = 0 AND wrte = 0 AND wrkd = 8
+
+select * from list_word AS w
+  JOIN list_sense AS s ON s.word != w.word
+    WHERE w.derived = 0;
+
+SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT IN (SELECT word FROM list_sense);
+-- none_def_word
+SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
+-- none_def_number
+SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
+
+
+
+```
+
+## str
+
+```python
+look list_word -> pos
+look list_sense -> sense
+
+if sense empty
+ if check pos.root
+  look again list_sense with new word from pos.root
+    if sense empty
+      not found
+ else
+  look spelling -> spelling
+  if check spelling
+    look again list_sense with new word from spelling.word
+    if sense empty
+      not found

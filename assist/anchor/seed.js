@@ -25,15 +25,27 @@ import * as makeup from "./makeup.js";
 export function query(str) {
 	var str = str || "";
 	/**
-	 * @type {env.TypeOfSearchQuery}
+	 * type {env.TypeOfSearchQuery}
 	 */
-	const res = {
-		input: str,
-		word: "",
-		wordbreak: [],
-		sentence: [],
-		status: false
-	};
+	// const res = {
+	// 	input: str,
+	// 	word: "",
+	// 	wordbreak: [],
+	// 	sentence: [],
+	// 	result: [],
+
+	// 	status: false
+	// };
+
+	let res = Object.assign({}, env.result.query, {
+		input: str
+		// word: "",
+		// wordbreak: [],
+		// sentence: [],
+		// result: [],
+		// status: false
+	});
+
 	const raw = str
 		.toString()
 		.replace(/,/g, " ")
@@ -359,7 +371,7 @@ export class defUsage extends main {
 /**
  * @param {string} word - any word
  * @typedef {env.TypeOfSynset & {derived:number}} searchSynsetType
- * @typedef {env.TypeOfSynmap & {word:string}} derivedSynmapType
+ * typedef {env.TypeOfSynmap & {word:string}} derivedSynmapType
  * @returns {Promise<searchSynsetType[]>}
  */
 export function searchSynset(word) {
@@ -371,7 +383,7 @@ export function searchSynset(word) {
 
 /**
  * @param {string} word - loving, kings, took, loves, fetched
- * @returns {Promise<derivedSynmapType[]>}
+ * @returns {Promise<env.TypeOfSynmap[]>}
  */
 export async function derivedSynmap(word) {
 	return db.mysql.query(
@@ -383,11 +395,11 @@ export async function derivedSynmap(word) {
 /**
  *
  * @param {string} word - love, hate, apple
- * @returns {Promise<derivedSynmapType[]>}
+ * @returns {Promise<env.TypeOfSynmap[]>}
  */
 export async function derivedSynset(word) {
 	return db.mysql.query(
-		"SELECT a.id AS w, a.word AS v, a.dete AS d, a.wrte AS t, b.word FROM ?? AS a JOIN ?? AS b ON a.id = b.id WHERE b.word LIKE ? AND a.dete > 0;",
+		"SELECT a.id AS w, a.word AS v, a.dete AS d, a.wrte AS t, b.word FROM ?? AS a JOIN ?? AS b ON b.id = a.id WHERE b.word LIKE ? AND a.dete > 0;",
 		[env.config.table.synmap, env.config.table.synset, word]
 	);
 }
@@ -428,11 +440,13 @@ export class infoCache extends main {
 	 * @type {env.TypeOfMeaning}
 	 */
 	raw = {
+		word: [],
 		status: false,
 		dated: 0,
 		id: 0,
 		version: "",
 		msg: [],
+		sug: [],
 		row: []
 	};
 
@@ -440,11 +454,13 @@ export class infoCache extends main {
 	 * @type {env.TypeOfMeaning}
 	 */
 	res = {
+		word: [],
 		status: false,
 		dated: 0,
 		id: 0,
 		version: "",
 		msg: [],
+		sug: [],
 		row: []
 	};
 
@@ -648,7 +664,7 @@ export async function fromMYSQLLastChange(word) {
  */
 export async function fromMYSQLSuggestionSoundex(word) {
 	return db.mysql.query(
-		"SELECT word, wrte FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?);",
+		"SELECT word, wrte FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?)",
 		[env.config.table.senses, word]
 	);
 }
@@ -658,7 +674,7 @@ export async function fromMYSQLSuggestionSoundex(word) {
  * @param {string} word
  * @returns {Promise.<any[]>}
  */
-export async function fromMYSQLSpelling(word) {
+async function fromMYSQLSpelling(word) {
 	return db.mysql.query(
 		"SELECT suggest FROM ?? where SOUNDEX(word) LIKE SOUNDEX(?);",
 		[env.config.table.spelling, word]
@@ -702,38 +718,38 @@ async function fromMySQLMakeup(raw) {
 
 /**
  * NOTE: Internal
+ * just responsible for looking up sense
  * definition - OPTION: ...development, ...mysqlConnection
  * @param {string} word
- * @returns {Promise<env.BlockOfMeaning[]>}
+ *
+ * @returns {Promise<env.TypeOfDefinition>}
  */
 export async function definition(word) {
+	/**
+	 * @type {env.TypeOfDefinition}
+	 */
+	let res = {
+		ord: [],
+		row: []
+	};
+
 	try {
 		if (env.config.fromDatabase == "true") {
-			// NOTE: force from MySQL
+			// NOTE: from MySQL
 			let raw = await fromMySQL(word);
-			// if (raw.length) {
-			// 	return await fromMySQLMakeup(raw);
-			// } else {
-			// 	let sug = await fromMYSQLWordSoundex(word);
-			// 	if (sug.length) {
-			// 		let raw = await fromMySQL(sug[0].word);
-			// 		return await fromMySQLMakeup(raw);
-			// 	}
-			// }
-			if (!raw.length) {
-				let sug = await fromMYSQLSpelling(word);
-				if (sug.length) {
-					raw = await fromMySQL(sug[0].suggest);
-				}
+			if (raw.length) {
+				res.row = await fromMySQLMakeup(raw);
+				res.ord = wordUnique(res.row);
 			}
-			return await fromMySQLMakeup(raw);
 		} else {
-			// NOTE: force from JSON
-			return await fromJSON(word, false);
+			// NOTE: from JSON
+			res.row = await fromJSON(word);
 		}
 	} catch (error) {
-		return [];
+		// NOTE: error
 	}
+
+	return res;
 }
 
 /**
@@ -789,13 +805,13 @@ export function wordThesaurus(word, sensitive = false) {
 	/**
 	 * type {string[]}
 	 */
-	var row = thesaurus.find(word.toLowerCase());
+	var row = thesaurus.find(word);
 
 	const res = [];
 
 	for (let index = 0; index < row.length; index++) {
 		const e = row[index];
-		const pos = thesaurus.posName(e.pos).toLowerCase();
+		const pos = thesaurus.posName(e.pos);
 		const count = e.raw.length.toString();
 		const total = count == "1" ? "a" : count;
 		const item = count == "1" ? "word" : "words";
@@ -877,12 +893,37 @@ export function wordCategory(raw, arr) {
 /**
  * fromMYSQLSuggestionSoundex and makeup
  * @param {string} word
- * @returns []
+ * @returns {Promise<string[]>}
  */
 export async function wordSuggestion(word) {
 	var raw = await fromMYSQLSuggestionSoundex(word);
 	var lst = raw.map(e => e.word);
 	return [...new Set(lst)];
+}
+
+/**
+ * fromMYSQLSuggestionSoundex and makeup
+ * @param {string} word
+ * @returns {Promise<string[]>}
+ */
+export async function wordSpelling(word) {
+	var raw = await fromMYSQLSpelling(word);
+	var lst = raw.map(e => e.suggest);
+	return [...new Set(lst)];
+}
+
+/**
+ * Create resultWord list unique
+ * @param {env.BlockOfMeaning[]} raw
+ * @returns {string[]}
+ */
+export function wordUnique(raw) {
+	if (raw && raw.length) {
+		var resultWord = raw.map(e => e.term.toLowerCase());
+		// var resultWord = raw.map(e => e.term);
+		return [...new Set(resultWord)];
+	}
+	return [];
 }
 
 /**

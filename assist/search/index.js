@@ -29,6 +29,8 @@ export default async function main(req) {
 			return import("./dev-test.js").then(async e => await e.default(req));
 		case "med":
 			return import("./dev-med.js").then(async e => await e.default(req));
+		case "emd":
+			return import("./dev-emd.js").then(async e => await e.default(req));
 		default:
 			// return definition(req);
 			return import("./definition.js").then(async e => await e.default(req));

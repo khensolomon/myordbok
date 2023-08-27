@@ -11,24 +11,36 @@ import core from "lethil";
  * @typedef {{title:string, description:string; keywords:string}} TypeOfSearchMeta
  *
  * @typedef {Object} TypeOfSearchQuery
- * @property {string} input - original input query
+ * @property {string} input - original input query, user input keyword or selected word in query sentence [god]
  * @property {string} word - selected search keyword
  * @property {string[]} sentence - exploded space
- * @property {boolean} status - is sentence
  * @property {object[]} wordbreak - word breaking
+ * @property {string[]} result - result words, result keyword that has definition [God, god]
+ * @property {boolean} status - is a sentence
+ *
+ * @typedef {Object} TypeOfCatalogue
+ * @property {string} name - name of suggestion, todo
+ * @property {string[]} list - list of data
  *
  * @typedef {Object} TypeOfSearchResult
  * @property {TypeOfSearchQuery} query
  * @property {Object} meta
- * @property {string} meta.searchQuery
+ * property {string} meta.searchWord - user input keyword or selected word in query sentence [god]
+ * property {string[]} meta.resultWord - result keyword that has definition [God, god]
+ * @property {number} meta.identity - 0:notfound, 1:found [love], 2:found (from derived) [loves], 3:found (in derived, but not sense) [?]
  * @property {string} meta.q
- * @property {boolean} meta.isMyanmar
+ * @property {boolean} meta.isMyanmar - check by input is my-utf8
+ * @property {boolean} meta.isEnglish - check by comparing lang
  * @property {string} meta.type
  * @property {string} meta.name
- * @property {{name:string, list?:string[]}[]} meta.msg
- * @property {{name:string, list?:string[]}[]} meta.todo
- * @property {{name:string, list?:string[]}[]} meta.sug
- * @property {{name:string, list?:string[]}} hint
+ * @property {TypeOfCatalogue[]} meta.msg
+ * @property {TypeOfCatalogue[]} meta.todo
+ * @property {TypeOfCatalogue[]} meta.sug
+ * @property {TypeOfCatalogue} hint
+ * property {{name:string, list?:string[]}[]} meta.msg
+ * property {{name:string, list?:string[]}[]} meta.todo
+ * property {{name:string, list?:string[]}[]} meta.sug
+ * property {{name:string, list?:string[]}} hint
  * @property {TypeOfSearchLanguage} result.lang
  * @property {string} title - page title
  * @property {string} description - page description
@@ -38,7 +50,7 @@ import core from "lethil";
  * @property {string} pageClass - page classname
  * @property {any[]} data
  *
- * @typedef { {w:number, v:string, d:number, t:number} } TypeOfSynmap
+ * @typedef { {w:number, v:string, d:number, t:number, word:string} } TypeOfSynmap
  * ```js
  * {"w":1, "v":"0s", "d":1, "t":0}
  * ```
@@ -77,16 +89,22 @@ import core from "lethil";
  * @property {RowOfExam} [exam]
  * @property {RowOfUsage} [usage]
  *
+ * @typedef {Object} TypeOfDefinition
+ * @property {string[]} ord - result words
+ * @property {BlockOfMeaning[]} row - result
+ *
  * @typedef { Object<string,BlockOfMeaning[]> } RowOfClue - { meaning; suggestion }
  * @typedef { {word:string, clue:Object<string,RowOfClue>} } RowOfDefinition - { word: term, clue: {} }
  * @typedef { {word:string, clue:RowOfDefinition[]} } RowOfTranslation - { }
  *
  * @typedef {Object} TypeOfMeaning - each word clue
+ * @property {string[]} word - result keywords [God, god] [king, King]
  * @property {boolean} status
  * @property {number} dated - timestamp `new Date(?).getTime()`
- * @property {number} id - 0:default 1:match 2:synset
+ * @property {number} id - 0:default 1:match 2:synset, 3: ?
  * @property {string} version - used in cache control
  * @property {string[]} msg
+ * @property {TypeOfCatalogue[]} sug - suggestion from spelling check
  * @property {BlockOfMeaning[]} row
  *
  * @typedef { {id:number, name:string, shortname:string, thesaurus:string[] } } PosOfSynset
@@ -137,12 +155,14 @@ export const result = {
 		word: "",
 		wordbreak: [],
 		sentence: [],
+		result: [],
 		status: false
 	},
 	meta: {
-		searchQuery: "",
 		q: "",
 		isMyanmar: false,
+		isEnglish: true,
+		identity: 0,
 		type: "",
 		name: "",
 		msg: [],

@@ -152,8 +152,18 @@ mixin usageSentence(raw)
 //-             li
 //-               +wordlink(word)
 
+mixin suggestion_spelling(o)
+  div.suggestion(class=o.name)
+    p Or you might interested in
+      | !{' '}
+      each w in o.list
+        | !{' '} ~
+        +wordlink(w)
+
 mixin resultData(o)
   div.sense
+    each sug in meta.sug
+      +#{"suggestion_"+sug.name}(sug)
     each row in o
       if Array.isArray(row.clue)
         +translation(row)

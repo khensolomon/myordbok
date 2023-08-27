@@ -8,5 +8,7 @@ CREATE TABLE `map_derive` (
  `wrig` INT(10) NULL DEFAULT NULL,
  `wrte` INT(10) NULL DEFAULT NULL,
  `wrid` INT(10) NULL DEFAULT '0',
- INDEX `Indexed` (`word`) USING BTREE
+ INDEX `Key` (`id`) USING BTREE,
+ INDEX `Text` (`word`) USING BTREE
 )
+COMMENT='id: root_id\r\ndete: derived_type\r\nwrid: word_id \r\nwrig: irreg\r\nwrte: word_type';

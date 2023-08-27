@@ -174,7 +174,10 @@ export async function main(keyword) {
 					}
 					for (let index = 0, len = synset.length; index < len; index++) {
 						const sn = synset[index];
-						result.part.push({ w: sn.w, v: sn.v, d: sn.d, t: sn.t });
+						// result.part.push({ w: sn.w, v: sn.v, d: sn.d, t: sn.t });
+						result.part.push(sn);
+
+						// console.log(sn);
 					}
 				}
 			}
@@ -202,23 +205,22 @@ export async function main(keyword) {
 	}
 
 	fire.array
-		.category(result.part, e => e.w)
-		.forEach(function(wordList, wordId) {
-			var wordMain = result.root.find(e => e.w == wordId)?.v;
+		.category(result.part, e => e.word)
+		.forEach(function(wordList, word) {
+			// console.log("wordId", wordId);
+			// var wordMain = result.root.find(e => e.w == wordId)?.v;
 			fire.array
 				.category(wordList, e => e.t)
 				.forEach(function(raw, typeId) {
 					/**
 					 * @type {env.BlockOfMeaning}
 					 */
-
 					var row = {
-						term: wordMain || "",
+						term: word,
 						pos: posSynset(typeId).name,
 						type: "meaning",
 						kind: ["part-of-speech"],
-						v: formOfDescription(typeId, raw, wordMain, result.test),
-
+						v: formOfDescription(typeId, raw, word, result.test),
 						exam: {
 							type: "examSentence",
 							value: []

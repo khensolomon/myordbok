@@ -64,47 +64,112 @@ export const settings = {
 };
 
 /**
+ * We loved you:
+ * 	We -> we (case)
+ * 	loved -> love (pos)
+ * 	you -> you (none)
  * Merge settings and request object
  * @param {any} req
+ * @returns {env.TypeOfSearchResult}
  */
 export function rawObject(req) {
 	const keyword = check.isValid(req.query.q || "");
-	let raw = Object.assign({}, env.result, {
-		meta: {
-			q: keyword,
-			type: settings.type[0],
-			/**
-			 * if myanmar char contains
-			 */
-			get isMyanmar() {
-				return utility.isMyanmarText(keyword);
-			},
-			/**
-			 * if target and source the same
-			 */
-			get isEnglish() {
-				return raw.lang.tar == raw.lang.src;
-			},
-			name: "",
-			msg: [],
-			todo: [],
-			sug: []
+
+	let raw = Object.assign({}, env.result, { data: [] });
+
+	// Object.assign(raw.meta, {
+	// 	q: keyword,
+	// 	type: settings.type[0],
+	// 	/**
+	// 	 * if myanmar char contains
+	// 	 */
+	// 	get isMyanmar() {
+	// 		return utility.isMyanmarText(keyword);
+	// 	},
+	// 	/**
+	// 	 * if target and source the same
+	// 	 */
+	// 	get isEnglish() {
+	// 		return raw.lang.tar == raw.lang.src;
+	// 	},
+	// 	msg: [],
+	// 	todo: [],
+	// 	sug: []
+	// });
+	raw.meta = {
+		q: keyword,
+		type: settings.type[0],
+		name: "",
+		/**
+		 * if myanmar char contains
+		 */
+		get isMyanmar() {
+			return utility.isMyanmarText(keyword);
 		},
-		lang: {
-			tar: settings.lang.tar,
-			src: settings.lang.src,
-			tarName: settings.lang.tarName,
-			srcName: settings.lang.srcName
+		/**
+		 * if target and source the same
+		 */
+		get isEnglish() {
+			return raw.lang.tar == raw.lang.src;
 		},
-		revised: new Date().toLocaleDateString("en-GB", {
-			weekday: "long",
-			day: "2-digit",
-			month: "long",
-			year: "numeric"
-		}),
-		revised_version: "",
-		data: []
+		identity: 0,
+		msg: [],
+		todo: [],
+		sug: []
+	};
+
+	raw.lang = {
+		tar: settings.lang.tar,
+		src: settings.lang.src,
+		tarName: settings.lang.tarName,
+		srcName: settings.lang.srcName
+	};
+	raw.revised = new Date().toLocaleDateString("en-GB", {
+		weekday: "long",
+		day: "2-digit",
+		month: "long",
+		year: "numeric"
 	});
+
+	// let raw = Object.assign({}, env.result, {
+	// 	meta: {
+	// 		searchWord: keyword,
+	// 		resultWord: [],
+	// 		q: keyword,
+	// 		type: settings.type[0],
+	// 		/**
+	// 		 * if myanmar char contains
+	// 		 */
+	// 		get isMyanmar() {
+	// 			return utility.isMyanmarText(keyword);
+	// 		},
+	// 		/**
+	// 		 * if target and source the same
+	// 		 */
+	// 		get isEnglish() {
+	// 			return raw.lang.tar == raw.lang.src;
+	// 		},
+	// 		name: "",
+	// 		msg: [],
+	// 		todo: [],
+	// 		sug: []
+	// 	},
+
+	// 	lang: {
+	// 		tar: settings.lang.tar,
+	// 		src: settings.lang.src,
+	// 		tarName: settings.lang.tarName,
+	// 		srcName: settings.lang.srcName
+	// 	},
+	// 	revised: new Date().toLocaleDateString("en-GB", {
+	// 		weekday: "long",
+	// 		day: "2-digit",
+	// 		month: "long",
+	// 		year: "numeric"
+	// 	}),
+	// 	revised_version: "",
+	// 	data: []
+	// });
 
 	if (req.cookies && req.cookies.solId) {
 		raw.lang.tar = req.cookies.solId;
@@ -117,6 +182,7 @@ export function rawObject(req) {
 	if (req.query.language) {
 		raw.lang.tar = req.query.language;
 	}
+
 	return raw;
 }
 
