@@ -35,13 +35,14 @@ select * from list_word AS w
   JOIN list_sense AS s ON s.word != w.word
     WHERE w.derived = 0;
 
-SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT IN (SELECT word FROM list_sense);
--- none_def_word
-SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
--- none_def_number
-SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
+-- contain uppercase
+SELECT * FROM list_sense AS s WHERE BINARY(LOWER(s.sense)) <> BINARY(s.sense);
+SELECT * FROM list_sense AS s WHERE CAST(LOWER(s.sense) AS BINARY) <> CAST(s.sense AS BINARY);
+SELECT * FROM list_sense WHERE BINARY sense LIKE '%=:B%';
+SELECT * FROM list_sense WHERE sense LIKE BINARY '%=:B%';
 
-
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "CHEQUE]", LOWER("CHEQUE]")) WHERE `sense` IS NOT NULL;
+SELECT * FROM list_sense WHERE CAST(sense AS BINARY) LIKE '%=:B%' ;
 
 ```
 

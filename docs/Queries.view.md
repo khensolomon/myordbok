@@ -10,8 +10,14 @@ select `log_keyword`.`word` AS `word`,`log_keyword`.`status` AS `status`,`log_ke
 
 -- incomplete definition
 
+-- nosense_all
 SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT IN (SELECT word FROM list_sense);
--- none_def_word
+-- nosense_word_root
+
 SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word NOT REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
--- none_def_number
+-- none_def_number_root none_def_number_root nondef nosense
 SELECT * FROM list_word AS w WHERE w.derived = 0 AND w.word REGEXP '^[0-9]+$' AND w.word NOT IN (SELECT word FROM list_sense);
+
+-- nosense_all_root nosense_all_derived
+-- nosense_word_root nosense_word_derived
+-- nosense_number_root nosense_number_derived

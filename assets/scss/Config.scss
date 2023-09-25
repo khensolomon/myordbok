@@ -23,7 +23,52 @@ $media-tablet-desktop: "(min-width:642px)";
 $media-mobile-tablet: "(max-width:960px)";
 $max-width: 950px;
 
-:root {
+// :root {
+// 	--color-main: 49, 142, 215;
+// 	--color-background: 252, 251, 251;
+// 	--color-bar: 51, 144, 215;
+// 	--color-text: 0, 0, 0;
+
+// 	--color-surround: 238, 238, 238;
+// 	--color-highlight: 49, 142, 215;
+
+// 	--color-link: 31, 31, 247;
+// 	--color-link-visited: 55, 55, 179;
+// 	--color-link-active: 31, 31, 247;
+// 	--color-link-hover: 53, 99, 110;
+
+// 	--color-search-bg: 247, 247, 247;
+// 	--color-search-border: 185, 182, 182;
+// 	--color-search-shadow: 185, 182, 182;
+// 	--color-reserved-space: 240, 240, 240;
+
+// 	--filter-logo: grayscale(0%);
+
+// 	// Common
+// 	--color-text-disable: rgba(var(--color-text), 0.5);
+
+// 	&.dark {
+// 		// --color-main: 34, 34, 34;
+// 		--color-background: 22, 22, 22;
+// 		--color-bar: 78, 78, 78;
+// 		--color-text: 255, 255, 255;
+
+// 		--color-surround: 36, 36, 36;
+// 		--color-highlight: 201, 201, 201;
+
+// 		--color-link: 199, 202, 172;
+// 		--color-link-visited: 177, 192, 187;
+// 		--color-link-hover: 190, 183, 162;
+// 		--color-link-active: 238, 0, 0;
+
+// 		--color-search-bg: 29, 29, 29;
+// 		--color-search-border: 59, 59, 59;
+// 		--color-search-shadow: 185, 182, 182;
+
+// 		--filter-logo: grayscale(100%);
+// 	}
+// }
+@mixin root-light {
 	--color-main: 49, 142, 215;
 	--color-background: 252, 251, 251;
 	--color-bar: 51, 144, 215;
@@ -46,29 +91,63 @@ $max-width: 950px;
 
 	// Common
 	--color-text-disable: rgba(var(--color-text), 0.5);
+}
+@mixin root-dark {
+	// --color-main: 34, 34, 34;
+	--color-background: 22, 22, 22;
+	--color-bar: 78, 78, 78;
+	--color-text: 255, 255, 255;
 
-	&[data-theme="dark"],
-	&.dark {
-		// --color-main: 34, 34, 34;
-		--color-background: 22, 22, 22;
-		--color-bar: 78, 78, 78;
-		--color-text: 255, 255, 255;
+	--color-surround: 36, 36, 36;
+	--color-highlight: 201, 201, 201;
 
-		--color-surround: 36, 36, 36;
-		--color-highlight: 201, 201, 201;
+	--color-link: 199, 202, 172;
+	--color-link-visited: 177, 192, 187;
+	--color-link-hover: 190, 183, 162;
+	--color-link-active: 238, 0, 0;
 
-		--color-link: 199, 202, 172;
-		--color-link-visited: 177, 192, 187;
-		--color-link-hover: 190, 183, 162;
-		--color-link-active: 238, 0, 0;
+	--color-search-bg: 29, 29, 29;
+	--color-search-border: 59, 59, 59;
+	--color-search-shadow: 185, 182, 182;
 
-		--color-search-bg: 29, 29, 29;
-		--color-search-border: 59, 59, 59;
-		--color-search-shadow: 185, 182, 182;
+	--filter-logo: grayscale(100%);
+}
 
-		--filter-logo: grayscale(100%);
+:root {
+	@include root-light;
+
+	// &.dark {
+	// 	@include root-dark;
+	// }
+	&[data-theme="dark"] {
+		@include root-dark;
 	}
 }
+
+@media (prefers-color-scheme: light) {
+	:root {
+		@include root-light;
+		// &.dark {
+		// 	@include root-dark;
+		// }
+		&[data-theme="dark"] {
+			@include root-dark;
+		}
+	}
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		@include root-dark;
+		// &.light {
+		// 	@include root-light;
+		// }
+		&[data-theme="light"] {
+			@include root-light;
+		}
+	}
+}
+
+// &[data-theme="dark"], &.dark
 
 // @media (prefers-color-scheme: no-preference) {}
 // @media (prefers-color-scheme: light) {}

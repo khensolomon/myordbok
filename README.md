@@ -27,6 +27,16 @@ read source instantly, [Myanmar fonts][fonts]. But restricted items are not avai
 - year of copyright
 
 ```shell
+# Start development server
+npm start
+
+# Build assets
+npm run build
+
+# Check outdated package
+npm outdated
+
+# other
 npm prune --production
 npm uninstall (Get-ChildItem).Name
 ```

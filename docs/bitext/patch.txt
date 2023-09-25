@@ -1,0 +1,1019 @@
+search for:
+
+derog = derogatory
+joc = jocular
+euph = euphemistic
+rhet = rhetorical
+esp = especially
+symb = symbol
+sing = singular
+interj = interjection
+approv = approval
+infml = informal
+fml = formal
+usu = usually
+sl = slang
+prom = promenade
+propr = proprietary
+attrib = attributive
+arch = architecture
+intrans = intransitive
+interj = interjection
+
+
+[esp Commerce:COMPANY]
+
+(Brit saying) -> [type:saying] [asin:Brit]
+(US saying) -> [type:saying] [asin:US]
+(UK saying) -> [type:saying] [asin:UK]
+
+esp Brit
+esp US
+usu US
+
+(~ esp
+(~ type
+
+sing. -> sing
+(dated Brit infml)
+[list:dated/Brit/infml]
+(rhet) -> ?
+(arch or rhet) (~ type [list:architecture/rhetorical])
+(arch or joc) (~ type [list:architecture/jocular])
+(arch or fml) (~ type [list:architecture/formal])
+(arch or dialect) (~ type [list:architecture/dialect])
+(arch or Bible) (~ type [list:architecture/Bible])
+(arch or law) (~ type [list:architecture/law])
+(arch or joc derog) (~ type [list:architecture/jocular/derogatory])
+(arch or joc infml) (~ type [list:architecture/jocular/informal])
+(arch or poetic/literary) (~ type [list:architecture/poetic/literary])
+(arch derog) (~ type [list:architecture/derogatory])
+(arch except in certain idioms and phrasal verbs)
+	(~ type [list:architecture] except in certain [list:idioms/phrasal verb])
+
+
+(~ usually attrib) ?
+(~ usually in compounds) ?
+
+(Historical)
+(Greek mythology) 
+(Activity) 
+(Movement)
+(Position) 
+(Technology)	[type:technology]
+(historical)	[type:historical]
+
+(dated esp US)
+(dated euph)
+(dated derog)
+(dated fml) [type:dated] (fml)
+(dated infml) [type:dated] (infml)
+(dated or fml) [type:dated] (fml)
+(dated or joc) [type:dated] (fml)
+(infml joc) (done)
+[US:propr] ?
+(used in* ?
+pl of TOOTH
+
+[type:joc]
+
+[sing or pl] (~ type [list:singular/plural])
+
+[usu. in sing.] (done)
+
+(sl usu !) (~ usually [list:slang])
+(sl usu derog) [type:slang] (~ usually [list:derogatory])
+(sl usu approv) [type:slang] (~ usually [list:approval])
+(sl esp US) [type:slang] (~ esp [list:US])
+(sl esp Brit) [type:slang] (~ esp [list:Brit])
+(sl euph) (~ type [list:slang/derogatory])
+(sl euph) (~ type [list:slang/euphemistic])
+(sl ironic) (~ type [list:slang/ironic])
+(sl often derog)
+	(~ type [list:slang] often [list:derogatory])
+(sl or joc) (~ type [list:slang/jocular])
+(sl joc offensive) (~ type [list:slang/jocular/offensive])
+(sl derog or joc) (~ type [list:slang/derogatory/jocular])
+(sl derog offensive) (~ type [list:slang/derogatory/offensive])
+(sl approv esp US)
+	(~ type [list:slang/approval], esp [list:US])
+(sl) [type:slang]
+(slang) .
+(slang derog) (~ type [list:slang/derogatory])
+(slang sexist) (~ type [list:slang/sexist])
+(sexist slang) .
+(sexist sl) .
+(slang US) (~ type [list:slang/US])
+
+
+(~ type [esp:
+
+(vulgar slang) (~ type [list:vulgar/slang])
+
+(~ usually in [list:singular])
+[usu sing] .
+[usu sing, but with sing or pl] (~ usually in [list:singular])
+[usu sing without a or the]
+	(~ usually [list:singular] without [list:a/the])
+[usu pl] (~ usually [list:plural])
+[usu attrib] (~ usually [list:attributive])
+[usu Passive:gift-wrapped]
+	(~ usually [list:passive] [list:gift-wrapped])
+
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "(dated or joc)", "[type:dated/joc]") WHERE `sense` IS NOT NULL;
+
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "(dated derog)", "[type:dated/derog]") WHERE `sense` IS NOT NULL;
+
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "(dated or law)", "[type:dated/law]") WHERE `sense` IS NOT NULL;
+
+%1
+% n/adj
+⊂
+⊂
+proper subset of
+ဖိနပ်၏ ခြေခုံပိုင်း။ ⊂ SHOE
+
+။ ⊂ SHOE
+@
+©
+=
+skating rink
+rowing boat
+
+subset of
+/'gælÇk, 'geÇlÇk /
+[ဥ]
+ယောက်ျား
+ယောက်ျား
+
+[ဥ]
+
+ဝါကျက‹ တစ် ခု။ (done)
+မ‹ိုင်။ (done)
+
+အနÚ္တရာယ်ဖြစ်မည့် 
+ကုမþဏီ -> ကုမ္ပဏီ
+
+ခြေကျင်သွားသည်။ ခြေကျÚင်ပစ်သည်။ ခြေကျင်ကြဲ သည်။ [©:STAMP]
+
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "ကုမþဏီ", "ကုမ္ပဏီ") WHERE `sense` IS NOT NULL;
+အစီအရီချိတ်ဆွဲÚထားသော
+
+သန~Úိဋ္ဌာန်မပျက် ဆက်လုပ် သည်။
+မူလသချင်္ာ။
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "သချင်္ာ", "သင်္ချာ") WHERE `sense` IS NOT NULL;
+
+ကူးသန််းရောင်းဝယ်ရေး (done)
+န််းရ (done)
+
+န််းရ(done)
+််းရ(done)
+လုံးထွေးလိိုက်သည်။ လိုက်(done)
+ပင််လယ် ?(done)
+ပင်် ?(done)
+ဆင့်
+
+လိိ(done)
+၏ ့ ဘက် ?(done)
+
+တိုင်းပြည်် စီးပွားရေးစနစ်
+UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "်် ", "် ") WHERE `sense` IS NOT NULL;
+ဗြုန်းခနဲÚ ငိုသည်၊ ရယ်သည်၊ ဆိုသည် စသည်။
+
+ခရီးဆက်သည်။ (ဆက်လက်) ခရီးသုတ်သုတ်နှင်သည်။ သနိဋ္ဌာန်မပျက် ဆက်လုပ် သည်။
+
+ခြေခုံ။ ⊂ FOOT n
+⊂ BADGER ၁, PIG
+၂ (esp US)
+SMARTadj 1
+
+pl of STRATUM
+pl of ?
+
+[~:schismatically] `ဂိုဏ်းခွဲ၍။
+
+© SCHOOL1 n
+© HORSE
+
+(esp US) =
+(law) = SEQUESTRATE
+(US infml) = PARSON'S NOSE
+[kind:formal
+(~ type [list:formal], esp [list:commerce])
+(~ type [list:formal], esp [list:Brit])
+(~ type [list:formal], esp [list:derogatory])
+(~ type [list:formal], esp [list:law])
+(~ type [list:informal], esp [list:approval])
+(~ type [list:formal], esp [list:approval])
+
+(~ type [list:informal], esp [list:Austral])
+(~ type [list:formal], usually [list:approval])
+
+[usu. derogatory] (~ type [list:derogatory] usually...)
+(~ with 
+[list:n]
+[list:v]
+[list:adj]
+[list:adv]
+[list:adj/adv]
+
+(with v,n and adj) (~ with [list:v/n/adj])
+
+(with v
+(with n
+
+(used with more) (~ used with [list:more])
+(used with can, be able to, etc) (~ used with [list:can/be able to] etc)
+(used with plural N and V) (~ used with [list:plural noun/v])
+(used with big, long, tall, etc followed by enough)
+	(~ used with [list:big/long/tall] followed by [list:enough])
+(used with a Prep or an Adv and usu not in negative sentences)
+	(~ used with [list:prep/adv] usually not in [with:negative sentence])
+(used with pl countable N and a pl v)
+	(~ used with [list:plural/countable noun], and [with:plural verb])
+(used with her, his, your, etc)
+	(~ used with [list:her/his/your])
+(used without a or the)
+	(~ used without [list:a/the])
+(used with might, might, or may to indicate a slight possibility of sth happening or being true)
+	(~ used with [list:might/might/may] to indicate a slight possibility of sth happening or being true)
+(used with a number for classifying different types of racing car according to engine size, etc)
+	(~ used with [list:number] for classifying different types of racing car according to engine size, etc)
+(used with the present or past perfect tense)
+	(~ used with [list:present tense/past perfect tense])
+(used with the present perfect, past perfect or simple present tense in the main clause)
+	(~ used with [list:present perfect/past perfect/simple present] [list:tense] in the [list:main clause])
+(used with the present or past perfect tense)
+	(~ used with [list:present tense/past perfect tense])
+(used with it, usu in the continuous tenses) 
+	(~ used with [list:it], usually in the [list:continuous tense])
+(used with plural countable ns, usu referring to three or more)
+	(~ used with [list:plural/countable noun], usually referring to [list:three] or [list:more])
+	
+(used widely with N to form Adj)
+	(~ used widely with [list:n] to form [list:adj])
+(used widely with ns)
+	(~ used widely with [list:n])
+(used widely with V and related N, Adj and Adv)
+	(~ used widely with [list:v] and related [list:n/adj/adv])
+(used fairly widely with V, N and Adj)
+	(~ used fairly and widely with [list:v/n/adj])
+(used fairly widely with Adj and N)
+	(~ used fairly and widely with [list:n/adj])
+	(~ used with [list:abstract noun])
+(used with a n + past participle)
+	(~ used with [list:n] and [list:past participle])
+(used with a present participle)
+	(~ used with [list:present participle])
+(used with Adv, or in questions after how)
+	(~ used with [list:adv], or in questions after [list:how])
+(used with N referring to things)
+	(~ used with [list:n] referring to [list:things])
+	
+(used for emphasis)
+	(~ used for [list:emphasis])
+
+(used with N to form Adj)
+	(~ used with [list:n] to form [list:adj])
+(used with an adj)
+	(~ used with an [list:adj])
+(used with an Adv or Adj or in questions after how)
+	(~ used with an [list:adj/adv] or in questions after [list:how])
+(used with a plural object)
+	(~ used with [with:plural object])
+(used as conj) (used as a conj)
+	(~ used as [with:conjunction])
+(used as intensifier)
+	(~ used as [with:intensifier])
+(used as an interj)
+	(~ used as [with:interjection])
+(used as a compound conj)
+	(~ used as [with:compound conjunction])
+(used as a compound conj, prep or adv)
+	(~ used as [list:compound/conjunction/preposition/adverb])
+(used as the subject of a v)
+	(~ used as subject of [list:v])
+(used without the)
+	(~ used without [with:the])
+(used as a n when preceded by the)
+	(~ used as [list:n] when preceded by [list:the])
+(used as a comment on actions or events)
+	(~ used as [list:comment] on [list:action/event])
+(used as the subject of a v)
+	(~ used as [list:subject] of a [list:v])
+(used as the subject or object of a v or after a prep)
+	(~ used as [list:subject/object] of a [list:verb] or after a [list:preposition])
+(used after not)
+	(~ used after [list:not])
+(used after a prep)
+	(~ used after [list:preposition])
+(used after vs)
+	(~ used after [list:verb])
+(used after the, this , that , etc)
+	(~ used after [list:the/this/that] etc)
+(used after fear, be afraid, be anxious, etc)
+	(~ used after [list:fear/be afraid/be anxious] etc)
+(used after must, have to or can)
+	(~ used after [list:must/have to/can])
+(used after V, adj and Adv)
+	(~ used after [list:v/adj/adv])
+(used after an adv, with in and a n., or in compounds)
+	(~ used after [list:adv] with [list:in/an] or in [list:compound])
+(used after a prep or as the subject of a v)
+	(~ used after [list:preposition] or as the subject of [list:verb])
+(used after the n)
+	(~ used after [list:n])
+(used after no + a noun, nothing, none, etc for emphasis)
+	(~ used after [with:no and noun] or [list:nothing/none] for emphasis)
+(used after superlatives)
+	(~ used after [list:superlative])
+(used before a v)
+	(~ used before [list:verb])
+(used before Adj and Adv)
+	(~ used before [list:adj/adv])
+(used before comparative Adj and Adv)
+	(~ used before comparative [list:adj/adv])
+(used before a, the and like)
+	(~ used before [list:a/the/like])
+(used before a wide range of Adj)
+	(~ used before a wide range of [list:adj])
+(used before a past participle, esp in compounds)
+	(~ used before [list:past participle], esp in [list:compound])
+(esp after only)
+	(~ esp after [list:only])
+(used before saying something surprising)
+	(~ used before [with:saying something surprising])
+(used before prepositional phrases of time or measurement)
+	(~ used before [with:prepositional phrases] of [list:time/measurement])
+(used with sing n)
+	(~ used with [with:singular noun])
+	(~ used with [with:singular countable noun])
+(used with singular countable N to refer to individual people or things belonging to groups of three or more)
+	(~ used with [with:singular countable noun] to refer to individual people or things belonging to groups of three or more)
+(used with singular countable N to emphasize the importance of each separate unit)
+	(~ used with [with:singular countable noun] to emphasize the importance of each separate unit)
+(used with uncountable N) 
+	(~ used with [with:uncountable noun])
+(used esp by men) (~ used esp by [list:men])
+(used esp with can and could) (~ used esp with [list:can/could])
+(used esp with V meaning break or destroy) (~ used esp with [list:v] meaning [list:break/destroy])
+(used esp in the continuous tenses) (~ used esp in [list:continuous tense])
+(used in the continuous tenses) (~ used in [list:continuous tense])
+(used esp as an interjection) (~ used esp as an [list:interjection])
+(used to refer to a plural n or pron) (~ used to refer to [list:plural noun/pronoun])
+(without -> (~ without
+
+(esp with the present and past continuous tenses)
+	(~ esp [list:present] and past [list:continuous tense])
+
+(forming -> (~ forming
+(forming N) (~ forming [list:n])
+(forming adj) (~ forming [list:adj])
+(~ forming [list:adj/adv])
+(~ forming [list:n])
+(~ forming [list:uncountable noun])
+(~ forming [list:v])
+(~ forming [list:adj])
+(~ forming [list:adv])
+(forming compound n) (~ forming compound [list:n])
+(forming compound Adj) (~ forming compound [list:adj])
+(forming compound N and Adj) (~ forming compound [list:n/adj])
+
+(formal or techn)
+(fml or techn)
+[type:technology/formal]
+[list:offensive]
+[list:something]
+
+[fml] [type:formal]
+(fml) .
+[sing]
+[usu sing]
+(dated or fml)
+(US sl)
+(suffix 
+(usu - usually
+(esp 
+
+[infml] [type:informal]
+(infml) .
+(reporting
+(used 
+up/ over)
+(Brit)
+(~ with sb)
+(Brit) (~ type [list:Brit])
+(Brit infml joc) (~ type [list:Brit/informal/jocular])
+(Brit infml or joc) (~ type [list:Brit/informal], or [list:jocular])
+(Brit infml) (~ type [list:Brit/informal])
+(Brit infml derog) (~ type [list:Brit/informal/derogatory])
+(Brit infml often derog)
+	(~ type [list:Brit/informal], often [list:derogatory])
+(Brit infml often joc)
+	(~ type [list:Brit/informal], often [list:jocular])
+(Brit infml esp joc)
+	(~ type [list:Brit/informal], esp [list:jocular])
+(~ [kind:informal/esp/Brit]) (~ type [list:informal], esp [list:Brit])
+(Brit infml euph)	(~ type [list:Brit/informal/euphemistic])
+(Brit infml sometimes derog)
+	(~ type [list:Brit/informal], usually [list:derogatory])
+(Brit infml prom) (~ type [list:Brit/informal/promenade])
+
+(Brit sl) (~ type [list:Brit/slang])
+(Brit ! sl) .
+(Brit: slang) .
+(Brit sl derog) (~ type [list:Brit/slang/derogatory])
+(Brit derog sl) .
+(Brit derog sl) .
+(Brit derog) (~ type [list:Brit/derogatory])
+(Brit: sl. sexist) (~ type [list:Brit/slang/sexist])
+(Brit sl offensive) (~ type [list:Brit/slang/offensive])
+(Brit sl derog or offensive) (~ type [list:Brit/slang], or [list:derogatory/offensive])
+(Brit sl joc) (~ type [list:Brit/slang], or [list:jocular])
+(Brit sl esp military) (~ type [list:Brit/slang], esp [list:military])
+(Brit law) (~ type [list:Brit/law])
+(Brit fml) (~ type [list:Brit/formal])
+(Brit joc) (~ type [list:Brit/jocular])
+(Brit finance) (~ type [list:Brit/finance])
+(Brit dialect) (~ type [list:Brit/dialect])
+(Brit euph) (~ type [list:Brit/euphemistic])
+(Brit: euph) .
+(Brit commerce) (~ type [list:Brit/commerce])
+(Brit joc catchphrase)
+	(~ type [list:Brit/jocular], and [list:catchphrase])
+(Brit often derog)
+	(~ type [list:Brit], often [list:derogatory])
+(Brit sometimes derog)
+	(~ type [list:Brit], usually [list:derogatory])
+(Brit usu derog) .
+(Brit propr)
+	(~ type [list:Brit/proprietary])
+(Brit politics)
+	(~ type [list:Brit/politics])
+(Brit dated) (~ type [list:Brit/dated])
+(Brit: dated) .
+(Brit dated or joc)
+	(~ type [list:Brit/dated], or [list:jocular])
+(Brit dated or fml) 
+	(~ type [list:Brit/dated], or [list:formal])
+(Brit dated infml)
+	(~ type [list:Brit/dated], or [list:informal])
+(Brit: dated infml) .
+(Brit esp derog)
+	(~ type [list:Brit], esp [list:derogatory])
+(Brit esp joc)
+	(~ type [list:Brit], esp [list:jocular])
+(Brit becoming dated)
+	(~ type [list:Brit], becoming [list:dated])
+(Brit: infml) (~ type [list:Brit/informal])
+(Brit: infml derogatory) (~ type [list:Brit/informal/derogatory])
+(Brit: infml becoming dated)
+	(~ type [list:Brit/informal], becoming [list:dated])
+(Brit: often ironic)
+	(~ type [list:Brit], often [list:ironic])
+(Brit: vulgar slang) (~ type [list:Brit/vulgar/slang])
+(Brit: PAGER) (~ as in [Brit:pager])
+(Brit: atomiser) (~ as in [Brit:atomiser])
+(Brit: a cookie or cracker.) (~ as in [Brit:cookie/cracker])
+(Brit: as plain as the nose on one's face)
+	(~ as in [list:Brit], [with:as plain as the nose on one's face])
+(Brit: flexitime)
+	(~ as in [Brit:flexitime])
+
+(US) (~ type [list:US])
+(US fml) (~ type [list:US/formal])
+(US law) (~ type [list:US/law])
+(US sport) (~ type [list:US/sport])
+(US dated) (~ type [list:US/dated])
+(US infml) (~ type [list:US/informal])
+(US, infml) .
+(US: infml) .
+(US infml derog)
+	(~ type [list:US/informal/derogatory])
+(US infml often derog)
+	(~ type [list:US/informal], often [list:derogatory])
+(US infml approv)
+	(~ type [list:US/informal], or [list:approval])
+(US sl) (~ type [list:US/slang])
+(US sl derog)
+	(~ type [list:US/slang], or [list:derogatory])
+(US derog sl) .
+(US politics) (~ type [list:US/politics])
+(US derog) (~ type [list:US/derogatory])
+(US euph) (~ type [list:US/euphemistic])
+(US or Scot infml)
+	(~ type [list:US], or [list:Scot/informal])
+(US or Brit dialect infml)
+	(~ type [list:US], or [list:Brit/dialect], [list:informal])
+(US secretary) (~ type [list:US/secretary])
+(US department) (~ type [list:US/department])
+(US or Irish) (~ type [list:US], or [list:Irish])
+(US punch (someone) in/out)
+	(~ US [list:punch in/punch out])
+
++ (infml esp US) (~ [kind:informal/esp/US])
++ (infml esp Brit) (~ [kind:informal/esp/Brit])
++ (infml esp derog) (~ [kind:informal/esp/derogatory])
++ (infml esp joc) (~ [kind:informal/esp/jocular])
+(infml joc) (~ [kind:informal/jocular])
+	(~ type [list:informal/jocular])
+
+(infml joc or derog) (~ [kind:informal/jocular/derogatory])
+	(~ type [list:informal/jocular/derogatory])
+(infml derog) (~ [kind:informal/derogatory])
+	(~ type [list:informal/derogatory])
+(infml ironic) (~ [kind:informal/ironic])
+	(~ type [list:informal/ironic])
+(infml usu derog) (~ [kind:informal/usually/derogatory])
+	(~ type [list:informal], usually [list:derogatory])
+(infml esp Brit) (~ type [list:informal], esp [list:Brit])
+(infml or joc) (~ [kind:informal/jocular])
+	(~ type [list:informal/jocular])
+(infml or derog) (~ [kind:informal/derogatory])
+(infml or rhet) (~ [kind:informal/rhetorical])
+	(~ type [list:informal/rhetorical])
+(infml often joc) (~ [kind:informal/often/jocular])
+	(~ type [list:informal], often [list:jocular])
+(infml often derog) (~ [kind:informal/often/derogatory])
+	(~ type [list:informal], often [list:derogatory])
+(infml often ironic) (~ [kind:informal], often [kind:ironic])
+	(~ type [list:informal], often [list:ironic])
+(infml sometimes derog) (~ [kind:informal], sometime [kind:derogatory])
+	(~ type [list:informal], sometime [list:derogatory])
+(infml approv) (~ [list:informal/approval])
+	(~ type [list:informal/approval])
+(infml approv) 
+	(~ type [list:informal], usually [list:approval])
+(infml saying) (~ [list:informal/saying])
+	(~ type [list:informal/saying])
+(infml euph) (~ [list:informal/euphemistic])
+	(~ type [list:informal/euphemistic])
+(infml catchphrase) (~ [list:informal/catchphrase])
+	(~ type [list:informal/catchphrase])
+(infml mathematics) (~ [list:informal/mathematics])
+	(~ type [list:informal/mathematics])
+(infml offensive) (~ [list:informal/offensive])
+	(~ type [list:informal/offensive])
+(infml derog esp US) (~ [list:informal/derogatory] [esp:US])
+	(~ type [list:informal/derogatory], esp [list:US])
+(infml derog esp Brit) (~ [list:informal/derogatory] [esp:Brit])
+	(~ type [list:informal/derogatory], esp [list:Brit])
+(infml becoming dated) (~ [list:informal] becoming [list:dated])
+	(~ type [list:informal], becoming [list:dated])
+(infml sl) (~ [list:informal/slang])
+	(~ type [list:informal/slang])
+(dated infml) (~ [list:informal/dated])
+	(~ type [list:informal/dated])
+(infml derog or joc) (~ [list:informal/derogatory/jocular])
+	(~ type [list:informal/derogatory/jocular])
+(infml vulgar) (~ [list:informal/vulgar])
+	(~ type [list:informal/vulgar])
+(infml) (~ [list:informal])
+	(~ type [list:informal])
+(religion or fml) (~ type [list:informal/religion])
+(sport or infml) (~ type [list:informal/sport])
+
+(fml esp joc) (~ [kind:formal/esp/jocular])
+(fml or rhet) (~ [list:formal/rhetorical])
+	? (~ type [list:formal/rhetorical])
+(fml or joc) (~ [list:formal/jocular])
+	? (~ type [list:formal/jocular])
+(fml or euph) (~ [list:formal/euphemistic])
+	? (~ type [list:formal/euphemistic])
+(fml or law) (~ [list:formal/law])
+	(~ type [list:formal/law])
+(fml derog) (~ [list:formal/derogatory])
+	(~ type [list:formal/derogatory])
+(fml or derog) .
+(fml approv) (~ [list:formal/approval])
+	(~ type [list:formal/approval])
+(fml euph) (~ [list:formal/euphemistic])
+	(~ type [list:formal/euphemistic])
+(fml religion) (~ [list:formal/religion])
+	(~ type [list:formal/religion])
+(fml or linguistics) (~ [list:formal/linguistics])
+	(~ type [list:formal/linguistics])
+(fml or humorous) (~ [list:formal/humorous])
+	(~ type [list:formal/humorous])
+(fml often euph) (~ [list:formal], often [list:euphemistic])
+	(~ type [list:formal], often [list:euphemistic])
+(fml or dated) (~ [list:formal/dated])
+	(~ type [list:formal/dated])
+(dated or fml) .
+(dated fml)
+(fml usu derog) (~ [list:formal], usually [list:derogatory])
+	(~ type [list:formal], usually [list:derogatory])
+(fml or medical) (~ [list:formal/medical])
+	(~ type [list:formal/medical])
+(fml or commerce) (~ [list:formal/commerce])
+	(~ type [list:formal/commerce])
+(fml sometimes derog) (~ [list:formal], usually [list:derogatory])
+	? (~ type [list:formal], usually [list:derogatory])
+(fml sometimes joc) (~ [list:formal], usually [list:jocular])
+	(~ type [list:formal], usually [list:jocular])
+(fml often derog) (~ [list:formal], often [list:derogatory])
+	(~ type [list:formal], often [list:derogatory])
+(fml becoming dated esp Brit) (~ [list:formal], becoming [list:dated] [esp:Brit])
+	(~ type [list:formal], becoming [list:dated], esp [list:Brit])
+(techn or fml) (~ type [list:formal/technology])
+(Latin fml) (~ type [list:Latin/formal])
+(Scot or fml) (~ type [list:Scot/formal])
+
+(Austral infml)(~ type [list:Austral/informal])
+(Austral or NZ infml) (~ type [list:Austral/NZ/informal])
+(Austral or NZ sl often derog) (~ type [list:Austral/NZ/slang], often [list:derogatory])
+
+(dated or rhet) (~ [list:dated/rhetorical])
+	(~ type [list:dated/rhetorical])
+(dated or humorous) (~ [list:dated/humorous])
+	(~ type [list:dated/humorous])
+(dated or derog) (~ [list:dated/derogatory])
+	(~ type [list:dated/derogatory])
+(dated or joc or derog) (~ [list:dated/jocular/derogatory])
+	(~ type [list:dated/jocular/derogatory])
+(dated or fml or joc) (~ [list:dated/formal/jocular])
+	(~ type [list:dated/formal/jocular])
+(dated or fml derog) (~ [list:dated/formal/derogatory])
+	(~ type [list:dated/formal/derogatory])
+(dated or fml or US) (~ [list:dated/formal/US])
+	(~ type [list:dated/formal/US])
+(dated or US) (~ [list:dated/US])
+	(~ type [list:dated/US])
+(dated or ironic) (~ [list:dated/ironic])
+	(~ type [list:dated/ironic])
+(dated or journalism) (~ [list:dated/journalism])
+	(~ type [list:dated/journalism])
+(dated esp Brit) (~ [list:formal], [esp:Brit])
+	(~ type [list:dated], esp [list:Brit])
+(dated esp US) (~ [list:formal], [esp:US])
+	(~ type [list:dated], esp [list:US])
+(dated joc) (~ [list:dated/jocular])
+	(~ type [list:dated/jocular])
+(dated offensive) (~ [list:dated/offensive])
+	(~ type [list:dated/offensive])
+(dated slang) (~ [list:dated/slang])
+(dated sl) .
+	(~ type [list:dated/slang])
+(dated sexist) (~ [list:dated/sexist])
+	(~ type [list:dated/sexist])
+(dated grammar) (~ [list:dated/grammar])
+	(~ type [list:dated/grammar])
+(dated infml euph) (~ [list:dated/informal/euphemistic])
+	(~ type [list:dated/informal/euphemistic])
+(dated infml offensive) (~ [list:dated/informal/offensive])
+	(~ type [list:dated/informal/offensive])
+(dated infml joc) (~ [list:dated/informal/jocular])
+	(~ type [list:dated/informal/jocular])
+(dated infml derog) (~ [list:dated/informal/derogatory])
+	(~ type [list:dated/informal/derogatory])
+(dated infml usu derog) (~ [list:dated/informal], usually [list:derogatory])
+	(~ type [list:dated/informal], usually [list:derogatory])
+(dated infml esp Brit) (~ [list:dated/informal], [esp:derogatory])
+	(~ type [list:dated/informal], esp [list:derogatory])
+(dated infml sometimes derog) (~ [list:dated/informal], [usually list:derogatory])
+	(~ type [list:dated/informal], usually [list:derogatory])
+
+(dated usu derog) (~ [list:dated], usually [list:derogatory])
+	(~ type [list:dated], usually [list:derogatory])
+(dated usu offensive) (~ [list:dated], usually [list:offensive])
+	(~ type [list:dated], usually [list:offensive])
+(dated now offensive) (~ [list:dated], now [list:offensive])
+	(~ type [list:dated], now [list:offensive])
+(dated often offensive) (~ [list:dated], often [list:offensive])
+	(~ type [list:dated], often [list:offensive])
+(dated often derog) (~ [list:dated], often [list:derogatory])
+	(~ type [list:dated], often [list:derogatory])
+(dated often sexist) (~ [list:dated], often [list:sexist])
+	(~ type [list:dated], often [list:sexist])
+(dated Brit infml joc)  (~ [list:dated/Brit/informal/jocular])
+	(~ type [list:dated/Brit/informal/jocular])
+(dated Brit sl) (~ [list:dated/Brit/slang])
+	(~ type [list:dated/Brit/slang])
+(dated Brit derog) (~ [list:dated/Brit/derogatory])
+	(~ type [list:dated/Brit/derogatory])
+(dated Brit sl derog) (~ [list:dated/Brit/slang/derogatory])
+	(~ type [list:dated/Brit/slang/derogatory])
+(dated US infml) (~ [list:dated/US/informal])
+	(~ type [list:dated/US/informal])
+(dated Brit: infml) (~ [list:dated/Brit/informal])
+	(~ type [list:dated/Brit/informal])
+
+(usu pl) -> (~ usually plural)
+(usu sing) -> (~ usually singular)
+
+(derog) (~ type [list:derogatory])
+(derogatory) .
+(derogatory chiefly Brit) (~ type [list:derogatory], chiefly [list:Brit])
+(derog or joc) (~ type [list:derogatory/jocular])
+(derogatory or humorous) (~ type [list:derogatory/humorous])
+(derog infml) (~ type [list:derogatory/informal])
+(derog offensive) (~ type [list:derogatory/offensive])
+(derog slang offensive) (~ type [list:derogatory/slang/offensive])
+(derog esp Brit) (~ type [list:derogatory], esp [list:Brit])
+(derog esp US) (~ type [list:derogatory], esp [list:US])
+
+(rhet) (~ type [list:rhetorical])
+(rhet or joc) (~ type [list:rhetorical/jocular])
+(rhet or fml) (~ type [list:rhetorical/formal])
+(rhet or dated) (~ type [list:rhetorical/dated])
+(rhet or euph) (~ type [list:rhetorical/euphemistic])
+(esp fml or rhet)
+
+(dialect)
+(dialect or joc) (~ type [list:dialect/jocular])
+(US infml)
+(approv) (~ type [list:approval])
+(approv or joc) (~ type [list:approval/jocular])
+(approv esp US) (~ type [list:approval], esp [list:US])
+(approv or derog) (~ type [list:approval/derogatory])
+(joc)
+(joc or derog) (~ type [list:jocular/derogatory])
+(joc or rhet) (~ type [list:jocular/rhetorical])
+(joc infml) (~ type [list:jocular/informal])
+(joc or offensive) (~ type [list:jocular/offensive])
+(joc usu derog) (~ type [list:jocular], usually [list:derogatory])
+(joc esp approv) (~ type [list:jocular], esp [list:approval])
+
+(US)
+(Brit sl)
+(no passive) ?
+(~ oneself with sb) ?
+(~ on sb) ?
+(~ on) ?
+[sing]
+(arch or rhet) 
+[in sing.] ?
+(in compounds)
+(~ usually sing,
+(derog or joc)
+(~ usually in componds)
+
+(esp after (~ esp after [list:
+(esp after a negative) (~ esp after a [list:negative])
+(esp after a n) (~ esp after [list:n])
+(esp approv) (~ type [esp:approval])
+(esp US) [=:DISC] [esp US:
+(esp US) DISC
+(esp US) =DISC
+[esp:US/lift] [esp US:
+(esp US) = LIFT n
+[esp US:lift]
+[esp US:]
+(esp US) (~ [esp:US])
+	(~ esp [list:US])
+[also esp US:disk] (~ esp [list:US] [=:disk)
+[esp US:ward] .
+[also esp brit:bathing-costume] (~ esp [list:Brit] [=:bathing-costume])
+(esp US sport) (~ [esp:US/sport])
+(esp US infml) (~ [esp:US/informal])
+(esp Brit) (~ [esp:Brit])
+	(~ esp [list:Brit])
+(esp Brit or Austral) (~ esp [list:Brit/Austral])
+[also esp US: ?
+(~ esp [list:Brit] [~:living-room])
+(esp law) (~ [esp:law])
+	(~ esp [list:law])
+(esp law fml) (~ [esp:law/formal])
+(esp rhet) (~ [esp:rhetorical])
+	(~ esp [list:rhetorical])
+(esp grammar) (~ [esp:grammar])
+	(~ esp [list:grammar])
+(esp geometry) (~ type [esp:geometry])
+(esp geology) (~ type [esp:geology])
+(esp derog) (~ [esp:derogatory])
+	(~ esp [list:derogatory])
+(esp medical) (~ [esp:medical])
+	(~ esp [list:medical])
+(esp mathematics) (~ type [esp:mathematics])
+(esp joc) (~ [esp:jocular])
+	(~ esp [list:jocular])
+(esp military) (~ [esp:military])
+	(~ esp [list:military])
+(esp religion) (~ [esp:religion])
+	(~ esp [list:religion])
+(esp politics) (~ [esp:politics])
+	(~ esp [list:politics])
+(esp ironic) (~ [esp:ironic])
+	(~ esp [list:ironic])
+(esp architecture) (~ [esp:architecture])
+	(~ esp [list:architecture])
+(esp sport) (~ [esp:sport])
+	(~ esp [list:sport])
+(esp pl) (~ [esp:plural])
+	(~ esp [list:plural])
+(esp commerce) (~ [esp:commerce])
+	(~ esp [list:commerce])
+(esp computing) (~ type [esp:computing])
+(esp sing) (~ [esp:singular])
+	(~ esp [list:singular])
+(esp passive) (~ [esp:passive])
+	(~ esp [list:passive])
+(esp nautical) (~ esp [list:nautical])
+(esp formal) (~ [esp:formal]) (~ esp [list:formal])
+	(~ type [esp:formal])
+(esp fml) .
+(esp fml or rhet) (~ type [esp:formal], or [list:rhetorical])
+
+(esp following an adj) (~ esp following an [list:adj])
+(esp finance) (~ type [esp:finance])
+
+(esp infml)
+(esp infml) (~ type [esp:informal])
+(esp rhet or joc) (~ [esp:rhetorical/jocular])
+	(~ esp [list:rhetorical/jocular])
+(esp in compounds) (~ esp in [list:compounds])
+	(~ esp in [list:compounds])
+(esp with it) (~ esp with [list:it])
+(esp with adj) (~ esp with [list:adj])
+(esp with uncountable nouns) (~ esp with [list:uncountable noun])
+(esp imperative) (~ esp [list:imperative])
+(esp in sport) (~ esp in [list:sport])
+(esp in continuous tenses) (~ esp in [list:continuous tense])
+(esp in compound n) (~ esp in [list:compound noun])
+(esp in negative sentences) (~ esp in [with:negative sentence])
+(esp in negative expressions) (~ esp in [with:negative expression])
+(esp in the progressive tenses) (~ esp in [list:progressive tense])
+(esp in negative sentences and questions) (~ esp in [with:negative sentence], and [list:question])
+(esp of weather) (~ esp of [list:weather])
+(esp of prices or figures) (~ esp of [list:price/figure])
+(esp pl) ?
+(esp US)
+(esp Brit)
+(esp Scot) (~ type [esp:Scot])
+
+
+(~ usually pl) (~ usually [list:plural])
+(~ usually sing) (~ usually [list:singular])
+
+(~ usually formal) (~ usually [list:formal])
+(~ usually passive) (~ usually [list:passive])
+(~ usually in negative sentences and questions, or sentences expressing doubt or condition, usu placed before the v) 
+	(~ usually in [with:negative sentence], [with:negative question], or sentences expressing [list:doubt/condition]) (~ often placed before [list:v])
+(~ usually imperative) ?
+
+(often pl) -> (~ often [list:plural])
+(often joc) -> (~ often [list:jocular])
+(often ironic) -> (~ often [list:ironic])
+(often euph) -> (~ often [list:euphemistic])
+(often imperative) -> (~ often [list:imperative])
+(often derog) -> (~ often [list:derogatory])
+(sometimes derog) (~ usually [list:derogatory])
+(sometimes euph) (~ usually [list:euphemistic])
+(often in pl) -> (~ often in [list:plural])
+(often as adj) -> (~ often as [list:adj])
+(often passive) -> (~ often [list:passive])
+(often in compounds) -> (~ often in [list:compounds])
+
+(usu.
+(usu formal) -> (~ usually [list:formal])
+(usu derog) -> (~ usually [list:derogatory])
+(usu passive) -> (~ usually [list:passive])
+(usu negative) -> (~ usually [list:negative])
+(usu pl) -> (~ usually [list:plural])
+[usu. pl.] .
+[usu. pl. and in phrases]
+	(~ usually [list:plural], and in [list:phrase])
+[usu. pl. & joc.]
+	(~ usually [list:plural], and [list:jocular])
+(usu sing) -> (~ usually [list:singular])
+(usu approval) -> (~ usually [list:approval])
+
+(~ usually derog) (~ usually [list:derogatory])
+(~ usually derog or offensive) (~ usually [list:derogatory/offensive])
+(~ usually infml) (~ usually [list:informal])
+(~ usually in compounds) (~ usually in [list:compounds])
+[usu. in compounds] .
+[usu. in combination] (~ usually in [list:combination])
+(~ usually in the present perfect) (~ usually in [list:present perfect])
+(~ usually in the pattern the sooner) (~ usually in the [list:pattern/sooner])
+(~ usually in the continuous tenses) (~ usually in [list:continuous tense])
+(~ usually in negative sentences or questions with can or could)
+	(~ usually in [with:negative sentence] or questions with [list:can/could])
+(~ usually in negative sentences) (~ usually in [with:negative sentence])
+(~ usually in negative expressions) (~ usually in [with:negative expression])
+(~ usually go camping) (~ usually [with:go camping])
+(~ usually go caravanning) (~ usually [with:go caravanning])
+(~ usually go caving) (~ usually [with:go caving])
+(~ usually not in the continuous tenses)
+	(~ usually not in [list:continuous tense])
+(~ usually approv) (~ usually [list:approval])
+(~ usually approv or joc) (~ usually [list:jocular]) ?
+(~ usually after a negative) (~ usually after a [list:negative])
+(~ usually shortened to 'd rather) ?
+(~ usually joc) (~ usually [list:jocular])
+(~ usually imperative) (~ usually [list:imperative])
+(~ usually of men) (~ usually of [list:men])
+(~ usually of food) (~ usually of [list:food])
+(~ usually of sth/sb bad) (~ usually of [list:something/somebody] bad)
+(~ usually of a door) (~ usually of a [list:door])
+(~ usually offensive) (~ usually [list:offensive])
+(~ usually following an adj) (~ usually following [list:adj])
+(~ usually following an adv) (~ usually following [list:adv])
+(~ usually following ns) (~ usually following [list:n])
+(~ usually with can/could) (~ usually with [list:can/could])
+(~ usually with negatives) (~ usually with [list:negative])
+[usu. with negative] .
+(~ usually with a negative) (~ usually with [list:negative])
+(~ usually with V in the continuous tenses)
+	(~ usually with [list:v] in [list:continuous tense])
+(~ usually without a or the) (~ usually without [list:a/the])
+(~ usually sing, only in the expression shown)
+	(~ usually [list:singular], only in the [with:expression shown])
+(~ usually placed after the v, and after the direct object if the v is transitive)
+	(~ usually after [list:v], and after the direct object if the [list:v] is [list:transitive])
+(~ usually used like a prep, be ~ sth)
+	(~ usually used like [list:preposition], be ~ sth)
+[usu. as adj] (~ usually as [list:adj])
+[usu. with adj] (~ usually with [list:adj])
+[usu. as noun] (~ usually as [list:noun])
+[usu. treated as sing.] (~ usually treated as [list:singular])
+[usu ADJ:*]
+(~ usually [list:adj] [~:)
+[usu ADJ:*]
+(~ usually [list:adj] [~:)
+[usu N:*]
+(~ usually [list:n] [~:)
+(~ usually fml)
+
+
+(rather fml) (~ rather [list:formal])
+(rather formal) .
+(rather infml) (~ rather [list:informal])
+
+
+(catchphrase often ironic) (~ type [list:catchphrase] often [list:ironic])
+
+(of a person) (~ of a [list:person])
+(of a sound) (~ of a [list:sound])
+(of a liquid) (~ of a [list:liquid])
+(of a quantity) (~ of a [list:quantity])
+(of an ?) (~ of an [list:?])
+
+(not usu in the continuous tenses) 
+	(~ not usually in [list:continuous tense])
+(not usu in the continuous tenses, often with it and a that clause)
+	(~ not usually in [list:continuous tense], often with [list:it] and a [list:that] clause)
+
+(not in the continuous tenses)
+	(~ not in [list:continuous tense])
+(not used in the continuous tenses)
+	(~ not in [list:continuous tense])
+(not used in the continuous tenses, usu not passive)
+	(~ not in [list:continuous tense], usually not [list:passive])
+(not used in the continuous tenses often with can)
+	(~ not in [list:continuous tense], often with [list:can])
+(not used by British people)
+	(~ not used by [with:British people])
+(not after I or we)
+	(~ not after [list:I/we])
+(past tense usu wet)
+	(~ past tense usually [list:wet])
+(not passive)
+	(~ not [list:passive])
+ 
+(of ?) (~ of [list:?])
+
+(offensive) - (~ [list:offensive])
+	(~ type [list:offensive])
+	
+(following N) (~ following [list:n])
+(following ns) .
+
+(superlative of FAR adj) (~ superlative of [list:far])
+(comparative of FAR adj) (~ comparative of [list:far])
+
+(chiefly Brit) (~ chiefly [list:Brit])
+(chiefly derogatory) (~ chiefly [list:derogatory])
+(chiefly Indian) (~ chiefly [list:Indian])
+(chiefly Scottish & N. Engl.) (~ chiefly [list:Scottish/Northern England])
+
+(in Britain) (~ in [list:Britain])
+(in compounds) (~ in [list:Compound])
+(in compound n) (~ in [with:Compound nouns])
+(in compound Adj) (~ in [with:Compound adjective])
+(in sport) (~ in [list:sport])
+(in tennis, golf, etc) (~ in [list:tennis/golf] etc)
+(in tennis, etc) (~ in [list:tennis] etc)
+(in shops, etc) (~ in [list:shops] etc)
+(in negative sentences) (~ in [with:negative sentence])
+(in negative or interrogative sentences) (~ in [with:negative sentence], or [list:interrogative])
+
+jocular
+(~ out)
+[sing] [list:singular] ? (~ [list:singular])
+[infml]
+
+[US infml:HOO-HA] (~ type [list:US/informal] [=:HOO-HA])
+[brit infml:marge] (~ type [list:Brit/informal] [=:marge])
+[infml:floozie] (~ type [list:informal] [=:floozie])
+[infml euph:damn] (~ type [list:informal/euphemistic] [=:damn])
+[also infml:coke] (~ type [list:informal] [=:coke])
+(ironic) (~ type [list:ironic])
+[intrans] [list:intransitive] ? (~ [list:intransitive])
+(~ on sb) ?
+(no passive) (~ no [list:passive])
+(preceded by a n) (~ preceded by a [list:n])
+(~ with sb) ?
+(~ sb for sth) ?
+(~ about/around) (~ [list:about/around])
+(in sth

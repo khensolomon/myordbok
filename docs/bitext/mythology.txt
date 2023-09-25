@@ -1,0 +1,25 @@
+0. Odin
+[type:Norse mythology] [list.Aesir] အုပ်စိုးရှင်; စစ်သူရဲကောင်းများ၏ အမြင့်မြတ်ဆုံးနတ်ဘုရား
+ruler of the Aesir; supreme god of war and poetry and knowledge and wisdom (for which he gave an eye) and husband of Frigg; identified with the Teutonic Wotan
+
+0. Aesir
+[type:Norse mythology] နတ်ဘုရားများ၏ ကောင်းကင်ဘုံ; နိဗ္ဗာန်ဘုံ
+the chief of gods living at Asgard
+
+0. Asgard
+[type:Norse mythology] နတ်ဘုရားများနှင့် အသေခံ စစ်သူရဲကောင်းများ၏ နိဗ္ဗာန်
+the heavenly dwelling of the Norse gods (the Aesir) and slain war heroes
+
+0. Norse mythology
+(ခရစ်ယာန်ဘာသာ မတိုင်မှီ စကင်ဒီနေးဗီးယားရှိ) နော့စ်လူမျိုးတို့၏ ဒဏ္ဍာရီ
+The mythology of Scandinavia (shared in part by Britain and Germany) until the establishment of Christianity
+
+0. Northman
+နော့စ်လူမျိုး
+An inhabitant of Scandinavia
+- Scandinavian, Norse
+
+0. Norseman
+နော်ဝေး ဒေသခံတိုင်းရင်းသား (သို့) ဇာတိ
+A native or inhabitant of Norway
+- Norwegian, Norse

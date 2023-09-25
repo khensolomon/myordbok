@@ -2,7 +2,7 @@ import { wordMyanmar } from "../anchor/seed.js";
 
 /**
  * @typedef {object} rowSuggestion - sw, sl, st
- * @property {string} v - word
+ * @property {string} w - word
  * @property {string[]} [l] - list
  * @property {number} [n] - number of count
  * @property {boolean} [test]
@@ -119,7 +119,8 @@ export const words = {
 			let sl = startWith.filter(e => e.startsWith(w));
 			let st = sl.length;
 			res.push({
-				v: st == 1 ? sl[0] : w,
+				// v: st == 1 ? sl[0] : w,
+				w: st == 1 ? sl[0] : w,
 				// sl: sl,
 				n: st
 			});

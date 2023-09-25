@@ -215,60 +215,66 @@ export default {
 		 * @param {string} word
 		 */
 		async suggestWM(word) {
-			const res = [];
-			let rawlist = this.wordList(true);
-			const _wordLength = word.length;
-			const _length = _wordLength + 1;
+			return await axios
+				.get(tools.reverse(this.my.api.wordSuggests), {
+					params: { q: word }
+				})
+				.then(
+					res => {
+						if (res && Array.isArray(res.data)) {
+							return res.data;
+						}
+						return [];
+					},
 
-			let startWith = rawlist
-				.sort()
-				.filter(e => e.startsWith(word))
-				.map(e => e.trim());
+					() => new Array()
+				);
 
-			/**
-			 * 20, 30
-			 */
-			if (startWith.length <= 30) {
-				return startWith.map(e => {
-					return {
-						w: e,
-						n: 1
-					};
-				});
-			}
+			// const res = [];
+			// let rawlist = this.wordList(true);
+			// const _wordLength = word.length;
+			// const _length = _wordLength + 1;
 
-			let limitWith = startWith.map(e => e.slice(0, _length));
-			let cat = [...new Set(limitWith)];
-			let _catCount = cat.length;
+			// let startWith = rawlist
+			// 	.sort()
+			// 	.filter(e => e.startsWith(word))
+			// 	.map(e => e.trim());
 
-			if (_catCount == 1) {
-				return startWith.map(e => {
-					return {
-						w: e,
-						n: 1
-					};
-				});
-			} else {
-				// return cat.map(w => {
-				// 	let sl = startWith.filter(e => e.startsWith(w));
-				// 	let st = sl.length;
-				// 	return {
-				// 		w: st == 1 ? sl[0] : w,
-				// 		n: st
-				// 	};
-				// });
-				for (const w of cat) {
-					let sl = startWith.filter(e => e.startsWith(w));
-					let st = sl.length;
-					res.push({
-						w: st == 1 ? sl[0] : w,
-						// sl: sl,
-						n: st
-					});
-				}
-			}
+			// /**
+			//  * 20, 30
+			//  */
+			// if (startWith.length <= 30) {
+			// 	return startWith.map(e => {
+			// 		return {
+			// 			w: e,
+			// 			n: 1
+			// 		};
+			// 	});
+			// }
 
-			return res;
+			// let limitWith = startWith.map(e => e.slice(0, _length));
+			// let cat = [...new Set(limitWith)];
+			// let _catCount = cat.length;
+
+			// if (_catCount == 1) {
+			// 	return startWith.map(e => {
+			// 		return {
+			// 			w: e,
+			// 			n: 1
+			// 		};
+			// 	});
+			// } else {
+			// 	for (const w of cat) {
+			// 		let sl = startWith.filter(e => e.startsWith(w));
+			// 		let st = sl.length;
+			// 		res.push({
+			// 			w: st == 1 ? sl[0] : w,
+			// 			// sl: sl,
+			// 			n: st
+			// 		});
+			// 	}
+			// }
+			// return res;
 		},
 
 		/**
@@ -684,28 +690,39 @@ export default {
 
 		if (this.storageStore.isSupport) {
 			// NOTE: this should remain for at least 6 months
-			let oldRecentWord = this.storageStore.getItemAsList("word");
-			if (oldRecentWord.length) {
+			let oldRecentMW = this.storageStore.getItemAsList("word");
+			if (oldRecentMW.length) {
 				let idRecent = this.en.idRecent;
-				this.storageStore.setItemAsObject(idRecent, oldRecentWord);
+				this.storageStore.setItemAsObject(idRecent, oldRecentMW);
 				this.storageStore.removeItem("word");
 			}
 
 			let version = this.storageStore.getItem("version");
-			try {
-				let wmLocal = this.storageStore.getItemAsList(this.my.idLocal);
-				let wmSize = JSON.stringify(wmLocal).length;
-
-				if (meta.dataset.version != version || wmSize != 309631) {
-					if (meta.dataset.version != version) {
-						this.storageStore.setItem("version", meta.dataset.version);
-						wmSize = 0;
-					}
-					await this.loadWM(wmSize);
-				}
-			} catch (error) {
-				await this.loadWM();
+			if (meta.dataset.version != version) {
+				this.storageStore.setItem("version", meta.dataset.version);
 			}
+
+			let oldLocalMW = this.storageStore.getItemAsList(this.my.idLocal);
+
+			if (oldLocalMW.length) {
+				this.storageStore.removeItem(this.my.idLocal);
+			}
+
+			// let version = this.storageStore.getItem("version");
+			// try {
+			// 	let wmLocal = this.storageStore.getItemAsList(this.my.idLocal);
+			// 	let wmSize = JSON.stringify(wmLocal).length;
+
+			// 	if (meta.dataset.version != version || wmSize != 309631) {
+			// 		if (meta.dataset.version != version) {
+			// 			this.storageStore.setItem("version", meta.dataset.version);
+			// 			wmSize = 0;
+			// 		}
+			// 		await this.loadWM(wmSize);
+			// 	}
+			// } catch (error) {
+			// 	await this.loadWM();
+			// }
 		}
 	},
 

@@ -162,7 +162,9 @@ mixin suggestion_spelling(o)
 
 mixin resultData(o)
   div.sense
+    script  var sugList = !{JSON.stringify(meta.sug)}
     each sug in meta.sug
+      //- script var orange = !{JSON.stringify(sug)}
       +#{"suggestion_"+sug.name}(sug)
     each row in o
       if Array.isArray(row.clue)

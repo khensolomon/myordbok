@@ -1,5 +1,10 @@
 # Version
 
+## 1.9.1
+
+- ThemeMode [auto, light, dark]
+- Suggestion on non-definition
+
 ## 1.9.0
 
 - Improved performance, rewrite data-structure

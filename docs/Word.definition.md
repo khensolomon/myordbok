@@ -141,7 +141,7 @@ weaving | - | -
 [etc:*]
 [see:*]
 [same:*]
-[with:*]
+
 [list:*]
 [list:-er/-est]
 [list:-ier/-iest]
@@ -157,6 +157,9 @@ weaving | - | -
 [asin:Grammar]
 [suggested:user]
 [corrected:user]
+[with:sentence]
+[kind:sentence] -> [with:sentence]
+
 
 ### type: (typeof)
 

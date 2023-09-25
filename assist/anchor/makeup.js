@@ -9,12 +9,19 @@ export function link(str) {
 		var [name, e] = t.split(":");
 		// NOTE: [also:creative]
 		if (e && typeof e == "string") {
-			var href = e
-				.split("/")
-				.map(word => "{-*-}".replace(/\*/g, word))
-				.join(", ");
+			// NOTE: seperator
+			let seperator = "/";
+			if (name == "with") {
+				seperator = " ";
+			}
+
+			var links = e.split(seperator).map(word => "{-*-}".replace(/\*/g, word));
+			var href = links.join(", ");
 			if (name == "list") {
 				return href;
+			} else if (name == "with") {
+				// NOTE: informal esp US, [link:informal esp US] (~ [link:informal esp US])
+				return links.join(" ");
 			} else if (name == "type") {
 				// NOTE: type (law, medical, physic, religion, grammar, biology, dated etc)
 				return "[1]".replace("1", href);

@@ -1,0 +1,94 @@
+
+-------------
+0. Zyrian
+ကိုမီ [~:Komi] သုံး ဖင်နစ် [~:Finnic] ဘာသာစကား
+The Finnic language spoken by the Komi
+
+0. Zyrian language
+ကိုမီ [~:Komi] သုံး ဖင်နစ် [~:Finnic] ဘာသာစကား
+The Finnic language spoken by the Komi
+
+0. Komi
+ကိုမီ [~:Komi] သုံး ဖင်နစ် [~:Finnic] ဘာသာစကား
+The Finnic language spoken by the Komi
+
+ရုရှားနိုင်ငံ အနောက်မြောက်ပိုင်း ယူရယ် [~:Urals] တွင်နေထိုင်သည့် ဖင်လန်လူမျိုး
+A member of a Finnish people living in the northwestern Urals in Russia
+
+0. Komi language
+ကိုမီ [~:Komi] သုံး ဖင်နစ် [~:Finnic] ဘာသာစကား
+The Finnic language spoken by the Komi
+
+0. Urals
+အာတိတ်ဒေသမှ ကက်စပီယန်ပင်လယ်အထိ ကျယ်ပြန့်သော ရုရှားနိုင်ငံအနောက်ပိုင်းရှိ တောင်တန်း
+A mountain range in western Russia extending from the Arctic to the Caspian Sea
+
+ဥရောပနှင့် အာရှစပ်ကြား ရိုးရာသုံး
+- ယူရယ်တောင်တန်းများ
+forms part of the traditional boundary between Europe and Asia
+
+0. Ural Mountains
+ယူရယ် [~:Urals] တောင်တန်း
+
+2. Ural
+ဥရောပနှင့် အာရှကြားရှိ တောင်တန်း၊ ယူရယ် [~:Urals] နှင့် စပ်လျဉ်းသော
+Pertaining to, or designating, the Urals, a mountain range between Europe and Asia
+
+0. Finnic
+ဖင်နို-အူဂရစ်ဘာသာစကား၏ အကိုင်းအခက်နှစ်ခုထဲက တစ်ခုသော ဘာသာစကား မိသားစု
+- Fennnic, Ugric မဟုတ်
+One of two branches of the Finno-Ugric languages; a family of languages including Finnish and Estonian (but not Hungarian)
+- Fennic, Non-Ugric
+
+0. Fennic
+ဖင်နို-အူဂရစ်ဘာသာစကား၏ အကိုင်းအခက်နှစ်ခုထဲက တစ်ခုသော ဘာသာစကား မိသားစု
+One of two branches of the Finno-Ugric languages; a family of languages including Finnish and Estonian (but not Hungarian)
+
+0. zymurgy
+(စပျစ်ဝိုင်၊ အရက်စသည့်) ဓာတုဗေဒဆိုင်ရာ အချဉ်ဖောက်ခြင်း၊ စော်ဖောက်ခြင်း (သို့) ပေါင်းခံခြင်း
+The branch of chemistry concerned with fermentation (as in making wine, brewing or distilling)
+
+2. zymotic
+အချဉ်ဖောက်ခြင်း (သို့) ပေါင်းခံခြင်းနှင့် ဆက်စပ်သော
+Of or relating to or causing fermentation
+
+2. zymolytic
+အချဉ်ဖောက်ခြင်း (သို့) ပေါင်းခံခြင်းနှင့် ဆက်စပ်သော
+Of or relating to or causing fermentation
+
+0. zymosis
+သကြားဓာတ်ကို အရက်အဖြစ် ပြောင်းလဲခြင်း
+A process in which an agent causes an organic substance to break down into simpler substances; especially, the anaerobic breakdown of sugar into alcohol
+- zymolysis, fermentation, fermenting
+
+[type:medicine] မှိုကြောင့်ဖြစ်လာသော ကူးစက်ရောဂါ
+(medicine) the development and spread of an infectious disease (especially one caused by a fungus)
+
+0. zymolysis
+သကြားဓာတ်ကို အရက်အဖြစ် ပြောင်းလဲခြင်း
+A process in which an agent causes an organic substance to break down into simpler substances; especially, the anaerobic breakdown of sugar into alcohol
+
+0. zymoid
+အင်ဇိုင်း [~:enzyme] နှင့် ဆင်သော
+Resembling an enzyme
+
+10. zymo-
+အချဉ်ပေါက်ခြင်း
+Denoting fermentation
+
+0. zymase
+ဇိုင်းမက်စ်
+A complex of enzymes that cause glycolysis; originally found in yeast but also present in higher organisms
+
+0. Zyloprim
+ဂေါက်နာရောဂါနှင့် အခြားအခြေအနေများကို ကုသရာတွင် အသုံးပြုသည့် ဆေးဝါး (ကုန်သွယ်ရေးအမည်)
+A drug (trade name Zyloprim) used to treat gout and other conditions in which there is an excessive buildup of uric acid
+
+0. allopurinol
+ဂေါက်နာရောဂါနှင့် အခြားအခြေအနေများကို ကုသရာတွင် အသုံးပြုသည့် ဆေးဝါး
+A drug used to treat gout and other conditions in which there is an excessive buildup of uric acid
+
+0. metallic element
+သတ္တုဒြပ်စင်
+Any of several chemical elements that are usually shiny solids that conduct heat or electricity and can be formed into sheets etc.
+- metal

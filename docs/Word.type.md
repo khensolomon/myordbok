@@ -3,11 +3,7 @@
 ```sql
 UPDATE sense SET tid=92 WHERE tid =2;
 SELECT * FROM sense WHERE tid=2;
-```
 
-https://my.wiktionary.org/wiki/?
-
-```sql
 "0","Noun"
 "1","Verb"
 "2","Adjective"
