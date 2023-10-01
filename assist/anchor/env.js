@@ -368,6 +368,7 @@ export const config = core.config.merge({
 		synset: "list_word",
 		synmap: "map_derive",
 		thesaurus: "map_thesaurus",
+		fonts: "fonts",
 		/**
 		 * log_keyword
 		 */
