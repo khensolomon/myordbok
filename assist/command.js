@@ -63,3 +63,9 @@ routes.register("gist/:task?/:name?", async function(req) {
 routes.register("flat/:task?/:name?", async function(req) {
 	return import("./flat/cli.js").then(e => e.default(req));
 });
+
+routes.register("font-update", async function(req) {
+	return import("./fonts.js").then(async e => {
+		return new e.default("external").scan();
+	});
+});
