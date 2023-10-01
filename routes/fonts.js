@@ -17,6 +17,14 @@ import fonts from "../assist/fonts.js";
 const app = server();
 const routes = app.routes("/myanmar-fonts", "page");
 
+routes.register("/scan-:type", function(req, res) {
+	const fontType = req.params.type;
+	// const fontName = req.query.font;
+	new fonts(fontType).scan().then(function(e) {
+		res.send(e);
+	});
+});
+
 routes.register(
 	{
 		url: "/:type?",
@@ -25,8 +33,8 @@ routes.register(
 	},
 
 	async function(req, res) {
-		var fontType = req.params.type;
-		var fontName = req.query.font;
+		const fontType = (req.params.type || "").toString();
+		const fontName = (req.query.font || "").toString();
 
 		const context = {
 			title: "Myanmar fonts",
@@ -35,7 +43,13 @@ routes.register(
 			type: "",
 			download: "",
 			unrestrict: [],
+			/**
+			 * @type {any}
+			 */
 			secondary: [],
+			/**
+			 * @type {any}
+			 */
 			external: []
 		};
 		var o = new fonts(fontType);
@@ -50,8 +64,10 @@ routes.register(
 						context.download = fontName;
 					}
 				}
-				context.secondary = await o.read("secondary");
-				context.external = await o.read("external");
+				// context.secondary = await o.read("secondary");
+				// context.external = await o.read("external");
+				// context.secondary = o.store.secondary;
+				// context.external = o.store.external;
 				res.render("fonts", context);
 			})
 			.catch(function(e) {
@@ -61,8 +77,8 @@ routes.register(
 );
 
 routes.register("/download/:type?", function(req, res) {
-	var fontType = req.params.type;
-	var fontName = req.query.font;
+	const fontType = req.params.type;
+	const fontName = (req.query.font || "").toString();
 
 	new fonts(fontType)
 		.download(fontName)

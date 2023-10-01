@@ -1,4 +1,5 @@
 extends layout
+
 block content
 
   if info
@@ -59,13 +60,13 @@ block content
                   em Download
             ul.typeface
               li
-                a.download(href="/myanmar-fonts/primary?font=Myanmar3_V1.358.ttf") Regular
+                a.download(href="/myanmar-fonts/primary?font=Myanmar3-v1.358.ttf") Regular
               li
-                a.download(href="/myanmar-fonts/primary?font=Myanmar3h_V1.358.ttf") 3h
+                a.download(href="/myanmar-fonts/primary?font=Myanmar3h-v1.358.ttf") 3h
               li
-                a.download(href="/myanmar-fonts/primary?font=Myanmar3sh_V1.358.ttf") 3sh
+                a.download(href="/myanmar-fonts/primary?font=Myanmar3sh-v1.358.ttf") 3sh
               li
-                a.download(href="/myanmar-fonts/primary?font=Mm3Web_V3.000.ttf") Mm3Web
+                a.download(href="/myanmar-fonts/primary?font=Mm3Web-v3.ttf") Mm3Web
             p
               | Myanmar Natural Language Processing (NLP) Research Center is a non-profit organization
               | (NPO) as well as a non-government organization (NGO), mostly supported by Myanmar Computer Federation. It was formed with the aim...
@@ -90,9 +91,9 @@ block content
 
             ul.typeface
               li
-                a.download(href="/myanmar-fonts/primary?font=Zawgyi-One_V3.1.ttf") Regular
+                a.download(href="/myanmar-fonts/primary?font=ZawgyiOne-v3.1.ttf") Regular
               li
-                a.download(href="/myanmar-fonts/primary?font=Zawgyi-One_V3.0.ttf") 3.0
+                a.download(href="/myanmar-fonts/primary?font=ZawgyiOne-v3.0.ttf") 3.0
             p
               | A predominant typeface Zawgyi font aka Zawgyi-One was designed by Zaw Win Myat of Art House.
               | Althought it's still the most popular font in Myanmar, unfortunately the development seem to be paused!
@@ -117,13 +118,13 @@ block content
 
             ul.typeface
               li
-                a.download(href="/myanmar-fonts/primary?font=Padauk-Regular.ttf") Regular
+                a.download(href="/myanmar-fonts/primary?font=Padauk.ttf") Regular
               li
-                a.download(href="/myanmar-fonts/primary?font=Padauk-Bold.ttf") Bold
+                a.download(href="/myanmar-fonts/primary?font=Padauk-bold.ttf") Bold
               li
-                a.download(href="/myanmar-fonts/primary?font=PadaukBook-Regular.ttf") Book
+                a.download(href="/myanmar-fonts/primary?font=PadaukBook-regular.ttf") Book
               li
-                a.download(href="/myanmar-fonts/primary?font=PadaukBook-Bold.ttf") Book bold
+                a.download(href="/myanmar-fonts/primary?font=PadaukBook-bold.ttf") Book bold
               li
                 a.download(href="http://software.sil.org/downloads/r/padauk/padauk-3.002-web.zip") Web
             p
@@ -147,11 +148,10 @@ block content
           div.row.gallery.secondary
             ul
               each j in secondary
-                - var total = j.view + j.download;
-                li
-                  a.dt(href=`/myanmar-fonts/secondary?font=${j.file}` data-view=j.view data-download=j.download data-total=total class=total ? 'y':'n')= j.name
+                li(data-vw=j.view data-dl=j.download)
+                  a.dt(href=`/myanmar-fonts/secondary?font=${j.file}` data-tl=j.total class=j.total ? 'y':'n')= j.name
                   if !j.restrict
-                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/secondary?font=${j.file}` title=`Download ${j.name}`) Download
+                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/secondary?font=${j.file}` title=`Download`) Download
                   p.f2= j.version
                   p.f5= j.family
 
@@ -159,11 +159,10 @@ block content
           div.row.gallery.external
             ul
               each j in external
-                - var total = j.view + j.download;
-                li
-                  a.dt(href=`/myanmar-fonts/external?font=${j.file}` data-view=j.view data-download=j.download data-total=total class=total ? 'y':'n')= j.name
+                li(data-vw=j.view data-dl=j.download)
+                  a.dt(href=`/myanmar-fonts/external?font=${j.file}` data-tl=j.total class=j.total ? 'y':'n')= j.name
                   if !j.restrict
-                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/external?font=${j.file}` title=`Download ${j.name}`) Download
+                    a.dl.download.icon-floppy(href=j.restrict ? '#':`/myanmar-fonts/download/external?font=${j.file}` title=`Download`) Download
                   p.f2= j.version
                   p.f5= j.family
 

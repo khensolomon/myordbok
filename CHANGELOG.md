@@ -4,6 +4,7 @@
 
 - ThemeMode [auto, light, dark]
 - Suggestion on non-definition
+- Fonts counter db integrations & robot JSON generator
 
 ## 1.9.0
 
