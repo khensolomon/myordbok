@@ -8,7 +8,7 @@
     "build": "node webpack.build.js",
     "serve": "node serve.js",
     "task": "node task.js",
-    "start": "node serve.js",
+    "start": "node run font-update && node serve.js",
     "tst": "mocha",
     "test": "mocha test/mocha-*.js",
     "test:current": "mocha test/mocha-clue.js",
