@@ -8,7 +8,7 @@ import "./assist/command.js";
  * process.argv.splice(2),__dirname
  */
 const app = core.command();
-app.environment();
+// app.environment();
 
 /**
  * const usage = app.memoryUsage();

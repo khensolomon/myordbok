@@ -11,7 +11,7 @@ import "./middleware.js";
 import "./route.js";
 
 const app = core.server();
-app.environment();
+// app.environment();
 
 app.pug(file => pug.compileFile(file));
 // app.use(helmet());
@@ -22,6 +22,7 @@ app.use(
 );
 
 app.listen(app.config.listen, function() {
+	// console.log("config.hotReload", config.hotReload);
 	var now = new Date().toLocaleDateString("en-GB", {
 		weekday: "long",
 		day: "2-digit",

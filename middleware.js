@@ -17,11 +17,15 @@ if (app.config.development) {
 	// app.use(app.middleware.static(static_dir));
 	// app.use(app.middleware.static("static"));
 	// app.use(app.middleware.static(__dirname + "/static"));
-	// app.use(app.middleware.static("static"));
-	import("./webpack.middleware.js").then(mwa => {
-		app.use(mwa.hot);
-		app.use(mwa.dev);
-	});
+
+	if (app.config.hasOwnProperty("hotReload")) {
+		import("./webpack.middleware.js").then(mwa => {
+			app.use(mwa.hot);
+			app.use(mwa.dev);
+		});
+	} else {
+		app.use(app.middleware.static("static"));
+	}
 }
 
 app.use(app.middleware.menu);

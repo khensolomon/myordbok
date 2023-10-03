@@ -1,6 +1,10 @@
 # Version
 
-## 1.9.1
+## 1.9.3
+
+- Add prepare environment for `.env` & `package.json`, calling `environment()`
+
+## 1.9.1-2
 
 - ThemeMode [auto, light, dark]
 - Suggestion on non-definition
