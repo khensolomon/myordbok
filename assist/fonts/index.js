@@ -4,7 +4,7 @@ import util from "util";
 import * as fs from "fs";
 import ttfMeta from "ttfmeta";
 
-import config from "./anchor/env.js";
+import config from "../anchor/env.js";
 
 /**
  * @typedef {{file:string,name:string,version:string,family:string, view:number, download:number, restrict?:boolean, total?:string}} TypeFont
@@ -41,24 +41,19 @@ export default class fonts {
 
 	/**
 	 * Read JSON by catalogue
-	 * @param {string} catalogue
+	 * @param {string} cate
 	 * @returns {Promise<TypeFont[]>}
 	 */
-	async read(catalogue) {
-		if (fontData.hasOwnProperty(catalogue)) {
-			return fontData[catalogue];
+	async read(cate) {
+		if (fontData.hasOwnProperty(cate)) {
+			return fontData[cate];
 		} else {
-			// let types = this.catalogue.indexOf(this.type);
-			// if (types < 0) {
-			// 	return "catalogue must be provided";
-			// }
-
-			let file = this.fileJSON(catalogue);
-			fontData[catalogue] = [];
+			let file = this.fileJSON(cate);
+			fontData[cate] = [];
 			return seek
 				.read(file)
-				.then(e => (fontData[catalogue] = JSON.parse(e.toString())))
-				.catch(() => {});
+				.then(e => (fontData[cate] = JSON.parse(e.toString())))
+				.catch(() => []);
 		}
 	}
 
@@ -335,7 +330,7 @@ export default class fonts {
 	async scan() {
 		for (let index = 0; index < this.catalogue.length; index++) {
 			const cate = this.catalogue[index];
-			const status = await this.categorize(cate);
+			const status = await this._categorize(cate);
 			console.log("> font", cate, status);
 		}
 	}
@@ -345,58 +340,86 @@ export default class fonts {
 	 * or scan
 	 * @param {string} cate - cat/type not need filter as it's internal
 	 */
-	async categorize(cate) {
-		/**
-		 * @type{TypeFont[]}
-		 */
-		fontData[cate] = [];
+	async _categorize(cate) {
 		var directory = this.root(cate);
 		var read_dir = util.promisify(fs.readdir);
 		// this.read("restrict");
 
+		await this.read(cate);
 		const files = await read_dir(directory);
+		let filesCount = files.length;
+		let typeId = this.catalogue.indexOf(cate);
 
-		for (let index = 0; index < files.length; index++) {
-			const fileName = files[index];
-
-			const o = await ttfMeta.promise(this.root(cate, fileName));
-			if (o && o.hasOwnProperty("meta")) {
-				const org = await db.mysql.query(
-					"SELECT view, download, restricted FROM ?? WHERE file=?;",
-					[config.table.fonts, fileName]
-				);
-				var countView = 0;
-				var countDownload = 0;
-				var isrestrict = false;
-
-				if (org.length) {
-					countView = org[0].view;
-					countDownload = org[0].download;
-
-					isrestrict = org[0].restricted > 0;
+		if (fontData[cate].length == filesCount) {
+			// NOTE: same as last scan, just need to update view and download counts
+			/**
+			 * @type {{file:string, view:number, download:number, restricted:number}[]}
+			 */
+			let org = await db.mysql.query(
+				"SELECT file, view, download, restricted FROM ?? WHERE types=?;",
+				[config.table.fonts, typeId]
+			);
+			for (let index = 0; index < filesCount; index++) {
+				const fileName = files[index];
+				let item = org.find(e => e.file == fileName);
+				if (item) {
+					let index = fontData[cate].findIndex(e => e.file == fileName);
+					if (index >= 0) {
+						fontData[cate][index].view = item.view;
+						fontData[cate][index].download = item.download;
+						if (item.restricted > 0) {
+							fontData[cate][index].restrict = true;
+						} else if (fontData[cate][index].hasOwnProperty("restrict")) {
+							delete fontData[cate][index].restrict;
+						}
+					}
 				}
+			}
+		} else {
+			// NOTE: not same as last scan, need to regenerated
+			fontData[cate] = [];
+			for (let index = 0; index < filesCount; index++) {
+				const fileName = files[index];
 
-				let oj = o.meta.property;
-				let itemFamily = oj.find(e => e.name == "font-family")?.text || "";
-				let itemVersion = oj.find(e => e.name == "version")?.text || "";
-				let itemSub = oj.find(e => e.name == "font-subfamily")?.text || "";
-				/**
-				 * @type {TypeFont}
-				 */
-				var item = {
-					file: fileName,
-					name: itemFamily.replace(/\u0000/g, ""),
-					version: itemVersion.replace(/\u0000/g, ""),
-					family: itemSub.replace(/\u0000/g, ""),
-					view: countView,
-					download: countDownload,
-					total: digit(countView + countDownload).shorten()
-				};
+				const o = await ttfMeta.promise(this.root(cate, fileName));
+				if (o && o.hasOwnProperty("meta")) {
+					const org = await db.mysql.query(
+						"SELECT view, download, restricted FROM ?? WHERE file=?;",
+						[config.table.fonts, fileName]
+					);
+					var countView = 0;
+					var countDownload = 0;
+					var isrestrict = false;
 
-				if (isrestrict) {
-					item.restrict = true;
+					if (org.length) {
+						countView = org[0].view;
+						countDownload = org[0].download;
+
+						isrestrict = org[0].restricted > 0;
+					}
+
+					let oj = o.meta.property;
+					let itemFamily = oj.find(e => e.name == "font-family")?.text || "";
+					let itemVersion = oj.find(e => e.name == "version")?.text || "";
+					let itemSub = oj.find(e => e.name == "font-subfamily")?.text || "";
+					/**
+					 * @type {TypeFont}
+					 */
+					const item = {
+						file: fileName,
+						name: itemFamily.replace(/\u0000/g, ""),
+						version: itemVersion.replace(/\u0000/g, ""),
+						family: itemSub.replace(/\u0000/g, ""),
+						view: countView,
+						download: countDownload,
+						total: digit(countView + countDownload).shorten()
+					};
+
+					if (isrestrict) {
+						item.restrict = true;
+					}
+					fontData[cate].push(item);
 				}
-				fontData[cate].push(item);
 			}
 		}
 
@@ -408,7 +431,7 @@ export default class fonts {
 	 * Integration counter from flat to db
 	 * @returns {Promise<string>}
 	 */
-	async scan_integration() {
+	async _scan_integration() {
 		let types = this.catalogue.indexOf(this.type);
 		if (types < 0) {
 			return "catalogue must be provided";

@@ -10,7 +10,7 @@
 
 import * as fs from "fs";
 import { seek, server } from "lethil";
-import fonts from "../assist/fonts.js";
+import fonts from "../assist/fonts/index.js";
 
 // const {media} = core.config();
 
