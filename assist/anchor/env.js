@@ -347,6 +347,9 @@ export const dictionaries = [
 	}
 ];
 
+/**
+ * Merge core.config & local
+ */
 export const config = core.config.merge({
 	name: "MyOrdbok",
 	// description: 'package.description',
@@ -357,10 +360,10 @@ export const config = core.config.merge({
 		// {id:'my',name:'Myanmar'},
 		// {id:'zo',name:'Zolai'}
 	],
-	/**
-	 * custom
-	 */
-	speechUrl: "",
+	// /**
+	//  * custom
+	//  */
+	// speechUrl: "",
 
 	table: {
 		senses: "list_sense",
@@ -377,15 +380,17 @@ export const config = core.config.merge({
 	},
 	dictionaries: dictionaries,
 	synset: synset,
-	synmap: synmap,
+	synmap: synmap
 	// fileName: fileName,
 	/**
 	 * if "true" get search result from Database
 	 * if not get data from JSON
 	 */
-	fromDatabase: "false",
-	cacheDefinition: "false"
+	// fromDatabase: "false",
+	// cacheDefinition: "false"
 });
 
-// to get latest merge, config must be used
+/**
+ * to get latest merge, config must be used
+ */
 export default config;
