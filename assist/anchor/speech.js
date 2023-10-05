@@ -22,6 +22,8 @@ export function speech(query) {
 	// 	"https://translate.google.com/translate_tts?ie=UTF-8&q=hello&tl=en&client=tw-ob"
 	// );
 	return ask.stream(
+		// @ts-ignore
 		config.speechUrl.replace("$q", escape(query.q)).replace("$l", query.l)
 	);
+	// return config.speechUrl;
 }

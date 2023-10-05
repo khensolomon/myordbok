@@ -1,5 +1,6 @@
 import core from "./core.js";
 import "./assist/command.js";
+import { config } from "./assist/index.js";
 
 /**
  * Please mind the reserved keywords (sql,mongo,Config,args,etc) in module.exports

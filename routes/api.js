@@ -39,12 +39,12 @@ routes.register("", (_req, res) => {
 // });
 
 routes.register("/speech", (req, res) => {
-	res.set({
-		"Content-Type": "audio/mpeg",
-		"Accept-Ranges": "bytes",
-		"Content-Transfer-Encoding": "binary",
-		Pragma: "cache"
-	});
+	// res.set({
+	// 	"Content-Type": "audio/mpeg",
+	// 	"Accept-Ranges": "bytes",
+	// 	"Content-Transfer-Encoding": "binary",
+	// 	Pragma: "cache"
+	// });
 	// res.setHeader("Content-Type", "audio/mpeg");
 	// res.setHeader("Accept-Ranges", "bytes");
 	// res.setHeader("Content-Transfer-Encoding", "binary");
@@ -107,6 +107,7 @@ routes.register("/search/:task?", async (req, res) => {
  */
 routes.register("/grammar", (req, res) => {
 	grammar
+		// @ts-ignore
 		.main(req.query.q)
 		.then(raw => res.json(raw))
 		.catch(() => res.json([]));
