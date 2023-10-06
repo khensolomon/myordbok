@@ -56,10 +56,10 @@ sing. -> sing
 (~ usually in compounds) ?
 
 (Historical)
-(Greek mythology) 
-(Activity) 
+(Greek mythology)
+(Activity)
 (Movement)
-(Position) 
+(Position)
 (Technology)	[type:technology]
 (historical)	[type:historical]
 
@@ -126,6 +126,8 @@ UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "(dated derog)", "[type:dated
 
 UPDATE `list_sense` SET `sense` = REPLACE(`sense`, "(dated or law)", "[type:dated/law]") WHERE `sense` IS NOT NULL;
 
+
+သန~ိဋ္ဌာန်။
 %1
 % n/adj
 ⊂
@@ -151,7 +153,7 @@ subset of
 ဝါကျက‹ တစ် ခု။ (done)
 မ‹ိုင်။ (done)
 
-အနÚ္တရာယ်ဖြစ်မည့် 
+အနÚ္တရာယ်ဖြစ်မည့်
 ကုမþဏီ -> ကုမ္ပဏီ
 
 ခြေကျင်သွားသည်။ ခြေကျÚင်ပစ်သည်။ ခြေကျင်ကြဲ သည်။ [©:STAMP]
@@ -210,7 +212,7 @@ pl of ?
 (~ type [list:formal], usually [list:approval])
 
 [usu. derogatory] (~ type [list:derogatory] usually...)
-(~ with 
+(~ with
 [list:n]
 [list:v]
 [list:adj]
@@ -245,11 +247,11 @@ pl of ?
 	(~ used with [list:present perfect/past perfect/simple present] [list:tense] in the [list:main clause])
 (used with the present or past perfect tense)
 	(~ used with [list:present tense/past perfect tense])
-(used with it, usu in the continuous tenses) 
+(used with it, usu in the continuous tenses)
 	(~ used with [list:it], usually in the [list:continuous tense])
 (used with plural countable ns, usu referring to three or more)
 	(~ used with [list:plural/countable noun], usually referring to [list:three] or [list:more])
-	
+
 (used widely with N to form Adj)
 	(~ used widely with [list:n] to form [list:adj])
 (used widely with ns)
@@ -269,7 +271,7 @@ pl of ?
 	(~ used with [list:adv], or in questions after [list:how])
 (used with N referring to things)
 	(~ used with [list:n] referring to [list:things])
-	
+
 (used for emphasis)
 	(~ used for [list:emphasis])
 
@@ -352,7 +354,7 @@ pl of ?
 	(~ used with [with:singular countable noun] to refer to individual people or things belonging to groups of three or more)
 (used with singular countable N to emphasize the importance of each separate unit)
 	(~ used with [with:singular countable noun] to emphasize the importance of each separate unit)
-(used with uncountable N) 
+(used with uncountable N)
 	(~ used with [with:uncountable noun])
 (used esp by men) (~ used esp by [list:men])
 (used esp with can and could) (~ used esp with [list:can/could])
@@ -391,14 +393,14 @@ pl of ?
 [usu sing]
 (dated or fml)
 (US sl)
-(suffix 
+(suffix
 (usu - usually
-(esp 
+(esp
 
 [infml] [type:informal]
 (infml) .
 (reporting
-(used 
+(used
 up/ over)
 (Brit)
 (~ with sb)
@@ -454,7 +456,7 @@ up/ over)
 (Brit: dated) .
 (Brit dated or joc)
 	(~ type [list:Brit/dated], or [list:jocular])
-(Brit dated or fml) 
+(Brit dated or fml)
 	(~ type [list:Brit/dated], or [list:formal])
 (Brit dated infml)
 	(~ type [list:Brit/dated], or [list:informal])
@@ -542,7 +544,7 @@ up/ over)
 	(~ type [list:informal], sometime [list:derogatory])
 (infml approv) (~ [list:informal/approval])
 	(~ type [list:informal/approval])
-(infml approv) 
+(infml approv)
 	(~ type [list:informal], usually [list:approval])
 (infml saying) (~ [list:informal/saying])
 	(~ type [list:informal/saying])
@@ -741,7 +743,7 @@ up/ over)
 (~ on sb) ?
 (~ on) ?
 [sing]
-(arch or rhet) 
+(arch or rhet)
 [in sing.] ?
 (in compounds)
 (~ usually sing,
@@ -847,7 +849,7 @@ up/ over)
 
 (~ usually formal) (~ usually [list:formal])
 (~ usually passive) (~ usually [list:passive])
-(~ usually in negative sentences and questions, or sentences expressing doubt or condition, usu placed before the v) 
+(~ usually in negative sentences and questions, or sentences expressing doubt or condition, usu placed before the v)
 	(~ usually in [with:negative sentence], [with:negative question], or sentences expressing [list:doubt/condition]) (~ often placed before [list:v])
 (~ usually imperative) ?
 
@@ -949,7 +951,7 @@ up/ over)
 (of a quantity) (~ of a [list:quantity])
 (of an ?) (~ of an [list:?])
 
-(not usu in the continuous tenses) 
+(not usu in the continuous tenses)
 	(~ not usually in [list:continuous tense])
 (not usu in the continuous tenses, often with it and a that clause)
 	(~ not usually in [list:continuous tense], often with [list:it] and a [list:that] clause)
@@ -970,12 +972,12 @@ up/ over)
 	(~ past tense usually [list:wet])
 (not passive)
 	(~ not [list:passive])
- 
+
 (of ?) (~ of [list:?])
 
 (offensive) - (~ [list:offensive])
 	(~ type [list:offensive])
-	
+
 (following N) (~ following [list:n])
 (following ns) .
 
