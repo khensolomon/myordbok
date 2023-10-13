@@ -185,7 +185,7 @@
 										> h2,
 										h3 {
 											// NOTE: pos, thesaurus
-											font-size: 110%;
+											font-size: 100%;
 											line-height: 100%;
 											font-weight: lighter;
 											display: inline-block;
@@ -195,7 +195,7 @@
 											// text-transform: uppercase;
 											// text-shadow: #fff 1px 0px 1px;
 											// color: rgba(var(--color-highlight), 0.9);
-											color: rgba(var(--color-text), 0.7);
+											color: rgba(var(--color-text), 0.6);
 											// text-shadow: #fff 1px 0px 1px;
 										}
 
@@ -580,8 +580,6 @@
 						p {
 							color: rgba(var(--color-text), 0.6);
 							font-size: 120%;
-							a {
-							}
 						}
 					}
 				}

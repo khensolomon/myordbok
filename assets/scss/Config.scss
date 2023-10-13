@@ -82,7 +82,10 @@ $max-width: 950px;
 	--color-link-active: 31, 31, 247;
 	--color-link-hover: 53, 99, 110;
 
-	--color-search-bg: 247, 247, 247;
+	--tmp-color: rgb(250, 249, 249);
+
+	// --color-search-bg: 247, 247, 247;
+	--color-search-bg: 250, 249, 249;
 	--color-search-border: 185, 182, 182;
 	--color-search-shadow: 185, 182, 182;
 	--color-reserved-space: 240, 240, 240;

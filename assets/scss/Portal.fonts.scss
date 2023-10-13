@@ -197,10 +197,10 @@
 					// background-color: #ccc;
 					// background-color: #f9f9f9;
 					position: relative;
-					border-radius: 12px;
+					border-radius: 8px;
 					// box-shadow: inset 0px 0px 1px 1px #ccc;
 					// background-color: lighten(#ccc, 17%);
-					box-shadow: 0px 0px 1px 1px rgba(var(--color-text), 0.2);
+					box-shadow: 0px 0px 0px 0.5px rgba(var(--color-text), 0.2);
 					background-color: rgba(var(--color-surround), 0.4);
 					// line-height: 19px;
 					a {
@@ -292,7 +292,7 @@
 					// 	padding: 1px 5px;
 					// }
 					&:hover {
-						box-shadow: 0px 0px 2px 1px rgba(var(--color-text), 0.25);
+						box-shadow: 0px 0px 0 1px rgba(var(--color-text), 0.25);
 						background-color: rgba(var(--color-surround), 0.7);
 					}
 				}
@@ -316,8 +316,9 @@
 					width: 96%;
 					padding: 1%;
 					margin: 2%;
+					border-radius: 5px;
 					// border-radius: 7px;
-					box-shadow: 0px 0px 1px 1px rgba(var(--color-text), 0.18);
+					box-shadow: 0px 0px 0 0.5px rgba(var(--color-text), 0.18);
 					background-color: rgba(var(--color-surround), 0.3);
 					// box-shadow: 0px 0px 2px 1px rgba(var(--color-text), 0.1);
 					// background-color: rgb(var(--color-surround));
