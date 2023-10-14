@@ -929,3 +929,74 @@ he [list:shall/will]
 ကိုယ်ကျင့်တရား (သို့) ဥပဒေ ချိုးဖောက်ခြင်း
 
 မှားယွင်းသည့် အပြုအမူ
+
+
+Adjective: Iranian
+Of or relating to Iran or its people or language or culture
+"Iranian security police";
+- Persian
+Noun: Iranian
+A native or inhabitant of Iran
+- Irani, Persian
+ 
+The modern Persian language spoken in Iran
+- Iranian language
+
+နာမဝိသေသန- အီရန်
+အီရန် သို့မဟုတ် ၎င်း၏လူမျိုး၊ ဘာသာစကား၊ ယဉ်ကျေးမှုနှင့် သက်ဆိုင်သော
+"အီရန်လုံခြုံရေးရဲတပ်ဖွဲ့";
+- ပါရှန်း
+နာမ်- အီရန်
+ဇာတိ သို့မဟုတ် အီရန်တွင် နေထိုင်သူ
+
+အီရန်ဇာတိ သို့မဟုတ် အီရန်တွင် နေထိုင်သူ
+- အီရန်၊ ပါရှန်
+ 
+ခေတ်သစ်ပါရှန်းဘာသာစကား
+- အီရန်ဘာသာစကား
+
+Noun: Estonian
+The official language of Estonia; belongs to the Baltic-Finnic family of languages
+- Esthonian
+Adjective: Estonian
+Of or pertaining to Estonia or the people or culture of Estonia
+
+
+လက်ရှိအခြေအနေသည် ထင်ရှား သို့မဟုတ် တက်ကြွမှုမရှိသေးပေ။
+ထင်ရှားသည့် အချက်အလက် သို့မဟုတ် တက်ကြွမှု လက္ခဏာ မရှိသေးခြင်း
+
+နာမ်- အက်စ်တိုးနီးယား
+[list:Baltic-Finnic] ဘာသာစကား မိသားစုမှ ဆင်းသက်လာသော အက်စတိုးနီးယား၏ တရားဝင်ဘာသာစကား
+- အက်စ်တိုးနီးယား
+နာမဝိသေသန- အက်စ်တိုးနီးယား
+အက်စတိုးနီးယား သို့မဟုတ် လူများ သို့မဟုတ် အက်စတိုးနီးယား၏ ယဉ်ကျေးမှုနှင့် သက်ဆိုင်သည်။
+အက်စတိုးနီးယား သို့မဟုတ် ၎င်း၏လူမျိုး၏ ယဉ်ကျေးမှုနှင့် သက်ဆိုင်သော
+
+Noun: Baltic-Finnic
+A group of Finnic languages including Finnish and Estonian
+
+နာမ်- ဘောလ်တစ်-ဖင်နစ်
+[list:Finnish] နှင့် [list:Estonian] အပါအဝင် [list:Finnic] ဘာသာစကားအုပ်စု
+
+Adjective: Finnish  fi-nish
+Of or relating to or characteristic of Finland or the people of Finland
+"Finnish architecture"
+Noun: Finnish  fi-nish
+The official language of Finland; belongs to the Baltic Finnic family of languages
+- Suomi
+ဖင်လန်နို်င်ငံနှင့်ဆိုင်သော။ဖလန်ဘာသာစကား၊
+
+နာမဝိသေသန- ဖင်လန် ဖီးနစ်
+ဖင်လန်နိုင်ငံ သို့မဟုတ် ဖင်လန်နိုင်ငံသားများ၏ လက္ခဏာများနှင့် သက်ဆိုင်သော
+"ဖင်လန်ဗိသုကာ"
+နာမ်- ဖင်လန် ဖီးနစ်
+ဖင်လန်၏တရားဝင်ဘာသာစကား; Baltic Finnic ဘာသာစကားများ၏ မိသားစုမှ ပါဝင်သည်။
+
+[list:Baltic-Finnic] ဘာသာစကား မိသားစုမှ ဆင်းသက်လာသော ဖင်လန်၏ တရားဝင်ဘာသာစကား
+- Suomi
+
+ဥရောပမြောက်ပိုင်းရှိ သမ္မတနိုင်ငံ; ၁၉၁၇ ခုနှစ်တွင် ရုရှားထံမှ လွတ်လပ်ရေးရရှိခဲ့သည်။
+- ဖင်လန်နိုင်ငံ၊ ဖင်လန်သမ္မတနိုင်ငံ
+
+Republic in northern Europe; achieved independence from Russia in 1917
+- Finland, Republic of Finland
