@@ -448,6 +448,43 @@
 													// 	// background-color: red;
 													// }
 												}
+												// NOTE: antonym & thesaurus
+												&.anth {
+													> p {
+														padding: 2%;
+														color: rgba(var(--color-text), 0.7);
+													}
+													> ol {
+														// NOTE: thesarus
+														// background-color: red;
+
+														// li {
+														// 	// background-color: red;
+														// 	// display: inline-block;
+														// 	// margin: 0px 1px;
+														// }
+														li {
+															display: inline-block;
+															position: relative;
+															padding: 2px 3px;
+
+															a {
+																font-size: 130%;
+																display: inline-block;
+																border-radius: 7px;
+																padding: 1px 7px;
+																// background-color: rgba(var(--color-surround), 0.5);
+																&:hover {
+																	text-decoration: underline;
+																	// color: darken(#0000EE,1%);
+																}
+																&:active {
+																	color: red;
+																}
+															}
+														}
+													}
+												}
 											}
 											&.med {
 												> ul {
@@ -488,46 +525,10 @@
 												}
 											}
 										}
-										&.thesaurus {
-											> div {
-												> div {
-													> p {
-														padding: 2%;
-														color: rgba(var(--color-text), 0.7);
-													}
-													> ol {
-														// NOTE: thesarus
-														// background-color: red;
 
-														// li {
-														// 	// background-color: red;
-														// 	// display: inline-block;
-														// 	// margin: 0px 1px;
-														// }
-														li {
-															display: inline-block;
-															position: relative;
-															padding: 2px 3px;
+										// &.antonym {}
+										// &.thesaurus {}
 
-															a {
-																font-size: 130%;
-																display: inline-block;
-																border-radius: 7px;
-																padding: 1px 7px;
-																// background-color: rgba(var(--color-surround), 0.5);
-																&:hover {
-																	text-decoration: underline;
-																	// color: darken(#0000EE,1%);
-																}
-																&:active {
-																	color: red;
-																}
-															}
-														}
-													}
-												}
-											}
-										}
 										&.help {
 											> div {
 												// border-left: none;

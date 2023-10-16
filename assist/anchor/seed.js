@@ -495,6 +495,7 @@ export class infoCache extends main {
 	}
 
 	get enable() {
+		// @ts-ignore
 		return env.config.cacheDefinition == "true";
 	}
 
@@ -682,6 +683,18 @@ async function fromMYSQLSpelling(word) {
 }
 
 /**
+ * antonyme
+ * @param {string} word
+ * @returns {Promise.<{opposite:string}[]>}
+ */
+async function _fromDBAntonym(word) {
+	return db.mysql.query(
+		"SELECT opposite FROM view_antonym  WHERE word LIKE ?",
+		[word]
+	);
+}
+
+/**
  * NOTE: Internal
  * @param {any[]} raw
  * @returns {Promise<env.BlockOfMeaning[]>}
@@ -734,6 +747,7 @@ export async function definition(word) {
 	};
 
 	try {
+		// @ts-ignore
 		if (env.config.fromDatabase == "true") {
 			// NOTE: from MySQL
 			let raw = await fromMySQL(word);
@@ -806,35 +820,62 @@ export function wordThesaurus(word, sensitive = false) {
 	 * type {string[]}
 	 */
 	var row = thesaurus.find(word);
-
 	const res = [];
-
 	for (let index = 0; index < row.length; index++) {
 		const e = row[index];
 		const pos = thesaurus.posName(e.pos);
 		const count = e.raw.length.toString();
-		const total = count == "1" ? "a" : count;
-		const item = count == "1" ? "word" : "words";
+		const wCount = count == "1" ? "a" : count;
+		const wForm = count == "1" ? "word" : "words";
 		res.push({
 			term: word,
 			type: "meaning",
-			// pos: thesaurus.posName(e.pos),
 			pos: "thesaurus",
-			kind: ["odd", pos],
-			v: "(-~ total-) words related to {-query-} as {-*?-}."
-				.replace(/total/, total)
-				.replace(/query/, word)
-				.replace(/words/, item)
+			kind: ["odd", "anth", pos],
+			v: "(-~-) wCount wForm related to {-wSouce-} as {-*?-}."
+				.replace(/wCount/, wCount)
+				.replace(/wForm/, wForm)
+				.replace(/wSouce/, word)
 				.replace(/\*\?/, pos),
-			// exam: e.raw,
-			// examCast: "exam_thesaurus"
+
 			exam: {
 				type: "examWord",
 				value: e.raw
 			}
 		});
 	}
+	return res;
+}
 
+/**
+ * @todo merge to pos
+ * @param {string} word
+ * returns {env.BlockOfMeaning|null}
+ * @returns {Promise<env.BlockOfMeaning[]>}
+ */
+export async function wordAntonym(word) {
+	let row = await _fromDBAntonym(word);
+
+	const res = [];
+	const total = row.length;
+	if (total) {
+		let wForm = total == 1 ? "word" : "words";
+		let wCount = total == 1 ? "a" : total.toString();
+		res.push({
+			term: word,
+			type: "meaning",
+			pos: "antonym",
+			kind: ["odd", "anth"],
+			v: "(-~-) wCount wForm opposite to {-wName-}."
+				.replace(/wCount/, wCount)
+				.replace(/wForm/, wForm)
+				.replace(/wName/, word),
+			exam: {
+				type: "examWord",
+				value: row.map(e => e.opposite)
+			}
+		});
+	}
 	return res;
 }
 

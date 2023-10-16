@@ -71,3 +71,11 @@ select * from antonym AS i
   JOIN word_senses AS s ON s.word_sense = i.word_sense1
   JOIN unique_words AS w ON w.word = i.word_sense1
   ;
+
+
+-- view_antonym
+select i.wrid, i.wlid, s.word AS word, o.word AS opposite from map_antonym AS i 
+  JOIN list_word AS s ON s.id = i.wrid 
+  JOIN list_word AS o ON o.id = i.wlid;
+
+SELECT * FROM view_antonym  WHERE word LIKE "love"

@@ -1,7 +1,13 @@
 # Version
 
-## 1.9.3
+## 1.9.6
 
+- add antonym & anth-class
+  - Provided by `view_antonym`
+
+## 1.9.3-4-5
+
+- Update dependencies
 - Add prepare environment for `.env` & `package.json`, calling `environment()`
 
 ## 1.9.1-2

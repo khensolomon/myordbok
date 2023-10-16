@@ -219,6 +219,13 @@ async function asMeaning(word) {
 	}
 
 	if (defMain.row.length) {
+		let antonym = await seed.wordAntonym(word);
+		if (antonym) {
+			defMain.row.push(...antonym);
+		}
+	}
+
+	if (defMain.row.length) {
 		res.word = wordUnique(defMain.row);
 		// let termThesaurus = word;
 		// const thesaurus = seed.wordThesaurus(word);
