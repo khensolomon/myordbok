@@ -1,4 +1,4 @@
-import { words } from "./base.js";
+import { default as base } from "./base.js";
 
 /**
  * Myanmar-English translation/definition
@@ -11,7 +11,8 @@ import { words } from "./base.js";
 export default async function main(req) {
 	switch (req.params.task) {
 		case "word":
-			return await doWords(req).then(e => e(req.query));
+			// return await doWords(req).then(e => e(req.query));
+			return await doWords(req);
 		default:
 			return noTask(req);
 	}
@@ -21,14 +22,14 @@ export default async function main(req) {
  * @param {any} req
  */
 async function doWords(req) {
-	await words.read();
 	switch (req.params.name) {
 		case "suggest":
-			return words.suggest;
-		case "size":
-			return words.size;
-		case "list":
-			return words.list;
+			// return base.suggestWord;
+			return base.suggestWord(req.query);
+		// case "size":
+		// 	return words.size;
+		// case "list":
+		// 	return words.list;
 		default:
 			return noName;
 	}

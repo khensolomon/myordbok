@@ -72,6 +72,50 @@
 						}
 					}
 				}
+				span.bracket {
+					color: rgba(var(--color-text), 0.4);
+					font-size: 90%;
+					&::before {
+						position: relative;
+						content: "";
+					}
+					&::after {
+						position: relative;
+						content: "";
+					}
+					&.round {
+						&::before {
+							content: "( ";
+						}
+						&::after {
+							content: " )";
+						}
+					}
+					&.square {
+						&::before {
+							content: "[ ";
+						}
+						&::after {
+							content: " ]";
+						}
+					}
+					&.angle {
+						&::before {
+							content: "< ";
+						}
+						&::after {
+							content: " >";
+						}
+					}
+					&.curly {
+						&::before {
+							content: "{ ";
+						}
+						&::after {
+							content: " }";
+						}
+					}
+				}
 				span.speech {
 					// display: inline-block;
 					// color: var(--color-text-disable);
@@ -247,6 +291,7 @@
 												// 	color: red;
 												// }
 											}
+
 											> p {
 												font-size: 1.1rem;
 												line-height: 1.65rem;

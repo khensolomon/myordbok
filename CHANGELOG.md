@@ -1,5 +1,10 @@
 # Version
 
+## 1.9.7
+
+- Introduce <> in instead of [list:*]
+- Update dependencies
+
 ## 1.9.6
 
 - add antonym & anth-class

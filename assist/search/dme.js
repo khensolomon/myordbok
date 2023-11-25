@@ -10,19 +10,17 @@ import { settings } from "./base.js";
 export async function asDefinition(raw) {
 	let word = raw.meta.q;
 	const res = await asMeaning(word);
-	// if (res.id == 1) {
-	// 	// EXAM: us britian, britain
-	// 	raw.title = settings.meta.auto.title.replace(/\*/g, word);
-	// 	raw.description = settings.meta.auto.description.replace(/\*/g, word);
-	// 	raw.keywords = settings.meta.auto.keywords.replace(/\*/g, word);
-	// } else if (res.id == 2) {
-	// 	raw.title = settings.meta.derive.title.replace(/\*/g, word);
-	// 	raw.description = settings.meta.derive.description.replace(/\*/g, word);
-	// 	raw.keywords = settings.meta.derive.keywords.replace(/\*/g, word);
-	// }
 
 	seed.wordCategory(raw.data, res.row);
 
+	// TODO: danger - only development
+	// let tmp = new seed.default({
+	// 	file: "./cache/tmp/search-med.json"
+	// });
+	// await tmp.write({
+	// 	raw: raw,
+	// 	space: 2
+	// });
 	return res.status;
 }
 
@@ -41,11 +39,11 @@ export async function asSentence(raw) {
 }
 
 /**
- * @param {string} word
+ * @param {string} keyword
  * @returns {Promise<env.TypeOfMeaning>}
  */
-async function asMeaning(word) {
-	const cache = settings.cacheController(word, "my");
+export async function asMeaning_org(keyword) {
+	const cache = settings.cacheController(keyword, "my");
 
 	const res = cache.res;
 
@@ -56,22 +54,11 @@ async function asMeaning(word) {
 	let med = new seed.defMyanmar();
 	await med.read();
 	let rawMed = med.raw;
-	let rawAll = rawMed.filter(o => o.word == word);
+	let rawAll = rawMed.filter(o => o.word == keyword);
 
 	for (let index = 0; index < rawAll.length; index++) {
 		let rawEach = rawAll[index];
 		let rawSenseTotal = rawEach.sense.length;
-		// let rawRel = rawEach.rel.map(e =>
-		// 	rawMed.filter(function(o) {
-		// 		return o.id == e;
-		// 	})
-		// );
-		// let rawRel = rawEach.rel.map(function(id) {
-		// 	return rawMed.find(o => o.id == id);
-		// });
-		// let rawRel = rawEach.rel.map(function(id) {
-		// 	return rawMed.filter(e => e.id == id);
-		// });
 
 		/**
 		 * @type {{pos:string, thes:string[]}[]}
@@ -175,10 +162,97 @@ async function asMeaning(word) {
 		}
 	}
 
-	let notation = seed.wordNumber(word);
+	let notation = seed.wordNumber(keyword);
 	if (notation) {
 		res.row.push(notation);
 	}
 	res.status = res.row.length > 0;
+	return res;
+}
+
+/**
+ * @param {string} keyword
+ * @returns {Promise<env.TypeOfMeaning>}
+ */
+async function asMeaning(keyword) {
+	const med = seed.medCore;
+	const cache = settings.cacheController(keyword, "my");
+
+	const res = cache.res;
+
+	/**
+	 * @type {number[]}
+	 */
+	const cateId = [];
+
+	await cache.read();
+
+	let rawAll = await med.searchSense(keyword);
+	const rawCount = rawAll.length;
+
+	for (let index = 0; index < rawCount; index++) {
+		const rawSense = rawAll[index];
+
+		let pos = rawSense.wrte;
+		const term = rawSense.word;
+
+		let def = rawSense.sense.replace(/^postpositional marker/, "");
+		/**
+		 * @type {env.BlockOfMeaning}
+		 */
+		let rowSense = {
+			pos: env.synset[pos].name,
+			term: term,
+
+			v: makeup.defBlock(def, term),
+			type: "meaning",
+			kind: ["db", "med"]
+		};
+		let exam = [];
+
+		if (rawSense.exam) {
+			exam.push(rawSense.exam);
+		}
+		if (rawSense.ref) {
+			exam.push(rawSense.ref);
+		}
+		if (exam.length) {
+			let examSentence = makeup.exam(exam.join(";"), ";", {
+				needle: "~",
+				hay: term
+			});
+			rowSense.exam = {
+				type: "examSentence",
+				value: examSentence
+			};
+		}
+		if (!cateId.includes(rawSense.cate)) {
+			let thesaurusAll = await med.thesaurusById(rawSense.wrid, rawSense.cate);
+
+			// console.log(def, thesaurusAll.length);
+
+			// if (rawSense.abc) {
+			// 	rowSense.usage = {
+			// 		type: "usageWord",
+			// 		value: []
+			// 	};
+			// }
+			if (thesaurusAll.length) {
+				rowSense.usage = {
+					type: "usageWord",
+					value: thesaurusAll.map(e => e.word)
+				};
+				cateId.push(rawSense.cate);
+			}
+		}
+		res.row.push(rowSense);
+	}
+
+	let notation = seed.wordNumber(keyword);
+	if (notation) {
+		res.row.push(notation);
+	}
+	res.status = res.row.length > 0;
+
 	return res;
 }

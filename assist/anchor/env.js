@@ -6,6 +6,7 @@ import core from "lethil";
  */
 
 /**
+ * @typedef {string|null} TypeStrNull
  * @typedef {{src:string, tar:string, srcName:string, tarName:string}} TypeOfSearchLanguage
  *
  * @typedef {{title:string, description:string; keywords:string}} TypeOfSearchMeta
@@ -248,7 +249,7 @@ export const synset = [
 		id: 11,
 		name: "phrase",
 		shortname: "phra",
-		thesaurus: ["exp"]
+		thesaurus: ["phra", "exp"]
 	},
 	{ id: 12, name: "contraction", shortname: "", thesaurus: [] },
 	{

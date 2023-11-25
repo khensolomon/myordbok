@@ -72,6 +72,7 @@ routes.register("/ome/:task?/:name?", async (req, res) => {
 	return await import("../assist/ome/index.js")
 		.then(async e => res.json(await e.default(req)))
 		.catch(() => res.status(404).end(res.json([])));
+	// .catch(e => res.status(404).end(e));
 });
 
 /**

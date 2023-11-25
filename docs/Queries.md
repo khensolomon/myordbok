@@ -403,6 +403,28 @@ SELECT *
     WHERE a.word_sense1 = w.word
 ```
 
+## med
+
+```sql
+SELECT *
+  FROM med_word AS w
+    WHERE w.word = "က"
+-- က ငါး
+SELECT *
+  FROM med_word AS w
+  JOIN `med_sense` AS s ON s.wrid=w.id
+    WHERE w.word = "က"
+SELECT *
+  FROM med_thesaurus AS t
+    WHERE t.wrid = 27287
+SELECT w.word
+  FROM med_thesaurus AS t
+  JOIN `med_word` AS w ON w.id=t.wlid
+    WHERE t.wrid = 1
+
+select * from med_sense GROUP BY pos;
+```
+
 ## ?
 
 ```sql

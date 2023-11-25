@@ -111,6 +111,67 @@ const fileList = {
 };
 
 /**
+ * MED - Myanmar-English definition
+ * @typedef {{word:string}} TypeMedWord
+ * typedef {{id:number, word:string, ipa:env.TypeStrNull, mlc:env.TypeStrNull}} TypeMedWord
+ */
+class medClass {
+	/**
+	 * @type {{word:string, reference:string, sense:string, thesaurus:string}} - of table
+	 */
+	mtb = {
+		word: "med_word",
+		reference: "med_reference",
+		sense: "med_sense",
+		thesaurus: "med_thesaurus"
+	};
+
+	/**
+	 * @type {TypeMedWord[]}
+	 */
+	_wl = [];
+	// constructor() {}
+
+	/**
+	 * Read all word from db
+	 * @returns{Promise<TypeMedWord[]>}
+	 */
+	async words() {
+		if (this._wl.length == 0) {
+			this._wl = await db.mysql.query("SELECT word FROM ??;", [this.mtb.word]);
+		}
+		return this._wl;
+	}
+
+	/**
+	 * Search sense
+	 * @returns {Promise<any[]>}
+	 * @param {string} word
+	 */
+	async searchSense(word) {
+		return db.mysql.query(
+			"SELECT * FROM ?? AS w JOIN ?? AS s ON s.wrid=w.id WHERE w.word = ?",
+			[this.mtb.word, this.mtb.sense, word]
+		);
+	}
+
+	/**
+	 * Search thesaurus
+	 * @param {number} wrid
+	 * @param {number} cate
+	 * @returns {Promise<{word:string}[]>}
+	 */
+	async thesaurusById(wrid, cate) {
+		return db.mysql.query(
+			"SELECT w.word FROM ?? AS t JOIN ?? AS w ON w.id=t.wlid WHERE t.wrid = ? AND t.cate = ?",
+			[this.mtb.thesaurus, this.mtb.word, wrid, cate]
+		);
+	}
+}
+
+export const medCore = new medClass();
+
+/**
  * Seed
  * @example
  * new seed.main()

@@ -13,7 +13,19 @@ BEGIN
 IF (new.word != old.word OR new.wrte != old.wrte OR new.sense != old.sense OR new.exam != old.exam OR new.wseq != old.wseq OR new.wrkd != old.wrkd) THEN
    SET new.dated := NOW();
  END IF;
-END,
+END
+
+-- med_mean_created
+BEGIN
+  SET new.dated := NOW();
+END
+
+-- med_mean_updated
+BEGIN
+IF (new.mean != old.mean OR new.exam != old.exam OR new.usg != old.usg OR new.ref != old.ref) THEN
+   SET new.dated := NOW();
+ END IF;
+END
 ```
 
 ```sql

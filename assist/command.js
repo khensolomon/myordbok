@@ -67,3 +67,7 @@ routes.register("flat/:task?/:name?", async function(req) {
 routes.register("font-update", async function(req) {
 	return import("./fonts/index.js").then(e => new e.default("tmp").scan());
 });
+
+routes.register("med-transition", async function(req) {
+	return import("./ome/transition.js").then(e => e.default());
+});
