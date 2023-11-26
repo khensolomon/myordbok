@@ -117,8 +117,15 @@ export function link(str, rcw) {
 	}
 	if (rcw) {
 		let hayLink = "{-*-}".replace(/\*/, rcw.hay);
+		// str = str
+		// 	.replace(new RegExp(rcw.needle, "g"), hayLink)
+		// 	.replace(/rcwNde/g, rcw.needle);
+
+		if (rcw.needle == "~") {
+			str = str.replace(/\~(?![^{]*})/g, hayLink);
+		}
 		str = str
-			.replace(new RegExp(rcw.needle, "g"), hayLink)
+			.replace(new RegExp(rcw.needle, "g"), rcw.hay)
 			.replace(/rcwNde/g, rcw.needle);
 	}
 

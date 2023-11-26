@@ -392,8 +392,6 @@ function posId(str) {
  * returns {string|null}
  */
 function formatDefinition(o, ref) {
-	const lk_opened = "[:";
-	const lk_closed = "]";
 	/**
 	 * @type {DefBlock}
 	 */
@@ -430,12 +428,11 @@ function formatDefinition(o, ref) {
 						e
 							.replace("[e:", "")
 							.replace("]", "")
-							.replace(/\</g, lk_opened)
-							.replace(/\>/g, lk_closed)
 							// .replace(/\//g, "; ")
 							.trim()
 					)
-					.join("; ");
+					.join("; ")
+					.replace(/\/(?![^<]*>)/g, "; ");
 				res.mean = res.mean.replace(bracketExamReg, "");
 			}
 			// let ref = brackets.filter(e => !e.startsWith("[e:"));
@@ -456,8 +453,6 @@ function formatDefinition(o, ref) {
 			.replace(/\(\s+/g, "(")
 			.replace(/\(\)/g, " ")
 			.replace(/\s+/g, " ")
-			.replace(/\</g, lk_opened)
-			.replace(/\>/g, lk_closed)
 			.trim();
 	}
 
