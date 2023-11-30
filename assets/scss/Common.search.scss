@@ -520,8 +520,9 @@ div.sch-definition {
 	}
 	@media #{$media-mobile} {
 		> form {
-			border-radius: 9px;
-			// @include box-shadow(0px, 0px, 0px, 1px, rgba(var(--color-text), 0.2));
+			// border-radius: 9px;
+			@include box-shadow(0px, 0px, 0px, 1px, rgba(var(--color-text), 0.2));
+			// background-color: rgba(var(--color-surround), 0.5);
 		}
 	}
 	// &.focus {
