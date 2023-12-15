@@ -187,3 +187,23 @@ FIELDS ENCLOSED BY '"'
 TERMINATED BY ','
 ESCAPED BY '"'
 LINES TERMINATED BY '\r\n';
+
+-- json
+
+SELECT
+  a.id, a.word, a.derived
+FROM `list_word` AS a
+  WHERE a.word IS NOT NULL
+    ORDER BY a.word, a.derived ASC
+    ORDER BY a.word, a.derived DESC
+INTO OUTFILE '/dev/myordbok/docs/tmp/testing-word-list.csv'
+FIELDS ENCLOSED BY '"'
+TERMINATED BY ','
+ESCAPED BY '"'
+LINES TERMINATED BY '\r\n';
+
+-- error: 1582
+-- incorrect parameter count in the cell to native function 'JSON_OBJECT'
+
+-- select JSON_OBJECT(id,word, derived) from list_word; > test_data.json
+-- select JSON_OBJECT(id,word, derived) from list_word; > /dev/myordbok/docs/tmp/testing-word-list.json

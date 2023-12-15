@@ -59,8 +59,8 @@ export default {
 
 		// return h("a", attr, [h("span", {}, this.text)]);
 		return h("a", attrLink, [
-			h("span", attrImg),
-			h("span", { class: "label" }, label.displayName)
+			h("span", attrImg)
+			// h("span", { class: "label" }, label.displayName)
 		]);
 	}
 };

@@ -40,6 +40,10 @@ routes.register("sea/:task?/:name?", async function(req) {
 	return import("./sea/cli.js").then(e => e.default(req));
 });
 
+routes.register("wow/:task?/:name?", async function(req) {
+	return import("./wow/cli.js").then(e => e.default(req));
+});
+
 routes.register("thuddar", async function(req) {
 	return import("./thuddar/cli.js").then(e => e.update());
 });
