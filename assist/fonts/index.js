@@ -143,11 +143,13 @@ export default class fonts {
 		if (this.type && fileName) {
 			await this.read(this.type);
 			if (fontData.hasOwnProperty(this.type)) {
-				var index = fontData[this.type].findIndex(e => e.file == fileName);
+				const index = fontData[this.type].findIndex(e => e.file == fileName);
 				if (index >= 0) {
-					var item = fontData[this.type][index];
+					const item = fontData[this.type][index];
 					if (item instanceof Object && !item.hasOwnProperty("restrict")) {
-						fontData[this.type][index].download++;
+						// fontData[this.type][index].download++;
+						item.download++;
+						item.total = digit(item.view + item.download).shorten();
 						this._sortBySum(this.type);
 						db.mysql.query(
 							"INSERT INTO ?? SET file=?, download=1 ON DUPLICATE KEY UPDATE download = download + 1;",
@@ -363,18 +365,30 @@ export default class fonts {
 				const fileName = files[index];
 				let item = org.find(e => e.file == fileName);
 				if (item) {
+					// console.log(fileName, item.view, item.download);
 					let index = fontData[cate].findIndex(e => e.file == fileName);
 					if (index >= 0) {
-						fontData[cate][index].view = item.view;
-						fontData[cate][index].download = item.download;
+						const tmp = fontData[cate][index];
+						tmp.view = item.view;
+						tmp.download = item.download;
+
+						tmp.total = digit(item.view + item.download).shorten();
 						if (item.restricted > 0) {
 							fontData[cate][index].restrict = true;
 						} else if (fontData[cate][index].hasOwnProperty("restrict")) {
 							delete fontData[cate][index].restrict;
 						}
 					}
+				} else {
+					console.log(fileName, "??");
 				}
 			}
+			// let abc = fontData[cate].findIndex(e => e.file == fileName);
+			// let abc = fontData[cate].find(e => e.file == "Yunghkio.ttf");
+			// console.log(abc);
+			// if (abc) {
+			// 	abc.total = "10";
+			// }
 		} else {
 			// NOTE: not same as last scan, need to regenerated
 			fontData[cate] = [];
