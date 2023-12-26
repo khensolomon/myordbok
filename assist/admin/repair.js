@@ -78,7 +78,7 @@ export default async function(q) {
 	}
 
 	var rawFile = path.join("./test", "_test_makeup_result.json");
-	await seek.WriteJSON(rawFile, raw, 2);
+	await seek.writeJSON(rawFile, raw, 2);
 	return [rawFile, raw.length];
 }
 

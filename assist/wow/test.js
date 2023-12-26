@@ -38,7 +38,7 @@ export async function doTestExamine(req) {
 	let doc = await base.requestfromFile(file);
 	let res = base.examine(doc);
 
-	await seek.WriteJSON(file.replace(".html", ".json"), res, 2);
+	await seek.writeJSON(file.replace(".html", ".json"), res, 2);
 	return file;
 }
 
@@ -54,7 +54,7 @@ export async function doTestDirect(req) {
 
 	let file = base.requestFileName(word);
 
-	await seek.WriteJSON(file.replace(".html", ".json"), res, 2);
+	await seek.writeJSON(file.replace(".html", ".json"), res, 2);
 	return file;
 }
 
@@ -147,12 +147,12 @@ export async function doScanWord(req) {
 	if (!checkIfDone) {
 		let res = await definitions(taskWord);
 		let file = base.requestFileName(taskWord);
-		await seek.WriteJSON(file.replace(".html", ".json"), res, 2);
+		await seek.writeJSON(file.replace(".html", ".json"), res, 2);
 		console.log(" > pushed definition");
 	}
 	const wordIndex = wordList.findIndex(e => e.word == taskWord);
 	wordList[wordIndex].s = 1;
-	// await seek.WriteJSON(base.settings.file.word, wordList, 2);
+	// await seek.writeJSON(base.settings.file.word, wordList, 2);
 	await base.writeWord();
 	return "scanned ?".replace("?", taskWord);
 }
@@ -224,7 +224,7 @@ async function definitions(taskWord, write = true) {
 		}
 	}
 	if (write) {
-		// await seek.WriteJSON(base.settings.file.def, defList, 2);
+		// await seek.writeJSON(base.settings.file.def, defList, 2);
 		await base.writeDef();
 	}
 

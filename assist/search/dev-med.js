@@ -136,7 +136,7 @@ export async function definitionTesting(req) {
 	}
 
 	// res.row.push(rowSense);
-	await seek.WriteJSON("./cache/tmp/-med-definitionTesting.json", res, 2);
+	await seek.writeJSON("./cache/tmp/-med-definitionTesting.json", res, 2);
 
 	res.status = res.row.length > 0;
 	// return res;
@@ -160,7 +160,7 @@ export async function formatTesting(req) {
 	let res = makeup.defBlock(raw, "abc");
 	console.log(res);
 
-	await seek.WriteJSON("./cache/tmp/-med-formatTesting.json", res, 2);
+	await seek.writeJSON("./cache/tmp/-med-formatTesting.json", res, 2);
 	return res.length;
 }
 

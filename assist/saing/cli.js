@@ -39,7 +39,7 @@ async function main(req) {
 	obj.fileCache = false;
 	await obj.read();
 	// const file = glossary.get("saing/blog.json");
-	// const tmp = await seek.ReadJSON(file, blog);
+	// const tmp = await seek.readJSON(file, blog);
 	Object.assign(blog, obj.raw);
 
 	if (req.params.task) {
@@ -48,7 +48,7 @@ async function main(req) {
 	} else {
 		await get_alphabet();
 		await get_loop(obj.file);
-		await seek.WriteJSON(obj.file, blog, 2);
+		await seek.writeJSON(obj.file, blog, 2);
 	}
 	return "done";
 }
@@ -86,7 +86,7 @@ async function get_loop(file) {
 
 			console.log(" >> definition:", status, task.word);
 			if (file) {
-				await seek.WriteJSON(file, blog, 2);
+				await seek.writeJSON(file, blog, 2);
 			}
 		}
 	}
@@ -182,14 +182,16 @@ async function get_definition(job, dom) {
 		try {
 			dom = await JSDOM.fromURL(blog.url + job.url);
 		} catch (error) {
-			let obj = new seedMain({ file: "saing/error.json" });
+			let obj = new seedMain({
+				file: "saing/error.json"
+			});
 
 			obj.fileCatch = {};
 			obj.fileCache = false;
 			await obj.read();
 
 			// const file = glossary.get("saing/error.json");
-			// const tmp = await seek.ReadJSON(file);
+			// const tmp = await seek.readJSON(file);
 
 			// ts-ignore
 			obj.raw[job.word] = {
@@ -198,7 +200,7 @@ async function get_definition(job, dom) {
 				error: error
 			};
 			console.log(" >> def", error);
-			// await seek.WriteJSON(file, tmp, 2);
+			// await seek.writeJSON(file, tmp, 2);
 			await obj.write({ space: 2 });
 			return [];
 		}

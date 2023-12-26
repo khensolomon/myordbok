@@ -152,7 +152,7 @@ export function codeToString(code) {
  * @returns {Promise<T>}
  */
 async function readJSON(file, raw) {
-	return seek.ReadJSON(file, raw);
+	return seek.readJSON(file, raw);
 }
 
 /**
@@ -162,7 +162,7 @@ async function readJSON(file, raw) {
  * @returns {Promise<boolean>}
  */
 async function writeJSON(file, raw) {
-	return seek.WriteJSON(file, raw, 2);
+	return seek.writeJSON(file, raw, 2);
 }
 
 // export const wordlist = {

@@ -72,21 +72,21 @@ function resolve(file) {
  * @returns {Promise<T>}
  */
 async function readJSON(file, raw) {
-	return seek.ReadJSON(file, raw);
+	return seek.readJSON(file, raw);
 }
 
 /**
  * Write words file
  */
 export async function writeWord() {
-	return await seek.WriteJSON(settings.file.word, data.words, 2);
+	return await seek.writeJSON(settings.file.word, data.words, 2);
 }
 
 /**
  * Write definitions file
  */
 export async function writeDef() {
-	return await seek.WriteJSON(settings.file.def, data.defs, 2);
+	return await seek.writeJSON(settings.file.def, data.defs, 2);
 }
 
 // --------------------------------------------------------------------------------------

@@ -66,14 +66,14 @@ const settings = {
  * @param {string} file
  */
 async function read(file) {
-	return seek.ReadJSON(file);
+	return seek.readJSON(file);
 }
 
 /**
  * @param {any} raw
  */
 async function write(raw) {
-	return seek.WriteJSON(settings.snap, raw, 2);
+	return seek.writeJSON(settings.snap, raw, 2);
 }
 
 /**
