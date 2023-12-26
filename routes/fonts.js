@@ -26,12 +26,7 @@ routes.register("/scan-:type", function(req, res) {
 });
 
 routes.register(
-	{
-		url: "/:type?",
-		name: "fonts",
-		text: "Fonts"
-	},
-
+	{ url: "/:type?", name: "fonts", text: "Fonts" },
 	async function(req, res) {
 		const fontType = (req.params.type || "").toString();
 		const fontName = (req.query.font || "").toString();
