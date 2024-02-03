@@ -20,6 +20,10 @@ a raw/rough deal
 a raw deal
 a rough deal
 
+
+ဂျာမနီအနောက်ပိုင်းရှိ မြို့တစ်မြို့၊ [list:Ruhr] ၏စက်မှုဗဟို
+
+
 fast buck
 (choose, follow, take, etc) the line of least resistance
 
