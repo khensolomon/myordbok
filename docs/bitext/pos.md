@@ -1,3 +1,5 @@
+# POS
+
 0. thesaurus (thesauri,thesauruses)
 (ဝေါဟာရ၊ ပုဒ်စုများကို အဓိပ္ပာယ်အလိုက်) စီစဉ်ဖော်ပြသော ဝေါဟာရပဒေသာကျမ်း
 A book containing a classified list of synonyms

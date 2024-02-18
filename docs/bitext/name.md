@@ -1,3 +1,5 @@
+# Name
+
 A landowner (14th and 15th centuries) who was free but not of noble birth
 
 မြေပိုင်ရှင် (၁၄ ရာစုနှင့် ၁၅ ရာစုနှစ်)
@@ -292,5 +294,3 @@ Albert Edward
 အင်္ဂလန်ဘုရင် ၁၄၆၁ မှ ၁၄၇၀ နှင့် ၁၄၇၁ မှ ၁၄၈၃၊ 1470 တွင် နန်းကျခဲ့သော်လည်း <Tewkesbury> (1442-1483) တိုက်ပွဲတွင် အောင်ပွဲဖြင့် 1471 တွင် ထီးနန်းပြန်ရခဲ့သည်။
 Edward IV of England
 Edward IV
-
-

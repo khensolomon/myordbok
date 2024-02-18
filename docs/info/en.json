@@ -2,7 +2,7 @@
   "title": "English - Myanmar dictionary",
   "keyword": "English, Myanmar, dictionary, burmese dictionary",
   "description": "A comprehensive online English to or from Myanmar dictionary",
-  "dated": 1707157083148,
+  "dated": 1708259357275,
   "info": {
     "header": "English",
     "progress": [
@@ -18,25 +18,25 @@
         "en": "Progress",
         "my": "ပြီးစီးမှု",
         "percentage": true,
-        "status": 35.52602371633857
+        "status": 35.66680296746305
       },
       {
         "id": "word",
         "en": "Word",
         "my": "ဝေါဟာရ",
-        "status": "60,817"
+        "status": "61,058"
       },
       {
         "id": "sense",
         "en": "Definition",
         "my": "အနက်",
-        "status": "103,510"
+        "status": "103,846"
       },
       {
         "id": "exam",
         "en": "Example & Explanation",
         "my": "သာဓက",
-        "status": "57,487"
+        "status": "57,830"
       }
     ],
     "context": [

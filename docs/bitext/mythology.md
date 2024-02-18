@@ -1,3 +1,5 @@
+# Mythology
+
 0. Odin
 [type:Norse mythology] [list.Aesir] အုပ်စိုးရှင်; စစ်သူရဲကောင်းများ၏ အမြင့်မြတ်ဆုံးနတ်ဘုရား
 ruler of the Aesir; supreme god of war and poetry and knowledge and wisdom (for which he gave an eye) and husband of Frigg; identified with the Teutonic Wotan
