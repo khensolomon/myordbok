@@ -1,9 +1,36 @@
 *.v[0-9]*.*
 *tmp/
 /static
+core/static
 /cache
-# *-lock.json
-ecosystem.json
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+# Distributions
+dist/
+*.egg-info/
+.eggs/
+# Environments
+.venv
+venv/
+env/
+.env
+# Project specific
+*.ipynb_checkpoints/
+.pytest_cache/
+# Logs and experiment outputs
+*.log
+experiments/
+# IDE specific files
+.vscode/
+.idea/
+# Data - keep raw data tracked, but ignore processed if large
+data/processed/
+data/vocab/
 
 # Logs
 logs
