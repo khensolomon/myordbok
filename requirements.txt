@@ -1,0 +1,17 @@
+# requirements.txt
+#
+# --- Production Dependencies ---
+#
+# This file lists the absolute minimum packages required to RUN the application
+# (e.g., translate.py, suggest.py). It should NOT contain any packages used
+# only for development, testing, or analysis.
+#
+# This is the file that would be used to set up a production environment.
+#
+# Install with: pip install -r requirements.txt
+
+django
+python-decouple
+mysqlclient
+djangorestframework
+nltk

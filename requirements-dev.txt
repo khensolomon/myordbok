@@ -1,0 +1,23 @@
+# requirements-dev.txt
+#
+# --- Development Dependencies ---
+#
+# This file lists all packages needed for local DEVELOPMENT of the project.
+# It includes all production packages via '-r requirements.txt', plus extra
+# tools for testing, analysis, and running experiments.
+#
+# This is the file a developer should use to set up their local environment.
+#
+# Install with: pip install -r requirements-dev.txt
+
+# First, install all production requirements from the main file.
+-r requirements.txt
+
+# --- Development-specific packages ---
+
+# For running the test suite
+pytest>=7.0.0
+
+# For running experiments and analysis in Jupyter notebooks
+Faker
+django-webpack-loader
