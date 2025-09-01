@@ -155,7 +155,8 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         # 'BUNDLE_DIR_NAME': 'core/bundles/', # must match webpack's output.path relative to a static dir
         'BUNDLE_DIR_NAME': '', # must match webpack's output.path relative to a static dir
-        'STATS_FILE': os.path.join(BASE_DIR, 'assets', 'webpack-stats.json'),
+        # 'STATS_FILE': os.path.join(BASE_DIR, 'assets', 'webpack-stats.json'),
+        'STATS_FILE': os.path.join(BASE_DIR, 'static', 'webpack-stats.json'),
     }
 }
 

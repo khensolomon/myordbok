@@ -49,7 +49,7 @@ module.exports = {
   plugins: [
     // This plugin is essential for django-webpack-loader to work.
     new BundleTracker({
-      path: __dirname,
+      path: path.resolve(__dirname, '../static/'),
       filename: 'webpack-stats.json'
     }),
     
