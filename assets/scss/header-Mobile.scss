@@ -1,0 +1,37 @@
+@use "Config" as *;
+@mixin css {
+	div.column {
+		ol#MyOrdbok-logo {
+			display: none;
+		}
+		form[name="search"] {
+			// width: 98%; margin:2px 1%;
+			> p {
+				input,
+				button {
+					height: 40px;
+					font-size: 1.1em;
+					line-height: 1.2em;
+				}
+				button {
+					&[type="submit"] {
+						width: 50px;
+						border: 0;
+					}
+				}
+			}
+			ul {
+				li {
+					// padding:15px 10px;
+					font-size: 1.2em;
+					&:first-child {
+						padding-top: 15px;
+					}
+					&:last-child {
+						padding-bottom: 15px;
+					}
+				}
+			}
+		}
+	}
+}

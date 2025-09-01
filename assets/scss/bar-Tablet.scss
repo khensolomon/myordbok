@@ -1,0 +1,375 @@
+@use "Config" as *;
+@mixin css {
+	ul {
+		> li {
+			> div {
+				display: none;
+			}
+		}
+	}
+	ol {
+		display: table;
+		vertical-align: middle;
+		margin: 5px 0;
+		li {
+			display: table-cell;
+			padding: 5px 0;
+			height: 25px;
+			vertical-align: inherit;
+			position: relative;
+			a {
+				display: block;
+				padding: 3px 10px;
+				font-size: 13px;
+				color: var(--color-text-enable);
+				line-height: 19px;
+				white-space: nowrap;
+				overflow: hidden;
+				font-variant: normal;
+				position: inherit;
+			}
+			ol {
+				display: none;
+				position: absolute;
+				top: 88%;
+				left: -1px;
+				width: 100%;
+				background-color: rgba(var(--color-bar), 0.5);
+				&:after,
+				&:before {
+					position: absolute;
+					display: block;
+					pointer-events: none;
+					content: " ";
+					width: 0px;
+					height: 0px;
+					text-align: center;
+					// vertical-align: middle;
+					border: solid transparent;
+				}
+				&:before {
+					border-bottom-color: rgba(var(--color-bar), 0.8);
+					border-width: 5px;
+					right: calc(78% - 1px);
+					top: -10px;
+				}
+				&:after {
+					border-bottom-color: rgba(var(--color-bar), 0.2);
+					border-width: 4px;
+					right: 78%;
+					top: -8px;
+				}
+				li {
+					display: table-row;
+					padding: 0px;
+	
+					a {
+						color: #fff;
+						font-size: 12px;
+						padding: 7px 7px;
+						border-bottom: 1px solid rgba(var(--color-bar), 0.3);
+					}
+					&:last-child {
+						a {
+							border-bottom: 0px;
+						}
+					}
+				}
+			}
+			&:hover {
+				ol {
+					display: table;
+				}
+			}
+		}
+		> li {
+			&.active,
+			&.current {
+				> a {
+					// color: #236ea9;
+					color: var(--color-text-active);
+				}
+				&.hasChild {
+					> a {
+						&:after {
+							// color: #236ea9;
+							border-top-color: rgba(var(--color-main), 0.15);
+						}
+						&:hover {
+							&:after {
+								// color: #236ea9;
+								border-top-color: rgba(var(--color-bar), 0.15);
+							}
+						}
+					}
+				}
+			}
+			&.hasChild {
+				> a {
+					position: relative;
+					padding-right: 15px;
+					&:after {
+						position: absolute;
+						content: "";
+						border: solid transparent;
+						// border-top-color: #2c312b;
+						border-top-color: rgba(var(--color-bar), 0.15);
+						border-width: 4px;
+						right: 4px;
+						top: 12px;
+					}
+				}
+			}
+		}
+		&.menu {
+			&.page {
+				> li {
+					border-bottom: 1px solid rgba(var(--color-bar), 0.5);
+					// border-bottom-color:red;
+					> a {
+						// border-left: 1px solid #d6d4d4;
+						border-left: 1px solid rgba(var(--color-bar), 0.5);
+						font-weight: 500;
+					}
+					&:first-child {
+						> a {
+							border-left: 0;
+						}
+					}
+					&.active,
+					&.current {
+						border: 0;
+						// border-bottom-width: 1px;
+						// border-bottom-color: transparent;
+						border-bottom: 1px solid transparent;
+						&:not(:first-child) {
+							border-left-width: 1px;
+							border-right-width: 1px;
+							border-style: solid;
+							-webkit-border-image: -webkit-gradient(
+									linear,
+									0 0,
+									0 100%,
+									from(rgb(var(--color-bar))),
+									to(rgb(var(--color-background)))
+								)
+								7 100%;
+							-webkit-border-image: -webkit-linear-gradient(
+									from(rgb(var(--color-bar))),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							-moz-border-image: -moz-linear-gradient(
+									from(rgb(var(--color-bar))),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							-o-border-image: -o-linear-gradient(
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							border-image: linear-gradient(
+									to top,
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							> a {
+								border: 0;
+							}
+							+ li > a {
+								border-left: 0;
+							}
+						}
+						&:first-child,
+						&:last-child {
+							border-style: solid;
+							-webkit-border-image: -webkit-gradient(
+									linear,
+									0 0,
+									0 100%,
+									from(rgb(var(--color-bar))),
+									to(rgb(var(--color-background)))
+								)
+								7 100%;
+							-webkit-border-image: -webkit-linear-gradient(
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							-moz-border-image: -moz-linear-gradient(
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							-o-border-image: -o-linear-gradient(
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+							border-image: linear-gradient(
+									to top,
+									rgb(var(--color-bar)),
+									rgb(var(--color-background))
+								)
+								7 100%;
+						}
+						&:first-child {
+							border-right-width: 1px;
+							+ li > a {
+								border-left: 0;
+							}
+						}
+						&:last-child {
+							border-left-width: 1px;
+							border-right: 0;
+							a {
+								border: 0;
+							}
+						}
+					}
+					// &:hover {
+					// 	&.hasChild {
+					// 	}
+					// }
+				}
+			}
+			&.user {
+				> li {
+					a {
+						font-size: 12px;
+					}
+					&.office {
+						// max-width: 30px;
+						// border-radius: 100%;
+						a {
+							&.active {
+								&:before {
+									color: red;
+								}
+							}
+							span {
+								display: table-cell;
+								width: auto;
+								&.img {
+									// display: inline-block;
+									width: 25px;
+									height: 25px;
+									border: 1px solid rgba(var(--color-text), 0.5);
+									border-radius: 100%;
+									// background-size: 100%;
+									background-size: cover;
+									background-position: center center;
+									background-repeat: no-repeat;
+									&:before {
+										border-radius: 50px;
+										width: 25px;
+										height: 22px;
+										// box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
+										// background-color: rgba(var(--color-main), 0.8);
+										background-color: rgba(var(--color-text), 0.2);
+										// border: 1px solid rgba(var(--color-text), 0.2);
+										// color: #fff;
+										color: var(--color-text-disable);
+										content: "\e80c";
+										font-family: "myordbok";
+										font-style: normal;
+										font-weight: normal;
+										font-size: 18px;
+										// font-size: 15px;
+										padding-top: 3.5px;
+										// line-height: 13px;
+										// padding: 3px 1px;
+										display: block;
+										text-decoration: inherit;
+										text-align: center;
+									}
+									&.withImage {
+										border-color: rgba(var(--color-text), 1);
+										&::before {
+											content: "";
+											background-color: transparent;
+										}
+									}
+								}
+								&.label {
+									display: none;
+								}
+							}
+						}
+					}
+					&.signup {
+						width: 100%;
+						a {
+							padding: 5px 0px;
+						}
+					}
+					&.hasChild {
+						> a {
+							padding-right: 25px;
+							span {
+								// color: #fff;
+								display: block;
+								max-width: 150px;
+								text-overflow: ellipsis;
+								overflow: hidden;
+							}
+							&:after {
+								background-color: rgba(var(--color-main), 0.5);
+								right: 1px;
+								top: 2px;
+								width: 19px;
+								height: 19px;
+								border: 0px;
+								border-radius: 10px;
+								content: "\f061";
+								font-family: "myordbok";
+								font-style: normal;
+								font-weight: normal;
+								color: #fff;
+								font-size: 1em;
+								line-height: 18px;
+								display: block;
+								text-decoration: inherit;
+								text-align: center;
+							}
+						}
+						&:hover {
+							> a {
+								color: #fff;
+							}
+						}
+						&.active,
+						&.current {
+							> a {
+								color: #236ea9;
+							}
+						}
+						ol {
+							width: auto;
+							max-width: 200px;
+							right: 0px;
+							left: auto;
+							top: 80%;
+							border-top: 1px solid rgba(var(--color-bar), 1);
+							&:before {
+								right: calc(13% - 1px);
+							}
+							&:after {
+								right: 13%;
+							}
+							li {
+								a {
+									span {
+										color: #fff;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,6 +1,48 @@
 @charset "charset";
-@import "Config";
-@import "font.Face";
+@use "sass:color";
+@use "Config" as *;
+@use "font.Face" as *;
+
+@use "Logo";
+@use "Search";
+@use "Search-mobile-tablet";
+@use "Theme-switch";
+
+@use "bar-Desktop";
+@use "bar-Mobile";
+@use "bar-Tablet";
+
+@use "header-Desktop";
+@use "header-Mobile";
+@use "header-Tablet";
+
+@use "footer-Common";
+@use "footer-Mobile";
+@use "footer-Tablet";
+
+@use "Portal-workspace";
+// NOTE: bar
+@use "Portal-navigate";
+// NOTE: header
+@use "Portal-row";
+// @use 'Portal.responsive';
+// NOTE: home, dictionary
+@use "Portal-modest";
+// NOTE: privacy, terms
+@use "Portal-docs";
+// NOTE: about
+@use "Portal-wrapper";
+// NOTE: definition
+@use "Portal-define";
+
+// NOTE: myanmar-fonts
+@use "Portal-fonts";
+// NOTE: donate
+@use "Portal-donate";
+// NOTE: grammar
+@use "Portal-grammar";
+@use "Portal-editor";
+
 html {
 	-ms-touch-action: manipulation;
 	touch-action: manipulation;
@@ -123,7 +165,7 @@ body {
 
 	> div {
 		// background-color: rgb(var(--color-background));
-		@import "Portal.editor";
+		@include Portal-editor.css;
 	}
 }
 // NOTE: portal ptl
@@ -171,12 +213,7 @@ div.ptl {
 		}
 		&::before {
 			z-index: -2;
-			// background-color:lighten(#ccc,19%);
-			// border-width:1px 0px 1px 0px;
-			// border-style: solid;
-			// border: 1px solid lighten(#ccc,5%);
-			// border-width:0px 0px 1px 0px;
-			box-shadow: 0px 1px 0px 1px lighten(#ccc, 10%);
+			box-shadow: 0px 1px 0px 1px color.adjust(#ccc, $lightness: 10%);
 		}
 		> div {
 			padding-top: 5%;
@@ -202,29 +239,30 @@ div.ptl {
 		}
 		> div {
 			position: inherit;
-			@import "Common.logo";
-			@import "Common.search";
-			@import "Common.theme-switch";
-			@import "Portal.workspace.scss";
+			// NOTE: logo
+			@include Logo.css;
+			@include Search.css;
+			@include Theme-switch.css;
+			@include Portal-workspace.css;
 			// NOTE: bar
-			@import "Portal.navigate";
+			@include Portal-navigate.css;
 			// NOTE: header
-			@import "Portal.row";
-			// @import 'Portal.responsive';
+			@include Portal-row.css;
+			// @include responsive.css;
 			// NOTE: home, dictionary
-			@import "Portal.modest";
+			@include Portal-modest.css;
 			// NOTE: privacy, terms
-			@import "Portal.docs";
+			@include Portal-docs.css;
 			// NOTE: about
-			@import "Portal.wrapper";
+			@include Portal-wrapper.css;
 			// NOTE: definition
-			@import "Portal.define";
+			@include Portal-define.css;
 			// NOTE: myanmar-fonts
-			@import "Portal.fonts";
+			@include Portal-fonts.css;
 			// NOTE: donate
-			@import "Portal.donate";
+			@include Portal-donate.css;
 			// NOTE: grammar
-			@import "Portal.grammar";
+			@include Portal-grammar.css;
 		}
 	}
 	&#bar {
@@ -264,7 +302,7 @@ div.ptl {
 	&#footer {
 		// z-index: 1;
 		> div {
-			@import "footer.Common";
+			@include footer-Common.css;
 		}
 	}
 	&#consent {
@@ -330,22 +368,22 @@ div.ptl {
 	@media #{$media-mobile} {
 		&#bar {
 			> div {
-				@import "bar.Mobile";
+				@include bar-Mobile.css;
 			}
 		}
 		&#header {
-			@import "header.Mobile";
+			@include header-Mobile.css;
 		}
 		// &#board{
-		//   @import 'board.Mobile';
+		//   @use 'board.Mobile' as *;
 		// }
 		// &#content{
-		//   @import 'content.Mobile';
+		//   @use 'content.Mobile' as *;
 		// }
 		&#footer {
 			> div {
 				padding: 20px 0;
-				@import "footer.Mobile";
+				@include footer-Mobile.css;
 			}
 		}
 		&#consent {
@@ -362,35 +400,35 @@ div.ptl {
 	}
 	@media #{$media-tablet} {
 		&#bar {
-			@import "bar.Tablet";
+			@include bar-Tablet.css;
 		}
 		&#header {
-			@import "header.Tablet";
+			@include header-Tablet.css;
 		}
 		// &#board{
-		//   @import 'board.Tablet';
+		//   @use 'board.Tablet' as *;
 		// }
 		// &#content{
-		//   @import 'content.Tablet';
+		//   @use 'content.Tablet' as *;
 		// }
 		&#footer {
 			> div {
-				@import "footer.Tablet";
+				@include footer-Tablet.css;
 			}
 		}
 	}
 	@media #{$media-desktop} {
 		&#bar {
-			@import "bar.Desktop";
+			@include bar-Desktop.css;
 		}
 		&#header {
-			@import "header.Desktop";
+			@include header-Desktop.css;
 		}
 		// &#board{
-		//   @import 'board.Desktop';
+		//   @use 'board.Desktop' as *;
 		// }
 		// &#content{
-		//   @import 'content.Desktop';
+		//   @use 'content.Desktop' as *;
 		// }
 		// &#footer{
 		// }

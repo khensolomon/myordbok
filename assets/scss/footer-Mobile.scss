@@ -1,0 +1,33 @@
+@use "Config" as *;
+@mixin css {
+  ol {
+    display: block;
+    text-align: center;
+    // &.locale{
+    //   li {
+    //     a {
+    //       padding:10px 10px;
+    //     }
+    //   }
+    // }
+    &.served{
+      margin-top:4%;
+      margin-bottom:4%;
+    }
+    &.copyright{
+      // margin: 2% 0 0 0;
+      li{
+        // font-size: 105%;
+        font-size: 1.2rem;
+      }
+    }
+    &.privacy{
+      // margin-top: 1px;
+      li{
+        &:before{
+          display: none;
+        }
+      }
+    }
+  }
+}

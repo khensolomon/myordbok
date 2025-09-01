@@ -1,0 +1,134 @@
+@use "Config" as *;
+
+@mixin css {
+	form {
+		margin: 0;
+		@include box-shadow(0px, 0px, 0px, 0px, red);
+		&.focus {
+			// @include box-shadow(0px, 0px, 2px, 1px, rgba(var(--color-text), 0.4));
+			@include box-shadow(0px, 0px, 0px, 0px, red);
+		}
+		&.active {
+			border-radius: 0;
+			@include box-shadow(0px, 0px, 0px, 0px, red);
+		}
+		> div {
+			margin: 7px 0;
+			&.sch {
+				// display: table;
+				display: block;
+				width: 100%;
+				margin: 0;
+				&::after {
+					display: block;
+					border-bottom: 1px solid rgba(var(--color-text), 0.2);
+					width: 96%;
+					margin: 0 2%;
+					height: 1px;
+					content: "";
+				}
+				// background-color: red;
+				// border-bottom: 2px solid red;
+				> p {
+					button {
+						width: 55px;
+					}
+					&.sch-unfocus {
+						display: table-cell;
+					}
+					&.sch-input {
+						// width: 100%;
+						// border-radius: 20px;
+	
+						input {
+							// padding: 3px 0px 3px 25px;
+							padding-left: 0px;
+							font-size: 23px;
+							// background-color: red;
+						}
+					}
+					&.sch-submit {
+						display: none;
+						button {
+							// width: 50px;
+							// background-color: gray;
+							border: 0;
+							border-radius: 0;
+							&::before {
+								font-size: 120%;
+							}
+						}
+					}
+				}
+			}
+			// css position fixed inside position fixed scroll
+			&.sug {
+				// display: none;
+				// position: fixed;
+				// position: inherit;
+				// top: 55px;
+				// left: 0;
+				// right: 0;
+				// bottom: 0;
+				// height: 100%;
+				// overflow: scroll;
+				background-color: transparent;
+				// margin-top: 14px;
+	
+				@include box-shadow(0px, 0px, 0px, 0px, red);
+				// @include box-shadow(7px, 0px, 6px, 9px, rgba(var(--color-text), 0.2));
+				// box-shadow: inset 0px 5px 5px -3px rgba(0, 0, 0, 0.75);
+				// overflow-y: scroll;
+				// height: 400px;
+				> ul,
+				> ol {
+					position: relative;
+					// display: block;
+					top: 0;
+				}
+				> ul {
+					> li {
+						// font-size: 23px;
+						// font-size: 25px;
+						// line-height: 1.7em;
+						> p {
+							span {
+								font-size: 23px;
+								&:first-child {
+									padding: 0 13.5px;
+								}
+								// &:last-child { }
+							}
+						}
+						&.my {
+							// margin: 0px 7px;
+							&.character {
+								display: block;
+								// width: 96%;
+								// padding: 20px 0;
+								padding: 0 1%;
+								// margin-right: 2%;
+							}
+						}
+						&.en {
+							&.word {
+								// padding: 0px 0;
+								p {
+									padding: 12px 0px;
+								}
+							}
+						}
+					}
+				}
+				ol {
+					// display: block;
+					// position: relative;
+					// top: 0;
+					li {
+						padding: 20px 25px;
+					}
+				}
+			}
+		}
+	}
+}

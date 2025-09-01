@@ -1,0 +1,133 @@
+@use "sass:color";
+@use "Config" as *;
+@mixin css {
+	// &.ltrt {
+	//   background-color: red;
+	// }
+	
+	ol {
+		display: inline-block;
+		position: inherit;
+		margin: 1% 1px;
+		> li {
+			display: inline-block;
+			position: inherit;
+			color: rgba(var(--color-text), 0.4);
+			font-size: 90%;
+			// margin: 0 3px;
+			a {
+				display: block;
+				position: inherit;
+				padding: 4px 5px;
+				color: rgba(var(--color-text), 0.8);
+				&:hover {
+					text-decoration: underline;
+				}
+			}
+			span {
+				position: inherit;
+			}
+		}
+		&.locale {
+			li {
+				a {
+					margin: 0 1px;
+					text-transform: uppercase;
+					border-radius: 3px;
+					background-color: rgba(var(--color-surround), 1);
+					// color: #fff;
+				}
+				&:hover,
+				&.active {
+					a {
+						background-color: var(--color-text-disable);
+						color: rgba(var(--color-surround), 1);
+					}
+				}
+			}
+		}
+		&.served {
+			li {
+				span {
+					display: inline-block;
+					color: #fff;
+					text-shadow: #666 0px 0px 1px;
+					background-color: rgba(var(--color-surround), 1);
+					padding: 4px 7px;
+					&:before,
+					&:after {
+						position: absolute;
+						display: block;
+						content: " ";
+						border: solid transparent;
+					}
+					// &:first-child {}
+	
+					&:nth-child(2) {
+						padding: 4px 7px;
+						background-color: rgba(var(--color-surround), 0.6);
+						&:before {
+							border-left-color: var(--color-text-disable);
+							border-width: 5px;
+							right: -10px;
+							top: 8px;
+						}
+						&:after {
+							border-right-color: var(--color-text-disable);
+							border-width: 5px;
+							left: -10px;
+							top: 8px;
+						}
+					}
+				}
+				a {
+					color: color.adjust(#666, $lightness: 10%);
+				}
+			}
+		}
+		&.privacy {
+			li {
+				// padding:0 2px;
+				&:before,
+				&:after {
+					position: absolute;
+					top: 0px;
+					content: "\2022";
+					font-size: 150%;
+					// color: color.adjust(#666, $lightness: 30%);
+					color: rgba(var(--color-text), 0.3);
+					// padding-right:3px;
+				}
+				&:before {
+					left: 0;
+				}
+				&:after {
+					display: none;
+				}
+				a {
+					span {
+						// color: color.adjust(#666, $lightness: 10%);
+						padding: 1px 3px;
+					}
+					&:hover {
+						text-decoration: underline;
+					}
+				}
+			}
+		}
+		&.copyright {
+			li {
+				em {
+					font-style: normal;
+					color: rgba(var(--color-text), 0.6);
+				}
+				strong {
+					font-weight: normal;
+					color: rgb(var(--color-text));
+				}
+			}
+		}
+		// &.password {}
+		// &.definition {}
+	}
+}

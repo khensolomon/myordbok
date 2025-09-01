@@ -1,0 +1,6 @@
+@use "Config" as *;
+@mixin css {
+  &.responsive {
+    // text-align: center;
+  }
+}

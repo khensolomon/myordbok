@@ -1,0 +1,12 @@
+@use "Config" as *;
+@mixin css {
+  &.row {
+    display: table; width: 100%;
+    >div.column{
+      display: table-cell; position: inherit;
+      &.wide{
+        width: 100%;
+      }
+    }
+  }
+}

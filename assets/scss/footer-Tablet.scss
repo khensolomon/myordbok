@@ -1,0 +1,27 @@
+@use "Config" as *;
+@mixin css {
+  ol {
+    display: block;
+    text-align: center;
+    &.locale{
+      li {
+        a {
+          padding:13px 18px;
+        }
+      }
+    }
+  
+    &.copyright{
+      margin: 2% 0 0 0;
+    }
+    &.privacy{
+      margin-top: 1px;
+      li{
+        &:after{
+          display: block;
+          right: 0;
+        }
+      }
+    }
+  }
+}
