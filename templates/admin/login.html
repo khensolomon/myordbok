@@ -1,0 +1,9 @@
+<!-- templates/admin/login.html -->
+{% extends "admin/login.html" %}
+
+{% block branding %}
+    {{ block.super }}
+    <p style="text-align: center; margin-top: 1rem;">
+        Welcome to our custom login page!
+    </p>
+{% endblock %}

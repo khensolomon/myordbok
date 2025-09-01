@@ -1,0 +1,13 @@
+<!-- templates/rest_framework/api.html -->
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block branding %}
+    <a class='navbar-brand' rel="nofollow" href='#'>
+        API
+    </a>
+{% endblock %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/api/custom.css' %}">
+{% endblock %}

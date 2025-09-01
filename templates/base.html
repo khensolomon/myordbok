@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-g" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Django{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <!-- Your site navigation would go here -->
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'post_list' %}">Posts</a>
+        <a href="{% url 'note_list' %}">Notes</a>
+        <!-- Dynamic Links from our context processor -->
+        {% for note in main_menu_notes %}
+        <a href="{% url 'note_detail' pk=note.pk %}">{{ note.title }}</a>
+        {% endfor %}
+      </nav>
+    </header>
+
+    <main>
+      {% block content %}
+      <!-- Content from child templates will be inserted here -->
+      {% endblock %}
+    </main>
+
+    <footer>
+      <p>&copy; 2025 ZOTUNE</p>
+    </footer>
+  </body>
+</html>

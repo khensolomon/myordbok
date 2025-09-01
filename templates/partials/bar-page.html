@@ -1,0 +1,14 @@
+<ul>
+  <li class="showMobileMenu">
+    <nav-engine></nav-engine>
+    <ol class="menu page">
+      {% for link in nav_links %}
+        <li class="{% if link.is_current %}current{% endif %}">
+          <a href="{% url link.url_name %}">
+            <span>{{ link.text }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ol>
+  </li>
+</ul>
