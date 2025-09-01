@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Notes{% endblock %}
+
+{% block content %}
+    <h1>All Notes</h1>
+    <ul>
+        {% for note in notes %}
+            <li>
+                <a href="{% url 'note_detail' pk=note.pk %}">{{ note.title }}</a>
+                <br>
+                <small>Created on: {{ note.created_at|date:"F j, Y" }}</small>
+            </li>
+        {% empty %}
+            <li>No notes have been added yet.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

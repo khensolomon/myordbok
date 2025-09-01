@@ -1,0 +1,222 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="ptl about" id="content">
+  <div class="resz ltrt">
+    <div class="wrapper">
+
+      <!-- Header -->
+      <div class="row">
+        <div class="header">
+          <h1 class="{{ environment }}">A comprehensive online Myanmar dictionary</h1>
+          <p>Uncover knowledge through linguistic expressions that you comprehend.</p>
+        </div>
+        <div>
+          <p>
+            <q>Ordbok</q> is directly translated as
+            <a href="/definition?q=wordbook">wordbook</a>
+            in
+            <a href="/definition?q=norwegian">Norwegian</a>, representing a list of words with their meanings described in their own terms.
+            Therefore, {{ appName }} can be referred to as the <q class="mdic">Myanmar dictionary</q> where
+            <q>My</q> stands for Myanmar and <q>Ordbok</q> denotes a form of dictionary.
+            Since 2010, <strong>{{ appName }}</strong> has become one of the most widely used Myanmar online dictionaries among others.
+            Currently, <span>{{ dictionaries_total }}</span> continental languages and
+            <span>{{ locale_total }}</span> site(UI) languages are available on the platform, making it a valuable resource for users from diverse linguistic backgrounds.
+          </p>
+        </div>
+      </div>
+
+      <!-- Visits -->
+      <div class="row">
+        <div class="header">
+          <h2>Visits</h2>
+        </div>
+        <div class="data">
+          <p>
+            Based on the recalculated visitation data from <q>{{ visits.created }}</q>,
+            there were a total of <q>{{ visits.user }}</q> unique visitors and
+            <q>{{ visits.request }}</q> total visits recorded.
+            Among these visits, <q>{{ visits.total }}</q> were legitimate visits made by genuine
+            <q>{{ visits.by }}</q> visitors, excluding bot and API requests.
+          </p>
+        </div>
+      </div>
+
+      <!-- Dictionaries -->
+      <div class="row">
+        <div class="dictionaries">
+          <ol class="dictionary">
+            {% for conti in dictionaries %}
+              <li class="{{ conti.name|lower }} {% if solId in conti.lang %}active{% endif %}">
+                <h3>{{ conti.name }}</h3>
+                <ol>
+                  {% for lang in conti.lang %}
+                    <li class="{{ lang.id }} {% if lang.id == solId %}active{% endif %}">
+                      <a data-lag="{{ lang.id }}" href="/dictionary/{{ lang.name|lower }}" title="{{ lang.my }}">
+                        {{ lang.name }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ol>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+
+      <!-- Social -->
+      <div class="row">
+        <div class="data social text-center">
+          <a class="icon-facebook" href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fmyordbok.com" target="_blank" title="share on Facebook">
+            <span>...share on Facebook</span>
+          </a>
+          <a class="icon-twitter" href="http://twitter.com/share?url=https%3A%2F%2Fmyordbok.com&amp;text=online%20Myanmar%20dictionary&amp;hashtags=MyOrdbok" target="_blank" title="share on Twitter">
+            <span>...share on Twitter</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Aim and Objective -->
+      <div class="row">
+        <div class="header">
+          <h3>Aim and Objective</h3>
+        </div>
+        <div class="data">
+          <p>
+            The primary aim and objective is to serve as an online dictionary, providing practical and meaningful definitions.
+            We are committed to continually expanding the knowledge and skills essential for the learning process, ensuring ease of use and relevance for all users across various devices.
+            Our goal is to make the app accessible on widely used devices, and the content we provide is designed to cater to both beginner and advanced learners.
+          </p>
+        </div>
+      </div>
+
+      <!-- Scheme -->
+      <div class="row">
+        <div class="header">
+          <h2 class="function" title="Protocol">Scheme</h2>
+        </div>
+        <div class="data">
+          <p>
+            As technology advances over time, the complexity of vocabularies and semantics is addressed proactively.
+            Our app, <strong>{{ appName }}</strong>, is committed to providing users with a readable context that stimulates their imagination, enabling a better understanding of the terms they define.
+            While we continuously strive to stay up-to-date, we also ensure that vocabularies and semantics are preemptively included to enhance user experience.
+          </p>
+        </div>
+      </div>
+
+      <!-- Action -->
+      <div class="row">
+        <div class="header">
+          <h2 class="function" title="function">Action</h2>
+        </div>
+        <div class="data">
+          <p>
+            {{ appName }} will continue its commitment to working on and developing programs that align with its objectives.
+            Our primary focus will be on languages that require adaptation to cater to regional linguistic preferences (leaning).
+            By addressing these linguistic variations, we aim to ensure better regional relevance and user engagement in our app.
+          </p>
+        </div>
+      </div>
+
+      <!-- Help -->
+      <div class="row">
+        <div class="header">
+          <h2 class="function" title="Help">Help</h2>
+        </div>
+        <div class="data">
+          <p>
+            As the definitions continue to update over time, <em>{{ appName }}</em> would like to invite you to participate in this process.
+            If you come across any errors or have new insights that don't align with our objectives, we encourage you to notify us through the
+            <a href="#" title="အကြောင်းကြားပေးရန်">Google forms</a>.
+            Your feedback is valuable in helping us improve the accuracy and quality of our content. Moreover, we welcome your input on
+            <a href="#" title="ဝေါဟာရနှင့် အနက်များ">vocabulary and interpretation</a>,
+            as it aids us in enhancing the overall user experience. Your contributions are highly appreciated!
+          </p>
+        </div>
+      </div>
+
+      <!-- Contribute -->
+      <div class="row">
+        <div class="header">
+          <h2 class="function" title="Donate">Contribute</h2>
+        </div>
+        <div class="data">
+          <p>
+            To ensure that our app, <strong>{{ appName }}</strong>, continues to thrive and provide comprehensive definitions, we rely on the generosity of users like you.
+            Your support is crucial to keep the app alive and running, in accordance with equipment specifications.
+            We kindly invite you to contribute any amount you can, as it will directly contribute to the growth and enrichment of the platform.
+            With your generosity, we aspire to provide wisdom and knowledge to all users, creating a positive impact on everyone within your reach.
+            Together, let's empower others with the gift of wisdom and knowledge!
+          </p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="data donation text-center">
+          <div>
+            <h3>Help us covering server expenses and ongoing development</h3>
+            <p>
+              I would like to support to ensure its continued growth and to enable the addition of complete information.
+              My contribution will play a crucial role in helping the app thrive and provide comprehensive content.
+              I am dedicated to enhancing the app's functionality and usefulness, and I appreciate the opportunity to contribute to its success.
+            </p>
+            <form action="https://www.paypal.com/donate" method="post" class="paypal">
+              <input type="hidden" name="hosted_button_id" value="C9PDG3T47WJ26" />
+              <button class="icon-paypal" type="submit" name="submit" title="Donate with Paypal">Donate with Paypal</button>
+            </form>
+            <form action="https://github.com/sponsors/khensolomon" method="get" class="github">
+              <button class="icon-github" type="submit" title="Github Sponsor">Github Sponsor</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Version -->
+      <div class="row">
+        <div class="header">
+          <h2 class="function" title="Version">
+            {{ appName }} <sup>{{ appVersion }}</sup>
+          </h2>
+        </div>
+        <div class="data">
+          <p>
+            The first version number indicates the total number of changes that have been made, while the second number represents the extent of maintenance and modifications relative to the major change.
+            The third number reflects basic needs modifications and is primarily used as the key for the
+            <a href="/definition?q=cookie">cookies</a>.
+            Additionally, a new cookie will be created whenever these numbers change.
+          </p>
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div class="row note">
+        <div class="header">
+          <h2 class="function" title="Note">Note</h2>
+        </div>
+        <div class="data">
+          <ul>
+            <li>The data of the dictionary is primarily collected daily.</li>
+            <li>Any financial donations received will be solely dedicated to the development and improvement of <strong>{{ appName }}</strong>.</li>
+            <li>
+              The grammar section, directly sourced from
+              <a href="https://my.wikipedia.org/wiki/%E1%80%99%E1%80%BC%E1%80%94%E1%80%BA%E1%80%99%E1%80%AC%E1%80%9E%E1%80%92%E1%80%BA%E1%80%92%E1%80%AB" class="mtxt">မြန်မာသဒ္ဒါ</a>
+              Volumes (1) and (2), initially included some examples and exercises, but due to limited user attention, we have decided to remove it from our online app in the near future.
+              <ul>
+                <li>
+                  However, the source will be preserved and remain accessible within
+                  <a href="https://github.com/khensolomon/myordbok/tree/master/docs/thuddar" class="icon-github">Github repository</a>
+                  as a reference.
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

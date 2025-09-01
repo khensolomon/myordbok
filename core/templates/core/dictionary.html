@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}dictionary{% endblock %}
+
+{% block content %}
+    <h1>{{ page_title }}</h1>
+    <p>dictionary</p>
+
+
+        <!-- 
+            Here, we loop through the 'language_groups' context variable 
+            that we passed from the view.
+        -->
+        {% for group in language_groups %}
+            <div class="mb-8 bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-4 bg-indigo-600 text-white">
+                    <h2 class="text-2xl font-semibold">{{ group.name }} ({{ group.my }})</h2>
+                </div>
+                
+                <ul class="divide-y divide-gray-200">
+                    <!-- We can even do nested loops -->
+                    {% for lang in group.lang %}
+                        <li class="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                           <div>
+                                <p class="font-medium text-gray-900">{{ lang.name }}</p>
+                                <p class="text-sm text-gray-500">{{ lang.my }}</p>
+                           </div>
+                           <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                                ID: {{ lang.id }}
+                           </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+{% endblock %}

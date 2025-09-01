@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Blog Posts{% endblock %}
+
+{% block content %}
+    <h1>Blog Posts</h1>
+    {% for post in page_obj %}
+        <article>
+            <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+            <p>by {{ post.author.username }} on {{ post.created_at|date:"F j, Y" }}</p>
+        </article>
+        <hr>
+    {% empty %}
+        <p>No posts have been created yet.</p>
+    {% endfor %}
+
+    <!-- Pagination Links -->
+    <div class="pagination">
+        <span class="step-links">
+            <!-- "First" and "Previous" links -->
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <!-- Page numbers -->
+            <span class="current">
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <!-- Highlight the current page number -->
+                        <strong style="font-size: 1.2em; margin: 0 5px;">{{ num }}</strong>
+                    {% elif num > page_obj.number|add:'-5' and num < page_obj.number|add:'5' %}
+                        <!-- Show links for pages near the current page -->
+                        <a href="?page={{ num }}" style="margin: 0 5px;">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </span>
+
+            <!-- "Next" and "Last" links -->
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>    
+        
+{% endblock %}
