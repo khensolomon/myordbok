@@ -2,14 +2,31 @@
 from django.urls import path
 from . import views
 
+# This is used for reversing URLs in templates, e.g., {% url 'grammar:pos_detail' ... %}
+# app_name = 'MyOrdbok'
+
 urlpatterns = [
     path('', views.home, name='home'),
     path('about', views.about, name='about'),
-    path('grammar', views.grammar, name='grammar'),
+    # path('grammar', views.grammar, name='grammar'),
+
+        # Matches '/grammar/'
+    path('grammar', views.grammar_index, name='grammar'),
+    
+    # Matches '/grammar/noun/', '/grammar/verb/', etc.
+    # The <slug:pos_slug> part captures the text from the URL 
+    # and passes it as the 'pos_slug' argument to the view.
+    path('grammar/<slug:pos_slug>', views.part_of_speech_detail, name='pos_detail'),
+
     path('myanmar-fonts', views.fonts, name='fonts'),
 
     path('dictionary', views.dictionary, name='dictionary'),
     path('definition', views.definition, name='definition'),
+
+
+    path('privacy', views.privacy_policy, name='privacy_policy'),
+    path('terms', views.terms_of_service, name='terms_of_service'),
+    path('cookie-policy', views.cookie_policy, name='cookie_policy'),
     
     # Add the URLs for our notes
     path('notes/', views.note_list, name='note_list'),

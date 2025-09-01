@@ -1,3 +1,3 @@
-__version__ = "2.0.11.int"
-name = "MyOrdboked"
+__version__ = "2.0.12"
+name = "MyOrdbok"
 version = __version__

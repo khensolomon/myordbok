@@ -8,7 +8,11 @@
   - [ ] ome
 - [ ] ...suggestions
 - [ ] ...result template
-- [ ] About
+- [x] About
+  - [ ] visits
 - [ ] Grammar
 - [ ] Fonts
-- [ ] Privacy and Terms
+- Docs
+  - [x] Privacy
+  - [x] Terms
+  - [x] Cookie

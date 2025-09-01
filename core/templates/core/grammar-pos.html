@@ -1,0 +1,222 @@
+{% extends "layout.html" %}
+{% load custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="ptl" id="content">
+  <div class="resz ltrt">
+    <div class="grammar forPartsofspeech">
+
+      <!-- Primary section -->
+      <div class="row primary text-centers">
+        <div>
+          <h1>{{ grammar.root.name }}</h1>
+          <p>{{ grammar.root.desc|quoteify|safe }}</p>
+
+          {% if grammar.root.note %}
+          <ul class="note">
+            <li>{{ grammar.root.note|emphasize|safe }}</li>
+          </ul>
+          {% endif %}
+
+          {% if grammar.cate %}
+            {% for e in grammar.cate %}
+              <section>
+                <p>{{ e.desc|quoteify|safe }}</p>
+                <ol class="mynum">
+                  {% for i in e.row %}
+                    <li>
+                      <a href="/grammar/{{ grammar.info.name|lower }}#{{ i }}">{{ i }}</a>
+                    </li>
+                  {% endfor %}
+                </ol>
+              </section>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Secondary section -->
+      <div class="row secondary text-centers">
+        <div class="detail">
+
+          {% if grammar.word %}
+            {% for e in grammar.word %}
+              <ol class="word" data-name="{{ e.name }}">
+                {% for w in e.row %}
+                  <li>{{ w }}</li>
+                {% endfor %}
+              </ol>
+              {% if e.desc %}
+                <ul class="worddesc">
+                  {% for w in e.desc %}
+                    <li>{{ w|strongify|safe }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <ul class="exam">
+            {% for e in grammar.exam %}
+              <li>
+                <p>{{ e.name|quoteify|safe }}</p>
+                {% if e.desc %}
+                  <ol type="a">
+                    {% for d in e.desc %}
+                      <li>{{ d|emphasize|safe }}</li>
+                    {% endfor %}
+                  </ol>
+                {% endif %}
+                {% if e.form %}
+                  {% for i in e.form %}
+                    <table>
+                      {% if i.caption %}
+                        <caption>{{ i.caption }}</caption>
+                      {% endif %}
+                      <thead>
+                        <tr>
+                          {% for t in i.title %}
+                            <th>{{ t }}</th>
+                          {% endfor %}
+                          {% if i.chain %}
+                            <th class="chain">{{ i.chain }}</th>
+                          {% endif %}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for r in i.row %}
+                          <tr>
+                            {% for cell in r %}
+                              <td>{{ cell }}</td>
+                            {% endfor %}
+                            {% if i.chain %}
+                              <td class="chain">{{ r|join:"" }}</td>
+                            {% endif %}
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  {% endfor %}
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+
+          <!-- Grammar kinds -->
+          {% for o in grammar.kind %}
+            <div>
+              <h2 id="{{ o.root.name }}">{{ o.root.name }}</h2>
+              <div>
+                <p>{{ o.root.desc|quoteify|safe }}</p>
+
+                {% if o.root.note %}
+                  <ul class="note">
+                    <li>{{ o.root.note|emphasize|safe }}</li>
+                  </ul>
+                {% endif %}
+
+                {% if o.cate %}
+                  {% for e in o.cate %}
+                    <section>
+                      <p>{{ e.desc|quoteify|safe }}</p>
+                      <ol class="mynum">
+                        {% for i in e.row %}
+                          <li>
+                            <a href="/grammar/{{ o.info.name|lower }}#{{ i }}">{{ i }}</a>
+                          </li>
+                        {% endfor %}
+                      </ol>
+                    </section>
+                  {% endfor %}
+                {% endif %}
+
+                {% if o.word %}
+                  {% for e in o.word %}
+                    <ol class="word" data-name="{{ e.name }}">
+                      {% for w in e.row %}
+                        <li>{{ w }}</li>
+                      {% endfor %}
+                    </ol>
+                    {% if e.desc %}
+                      <ul class="worddesc">
+                        {% for w in e.desc %}
+                          <li>{{ w|strongify|safe }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
+                {% if o.exam %}
+                  <!-- same examList block -->
+                  <ul class="exam">
+                    {% for e in o.exam %}
+                      <li>
+                        <p>{{ e.name|quoteify|safe }}</p>
+                        {% if e.desc %}
+                          <ol type="a">
+                            {% for d in e.desc %}
+                              <li>{{ d|emphasize|safe }}</li>
+                            {% endfor %}
+                          </ol>
+                        {% endif %}
+                        {% if e.form %}
+                          {% for i in e.form %}
+                            <!-- repeat forms table -->
+                          {% endfor %}
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+
+                {% if o.kind %}
+                  {% for i in o.kind %}
+                    <div>
+                      <h3 id="{{ i.root.name }}">{{ i.root.name }}</h3>
+                      <div>
+                        <p>{{ i.root.desc|quoteify|safe }}</p>
+
+                        {% if i.root.note %}
+                          <ul class="note">
+                            <li>{{ i.root.note|emphasize|safe }}</li>
+                          </ul>
+                        {% endif %}
+
+                        <!-- recurse word, exam, cate like above -->
+
+                        {% if i.kind %}
+                          {% for e in i.kind %}
+                            <div>
+                              <h4 id="{{ e.root.name }}">{{ e.root.name }}</h4>
+                              <div>
+                                <p>{{ e.root.desc|quoteify|safe }}</p>
+
+                                {% if e.root.note %}
+                                  <ul class="note">
+                                    <li>{{ e.root.note|emphasize|safe }}</li>
+                                  </ul>
+                                {% endif %}
+
+                                <!-- recurse again if needed -->
+                              </div>
+                            </div>
+                          {% endfor %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                {% endif %}
+
+              </div>
+            </div>
+          {% endfor %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

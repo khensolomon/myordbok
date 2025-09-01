@@ -58,6 +58,7 @@ myordbok/
 
 ```bash
 npm install --save-dev webpack webpack-cli webpack-bundle-tracker @babel/core @babel/preset-env babel-loader css-loader style-loader
+python manage.py thuddar_update_snap
 ```
 
 ## webpack

@@ -27,11 +27,15 @@ SECRET_KEY = 'django-insecure-l$@wthm11p-@&jftxhzuipysk(p)1dt&5uck^w_qbklp5y9avw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
+ALLOWED_HOSTS = [
+  "127.0.0.1"
+]
 # This is True by default, you don't even need to add it unless you want to change it.
 APPEND_SLASH = True
 
-ALLOWED_HOSTS = []
-
+# APP_NAME = "MyOrdbok"
+# APP_VERSION = "2.0.11"
 
 # Application definition
 
@@ -55,6 +59,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Add your custom middleware at the end of the list
+    'config.middleware.HtmlMinifyMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -74,7 +81,8 @@ TEMPLATES = [
                 # Add your custom processor here!
                 # 'app_name.filename.function_name'
                 'core.context_processors.main_menu',
-                'core.context_processors.navigation',
+                'core.context_processors.nav_pages_builder',
+                'core.context_processors.nav_terms_builder',
                 "core.context_processors.cookies_read",
                 "core.context_processors.app_info",
             ],
@@ -97,9 +105,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'PASSWORD': config('DB_PWD'),
+        'HOST': config('DB_HOST'), # localhost
+        'PORT': config('DB_PORT'), # 3306
     }
 }
 
