@@ -34,7 +34,7 @@
                   <li class="license" data-toggle="license" @click = "fontToggle(2)" v-bind:class = "{'active': fontActive(2)}">License</li>
                 {% endif %}
                 {% if copyright %}
-                  <li class="copyright" data-toggle="copyright" @click = "fontToggle(3)" v-bind:class = "{'active': fontActive(3)}">copyright</li>
+                  <li class="copyright" data-toggle="copyright" @click = "fontToggle(3)" v-bind:class = "{'active': fontActive(3)}">Copyright</li>
                 {% endif %}
                 {% if download %}
                   <li class="get">
@@ -167,12 +167,21 @@
             </div>
           {% endif %}
         </div>
-        {# This primary section was static, you can make it dynamic if needed #}
- 
 
+        <div class="row noticed">
+          <p>
+            Please be aware that not all Myanmar fonts listed here are owned or allowed to be redistributed by <strong>{{ appName }}</strong>
+            Nevertheless, we are providing the list for the purpose of studying their design and rendering, making it accessible to anyone interested.
+            It's important to note that some fonts, which are not permitted by their respective owners, have been disabled for download by <strong>{{ appName }}</strong>.
+          </p>
+          <p>
+            For this reason, we advise you to exercise caution and take appropriate action by requesting permission from the copyright owner before using or redistributing any of the listed fonts.
+            Please refer to the provided metadata for each font to facilitate this process.
+          </p>
+        </div>
+ 
         {% if secondary %}
           <div class="row gallery secondary">
-            <h2>Secondary Fonts</h2>
             <ul>
               {% for j in secondary %}
                 <li data-vw="19760" data-dl="18971">
@@ -190,7 +199,6 @@
 
         {% if external %}
           <div class="row gallery external">
-            <h2>External Fonts</h2>
             <ul>
               {% for j in external %}
                 <li data-vw="19760" data-dl="18971">
