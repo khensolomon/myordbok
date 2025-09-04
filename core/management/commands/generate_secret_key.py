@@ -15,6 +15,7 @@ What to do if the SECRET_KEY is leaked:
 If the SECRET_KEY is ever exposed or compromised, a new one must be generated immediately and the old one replaced in the settings file.
 Leaking this key would allow an attacker to forge session data and potentially gain unauthorized access to the application. 
 Replacing the key will invalidate all existing sessions and any other signed data (like password reset links), which is a necessary security measure.
+
 bash::
 
   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
@@ -43,7 +44,10 @@ class Command(BaseCommand):
 
         # Manually generate a secret key to ensure compatibility with older Django versions.
         # Django's recommended characters are ASCII letters, digits, and punctuation.
-        chars = string.ascii_letters + string.digits + string.punctuation
+        # Exclude characters that can cause issues in .env files or strings.
+        exclude_chars = ",'\"`"
+        safe_punctuation = ''.join(c for c in string.punctuation if c not in exclude_chars)
+        chars = string.ascii_letters + string.digits + safe_punctuation
         
         random_part = ''.join(secrets.choice(chars) for _ in range(random_length))
         secret_key = f'{prefix}{random_part}'
@@ -56,5 +60,5 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(f'{secret_key}'))
         
         self.stdout.write('') # Add a blank line for spacing
-        self.stdout.write('Copy the key and paste it into .env file.')
+        self.stdout.write('Replace the SECRET_KEY value in .env file.')
 
