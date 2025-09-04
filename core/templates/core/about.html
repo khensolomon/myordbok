@@ -16,9 +16,9 @@
         <div>
           <p>
             <q>Ordbok</q> is directly translated as
-            <a href="/definition?q=wordbook">wordbook</a>
+            <a href="{% url 'definition' %}?q=wordbook">wordbook</a>
             in
-            <a href="/definition?q=norwegian">Norwegian</a>, representing a list of words with their meanings described in their own terms.
+            <a href="{% url 'definition' %}?q=norwegian">Norwegian</a>, representing a list of words with their meanings described in their own terms.
             Therefore, {{ appName }} can be referred to as the <q class="mdic">Myanmar dictionary</q> where
             <q>My</q> stands for Myanmar and <q>Ordbok</q> denotes a form of dictionary.
             Since 2010, <strong>{{ appName }}</strong> has become one of the most widely used Myanmar online dictionaries among others.
@@ -54,7 +54,7 @@
                 <ol>
                   {% for lang in conti.lang %}
                     <li class="{{ lang.id }} {% if lang.id == solId %}active{% endif %}">
-                      <a data-lag="{{ lang.id }}" href="/dictionary/{{ lang.name|lower }}" title="{{ lang.my }}">
+                      <a data-lag="{{ lang.id }}" href="{% url 'dictionary-detail' lang_name=lang.name|slugify %}" title="{{ lang.my }}">
                         {{ lang.name }}
                       </a>
                     </li>
@@ -129,9 +129,9 @@
           <p>
             As the definitions continue to update over time, <em>{{ appName }}</em> would like to invite you to participate in this process.
             If you come across any errors or have new insights that don't align with our objectives, we encourage you to notify us through the
-            <a href="#" title="အကြောင်းကြားပေးရန်">Google forms</a>.
+            <form-links type="feedback" text="Google forms" title="အကြောင်းကြားပေးရန်"></form-links>
             Your feedback is valuable in helping us improve the accuracy and quality of our content. Moreover, we welcome your input on
-            <a href="#" title="ဝေါဟာရနှင့် အနက်များ">vocabulary and interpretation</a>,
+            <form-links type="suggestion" text="vocabulary and interpretation" title="ဝေါဟာရနှင့် အနက်များ"></form-links>
             as it aids us in enhancing the overall user experience. Your contributions are highly appreciated!
           </p>
         </div>
@@ -184,7 +184,7 @@
           <p>
             The first version number indicates the total number of changes that have been made, while the second number represents the extent of maintenance and modifications relative to the major change.
             The third number reflects basic needs modifications and is primarily used as the key for the
-            <a href="/definition?q=cookie">cookies</a>.
+            <a href="{% url 'definition' %}?q=cookie">cookies</a>.
             Additionally, a new cookie will be created whenever these numbers change.
           </p>
         </div>

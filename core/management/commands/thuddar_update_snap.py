@@ -1,12 +1,15 @@
+"""
+Generate thuddar snap
+"""
 import json
 import re
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
-from core.thuddar import Thuddar
+from core.assist.json_engine import Thuddar
 
 
-def format_pos_name(name_id: str) -> str:
+def _format_pos_name(name_id: str) -> str:
     """
     Converts a string like "Adjective 1.2" into "adjective.1.2".
     This mimics the JavaScript regex logic.
@@ -61,7 +64,7 @@ class Command(BaseCommand):
             if 'child' in item:
                 # This item has children, process each part-of-speech file
                 for name in item.get('child', []):
-                    pos_slug = format_pos_name(name)
+                    pos_slug = _format_pos_name(name)
                     row = self.thuddar.read_pos(pos_slug)
 
                     if not isinstance(row, dict) or 'info' not in row or 'root' not in row:

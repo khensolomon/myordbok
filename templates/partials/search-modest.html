@@ -1,10 +1,10 @@
 <div class="modest">
 	<div class="logo">
-    <ol class="menu dictionary" id="MyOrdbok-logo" data-lang="en" title="MyOrdbok">
-      <li><a href="/dictionary/english"><span>English</span>-<span>Myanmar</span></a></li>
+    <ol class="menu dictionary" id="MyOrdbok-logo" data-lang="{{ solId }}" title="{{ appName }}">
+      <li><a href="{% url 'dictionary-detail' lang_name=solInfo.name|slugify %}"><span>{{ solInfo.name }}</span>-<span>Myanmar</span></a></li>
     </ol>
   </div>
 	<div class="search">
-    <search-engine action="/definition"></search-engine>
+    <search-engine action="{% url 'definition' %}"></search-engine>
   </div>
 </div>

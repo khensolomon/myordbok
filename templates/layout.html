@@ -15,9 +15,21 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="red">
         <meta name="theme-color" content="{{ themeColor }}">
 
-        <title>{% block title %}MyOrdbok{% endblock %}</title>
+        {% comment %} <title>{% block title %}MyOrdbok{% endblock %}</title>
         {% if keywords %}<meta name="keywords" content="{{ keywords }}">{% endif %}
-        {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+        {% if description %}<meta name="description" content="{{ description }}">{% endif %} {% endcomment %}
+
+        {% if title %}
+            <title>{{ title }}</title>
+        {% else %}
+            <title>MyOrdbok</title>
+        {% endif %}
+        {% if keywords %}
+            <meta name="keywords" content="{{ keywords }}">
+        {% endif %}
+        {% if description %}
+            <meta name="description" content="{{ description }}">
+        {% endif %}
 
         <meta name="application-name" content="{{ appName }}" data-version="{{ appVersion }}">
         <base href="/">
@@ -43,7 +55,7 @@
         {% block scriptSuggestion %}{% endblock %}
     </head>
     {% endblock %}
-    <body>
+    <body class="{{ pageClass|default:'myordbok' }}">
         <div id="myordbok" class="primary">
             {% block bar %}
                 <div id="bar" class="ptl">

@@ -3,6 +3,210 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
-    <p>This is the about page for our awesome new website!</p>
+  {% if info %}
+    <div class="ptl detail">
+      <div class="cetr ltrt">
+        <div class="fonts">
+          <div class="row info">
+            {% for o in info %}
+              <div class="{{ o.class }}">
+                <{{ o.tag }}>{{ o.text }}</{{ o.tag }}>
+              </div>
+            {% endfor %}
+            {% if url %}
+              <ul class="url">
+                {% for o in url %}
+                  <li>
+                    <a href="{{ o.href }}" target="_blank">{{ o.text }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+
+          <div class="row more">
+            <div class="toggle">
+              <ul class="menu">
+                {% if definition %}
+                  <li class="definition" data-toggle="definition" @click = "fontToggle(1)" v-bind:class = "{'active': fontActive(1)}">Description</li>
+                {% endif %}
+                {% if license %}
+                  <li class="license" data-toggle="license" @click = "fontToggle(2)" v-bind:class = "{'active': fontActive(2)}">License</li>
+                {% endif %}
+                {% if copyright %}
+                  <li class="copyright" data-toggle="copyright" @click = "fontToggle(3)" v-bind:class = "{'active': fontActive(3)}">copyright</li>
+                {% endif %}
+                {% if download %}
+                  <li class="get">
+                    <a class="download" href="{% url 'font-download' font_type=type %}?font={{ download }}">Download</a>
+                  </li>
+                {% endif %}
+              </ul>
+
+              <div class="container" v-bind:class = "{'active': dataStore.activeFontToggle}">
+                {% if definition %}
+                  <div class="definition" v-bind:class = "{'active': fontActive(1)}">
+                    {% for o in definition %}
+                      <{{ o.tag }}>{{ o.text }}</{{ o.tag }}>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                {% if license %}
+                  <div class="license" v-bind:class = "{'active': fontActive(2)}">
+                    {% for o in license %}
+                      <{{ o.tag }}>{{ o.text }}</{{ o.tag }}>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                {% if copyright %}
+                  <div class="copyright" v-bind:class = "{'active': fontActive(3)}">
+                    {% for o in copyright %}
+                      <{{ o.tag }}>{{ o.text }}</{{ o.tag }}>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="ptl" id="content">
+    <div class="ltrt">
+      <div class="fonts">
+        <div class="row primary">
+          <!-- Myanmar 3 -->
+          <div class="column Myanmar3">
+            <h2>Myanmar 3 <span>Version 1.358</span></h2>
+            <ul class="keyboard">
+              <li class="apple">
+                <a class="download" href="https://keyman.com/keyboard/download?id=sil_myanmar_my3&amp;platform=macos&amp;mode=standalone">
+                  <span class="icon-apple">Mac</span>
+                  <em>Download</em>
+                </a>
+              </li>
+              <li class="linux">
+                <a class="download" href="https://keyman.com/keyboard/download?id=sil_myanmar_my3&amp;platform=linux&amp;mode=standalone">
+                  <span class="icon-linux">Linux</span>
+                  <em>Download</em>
+                </a>
+              </li>
+              <li class="windows">
+                <a class="download" href="https://keyman.com/keyboard/download?id=sil_myanmar_my3&amp;platform=windows&amp;mode=bundle&amp;cid=919263243.1581599435">
+                  <span class="icon-windows">Windows</span>
+                  <em>Download</em>
+                </a>
+              </li>
+            </ul>
+
+            <ul class="typeface">
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3-v1.358.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3h-v1.358.ttf">3h</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3sh-v1.358.ttf">3sh</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Mm3Web-v3.ttf">Mm3Web</a></li>
+            </ul>
+
+            <p>
+              Myanmar Natural Language Processing (NLP) Research Center is a non-profit organization
+              (NPO) as well as a non-government organization (NGO), mostly supported by Myanmar Computer Federation. It was formed with the aim...
+              <a href="https://keyman.com/keyboards/sil_myanmar_my3">keyman.com</a>
+            </p>
+          </div>
+
+          <!-- Zawgyi-One -->
+          <div class="column Zawgyi-One">
+            <h2>Zawgyi-One <span>Version 3.1</span></h2>
+            <ul class="keyboard">
+              <li class="apple"><a class="not" href="#"><span class="icon-apple">Mac</span><em>none</em></a></li>
+              <li class="linux"><a class="not" href="#"><span class="icon-linux">Linux</span><em>none</em></a></li>
+              <li class="windows"><a class="not" href="#"><span class="icon-windows">Windows</span><em>none</em></a></li>
+            </ul>
+
+            <ul class="typeface">
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=ZawgyiOne-v3.1.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=ZawgyiOne-v3.0.ttf">3.0</a></li>
+            </ul>
+
+            <p>
+              A predominant typeface Zawgyi font aka Zawgyi-One was designed by Zaw Win Myat of Art House.
+              Althought it's still the most popular font in Myanmar, unfortunately the development seem to be paused!
+              <a href="https://en.wikipedia.org/wiki/Zawgyi_font">wikipedia.org</a>
+            </p>
+          </div>
+
+          <!-- Paduak -->
+          <div class="column Paduak">
+            <h2>Paduak <span>Version 4.000</span></h2>
+            <ul class="keyboard">
+              <li class="apple"><a class="download" href="http://software.sil.org/downloads/r/padauk/padauk-3.003.zip"><span class="icon-apple">Mac</span><em>Download</em></a></li>
+              <li class="linux"><a class="download" href="http://software.sil.org/downloads/r/padauk/padauk-3.003.zip"><span class="icon-linux">Linux</span><em>Download</em></a></li>
+              <li class="windows"><a class="download" href="http://software.sil.org/downloads/r/padauk/Padauk-3.003-win.exe"><span class="icon-windows">Windows</span><em>Download</em></a></li>
+            </ul>
+
+            <ul class="typeface">
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Padauk.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Padauk-bold.ttf">Bold</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=PadaukBook-regular.ttf">Book</a></li>
+              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=PadaukBook-bold.ttf">Book bold</a></li>
+              <li><a class="download" href="http://software.sil.org/downloads/r/padauk/padauk-3.002-web.zip">Web</a></li>
+            </ul>
+
+            <p>
+              Padauk is a Unicode-based font family with broad support for writing systems that use the Myanmar script.
+              Padauk includes full support for Unicode 9.0 Myanmar ranges...
+              <a href="https://software.sil.org/padauk/">scripts.sil.org</a>
+            </p>
+          </div>
+
+          {% if ads %}
+            <div class="column Commercial">
+              <p>ads</p>
+            </div>
+          {% endif %}
+        </div>
+        {# This primary section was static, you can make it dynamic if needed #}
+ 
+
+        {% if secondary %}
+          <div class="row gallery secondary">
+            <h2>Secondary Fonts</h2>
+            <ul>
+              {% for j in secondary %}
+                <li data-vw="19760" data-dl="18971">
+                  <a class="dt y" href="{% url 'font-detail' font_type='secondary' %}?font={{ j.file }}" data-tl="?k">{{ j.name }}</a>
+                  {% if not j.restrict %}
+                    <a class="dl download icon-floppy" href="{% url 'font-download' font_type='secondary' %}?font={{ j.file }}" title="Download">Download</a>
+                  {% endif %}
+                  <p class="f2">{{ j.version }}</p>
+                  <p class="f5">{{ j.family }}</p>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if external %}
+          <div class="row gallery external">
+            <h2>External Fonts</h2>
+            <ul>
+              {% for j in external %}
+                <li data-vw="19760" data-dl="18971">
+                  <a class="dt y" href="{% url 'font-detail' font_type='external' %}?font={{ j.file }}" data-tl="?k">{{ j.name }}</a>
+                  {% if not j.restrict %}
+                    <a class="dl download icon-floppy" href="{% url 'font-download' font_type='external' %}?font={{ j.file }}" title="Download">Download</a>
+                  {% endif %}
+                  <p class="f2">{{ j.version }}</p>
+                  <p class="f5">{{ j.family }}</p>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
 {% endblock %}

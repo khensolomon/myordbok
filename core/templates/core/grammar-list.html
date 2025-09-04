@@ -24,12 +24,14 @@
         </div>
       </div>
 
+
+
       <div class="row secondary text-centers">
         <div class="pos">
           <ul class="partsofspeech">
             {% for o in grammar.pos %}
               <li>
-                <a href="/grammar/{{ o.info.name|slugify }}">{{ o.root.name }}</a>
+                <a href="{% url 'grammar-detail' pos_slug=o.info.slug|default:o.info.name|slugify %}">{{ o.root.name }}</a>
                 <p>{{ o.root.desc|safe }}</p>
               </li>
             {% endfor %}
@@ -40,7 +42,7 @@
           <ul class="partsofspeech">
             {% for o in grammar.other %}
               <li>
-                <a href="/grammar/{{ o.info.name|lower|slugify }}">{{ o.root.name }}</a>
+                <a href="{% url 'grammar-detail' pos_slug=o.info.slug|default:o.info.name|slugify %}">{{ o.root.name }}</a>
                 <p>{{ o.root.desc|safe }}</p>
               </li>
             {% endfor %}

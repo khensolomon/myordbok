@@ -1,5 +1,22 @@
+"""
+utils.py
+"""
 import re
+import json
+from pathlib import Path
 
+
+def read_json(file_path: str, default=None):
+    """
+    Internal helper to read a JSON file and handle common errors.
+    Returns the parsed JSON data or a default value on failure.
+    """
+    try:
+        with Path(file_path).open('r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default
+        
 def is_myanmar(text):
     """
     Checks if the text contains Myanmar characters.

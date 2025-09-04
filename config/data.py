@@ -1,7 +1,31 @@
+"""
+data.py
+"""
+from typing import List, TypedDict, Optional
+
+# Define the structure of a single language entry.
+# Using TypedDict lets your IDE know exactly what keys to expect.
+class LangDict(TypedDict):
+    id: str
+    name: str
+    my: str
+    default: Optional[bool] # 'default' is not always present, so it's Optional.
+
+# Define the structure of a dictionary group (e.g., "International").
+class DictionaryGroup(TypedDict):
+    name: str
+    my: str
+    lang: List[LangDict]
+
 # We store the list of dictionaries in this file.
 # This makes it easy to import and use in other parts of our app.
 
-DICTIONARIES = [
+"""
+A list of dictionary groups, categorized by region (International, Europe, Asia).
+Each group contains a list of supported languages with their IDs, names in
+English and Burmese, and an optional default flag.
+"""
+DICTIONARIES: List[DictionaryGroup] = [
 	{
 		"name": "International",
 		"my": "အပြည်ပြည်ဆိုင်ရာ",

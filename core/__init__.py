@@ -1,0 +1,3 @@
+"""
+online Myanmar dictionary
+"""

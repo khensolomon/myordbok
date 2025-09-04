@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Frontend assets for myordbok project",
   "main": "src/js/index.js",
-
   "scripts": {
+    "dev-test": "webpack serve --mode development",
     "dev": "webpack --mode development --watch",
     "build": "webpack --mode production"
   },
@@ -14,47 +14,38 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
-    "babel-loader": "^10.0.0",
-    "css-loader": "^7.1.2",
-    "mini-css-extract-plugin": "^2.7.0",
-    "sass": "^1.56.1",
-    "sass-loader": "^16.0.5",
-    "vue": "^3.2.45",
-    "vue-loader": "^17.0.1",
-    "vue-template-compiler": "^2.7.14",
-    "webpack": "^5.75.0",
-    "webpack-bundle-tracker": "^3.2.1",
-    "webpack-cli": "^6.0.1",
-
-
-
     "@types/jsdom": "^21.1.6",
     "@types/number-to-words": "^1.2.3",
     "@types/pluralize": "^0.0.33",
     "@types/pug": "^2.0.10",
     "@types/webpack-hot-middleware": "^2.25.9",
     "axios": "^1.6.7",
-
+    "babel-loader": "^10.0.0",
     "clean-webpack-plugin": "^4.0.0",
- 
+    "css-loader": "^7.1.2",
     "file-loader": "^6.2.0",
     "firebase": "^10.8.1",
     "jsdom": "^24.0.0",
-
+    "mini-css-extract-plugin": "^2.7.0",
     "mocha": "^11.7.1",
     "pinia": "^3.0.3",
     "postcss-loader": "^8.1.1",
-
+    "sass": "^1.56.1",
+    "sass-loader": "^16.0.5",
     "script-loader": "^0.7.2",
     "style-loader": "^4.0.0",
     "url-loader": "^4.1.1",
-
+    "vue": "^3.2.45",
+    "vue-loader": "^17.0.1",
     "vue-resource": "^1.5.3",
     "vue-router": "^4.3.0",
-
-    "vue-template-loader": "^1.1.0",
-
+    "vue-template-compiler": "^0.1.0",
+    "vue-template-loader": "^0.1.2",
+    "webpack": "^5.75.0",
+    "webpack-bundle-tracker": "^3.2.1",
+    "webpack-cli": "^6.0.1",
     "webpack-dev-middleware": "^7.0.0",
+    "webpack-dev-server": "^5.2.2",
     "webpack-hot-middleware": "^2.26.1",
     "webpack-merge": "^6.0.1"
   }

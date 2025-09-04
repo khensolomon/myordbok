@@ -1,6 +1,8 @@
 import re
-from .models import ListWord, ListSense, MapDerived
-from .notation import myanmarNotation
+from ..models import ListWord, ListSense, MapDerived
+
+from .notation import myanmar_notation
+
 # --- NLTK Integration ---
 try:
     from nltk.corpus import wordnet
@@ -38,7 +40,7 @@ class DictionarySearch:
             # --- Handle Numeric Input ---
             if self.current_word.isdigit():
                 self.log.append(f"'{self.current_word}' is numeric. Getting notations from MyanmarNotation module.")
-                notation_data = myanmarNotation.get(self.current_word)
+                notation_data = myanmar_notation.get(self.current_word)
 
             # --- Standard Word Search Logic ---
 

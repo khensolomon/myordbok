@@ -1,36 +1,77 @@
 {% extends "layout.html" %}
+{% load custom_filters %}
 
-{% block title %}dictionary{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    <h1>{{ page_title }}</h1>
-    <p>dictionary</p>
+<div id="content" class="ptl">
+  <div class="resz cetr">
+    {% include "partials/search-modest.html" %}
+    <div class="wrapper">
+      <div class="row text-center">
+        <h1>
+          {{ solInfo.name }} - 
+          <span class="myanmar">Myanmar</span> dictionary
+        </h1>
 
-
-        <!-- 
-            Here, we loop through the 'language_groups' context variable 
-            that we passed from the view.
-        -->
-        {% for group in language_groups %}
-            <div class="mb-8 bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="p-4 bg-indigo-600 text-white">
-                    <h2 class="text-2xl font-semibold">{{ group.name }} ({{ group.my }})</h2>
-                </div>
-                
-                <ul class="divide-y divide-gray-200">
-                    <!-- We can even do nested loops -->
-                    {% for lang in group.lang %}
-                        <li class="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                           <div>
-                                <p class="font-medium text-gray-900">{{ lang.name }}</p>
-                                <p class="text-sm text-gray-500">{{ lang.my }}</p>
-                           </div>
-                           <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                                ID: {{ lang.id }}
-                           </span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+        {% for desc in info.context %}
+          <p class="description">{{ desc }}</p>
         {% endfor %}
+
+        <p class="dated">{{ dated }}</p>
+
+        {% for o in info.progress %}
+          {% if o.percentage %}
+            <div class="progress percentage" style="--percentage:{{ o.status }}">
+              <div title="{{ o.my }}">
+                <span>{{ o.en }}</span>
+                <span>{{ o.status }}</span>
+              </div>
+            </div>
+          {% elif o.status %}
+            <div class="progress status">
+              <div title="{{ o.my }}">
+                <span>{{ o.en }}</span>
+                <span>{{ o.status }}</span>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <p class="feedback">
+          Any creative 
+          <form-links type="feedback" text="ideas"></form-links>
+          and missing 
+          <form-links type="suggestion" text="words &amp; definitions"></form-links>
+          can be sent via Google Forms.
+        </p>
+      </div>
+
+      <div class="row">
+        <div class="header text-center">
+          <h2>Dictionaries</h2>
+        </div>
+        <div class="dictionaries">
+          <ol>
+            {% for conti in dictionaries %}
+              <li class="{{ conti.name|lower }}{% if conti.lang|yesno:',' %}{% endif %}{% if solId in conti.lang.values_list  %} active{% endif %}">
+                <h3 title="{{ conti.my }}">{{ conti.name }}</h3>
+                <ol>
+                  {% for lang in conti.lang %}
+                    <li class="{{ lang.id }}{% if lang.id == solId %} active{% endif %}">
+                      <a data-lag="{{ lang.id }}" href="{% url 'dictionary-detail' lang_name=lang.name|slugify %}" title="{{ lang.my }}">
+                        {{ lang.name }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ol>
+              </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
+

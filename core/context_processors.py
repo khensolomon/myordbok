@@ -1,11 +1,16 @@
-# core/context_processors.py
+"""
+context_processors.py
+"""
+from django.http import (
+    HttpRequest, HttpResponse
+)
 import config
-# from django.conf import settings
+from django.conf import settings
 from django.urls import reverse, NoReverseMatch
 import copy
 from .models import Note
 
-def main_menu(request):
+def main_menu(request: HttpRequest):
     # Query the database for notes that should be in the menu
     menu_notes = Note.objects.filter(show_in_menu=True).order_by('title')
 
@@ -14,24 +19,28 @@ def main_menu(request):
         'main_menu_notes': menu_notes
     }
 
+def base_href(request: HttpRequest) -> HttpResponse:
+    return {
+        "base_href": getattr(settings, "BASE_HREF", "/")
+    }
 
 # It's good practice to keep the navigation structure separate,
 # but for simplicity, we can define it here.
 NAV_PAGES = [
     {'text': 'Home', 'url_name': 'home'},
     {'text': 'About', 'url_name': 'about'},
-    {'text': 'Grammar', 'url_name': 'grammar'},
-    {'text': 'Fonts', 'url_name': 'fonts'},
+    {'text': 'Grammar', 'url_name': 'grammar-home'},
+    {'text': 'Fonts', 'url_name': 'font-home'},
 ]
 
 NAV_TERMS = [
-    {'text': 'Privacy Policy', 'url_name': 'privacy_policy'},
-    {'text': 'Terms', 'url_name': 'terms_of_service'},
-    {'text': 'Cookie Policy', 'url_name': 'cookie_policy'},
+    {'text': 'Privacy Policy', 'url_name': 'privacy-policy'},
+    {'text': 'Terms', 'url_name': 'terms-of-service'},
+    {'text': 'Cookie Policy', 'url_name': 'cookie-policy'},
 ]
 
 
-def _navigation_builder(request, ls):
+def _navigation_builder(request: HttpRequest, ls):
     """
     A context processor to add navigation links to the context.
 
@@ -68,7 +77,7 @@ def _navigation_builder(request, ls):
     
     return nav_links_with_status
 
-def nav_pages_builder(request):
+def nav_pages_builder(request: HttpRequest):
     """
     A context processor to add navigation links to the context.
 
@@ -80,18 +89,20 @@ def nav_pages_builder(request):
         'nav_pages': _navigation_builder(request,NAV_PAGES)
     }
 
-def nav_terms_builder(request):
+def nav_terms_builder(request: HttpRequest):
     return {
         'nav_terms': _navigation_builder(request,NAV_TERMS)
     }
 
-def cookies_read(request):
+def cookies_read(request: HttpRequest):
     return {
         "themeMode": request.COOKIES.get("theme", "auto"),
-        "solId": request.COOKIES.get("solId", "en")
+        # "solId": request.COOKIES.get("solId", "en")
+        "solId": request.solId,
+        "solInfo": request.solInfo,
     }
 
-def app_info(request):
+def app_info(request: HttpRequest):
     return {
         "appName": config.name,
         "appVersion": config.version,

@@ -1,53 +1,65 @@
-# core/urls.py (new file)
+"""
+urls.py
+
+This is used for reversing URLs in templates, e.g., {% url 'grammar:grammar-detail' ... %}
+"""
 from django.urls import path
-from . import views
+from .views import (
+  general, docs, 
+  definition, dictionary, grammar, fonts,
+  api,
+  other
+)
 
-# This is used for reversing URLs in templates, e.g., {% url 'grammar:pos_detail' ... %}
 # app_name = 'MyOrdbok'
-
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('about', views.about, name='about'),
-    # path('grammar', views.grammar, name='grammar'),
+    path('', general.home, name='home'),
+    path('about', general.about, name='about'),
 
-        # Matches '/grammar/'
-    path('grammar', views.grammar_index, name='grammar'),
-    
-    # Matches '/grammar/noun/', '/grammar/verb/', etc.
-    # The <slug:pos_slug> part captures the text from the URL 
-    # and passes it as the 'pos_slug' argument to the view.
-    path('grammar/<slug:pos_slug>', views.part_of_speech_detail, name='pos_detail'),
+    path('grammar', grammar.home, name='grammar-home'),
+    path('grammar/<slug:pos_slug>', grammar.detail, name='grammar-detail'),
 
-    path('myanmar-fonts', views.fonts, name='fonts'),
+    # Main page for listing all fonts
+    path('myanmar-fonts', fonts.font_viewer, name='font-home'),
 
-    path('dictionary', views.dictionary, name='dictionary'),
-    path('definition', views.definition, name='definition'),
+    # # Page for viewing a specific font's details
+    # path('myanmar-fonts/<str:font_type>?font=<str:font_name>', fonts.font_viewer, name='font-detail'),
+    # # URL to trigger a download
+    # path('myanmar-fonts/download/<str:font_type>?font=<str:font_name>', fonts.download_font, name='font-download'),
+    # # URL to trigger a scan and update of the JSON files
+    # path('myanmar-fonts/scan/<str:font_type>', fonts.scan_fonts, name='font-scan'),
+    # Main page for listing all fonts.
+    path('myanmar-fonts/', fonts.font_viewer, name='font-home'),
+
+    # This now handles both a category view (e.g., /myanmar-fonts/primary/)
+    # and the detail view via a query parameter (e.g., /myanmar-fonts/primary/?font=MyFont.ttf)
+    path('myanmar-fonts/<str:font_type>/', fonts.font_viewer, name='font-detail'),
+
+    # The download URL is also updated to use a query parameter.
+    path('myanmar-fonts/download/<str:font_type>/', fonts.download_font, name='font-download'),
+
+    # The scan URL structure was correct and remains unchanged.
+    path('myanmar-fonts/scan/<str:font_type>/', fonts.scan_fonts, name='font-scan'),
 
 
-    path('privacy', views.privacy_policy, name='privacy_policy'),
-    path('terms', views.terms_of_service, name='terms_of_service'),
-    path('cookie-policy', views.cookie_policy, name='cookie_policy'),
+    path('dictionary', dictionary.home, name='dictionary-home'),
+    path('dictionary/<str:lang_name>', dictionary.detail, name='dictionary-detail'),
+
+    path('definition', definition.home, name='definition'),
+
+    path('privacy', docs.privacy_policy, name='privacy-policy'),
+    path('terms', docs.terms_of_service, name='terms-of-service'),
+    path('cookie-policy', docs.cookie_policy, name='cookie-policy'),
     
     # Add the URLs for our notes
-    path('notes/', views.note_list, name='note_list'),
-    path('notes/<int:pk>', views.note_detail, name='note_detail'),
+    path('notes', other.note_list, name='note_list'),
+    path('notes/<int:pk>', other.note_detail, name='note_detail'),
 
     # ForeignKey Relationship Demo
-    path('posts/', views.post_list, name='post_list'),
-    path('posts/<int:pk>/', views.post_detail, name='post_detail'),
+    path('posts/', other.post_list, name='post_list'),
+    path('posts/<int:pk>', other.post_detail, name='post_detail'),
 
-    path('api/words/', views.ListWordAPIView.as_view(), name='word-api-list'),
-
-    # URL for the API endpoint (returns JSON)
-    # path('api/search/', views.ApiSearchView.as_view(), name='api_search'),
-    path('api/search/', views.DictionarySearchView.as_view(), name='api_search'),
-
-
-    # /api/oem/word/suggest?q=iiuuu
-    path('api/oem/word/suggest', views.OEMWordSuggestAPIView.as_view(), name='oem_word_suggest'),
-
-    
-    # URL for the user-facing search page (renders HTML)
-    # path('definition/', views.TemplateSearchView.as_view(), name='template_search'),
-    # path('definition/',  views.search_page_view, name='template_search'),
+    path('api/words', other.ListWordAPIView.as_view(), name='word-api-list'),
+    path('api/search', other.DictionarySearchView.as_view(), name='api_search'),
+    path('api/oem/word/suggest', api.OEMWordSuggestAPIView.as_view(), name='oem_word_suggest'),
 ]
