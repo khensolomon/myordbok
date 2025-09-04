@@ -46,10 +46,10 @@ def font_viewer(request, font_type=None):
     """Handles both list and detail views. Font name is passed as a query param."""
     font_name = request.GET.get('font', None)
     
-    log.info(f"--- Font Detail Request ---")
-    log.info(f"URL Parameter 'font_type': '{font_type}'")
-    log.info(f"Query Parameter 'font': '{font_name}'")
-    log.info(f"storage': '{settings.STORAGE_DIR}'")
+    # log.info(f"--- Font Detail Request ---")
+    # log.info(f"URL Parameter 'font_type': '{font_type}'")
+    # log.info(f"Query Parameter 'font': '{font_name}'")
+    # log.info(f"storage': '{settings.STORAGE_DIR}'")
 
     context = font_manager.get_font_context(font_type, font_name)
     

@@ -22,23 +22,9 @@ urlpatterns = [
     # Main page for listing all fonts
     path('myanmar-fonts', fonts.font_viewer, name='font-home'),
 
-    # # Page for viewing a specific font's details
-    # path('myanmar-fonts/<str:font_type>?font=<str:font_name>', fonts.font_viewer, name='font-detail'),
-    # # URL to trigger a download
-    # path('myanmar-fonts/download/<str:font_type>?font=<str:font_name>', fonts.download_font, name='font-download'),
-    # # URL to trigger a scan and update of the JSON files
-    # path('myanmar-fonts/scan/<str:font_type>', fonts.scan_fonts, name='font-scan'),
-    # Main page for listing all fonts.
     path('myanmar-fonts/', fonts.font_viewer, name='font-home'),
-
-    # This now handles both a category view (e.g., /myanmar-fonts/primary/)
-    # and the detail view via a query parameter (e.g., /myanmar-fonts/primary/?font=MyFont.ttf)
     path('myanmar-fonts/<str:font_type>/', fonts.font_viewer, name='font-detail'),
-
-    # The download URL is also updated to use a query parameter.
     path('myanmar-fonts/download/<str:font_type>/', fonts.download_font, name='font-download'),
-
-    # The scan URL structure was correct and remains unchanged.
     path('myanmar-fonts/scan/<str:font_type>/', fonts.scan_fonts, name='font-scan'),
 
 
