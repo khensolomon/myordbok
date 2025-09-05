@@ -17,7 +17,6 @@ $ python manage.py fontdata backup --output my_backup.json
 To restore font data from a backup file:
 $ python manage.py fontdata restore cache/font_stats_backup.json
 """
-import json
 from django.core.management.base import BaseCommand, CommandError
 from django.core import serializers
 from django.db import transaction
