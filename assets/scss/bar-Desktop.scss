@@ -69,7 +69,7 @@
 					padding: 0px;
 	
 					// a {
-					// 	color: #fff;
+					// 	color: rgba(var(--color-white), 1);
 					// 	font-size: 12px;
 					// 	padding: 7px 7px;
 					// 	border-bottom: 1px solid rgba(var(--color-bar), 0.3);
@@ -91,18 +91,15 @@
 			&.active,
 			&.current {
 				> a {
-					// color: #236ea9;
 					color: var(--color-text-active);
 				}
 				&.hasChild {
 					> a {
 						&:after {
-							// color: #236ea9;
 							border-top-color: rgba(var(--color-main), 0.15);
 						}
 						&:hover {
 							&:after {
-								// color: #236ea9;
 								border-top-color: rgba(var(--color-bar), 0.15);
 							}
 						}
@@ -117,7 +114,6 @@
 						position: absolute;
 						content: "";
 						border: solid transparent;
-						// border-top-color: #2c312b;
 						border-top-color: rgba(var(--color-bar), 0.15);
 						border-width: 4px;
 						right: 4px;
@@ -132,7 +128,6 @@
 					border-bottom: 1px solid rgba(var(--color-bar), 0.5);
 					// border-bottom-color:red;
 					> a {
-						// border-left: 1px solid #d6d4d4;
 						border-left: 1px solid rgba(var(--color-bar), 0.5);
 						font-weight: 500;
 					}
@@ -275,7 +270,7 @@
 										// background-color: rgba(var(--color-main), 0.8);
 										background-color: rgba(var(--color-text), 0.2);
 										// border: 1px solid rgba(var(--color-text), 0.2);
-										// color: #fff;
+										// color: rgba(var(--color-white), 1);
 										color: var(--color-text-disable);
 										content: "\e80c";
 										font-family: "myordbok";
@@ -314,7 +309,7 @@
 						> a {
 							padding-right: 25px;
 							span {
-								// color: #fff;
+								// color: rgba(var(--color-white), 1);
 								display: block;
 								max-width: 150px;
 								text-overflow: ellipsis;
@@ -332,7 +327,7 @@
 								font-family: "myordbok";
 								font-style: normal;
 								font-weight: normal;
-								color: #fff;
+								color: rgba(var(--color-white), 1);
 								font-size: 1em;
 								line-height: 18px;
 								display: block;
@@ -342,7 +337,7 @@
 						}
 						&:hover {
 							> a {
-								color: #fff;
+								color: rgba(var(--color-white), 1);
 							}
 						}
 						&.active,
@@ -367,7 +362,7 @@
 							li {
 								a {
 									span {
-										color: #fff;
+										color: rgba(var(--color-white), 1);
 									}
 								}
 							}

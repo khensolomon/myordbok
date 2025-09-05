@@ -95,7 +95,6 @@
 					}
 					&.active {
 						a {
-							// color: #fff;
 							background-color: rgba(var(--color-text), 0.4);
 							// background-color: rgba(var(--color-surround), 0.6);
 							color: var(--color-text-hover);
@@ -132,7 +131,7 @@
 										height: 23px;
 										box-shadow: inset 0px 1px 2px 0px rgba(var(--color-main), 0.5);
 										background-color: rgba(var(--color-main), 0.8);
-										color: #fff;
+										color: rgba(var(--color-white), 1);
 										content: "\e80c";
 										font-family: "myordbok";
 										font-style: normal;

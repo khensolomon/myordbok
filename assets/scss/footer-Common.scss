@@ -35,7 +35,6 @@
 					text-transform: uppercase;
 					border-radius: 3px;
 					background-color: rgba(var(--color-surround), 1);
-					// color: #fff;
 				}
 				&:hover,
 				&.active {
@@ -50,7 +49,7 @@
 			li {
 				span {
 					display: inline-block;
-					color: #fff;
+					color: rgba(var(--color-white), 1);
 					text-shadow: #666 0px 0px 1px;
 					background-color: rgba(var(--color-surround), 1);
 					padding: 4px 7px;

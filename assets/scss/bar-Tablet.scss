@@ -64,7 +64,7 @@
 					padding: 0px;
 	
 					a {
-						color: #fff;
+						color: rgba(var(--color-white), 1);
 						font-size: 12px;
 						padding: 7px 7px;
 						border-bottom: 1px solid rgba(var(--color-bar), 0.3);
@@ -270,7 +270,6 @@
 										// background-color: rgba(var(--color-main), 0.8);
 										background-color: rgba(var(--color-text), 0.2);
 										// border: 1px solid rgba(var(--color-text), 0.2);
-										// color: #fff;
 										color: var(--color-text-disable);
 										content: "\e80c";
 										font-family: "myordbok";
@@ -309,7 +308,6 @@
 						> a {
 							padding-right: 25px;
 							span {
-								// color: #fff;
 								display: block;
 								max-width: 150px;
 								text-overflow: ellipsis;
@@ -327,7 +325,7 @@
 								font-family: "myordbok";
 								font-style: normal;
 								font-weight: normal;
-								color: #fff;
+								color: rgba(var(--color-white), 1);
 								font-size: 1em;
 								line-height: 18px;
 								display: block;
@@ -337,7 +335,7 @@
 						}
 						&:hover {
 							> a {
-								color: #fff;
+								color: rgba(var(--color-white), 1);
 							}
 						}
 						&.active,
@@ -362,7 +360,7 @@
 							li {
 								a {
 									span {
-										color: #fff;
+										color: rgba(var(--color-white), 1);
 									}
 								}
 							}

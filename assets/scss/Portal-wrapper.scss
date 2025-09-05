@@ -55,7 +55,7 @@
 						span {
 							padding-right: 5px;
 							font-size: 1em;
-							// background-color: #fff;
+							// background-color: rgba(var(--color-white), 1);
 							// display: inline-block;
 							// padding: 0 10px;
 							// margin: 0 5px;
@@ -78,7 +78,7 @@
 								// text-shadow: 1px 0px 5px rgba(var(--color-surround) 1);
 								text-shadow: 2px 1px 5px rgba(var(--color-text) 1);
 	
-								// text-shadow: 1px 0px 1px #fff;
+								// text-shadow: 1px 0px 1px rgba(var(--color-white), 1);
 							}
 						}
 						&.percentage {
@@ -164,7 +164,7 @@
 							// padding: 2px 5%;
 							// border-radius: 4px;
 							// color: #569ed7;
-							// text-shadow: 1px 0px 1px #fff;
+							// text-shadow: 1px 0px 1px rgba(var(--color-white), 1);
 							color: rgba(var(--color-text), 0.5);
 							// color: rgba(var(--color-background), 0.5);
 							// text-shadow: 1px 0px 1px rgba(var(--color-text), 1);
@@ -272,7 +272,7 @@
 											font-weight: normal;
 											// background-color: rgba(var(--color-main), 0.6);
 											background-color: rgba(var(--color-text), 0.2);
-											// color: #fff;
+											// color: rgba(var(--color-white), 1);
 											color: rgba(var(--color-text), 0.6);
 											text-shadow: 0px 0px 1px #ccc;
 											transition: 1s;
@@ -337,7 +337,7 @@
 							margin: 1% 3px;
 							&:before {
 								font-size: 2em;
-								color: #fff;
+								color: rgba(var(--color-white), 1);
 								padding: 7px 0;
 							}
 							border-radius: 100%;
@@ -347,7 +347,7 @@
 							&:hover {
 								background-color: rgba(var(--color-text), 0.6);
 								&:before {
-									text-shadow: 1px 2px 1px #000;
+									text-shadow: 1px 2px 1px rgba(var(--color-text-shadow), 1);
 								}
 							}
 							// &:not([href]) {
@@ -372,7 +372,7 @@
 							// 		padding: 2px 5px;
 							// 		&:before {
 							// 			font-size: 1em;
-							// 			// color: #fff;
+							// 			// color: rgba(var(--color-white), 1);
 							// 			padding: 7px 0;
 							// 		}
 							// 		span {
@@ -409,7 +409,7 @@
 								margin: 7px;
 								button {
 									outline: 0;
-									background-color: #fff;
+									background-color: rgba(var(--color-white), 1);
 									padding: 12px 20px;
 	
 									background-color: rgba(var(--color-main), 0.8);
