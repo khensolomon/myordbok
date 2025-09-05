@@ -1,41 +1,16 @@
 """
-admin.py
+admin.other
 """
 from django.contrib import admin
-# from .models import Note # Import the Note model
-from .models import (
-    Note, Post, Comment,
-    ListWord, TypeWord, ListFont  # Make sure to import your new models
+from ..models import (
+    Note, Post, Comment
 )
 
 # Register your models here.
-admin.site.register(ListFont)
-admin.site.register(Note)
-# admin.site.register(ListWord)
-# admin.site.register(TypeWord)
 # admin.site.register(Post)
 # admin.site.register(Comment)
+admin.site.register(Note)
 
-
-@admin.register(TypeWord)
-class TypeWordAdmin(admin.ModelAdmin):
-
-    ordering = ('word_type',)
-    
-    # It's also good practice to add list_display and search_fields
-    list_display = ('word_type', 'name', 'shortname')
-    # search_fields = ('name','shortname')
-
-
-@admin.register(ListWord)
-class ListWordAdmin(admin.ModelAdmin):
-    # This is the line that sets the default order.
-    # It will sort alphabetically by the 'word' field (A-Z).
-    ordering = ('id',)
-    
-    # It's also good practice to add list_display and search_fields
-    list_display = ('id', 'word', 'equivalent', 'derived')
-    search_fields = ('word',)
 
 # We create a custom admin class for Post to make it searchable
 @admin.register(Post)
