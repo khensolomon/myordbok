@@ -5,10 +5,11 @@ from django.contrib import admin
 # from .models import Note # Import the Note model
 from .models import (
     Note, Post, Comment,
-    ListWord, TypeWord  # Make sure to import your new models
+    ListWord, TypeWord, ListFont  # Make sure to import your new models
 )
 
 # Register your models here.
+admin.site.register(ListFont)
 admin.site.register(Note)
 # admin.site.register(ListWord)
 # admin.site.register(TypeWord)
