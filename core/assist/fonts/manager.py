@@ -26,11 +26,15 @@ def _shorten_digit(n: int) -> str:
     temp_str = f"{sign}{formatted_val}{suffix}"
     return temp_str if len(temp_str) <= 6 else f"{sign}{int(n)}{suffix}"
 
+			# title: "Myanmar fonts",
+			# description: "Myanmar Unicode and fonts",
+			# keywords: "Myanmar fonts",
+
 def get_font_context(font_type: str | None, font_name: str | None) -> dict:
     context = font_db.get_all_fonts_by_type()
-    context['title'] = "My Fonts Collection"
-    context['description'] = "A collection of typetrue fonts for every one"
-    context['keywords'] = "Typetrue, ttf, fonts"
+    context['title'] = "A collection of Myanmar fonts"
+    context['description'] = "Myanmar Unicode and fonts for typetrue"
+    context['keywords'] = "Typetrue, ttf, font, Unicode, Myanmar"
 
     for key, font_list in context.items():
         if isinstance(font_list, list):
