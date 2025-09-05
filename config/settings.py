@@ -54,8 +54,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     # Add your custom middleware at the end of the list
+    'config.middleware.OrdIdCookieMiddleware',
     'config.middleware.HtmlMinifyMiddleware',
-    'config.middleware.SolIdCookieMiddleware',
 ]
 
 # The absolute path to the directory where NGINX access logs are stored.
