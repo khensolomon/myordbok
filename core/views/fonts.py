@@ -1,10 +1,12 @@
 import re
 import logging
+from django.http import (
+    HttpRequest, HttpResponse
+)
 from django.shortcuts import render
-from django.http import HttpResponse, FileResponse, Http404, HttpResponseForbidden
-from ..assist.fonts import font_manager
-
-from django.conf import settings
+from django.http import FileResponse, Http404, HttpResponseForbidden
+# Assuming the new structure, the manager is in a sibling 'assist.fonts' package
+from ..assist.fonts import manager
 
 # Set up a logger for this file
 log = logging.getLogger(__name__)
@@ -26,11 +28,11 @@ def _format_detail_meta(name_table: dict):
         if re.match(r"^s?https?://", context):
             if not any(u['href'] == context for u in response["url"]):
                 response["url"].append({"href": context, "text": context})
-        elif 1 <= i < 6:
-            response["info"].append({"tag": f"h{i}", "class": tpl.get(i, "").replace(" ", "-").lower(), "text": context})
         elif i == 0:
             for p in re.split(r'~?\r?\n~?', context):
                 if p.strip(): response["copyright"].append({"tag": get_tag(p), "text": p.strip()})
+        elif 1 <= i < 6:
+            response["info"].append({"tag": f"h{i}", "class": tpl.get(i, "").replace(" ", "-").lower(), "text": context})
         elif i == 10:
             for p in re.split(r'~?\r?\n~?', context):
                 if p.strip(): response["definition"].append({"tag": get_tag(p), "text": p.strip()})
@@ -41,46 +43,42 @@ def _format_detail_meta(name_table: dict):
              response["info"].append({"tag": "p", "class": tpl.get(i, "").replace(" ", "-").lower(), "text": context})
     return response
 
-
-def font_viewer(request, font_type=None):
+def home(request: HttpRequest, font_type=None) -> HttpResponse:
     """Handles both list and detail views. Font name is passed as a query param."""
     font_name = request.GET.get('font', None)
     
-    # log.info(f"--- Font Detail Request ---")
-    # log.info(f"URL Parameter 'font_type': '{font_type}'")
-    # log.info(f"Query Parameter 'font': '{font_name}'")
-    # log.info(f"storage': '{settings.STORAGE_DIR}'")
-
-    context = font_manager.get_font_context(font_type, font_name)
+    context = manager.get_font_context(font_type, font_name)
     
-    # --- START OF FIX ---
-    # The view is now responsible for formatting the data, breaking the circular import.
     if 'font_info' in context and context['font_info']:
-        raw_info = context.pop('font_info') # Get raw data and remove it from context
+        raw_info = context.pop('font_info') 
         if 'name' in raw_info.get('tables', {}):
             formatted_meta = _format_detail_meta(raw_info['tables']['name'])
-            context.update(formatted_meta) # Add the formatted data back to the context
-    # --- END OF FIX ---
+            context.update(formatted_meta) 
+
+    # context['keywords'] = context['meta']['keywords'] 
+    # context['description'] = context['meta']['description'] 
             
     return render(request, 'core/fonts.html', context)
 
-def download_font(request, font_type):
+def download(request: HttpRequest, font_type: str) -> HttpResponse:
     """Handles download request. Font name is passed as a query param."""
     font_name = request.GET.get('font', None)
     if not font_name:
         raise Http404("Font name not specified in the 'font' query parameter.")
 
-    font_path = font_manager.get_font_for_download(font_type, font_name)
+    # The data layer now returns the path directly if successful
+    font_path = manager.font_db.get_font_for_download(font_type, font_name)
 
     if font_path:
         return FileResponse(open(font_path, 'rb'), as_attachment=True, filename=font_name)
     else:
-        if not font_manager.get_font_path(font_type, font_name):
-            raise Http404("Font file not found.")
-        return HttpResponseForbidden("This font is restricted and cannot be downloaded.")
+        # Check if the file exists but is restricted
+        if manager.font_db.get_font_path(font_type, font_name):
+            return HttpResponseForbidden("This font is restricted and cannot be downloaded.")
+        raise Http404("Font file not found.")
 
-def scan_fonts(request, font_type):
+def scan(request: HttpRequest, font_type: str) -> HttpResponse:
     """Triggers a scan to sync the database with files on disk."""
-    message = font_manager.scan_and_sync_database(font_type)
+    message = manager.font_db.scan_and_sync_database(font_type)
     return HttpResponse(message)
 

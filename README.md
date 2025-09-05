@@ -40,18 +40,35 @@ myordbok/
 │   ├── settings.py
 │   └── ...
 ├── core/
+│   ├── management/
+│   │   └── commands/
+│   |       ├── tmp.py
+│   │       └── __init__.py
 │   ├── templates/
 │   │   └── core/
 │   |       ├── home.html
 │   |       ├── about.html
 │   │       └── base.html
-│   └── ...
+│   ├── admin.py
+│   ├── app.py
+│   ├── context_processors.py
+│   ├── serializers.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── __init__.py
 ├── templates/
 │   ├── rest_framework/
 │   │   └── api.html
 │   ├── base.html
 │   └── ...
 ├── assets/
+│   ├── scripts/
+│   │   └── index.js
+│   ├── scss/
+│   │   └── style.scss
+│   ├── webpack/
+│   │   └── index.js
 │   ├── src/
 │   │   ├── js/
 │   │   │   └── index.js

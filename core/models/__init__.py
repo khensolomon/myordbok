@@ -8,7 +8,7 @@ from .dictionary import (
   MapDerived, MapThesaurus, MapSimilar, MapAntonym
 )
 
-from .fonts import FontLog
+from .fonts import ListFont, FontType, FontStatus
 from .other import (
   Note, Post, Comment
 )
@@ -18,6 +18,6 @@ __all__ = [
   'TypeWord', 'TypeDerived',
   'ListWord', 'ListSense',
   'MapDerived', 'MapThesaurus', 'MapSimilar', 'MapAntonym',
-  'FontLog',
+  'ListFont','FontType','FontStatus',
   'Note', 'Post', 'Comment'
 ]

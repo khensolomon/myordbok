@@ -20,12 +20,10 @@ urlpatterns = [
     path('grammar/<slug:pos_slug>', grammar.detail, name='grammar-detail'),
 
     # Main page for listing all fonts
-    path('myanmar-fonts', fonts.font_viewer, name='font-home'),
-
-    path('myanmar-fonts/', fonts.font_viewer, name='font-home'),
-    path('myanmar-fonts/<str:font_type>/', fonts.font_viewer, name='font-detail'),
-    path('myanmar-fonts/download/<str:font_type>/', fonts.download_font, name='font-download'),
-    path('myanmar-fonts/scan/<str:font_type>/', fonts.scan_fonts, name='font-scan'),
+    path('myanmar-fonts', fonts.home, name='fonts-home'),
+    path('myanmar-fonts/<str:font_type>', fonts.home, name='fonts-detail'),
+    path('myanmar-fonts/download/<str:font_type>', fonts.download, name='fonts-download'),
+    path('myanmar-fonts/scan/<str:font_type>', fonts.scan, name='fonts-scan'),
 
 
     path('dictionary', dictionary.home, name='dictionary-home'),
@@ -42,7 +40,7 @@ urlpatterns = [
     path('notes/<int:pk>', other.note_detail, name='note_detail'),
 
     # ForeignKey Relationship Demo
-    path('posts/', other.post_list, name='post_list'),
+    path('posts', other.post_list, name='post_list'),
     path('posts/<int:pk>', other.post_detail, name='post_detail'),
 
     path('api/words', other.ListWordAPIView.as_view(), name='word-api-list'),

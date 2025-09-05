@@ -1,7 +1,5 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ title }}{% endblock %}
-
 {% block content %}
   {% if info %}
     <div class="ptl detail">
@@ -37,9 +35,11 @@
                   <li class="copyright" data-toggle="copyright" @click = "fontToggle(3)" v-bind:class = "{'active': fontActive(3)}">Copyright</li>
                 {% endif %}
                 {% if download %}
-                  <li class="get">
-                    <a class="download" href="{% url 'font-download' font_type=type %}?font={{ download }}">Download</a>
-                  </li>
+                  {% if font_object.status == 0 %}
+                    <li class="get">
+                      <a class="download" href="{% url 'fonts-download' font_type=type %}?font={{ download|urlencode }}">Download</a>
+                    </li>
+                  {% endif %}
                 {% endif %}
               </ul>
 
@@ -103,10 +103,10 @@
             </ul>
 
             <ul class="typeface">
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3-v1.358.ttf">Regular</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3h-v1.358.ttf">3h</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Myanmar3sh-v1.358.ttf">3sh</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Mm3Web-v3.ttf">Mm3Web</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Myanmar3-v1.358.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Myanmar3h-v1.358.ttf">3h</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Myanmar3sh-v1.358.ttf">3sh</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Mm3Web-v3.ttf">Mm3Web</a></li>
             </ul>
 
             <p>
@@ -126,8 +126,8 @@
             </ul>
 
             <ul class="typeface">
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=ZawgyiOne-v3.1.ttf">Regular</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=ZawgyiOne-v3.0.ttf">3.0</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=ZawgyiOne-v3.1.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=ZawgyiOne-v3.0.ttf">3.0</a></li>
             </ul>
 
             <p>
@@ -147,10 +147,10 @@
             </ul>
 
             <ul class="typeface">
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Padauk.ttf">Regular</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=Padauk-bold.ttf">Bold</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=PadaukBook-regular.ttf">Book</a></li>
-              <li><a class="download" href="{% url 'font-detail' 'primary' %}?font=PadaukBook-bold.ttf">Book bold</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Padauk.ttf">Regular</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=Padauk-bold.ttf">Bold</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=PadaukBook-regular.ttf">Book</a></li>
+              <li><a class="download" href="{% url 'fonts-detail' 'primary' %}?font=PadaukBook-bold.ttf">Book bold</a></li>
               <li><a class="download" href="http://software.sil.org/downloads/r/padauk/padauk-3.002-web.zip">Web</a></li>
             </ul>
 
@@ -178,16 +178,22 @@
             For this reason, we advise you to exercise caution and take appropriate action by requesting permission from the copyright owner before using or redistributing any of the listed fonts.
             Please refer to the provided metadata for each font to facilitate this process.
           </p>
+
+          {% comment %} <p>
+            <a href="{% url 'fonts-scan' 'primary' %}">Scan Primary</a>
+            <a href="{% url 'fonts-scan' 'secondary' %}">Scan Secondary</a>
+            <a href="{% url 'fonts-scan' 'external' %}">Scan External</a>
+          </p> {% endcomment %}
         </div>
  
         {% if secondary %}
           <div class="row gallery secondary">
             <ul>
               {% for j in secondary %}
-                <li data-vw="19760" data-dl="18971">
-                  <a class="dt y" href="{% url 'font-detail' font_type='secondary' %}?font={{ j.file }}" data-tl="?k">{{ j.name }}</a>
-                  {% if not j.restrict %}
-                    <a class="dl download icon-floppy" href="{% url 'font-download' font_type='secondary' %}?font={{ j.file }}" title="Download">Download</a>
+                <li data-vw="{{ j.view }}" data-dl="{{ j.download }}">
+                  <a class="dt {{ j.total|yesno:'y,n' }}" href="{% url 'fonts-detail' font_type='secondary' %}?font={{ j.file }}" data-tl="{{ j.total }}">{{ j.name }}</a>
+                  {% if j.status == 0 %}
+                    <a class="dl download icon-floppy" href="{% url 'fonts-download' font_type='secondary' %}?font={{ j.file }}" title="Download">Download</a>
                   {% endif %}
                   <p class="f2">{{ j.version }}</p>
                   <p class="f5">{{ j.family }}</p>
@@ -201,10 +207,10 @@
           <div class="row gallery external">
             <ul>
               {% for j in external %}
-                <li data-vw="19760" data-dl="18971">
-                  <a class="dt y" href="{% url 'font-detail' font_type='external' %}?font={{ j.file }}" data-tl="?k">{{ j.name }}</a>
+                <li data-vw="{{ j.view }}" data-dl="{{ j.download }}">
+                  <a class="dt {{ j.total|yesno:'y,n' }}" href="{% url 'fonts-detail' font_type='external' %}?font={{ j.file }}" data-tl="{{ j.total }}">{{ j.name }}</a>
                   {% if not j.restrict %}
-                    <a class="dl download icon-floppy" href="{% url 'font-download' font_type='external' %}?font={{ j.file }}" title="Download">Download</a>
+                    <a class="dl download icon-floppy" href="{% url 'fonts-download' font_type='external' %}?font={{ j.file }}" title="Download">Download</a>
                   {% endif %}
                   <p class="f2">{{ j.version }}</p>
                   <p class="f5">{{ j.family }}</p>
