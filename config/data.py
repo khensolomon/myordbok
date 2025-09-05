@@ -74,3 +74,9 @@ DICTIONARIES: List[DictionaryGroup] = [
 		]
 	}
 ]
+
+
+"""
+list of available languages in the dictionary
+"""
+# ORD_CODE = []

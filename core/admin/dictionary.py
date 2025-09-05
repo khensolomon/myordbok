@@ -2,9 +2,7 @@
 admin.dictionary
 """
 from django.contrib import admin
-from ..models import (
-    ListWord, TypeWord
-)
+from ..models import ListWord, TypeWord
 
 @admin.register(TypeWord)
 class TypeWordAdmin(admin.ModelAdmin):
