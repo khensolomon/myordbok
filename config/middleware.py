@@ -1,12 +1,16 @@
 """
 middleware.py
 """
+from typing import Callable
+from django.http import (
+    HttpRequest, HttpResponse
+)
 import htmlmin
 from django.conf import settings
 
 from .data import DICTIONARIES
 
-class SolIdCookieMiddleware:
+class OrdIdCookieMiddleware:
     """
     This class-based middleware processes the 'solId' language cookie on every
     request. It's a more organized way to handle logic that needs to run once
@@ -19,7 +23,7 @@ class SolIdCookieMiddleware:
     - The __call__ method runs for every single request. It validates the cookie
       and attaches both the `solId` and the full `language` object to the request.
     """
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
         self._valid_lang_ids = set()
         self._lang_map = {}  # Map from lang 'id' to the full language object
@@ -38,7 +42,7 @@ class SolIdCookieMiddleware:
         # Store the default language object for easy access
         self._default_lang_obj = self._lang_map.get(self._default_lang_id)
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         # This validation logic runs for EVERY request.
         sol_id_from_cookie = request.COOKIES.get("solId")
         
@@ -67,17 +71,21 @@ class HtmlMinifyMiddleware:
     is 'text/html'. If both conditions are met, it uses the `htmlmin` library
     to remove whitespace, comments, and other unnecessary characters.
     """
-    def __init__(self, get_response):
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         # First, get the response from the view
         response = self.get_response(request)
 
         # We only want to minify valid HTML responses in a production setting.
         # We check for DEBUG=False and the 'text/html' content type.
         # We also avoid minifying streaming responses as they are processed in chunks.
-        if not settings.DEBUG and 'text/html' in response.get('Content-Type', '') and not getattr(response, 'streaming', False):
+        if (
+            not settings.DEBUG 
+            and 'text/html' in response.get('Content-Type', '') 
+            and not getattr(response, 'streaming', False)
+            ):
             try:
                 # Decode the content, minify it, and then re-encode it.
                 # The keep_comments=False is aggressive and gives best performance.
