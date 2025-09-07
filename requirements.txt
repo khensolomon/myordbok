@@ -15,4 +15,5 @@ python-decouple
 mysqlclient
 djangorestframework
 nltk
+inflect
 htmlmin
