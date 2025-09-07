@@ -5,7 +5,7 @@ from typing import List, TypedDict, Optional
 
 # Define the structure of a single language entry.
 # Using TypedDict lets your IDE know exactly what keys to expect.
-class LangDict(TypedDict):
+class DictionaryItem(TypedDict):
     id: str
     name: str
     my: str
@@ -15,7 +15,7 @@ class LangDict(TypedDict):
 class DictionaryGroup(TypedDict):
     name: str
     my: str
-    lang: List[LangDict]
+    lang: List[DictionaryItem]
 
 # We store the list of dictionaries in this file.
 # This makes it easy to import and use in other parts of our app.
