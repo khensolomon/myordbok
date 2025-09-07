@@ -176,6 +176,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STORAGE_DIR = config('STORAGE_DIR', default=os.path.join('/','storage'))
 FONTS_DIR = os.path.join(STORAGE_DIR, 'media', 'fonts')
+SPEECH_URL = config('SPEECH_URL')
 
 LOGGING = {
     'version': 1,
