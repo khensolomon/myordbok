@@ -32,6 +32,7 @@ NAV_PAGES = [
     {'text': 'Grammar', 'url_name': 'grammar-home'},
     {'text': 'Fonts', 'url_name': 'fonts-home'},
 ]
+# MENU_PAGES, MENU_TERMS
 
 NAV_TERMS = [
     {'text': 'Privacy Policy', 'url_name': 'privacy-policy'},
@@ -98,14 +99,11 @@ def cookies_read(request: HttpRequest):
     return {
         "themeMode": request.COOKIES.get("theme", "auto"),
         # "solId": request.COOKIES.get("solId", "en")
-        "solId": request.solId,
-        "solInfo": request.solInfo,
+        "sol": request.sol,
     }
 
 def app_info(request: HttpRequest):
     return {
         "appName": config.name,
         "appVersion": config.version,
-        # "appName": settings.APP_NAME,
-        # "appVersion": settings.APP_VERSION,
     }

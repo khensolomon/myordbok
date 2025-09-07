@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from ..models import (
     ListSense
 )
+from ..assist.search.engine import DictionarySearch
 
 class OEMWordSuggestAPIView(APIView):
     """
@@ -42,4 +43,26 @@ class OEMWordSuggestAPIView(APIView):
 
         # Return the list of words as a JSON response.
         return Response(list(words), status=status.HTTP_200_OK)
-    
+
+class SearchEngineAPIView(APIView):
+    """
+    API endpoint for the dictionary search.
+    Accepts a 'q' query parameter.
+    e.g., /api/search/?q=love
+    e.g., /api/search/?q=knowledge is power~power
+    """
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        query = request.query_params.get('q', None)
+        
+        if query is None:
+            return Response(
+                {"error": "Query parameter 'q' is required."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+ 
+        search_engine = DictionarySearch(raw_query=query)
+        response_data = search_engine.execute()
+
+        
+        return Response(response_data)

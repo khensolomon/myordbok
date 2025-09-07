@@ -21,7 +21,6 @@ from ..models import (
     ListWord
 )
 from ..serializers import ListWordSerializer
-from ..assist.search_engine import DictionarySearch
 
 def note_list(request: HttpRequest) -> HttpResponse:
     notes = Note.objects.all().order_by('-created_at') # Get all notes, newest first
@@ -92,25 +91,4 @@ class ListWordAPIView(generics.ListAPIView):
     
     search_fields = ['^word']
 
-class DictionarySearchView(APIView):
-    """
-    API endpoint for the dictionary search.
-    Accepts a 'q' query parameter.
-    e.g., /api/search/?q=love
-    e.g., /api/search/?q=knowledge is power~power
-    """
 
-    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        query = request.query_params.get('q', None)
-        
-        if query is None:
-            return Response(
-                {"error": "Query parameter 'q' is required."}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
- 
-        search_engine = DictionarySearch(raw_query=query)
-        response_data = search_engine.execute()
-
-        
-        return Response(response_data)

@@ -7,7 +7,7 @@ from django.urls import path
 from .views import (
   general, docs, 
   definition, dictionary, grammar, fonts,
-  api,
+  api,speech, ome,
   other
 )
 
@@ -35,6 +35,15 @@ urlpatterns = [
     path('terms', docs.terms_of_service, name='terms-of-service'),
     path('cookie-policy', docs.cookie_policy, name='cookie-policy'),
     
+
+    path('api/speech', speech.home, name='api-speech-stream'),
+    path('api/words', other.ListWordAPIView.as_view(), name='api-word-list-tmp'),
+    path('api/search', api.SearchEngineAPIView.as_view(), name='api-search'),
+    path('api/oem/word/suggest', api.OEMWordSuggestAPIView.as_view(), name='oem-word-suggest'),
+    # path('api/ome/word/suggest-tmp', ome.OMEWordSuggestAPIView.as_view(), name='ome-word-suggest-tmp'),
+    path('api/ome/word/suggest', ome.word_suggestion, name='ome-suggestion'),
+    path('api/ome/definition', ome.word_definition, name='ome-definition'),
+
     # Add the URLs for our notes
     path('notes', other.note_list, name='note_list'),
     path('notes/<int:pk>', other.note_detail, name='note_detail'),
@@ -42,8 +51,4 @@ urlpatterns = [
     # ForeignKey Relationship Demo
     path('posts', other.post_list, name='post_list'),
     path('posts/<int:pk>', other.post_detail, name='post_detail'),
-
-    path('api/words', other.ListWordAPIView.as_view(), name='word-api-list'),
-    path('api/search', other.DictionarySearchView.as_view(), name='api_search'),
-    path('api/oem/word/suggest', api.OEMWordSuggestAPIView.as_view(), name='oem_word_suggest'),
 ]
