@@ -29,6 +29,17 @@ class TypeDerived(models.Model):
 
     def __str__(self):
         return self.derivation
+
+class TypeTerm(models.Model):
+    term_type = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=250, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'type_term'
+        
+    def __str__(self):
+        return self.name
     
 class ListWord(models.Model):
     """Represents a word entry in the dictionary."""
