@@ -4,7 +4,7 @@
     <ol class="menu page">
       {% for link in nav_pages %}
         <li class="{% if link.is_current %}current{% endif %}">
-          <a href="{% url link.url_name %}">
+          <a href="{% url link.url_name %}" title="{{ link.text }}">
             <span>{{ link.text }}</span>
           </a>
         </li>

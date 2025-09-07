@@ -10,7 +10,7 @@
     <div class="wrapper">
       <div class="row text-center">
         <h1>
-          {{ solInfo.name }} - 
+          {{ sol.name }} - 
           <span class="myanmar">Myanmar</span> dictionary
         </h1>
 
@@ -54,11 +54,11 @@
         <div class="dictionaries">
           <ol>
             {% for conti in dictionaries %}
-              <li class="{{ conti.name|lower }}{% if conti.lang|yesno:',' %}{% endif %}{% if solId in conti.lang.values_list  %} active{% endif %}">
+              <li class="{{ conti.name|lower }}{% if conti.lang|yesno:',' %}{% endif %}{% if sol.id in conti.lang.values_list  %} active{% endif %}">
                 <h3 title="{{ conti.my }}">{{ conti.name }}</h3>
                 <ol>
                   {% for lang in conti.lang %}
-                    <li class="{{ lang.id }}{% if lang.id == solId %} active{% endif %}">
+                    <li class="{{ lang.id }}{% if lang.id == sol.id %} active{% endif %}">
                       <a data-lag="{{ lang.id }}" href="{% url 'dictionary-detail' lang_name=lang.name|slugify %}" title="{{ lang.my }}">
                         {{ lang.name }}
                       </a>

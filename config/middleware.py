@@ -8,7 +8,7 @@ from django.http import (
 import htmlmin
 from django.conf import settings
 
-from .data import DICTIONARIES
+from .data import DICTIONARIES, DictionaryItem
 
 class OrdIdCookieMiddleware:
     """
@@ -52,12 +52,12 @@ class OrdIdCookieMiddleware:
             validated_id = self._default_lang_id
         
         # Look up the full language object using our pre-built map.
-        language_object = self._lang_map.get(validated_id, self._default_lang_obj)
+        language_object: DictionaryItem = self._lang_map.get(validated_id, self._default_lang_obj)
 
         # Attach both the ID and the full object to the request.
         # This provides maximum flexibility in views.
         request.solId = validated_id
-        request.solInfo = language_object
+        request.sol = language_object
 
         response = self.get_response(request)
         return response
