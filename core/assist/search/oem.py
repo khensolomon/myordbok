@@ -1,9 +1,9 @@
 """
-version: 2025.09.07.3
+version: 2025.09.13.3
 
 Recent Updates:
-- Refactored the entire search method to fix a logical flow bug.
-- Ensured the "missing_definition" todo is correctly applied.
+- Integrated IPAGenerator to add an `ipa` field to the search results.
+- The top-level data object now includes IPA transcription for the word.
 """
 # project/core/assist/search/oem.py
 import re
@@ -13,6 +13,7 @@ from nltk.corpus import wordnet
 from ...models import ListWord, ListSense, MapDerived, TypeWord
 from ..notation import myanmar_notation
 from .parser import parse_sense_field, parse_exam_field
+from .ipa import IpaGenerator
 
 class OemData:
     """
@@ -28,8 +29,7 @@ class OemData:
 
     def search(self):
         """
-        Main search method for English words. The logic has been refactored
-        to ensure a correct and complete sequence of checks.
+        Main search method for English words.
         Returns status, data, messages, log, and todo list.
         """
         self.log.append(f"OEM: Initiating search for '{self.current_word}'.")
@@ -37,7 +37,6 @@ class OemData:
         senses = None
 
         # --- Refactored Search Sequence ---
-
         # 1. PRIMARY STRATEGY: Check for direct definitions in list_sense first
         senses_from_word_field = ListSense.objects.filter(word__iexact=self.current_word).prefetch_related('wrte')
         if senses_from_word_field.exists():
@@ -73,14 +72,12 @@ class OemData:
                     word_entry = direct_word_entry
                     senses = senses_for_direct
                 else:
-                    # The word exists, but has no definitions. Set the todo and return.
                     self.log.append(f"OEM: Found '{self.current_word}' in list_word but it has no senses.")
                     self.todo.append("missing_definition")
                     self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
                     return self.status, self.data, self.messages, self.log, self.todo
 
-        # 4. NUMBER HANDLING: If no DB entry was found BUT the query is a number,
-        # create a placeholder object so we can still generate notation data.
+        # 4. NUMBER HANDLING
         if not word_entry and self.current_word.isdigit():
             self.log.append("OEM: No DB entry found for number, creating placeholder to generate notation.")
             class WordEntryPlaceholder:
@@ -88,18 +85,16 @@ class OemData:
                     self.word = word_string
             word_entry = WordEntryPlaceholder(self.current_word)
 
-        # 5. DATA STRUCTURING: If we have either a DB entry or a number to process.
+        # 5. DATA STRUCTURING
         if word_entry:
             self.status = 1
             self.log.append(f"OEM: Proceeding to structure data for '{word_entry.word}'.")
             self.data = self._structure_data(word_entry, senses)
-
-            # If structuring resulted in no actual meanings, the search has failed.
             if not self.data or not self.data[0]['clue']['meaning']:
                 self.status = 0
                 self.data = []
 
-        # FINAL MESSAGE: If after all of that, the search has failed and we haven't set a specific 'todo'.
+        # FINAL MESSAGE
         if self.status == 0 and not self.todo:
             self.messages.append(f"No definition found for '{self.current_word}'.")
             self.log.append("OEM: Search failed. No definitions found or structured.")
@@ -123,8 +118,7 @@ class OemData:
 
     def _structure_data(self, word_entry, senses):
         """
-        Structures the full response object, including meanings, derived forms,
-        and thesaurus info, based on the provided specifications.
+        Structures the full response object, including WordNet data grouped by POS.
         """
         meanings = {}
         
@@ -192,47 +186,58 @@ class OemData:
                 "type": "meaning",
                 "tag": ["notation"],
                 "sense": myanmar_digits,
-                "exam": {
-                    "type": "examSentence",
-                    "value": [myanmar_words, english_words]
-                }
+                "exam": { "type": "examSentence", "value": [myanmar_words, english_words] }
             }]
 
-        # 4. Fetch and add Antonyms and Synonyms from WordNet (only if it's a real word)
+        # 4. REFACTORED: Fetch and add Antonyms/Synonyms from WordNet, grouped by POS
         if isinstance(word_entry, ListWord):
             synsets = wordnet.synsets(word_entry.word)
-            antonyms = set()
-            synonyms = set()
+            pos_map = {'n': 'noun', 'v': 'verb', 'a': 'adjective', 'r': 'adverb', 's': 'adjective'}
+            grouped_synonyms = {}
+            grouped_antonyms = {}
 
             for syn in synsets:
+                pos_key = pos_map.get(syn.pos())
+                if not pos_key: continue
+                
+                if pos_key not in grouped_synonyms:
+                    grouped_synonyms[pos_key] = set()
+                    grouped_antonyms[pos_key] = set()
+                
                 for lemma in syn.lemmas():
-                    synonyms.add(lemma.name().replace('_', ' '))
+                    syn_word = lemma.name().replace('_', ' ')
+                    if syn_word.lower() != self.current_word:
+                        grouped_synonyms[pos_key].add(syn_word)
+                    
                     if lemma.antonyms():
-                        antonyms.add(lemma.antonyms()[0].name().replace('_', ' '))
-            
-            synonyms.discard(word_entry.word)
-            antonyms.discard(word_entry.word)
+                        ant_word = lemma.antonyms()[0].name().replace('_', ' ')
+                        if ant_word.lower() != self.current_word:
+                            grouped_antonyms[pos_key].add(ant_word)
 
-            if antonyms:
-                meanings["antonym"] = [{
-                    "term": word_entry.word,
-                    "type": "antonym",
-                    "tag": ["wordnet"],
-                    "sense": f"(-~-) {len(antonyms)} word(s) opposite to <{word_entry.word}>.",
-                    "exam": {"type": "examWord", "value": sorted(list(antonyms))}
-                }]
+            for pos_name, antonym_set in grouped_antonyms.items():
+                if antonym_set:
+                    if pos_name not in meanings: meanings[pos_name] = []
+                    meanings[pos_name].append({
+                        "term": word_entry.word, "type": "antonym", "tag": ["wordnet"],
+                        "sense": f"(-~-) {len(antonym_set)} word(s) opposite to <{word_entry.word}> as <{pos_name}>.",
+                        "exam": {"type": "examWord", "value": sorted(list(antonym_set))}
+                    })
 
-            if synonyms:
-                meanings["thesaurus"] = [{
-                    "term": word_entry.word,
-                    "type": "thesaurus",
-                    "tag": ["wordnet"],
-                    "sense": f"(-~-) {len(synonyms)} word(s) related to <{word_entry.word}>.",
-                    "exam": {"type": "examWord", "value": sorted(list(synonyms))}
-                }]
-        
+            for pos_name, synonym_set in grouped_synonyms.items():
+                if synonym_set:
+                    if pos_name not in meanings: meanings[pos_name] = []
+                    meanings[pos_name].append({
+                        "term": word_entry.word, "type": "thesaurus", "tag": ["wordnet"],
+                        "sense": f"(-~-) {len(synonym_set)} word(s) related to <{word_entry.word}> as <{pos_name}>.",
+                        "exam": {"type": "examWord", "value": sorted(list(synonym_set))}
+                    })
+
         if not meanings:
             return []
 
-        return [{"word": word_entry.word, "clue": {"meaning": meanings}}]
+        ipa_transcription = ""
+        if isinstance(word_entry, ListWord):
+            ipa_transcription = IpaGenerator.get_ipa(word_entry.word)
+
+        return [{"word": word_entry.word, "ipa": ipa_transcription, "clue": {"meaning": meanings}}]
 
