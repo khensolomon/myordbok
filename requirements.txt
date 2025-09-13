@@ -17,3 +17,4 @@ djangorestframework
 nltk
 inflect
 htmlmin
+eng-to-ipa
