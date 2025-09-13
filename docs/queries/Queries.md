@@ -411,9 +411,17 @@ SELECT *
     WHERE w.word = "က"
 -- က ငါး
 SELECT *
-  FROM med_word AS w
+  FROM `med_word` AS w
   JOIN `med_sense` AS s ON s.wrid=w.id
-    WHERE w.word = "က"
+    WHERE w.word = "ကာ"
+
+SELECT w.word
+  FROM `med_thesaurus` AS t
+  JOIN `med_word` AS w ON w.id=t.wlid
+    WHERE t.wrid = 26726 AND t.cate = 0;
+-- 26726
+-- 0, 1, 2
+
 SELECT *
   FROM med_thesaurus AS t
     WHERE t.wrid = 27287
@@ -459,3 +467,4 @@ SELECT w.* FROM `list_word` AS w
 SELECT w.* FROM `list_word` AS w
   LEFT JOIN `list_sense` s ON s.word = w.word
   WHERE w.derived = 0 AND w.word NOT REGEXP '[0-9|.|-| ]+' AND s.word IS NULL;
+```
