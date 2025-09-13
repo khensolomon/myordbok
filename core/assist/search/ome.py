@@ -1,13 +1,13 @@
 """
-version: 2025.09.07.2
+version: 2025.09.13.2
 
 Recent Updates:
-- Added `meta.todo` field for better state communication.
-- Now tags words with "missing_definition" if they exist but lack senses.
+- Moved thesaurus results to be inside their specific part-of-speech block
+  instead of a separate top-level "thesaurus" key.
 """
 # project/core/assist/search/ome.py
 import re
-from ...models.ome import MedWord, MedSense
+from ...models.ome import MedWord, MedSense, MedThesaurus
 from ..notation import myanmar_notation
 from .parser import parse_sense_field, parse_exam_field
 
@@ -53,7 +53,6 @@ class OmeData:
         if not senses.exists():
             self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
             self.log.append("OME: Word found, but no senses available in `med_sense`.")
-            # Add the new todo tag
             self.todo.append("missing_definition")
             return self.status, self.data, self.messages, self.log, self.todo
 
@@ -65,14 +64,19 @@ class OmeData:
 
     def _structure_data(self, word_entry, senses):
         """
-        Structures the response for a Myanmar word based on the OME models
-        and the desired JSON output format.
+        Structures the response for a Myanmar word, integrating thesaurus data
+        directly into each part-of-speech block.
         """
         meanings = {}
+        # A map to hold the TypeWord object for each part of speech found
+        pos_to_wrte_map = {}
+
         for sense in senses:
             pos_name = sense.wrte.name.lower() if sense.wrte and sense.wrte.name else 'unknown'
             if pos_name not in meanings:
                 meanings[pos_name] = []
+                # Store the TypeWord object for later use with the thesaurus query
+                pos_to_wrte_map[pos_name] = sense.wrte
 
             parsed_senses = parse_sense_field(sense.sense)
             
@@ -90,6 +94,28 @@ class OmeData:
               },
               "usage": usage_obj
             })
+
+        # --- REFACTORED: Fetch and add Thesaurus data into each POS block ---
+        for pos_name, wrte_obj in pos_to_wrte_map.items():
+            if not wrte_obj:
+                continue
+
+            # This is the Django ORM equivalent of your SQL query
+            synonyms_qs = MedThesaurus.objects.filter(wrid=word_entry, cate=wrte_obj).select_related('wlid')
+            synonym_words = [item.wlid.word for item in synonyms_qs if item.wlid]
+
+            if synonym_words:
+                # Append the thesaurus block directly to the list for this POS
+                meanings[pos_name].append({
+                    "term": word_entry.word,
+                    "type": "thesaurus",
+                    "tag": ["db", "med", "synonym"],
+                    "sense": f"(-~-) {len(synonym_words)} word(s) related to <{word_entry.word}> as <{pos_name}>.",
+                    "exam": {
+                        "type": "examWord",
+                        "value": sorted(synonym_words)
+                    }
+                })
 
         return [{
             "word": word_entry.word,
