@@ -1,16 +1,16 @@
 """
-version: 2025.09.13.3
+version: 2025.09.16.6
 
 Recent Updates:
-- Integrated IPAGenerator to add an `ipa` field to the search results.
-- The top-level data object now includes IPA transcription for the word.
+- Changed the `type` for derived form summaries from "meaning" to "pos" for
+  a more semantic and intuitive API structure.
 """
-# project/core/assist/search/oem.py
+# <pro>/core/assist/search/oem.py
 import re
 import nltk
 import inflect
 from nltk.corpus import wordnet
-from ...models import ListWord, ListSense, MapDerived, TypeWord
+from ...models import OemWord, OemSense, OemDerived, TypeWord
 from ..notation import myanmar_notation
 from .parser import parse_sense_field, parse_exam_field
 from .ipa import IpaGenerator
@@ -37,8 +37,8 @@ class OemData:
         senses = None
 
         # --- Refactored Search Sequence ---
-        # 1. PRIMARY STRATEGY: Check for direct definitions in list_sense first
-        senses_from_word_field = ListSense.objects.filter(word__iexact=self.current_word).prefetch_related('wrte')
+        # 1. PRIMARY STRATEGY: Check for direct definitions in oem_sense first
+        senses_from_word_field = OemSense.objects.filter(word__iexact=self.current_word).prefetch_related('wrte')
         if senses_from_word_field.exists():
             self.log.append("OEM: Found direct sense entries.")
             senses = senses_from_word_field
@@ -47,7 +47,7 @@ class OemData:
         # 2. SECONDARY STRATEGY: If no direct senses, check if it's a derived form
         if not word_entry:
             self.log.append(f"OEM: Not in senses, checking if '{self.current_word}' is a derived form.")
-            derived_mappings = MapDerived.objects.select_related('base_word', 'dete').filter(derived_word__word__iexact=self.current_word)
+            derived_mappings = OemDerived.objects.select_related('base_word', 'dete').filter(derived_word__word__iexact=self.current_word)
             if derived_mappings.exists():
                 base_word_entry = derived_mappings.first().base_word
                 if base_word_entry:
@@ -62,9 +62,9 @@ class OemData:
                 else:
                     self.log.append(f"OEM: Found derived mapping for '{self.current_word}' but it has a broken base_word link.")
 
-        # 3. TERTIARY STRATEGY: If still no result, check list_word directly. This is the key check for the 'todo' tag.
+        # 3. TERTIARY STRATEGY: If still no result, check oem_word directly. This is the key check for the 'todo' tag.
         if not word_entry:
-            self.log.append(f"OEM: Not a derived form with senses. Checking `list_word` for '{self.current_word}'.")
+            self.log.append(f"OEM: Not a derived form with senses. Checking `oem_word` for '{self.current_word}'.")
             direct_word_entry = self._find_canonical_word_entry(self.current_word)
             if direct_word_entry:
                 senses_for_direct = self._get_senses_for_word(direct_word_entry)
@@ -72,7 +72,7 @@ class OemData:
                     word_entry = direct_word_entry
                     senses = senses_for_direct
                 else:
-                    self.log.append(f"OEM: Found '{self.current_word}' in list_word but it has no senses.")
+                    self.log.append(f"OEM: Found '{self.current_word}' in oem_word but it has no senses.")
                     self.todo.append("missing_definition")
                     self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
                     return self.status, self.data, self.messages, self.log, self.todo
@@ -103,13 +103,13 @@ class OemData:
 
     def _get_senses_for_word(self, word_entry):
         """A helper to get all senses for a given word_entry from all sources."""
-        senses_from_wrid = ListSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
-        senses_from_word = ListSense.objects.filter(word__iexact=word_entry.word).prefetch_related('wrte')
+        senses_from_wrid = OemSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
+        senses_from_word = OemSense.objects.filter(word__iexact=word_entry.word).prefetch_related('wrte')
         return (senses_from_wrid | senses_from_word).distinct()
 
     def _find_canonical_word_entry(self, word, fallback_wrid=None):
-        """Finds the single best entry in list_word, preferring a direct match."""
-        entry = ListWord.objects.filter(word__iexact=word).first()
+        """Finds the single best entry in oem_word, preferring a direct match."""
+        entry = OemWord.objects.filter(word__iexact=word).first()
         if entry:
             return entry
         if fallback_wrid:
@@ -142,8 +142,8 @@ class OemData:
                 })
             
         # 2. Fetch and add derived forms (only if word_entry is a real DB object)
-        if isinstance(word_entry, ListWord):
-            derived_forms = MapDerived.objects.filter(base_word=word_entry).select_related('derived_word', 'dete', 'wrte')
+        if isinstance(word_entry, OemWord):
+            derived_forms = OemDerived.objects.filter(base_word=word_entry).select_related('derived_word', 'dete', 'wrte')
             grouped_derivations = {}
             for form in derived_forms:
                 pos_name = form.wrte.name.lower() if form.wrte and form.wrte.name else 'unknown'
@@ -164,7 +164,7 @@ class OemData:
                 
                 meanings[pos_name].append({
                     "term": word_entry.word,
-                    "type": "meaning",
+                    "type": "pos", # <-- CHANGED FROM "meaning"
                     "tag": ["part-of-speech"],
                     "sense": sense_string,
                     "exam": {"type": "examSentence", "value": []}
@@ -190,7 +190,7 @@ class OemData:
             }]
 
         # 4. REFACTORED: Fetch and add Antonyms/Synonyms from WordNet, grouped by POS
-        if isinstance(word_entry, ListWord):
+        if isinstance(word_entry, OemWord):
             synsets = wordnet.synsets(word_entry.word)
             pos_map = {'n': 'noun', 'v': 'verb', 'a': 'adjective', 'r': 'adverb', 's': 'adjective'}
             grouped_synonyms = {}
@@ -236,7 +236,7 @@ class OemData:
             return []
 
         ipa_transcription = ""
-        if isinstance(word_entry, ListWord):
+        if isinstance(word_entry, OemWord):
             ipa_transcription = IpaGenerator.get_ipa(word_entry.word)
 
         return [{"word": word_entry.word, "ipa": ipa_transcription, "clue": {"meaning": meanings}}]
