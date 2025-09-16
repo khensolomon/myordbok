@@ -45,10 +45,10 @@ urlpatterns = [
     path('api/ome/definition', ome.word_definition, name='ome-definition'),
 
     # Add the URLs for our notes
-    path('notes', other.note_list, name='note_list'),
-    path('notes/<int:pk>', other.note_detail, name='note_detail'),
+    # path('notes', other.note_list, name='note_list'),
+    # path('notes/<int:pk>', other.note_detail, name='note_detail'),
 
     # ForeignKey Relationship Demo
-    path('posts', other.post_list, name='post_list'),
-    path('posts/<int:pk>', other.post_detail, name='post_detail'),
+    # path('posts', other.post_list, name='post_list'),
+    # path('posts/<int:pk>', other.post_detail, name='post_detail'),
 ]
