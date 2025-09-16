@@ -43,7 +43,7 @@ def home(request: HttpRequest) -> HttpResponse:
     # # Optional: You can sort the list alphabetically by language name
     # all_languages_sorted = sorted(all_languages, key=lambda x: x['name'])
 
-    raw = SolInfo.read(request.sol.id)
+    raw = SolInfo.read(request.sol['id'])
 
     return render(request, 'core/dictionary.html', {
             "title": raw['title'],
