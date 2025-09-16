@@ -3,7 +3,7 @@ models.med
 """
 from django.db import models
 
-class MedWord(models.Model):
+class OmeWord(models.Model):
     word = models.CharField(unique=True, max_length=255)
     ipa = models.CharField(max_length=255, blank=True, null=True)
     mlc = models.CharField(max_length=255, blank=True, null=True)
@@ -11,10 +11,10 @@ class MedWord(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'med_word'
+        db_table = 'ome_word'
 
-class MedSense(models.Model):
-    wrid = models.ForeignKey('MedWord', models.DO_NOTHING, db_column='wrid', db_comment='word id')
+class OmeSense(models.Model):
+    wrid = models.ForeignKey('OmeWord', models.DO_NOTHING, db_column='wrid', db_comment='word id')
     wrte = models.ForeignKey('TypeWord', models.DO_NOTHING, db_column='wrte', db_comment='word type of POS')
     rfid = models.IntegerField(db_comment='word reference id')
     cate = models.IntegerField(blank=True, null=True, db_comment='category')
@@ -29,23 +29,23 @@ class MedSense(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'med_sense'
+        db_table = 'ome_sense'
 
-class MedReference(models.Model):
-    wrid = models.ForeignKey('MedWord', models.DO_NOTHING, db_column='wrid')
+class OmeReference(models.Model):
+    wrid = models.ForeignKey('OmeWord', models.DO_NOTHING, db_column='wrid')
     etymology = models.TextField(blank=True, null=True)
     reference = models.TextField(blank=True, null=True)
     variant = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'med_reference'
+        db_table = 'ome_reference'
 
-class MedThesaurus(models.Model):
-    wrid = models.ForeignKey('MedWord', models.DO_NOTHING, db_column='wrid')
-    wlid = models.ForeignKey('MedWord', models.DO_NOTHING, db_column='wlid', related_name='medthesaurus_wlid_set')
+class OmeThesaurus(models.Model):
+    wrid = models.ForeignKey('OmeWord', models.DO_NOTHING, db_column='wrid')
+    wlid = models.ForeignKey('OmeWord', models.DO_NOTHING, db_column='wlid', related_name='omethesaurus_wlid_set')
     cate = models.ForeignKey('TypeWord', models.DO_NOTHING, db_column='cate', blank=True, null=True, db_comment='category')
 
     class Meta:
         managed = False
-        db_table = 'med_thesaurus'
+        db_table = 'ome_thesaurus'
