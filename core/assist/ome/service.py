@@ -1,5 +1,5 @@
 from django.db.models import Prefetch
-from ...models import MedWord, MedSense, MedReference, MedThesaurus, TypeWord
+from ...models import OmeWord, OmeSense, OmeReference, OmeThesaurus, TypeWord
 import collections
 from collections import defaultdict
 
@@ -17,10 +17,10 @@ class MedService:
         word = query_params.get('q', '').strip().lower()
 
         if not word:
-            words = MedWord.objects.all()[:6]
+            words = OmeWord.objects.all()[:6]
             return [{'w': w.word, 'n': 1, 't': 0} for w in words]
 
-        start_with = list(MedWord.objects.filter(word__startswith=word).values_list('word', flat=True))
+        start_with = list(OmeWord.objects.filter(word__startswith=word).values_list('word', flat=True))
 
         if len(start_with) <= 20:
             return [{'w': e, 'n': 1, 't': 0} for e in start_with]
@@ -53,13 +53,13 @@ class MedService:
         try:
             # FIX: Use Django's default reverse accessor names (e.g., 'medsense_set')
             # This works whether or not `related_name` is defined in the models.
-            word_obj = MedWord.objects.prefetch_related(
-                Prefetch('medsense_set', queryset=MedSense.objects.select_related('wrte', 'trid')),
+            word_obj = OmeWord.objects.prefetch_related(
+                Prefetch('medsense_set', queryset=OmeSense.objects.select_related('wrte', 'trid')),
                 'medreference_set',
-                Prefetch('medthesaurus_set', queryset=MedThesaurus.objects.select_related('wlid', 'cate'))
+                Prefetch('medthesaurus_set', queryset=OmeThesaurus.objects.select_related('wlid', 'cate'))
             ).get(word__iexact=word_str)
 
-        except MedWord.DoesNotExist:
+        except OmeWord.DoesNotExist:
             return None # The view will handle this and return a 404
 
         # FIX: Access the prefetched data using the default reverse accessor names.

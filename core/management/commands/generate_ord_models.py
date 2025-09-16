@@ -95,7 +95,7 @@ class Command(BaseCommand):
             # if lang_my: lines.append(f"    {lang_my}\n")
             lines.append(f'    """\n')
             lines.append("    class Meta:\n")
-            # lines.append(f"        managed = False\n")
+            lines.append(f"        managed = False\n")
             lines.append(f"        db_table = \"{table_name}\"\n\n")
 
         # Output path under /project/tmp

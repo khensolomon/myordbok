@@ -2,7 +2,7 @@
 admin.dictionary
 """
 from django.contrib import admin
-from ..models import ListWord, TypeWord
+from ..models import OemWord, TypeWord
 
 @admin.register(TypeWord)
 class TypeWordAdmin(admin.ModelAdmin):
@@ -14,7 +14,7 @@ class TypeWordAdmin(admin.ModelAdmin):
     # search_fields = ('name','shortname')
 
 
-@admin.register(ListWord)
+@admin.register(OemWord)
 class ListWordAdmin(admin.ModelAdmin):
     # This is the line that sets the default order.
     # It will sort alphabetically by the 'word' field (A-Z).
