@@ -10,7 +10,7 @@ from rest_framework import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..models import (
-    MedWord
+    OmeWord
 )
 from ..assist.ome import (
     MedService
@@ -26,12 +26,12 @@ class OMEWordSuggestAPIView(APIView):
         if not query:
             return Response([], status=status.HTTP_200_OK)
 
-        # Filter the ListSense objects where the 'word' starts with the query.
+        # Filter the OemSense objects where the 'word' starts with the query.
         # - 'word__istartswith' ensures a case-insensitive search.
         # - '.order_by('word').distinct()' prevents duplicate words in the result.
         # - '.values_list('word', flat=True)' creates the desired flat list of strings.
         # - '[:6]' limits the query to the first 6 results for performance.
-        words = MedWord.objects.filter(
+        words = OmeWord.objects.filter(
             word__istartswith=query
         ).order_by('word').distinct().values_list('word', flat=True)[:6]
 
