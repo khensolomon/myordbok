@@ -8,6 +8,10 @@
   - [ ] ome
 - [ ] ...suggestions
 - [ ] ...result template
+- Chain
+  - [ ] fields parser
+  - [x] include MED thesaurus in OME
+  - [ ] add OMV OVE
 - /
   - /myanmar-fonts
     - [ ] Fonts
@@ -31,6 +35,18 @@
 - Management command
   - [ ] log
   - [ ] sol.detail (dictionary status)
+- Improvement
+  - Database Performance
+    - _Right now, every search performs multiple database queries. For a small dataset, this is fine. For a dictionary with millions of entries, this will become a bottleneck. We are making good use of select_related, but we could be even more efficient by reviewing our database indexes to ensure they perfectly match our most common query patterns._
+    - [ ] escape "select_related"
+  - Caching
+    - _Many words ("love", "home", "eat") are searched far more often than others. There is no reason to hit the database and run all this Python logic for the same word a thousand times a minute. Implementing a caching layer (like Redis or Django's built-in cache) would provide a massive performance boost. We could cache the final JSON response for common words for a few hours at a time._
+    - [ ] escape "select_related"
+  - Testing
+    - _As the engine's complexity has grown, so has the risk that a new feature could accidentally break an old one. We have been testing manually, but to move forward with confidence, we should create an automated test suite. We could write specific tests for things like_
+    - [ ] Does searching for "loved" correctly return the data for "love"?
+    - [ ] Does a multi-word query correctly populate the result.sentence block?
+    - [ ] Does a Norwegian word correctly trigger the ORD and OEM flow? This would protect our work and allow us to develop much faster.
 
 ## webpack
 
