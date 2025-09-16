@@ -5,9 +5,9 @@ Recent Updates:
 - Moved thesaurus results to be inside their specific part-of-speech block
   instead of a separate top-level "thesaurus" key.
 """
-# project/core/assist/search/ome.py
+# <pro>/core/assist/search/ome.py
 import re
-from ...models.ome import MedWord, MedSense, MedThesaurus
+from ...models.ome import OmeWord, OmeSense, OmeThesaurus
 from ..notation import myanmar_notation
 from .parser import parse_sense_field, parse_exam_field
 
@@ -43,16 +43,16 @@ class OmeData:
             self.log.append(f"OME: '{self.current_word}' is not a number, proceeding with word search.")
             pass
 
-        word_entry = MedWord.objects.filter(word=self.current_word).first()
+        word_entry = OmeWord.objects.filter(word=self.current_word).first()
         if not word_entry:
             self.messages.append(f"No definition found for '{self.current_word}'.")
-            self.log.append("OME: Search failed. No entry in `med_word`.")
+            self.log.append("OME: Search failed. No entry in `ome_word`.")
             return self.status, self.data, self.messages, self.log, self.todo
 
-        senses = MedSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
+        senses = OmeSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
         if not senses.exists():
             self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
-            self.log.append("OME: Word found, but no senses available in `med_sense`.")
+            self.log.append("OME: Word found, but no senses available in `ome_sense`.")
             self.todo.append("missing_definition")
             return self.status, self.data, self.messages, self.log, self.todo
 
@@ -101,7 +101,7 @@ class OmeData:
                 continue
 
             # This is the Django ORM equivalent of your SQL query
-            synonyms_qs = MedThesaurus.objects.filter(wrid=word_entry, cate=wrte_obj).select_related('wlid')
+            synonyms_qs = OmeThesaurus.objects.filter(wrid=word_entry, cate=wrte_obj).select_related('wlid')
             synonym_words = [item.wlid.word for item in synonyms_qs if item.wlid]
 
             if synonym_words:
