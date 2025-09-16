@@ -1,6 +1,8 @@
 """
 other.py
 """
+# from config.data import DICTIONARIES
+import config
 from django.http import (
     HttpRequest, HttpResponse
 )
@@ -10,13 +12,13 @@ from rest_framework import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..models import (
-    ListSense
+    OemSense
 )
 from ..assist.search.engine import DictionarySearch
 
 class OEMWordSuggestAPIView(APIView):
     """
-    Provides autocomplete suggestions from the ListSense model.
+    Provides autocomplete suggestions from the OemSense model.
 
     This view handles a GET request with a query parameter 'q'.
     It performs a case-insensitive 'starts with' search on the 'word' field
@@ -32,12 +34,12 @@ class OEMWordSuggestAPIView(APIView):
         if not query:
             return Response([], status=status.HTTP_200_OK)
 
-        # Filter the ListSense objects where the 'word' starts with the query.
+        # Filter the OemSense objects where the 'word' starts with the query.
         # - 'word__istartswith' ensures a case-insensitive search.
         # - '.order_by('word').distinct()' prevents duplicate words in the result.
         # - '.values_list('word', flat=True)' creates the desired flat list of strings.
         # - '[:6]' limits the query to the first 6 results for performance.
-        words = ListSense.objects.filter(
+        words = OemSense.objects.filter(
             word__istartswith=query
         ).order_by('word').distinct().values_list('word', flat=True)[:6]
 
@@ -49,20 +51,21 @@ class SearchEngineAPIView(APIView):
     API endpoint for the dictionary search.
     Accepts a 'q' query parameter.
     e.g., /api/search/?q=love
+    e.g., /api/search/?q=love&l=en
     e.g., /api/search/?q=knowledge is power~power
     """
 
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         query = request.query_params.get('q', None)
+        lang = request.query_params.get('l', None)
         
         if query is None:
             return Response(
                 {"error": "Query parameter 'q' is required."}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
- 
-        search_engine = DictionarySearch(raw_query=query)
-        response_data = search_engine.execute()
 
-        
+        search_engine = DictionarySearch(raw_query=query, app_name=config.name)
+        response_data = search_engine.execute(lang or request.sol['id'])
+
         return Response(response_data)

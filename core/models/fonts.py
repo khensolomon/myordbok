@@ -40,7 +40,7 @@ class ListFont(models.Model):
     last_scanned = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        # managed = False
+        managed = False
         # The table name is now dynamically set to <app_name>_fonts
         db_table = 'list_font'
         # --- END OF EDIT ---
