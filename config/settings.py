@@ -84,7 +84,7 @@ TEMPLATES = [
                 
                 # Add your custom processor here!
                 # 'app_name.filename.function_name'
-                'core.context_processors.main_menu',
+                # 'core.context_processors.main_menu',
                 'core.context_processors.nav_pages_builder',
                 'core.context_processors.nav_terms_builder',
                 "core.context_processors.cookies_read",
