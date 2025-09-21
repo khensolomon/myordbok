@@ -1,14 +1,16 @@
 """
-version: 2025.09.16.15
+version: 2025.09.18.6
 
 Recent Updates:
-- Implemented context-aware search logging to fix a bug where translated
-  words were logged with the wrong source language context.
-- The engine now correctly logs the user's original intended search term
-  (e.g., 'avbilde') even when navigating to an alternative translation
-  (e.g., 'Depict'), ensuring accurate analytics.
+- Fixed a critical bug where logs would incorrectly report a "Cache MISS"
+  on a successful cache hit.
+- Refactored the caching mechanism to store only the core data, not the
+  entire response object.
+- The engine now constructs a fresh `result` block on a cache hit, ensuring
+  the logs are always accurate for every request.
 """
 from django.db.models import F
+from django.core.cache import cache
 from ...utils import is_myanmar
 from ...models.log import LogSearch
 from .ome import OmeData
@@ -39,102 +41,115 @@ class DictionarySearch:
         Main method to execute the search sequence. It now builds a rich
         contextual result object instead of separate meta/query blocks.
         """
-        # --- Data returned from handlers ---
+        # --- Internal State ---
         status = 0
         data = []
         messages = []
         todo = []
+        result_count = 0
+        state = "NOT_FOUND"
 
         # 1. Validate and parse the initial query
         if not self._validate_and_prepare_query():
             messages.append("Query cannot be empty.")
-            return self._get_response(status, data, messages, self.log, todo)
+            state = "INVALID_QUERY"
+            self._log_search(0, self.target_word or "empty_query")
+            return self._get_response(status, data, messages, self.log, todo, state)
 
-        # Set the source language, defaulting to 'en'
         self.solId = solId if solId else 'en'
         self.log.append(f"Engine: Source language set to '{self.solId}'.")
+        
+        # --- REFACTORED CACHE LOGIC ---
+        cache_key = f"search:{self.solId}:{self.target_word.lower()}"
+        cached_data_tuple = cache.get(cache_key)
+        
+        db_num = self._get_cache_db_num()
+        cache_location = f"Redis DB #{db_num}" if db_num is not None else "the configured cache"
+
+        if cached_data_tuple:
+            self.log.append(f"Engine: Cache HIT for key '{cache_key}' in {cache_location}.")
+            # Unpack the core data from the cache
+            status, data, messages, todo, result_count = cached_data_tuple
+            state = "SUCCESS" if status == 1 else "NOT_FOUND"
+            # We still log the search even on a cache hit for analytics
+            self._log_search(result_count, self.target_word)
+            return self._get_response(status, data, messages, self.log, todo, state)
+
+        self.log.append(f"Engine: Cache MISS for key '{cache_key}' in {cache_location}.")
 
         # 2. Handle Myanmar script branch
         if is_myanmar(self.target_word):
-            self.solId = 'my' # Override lang for Myanmar script
+            self.solId = 'my'
             ome_handler = OmeData(self.target_word)
-            status, data, messages, log_ome, todo = ome_handler.search()
+            status, data, messages, log_ome, todo, result_count = ome_handler.search()
             self.log.extend(log_ome)
-            self._log_search(status, self.target_word)
-            return self._get_response(status, data, messages, self.log, todo)
+            self._log_search(result_count, self.target_word)
+            state = "SUCCESS" if status == 1 else "NOT_FOUND"
+            response = self._get_response(status, data, messages, self.log, todo, state)
+            # Cache the core data tuple
+            cache.set(cache_key, (status, data, messages, todo, result_count), timeout=3600)
+            return response
 
-        # --- REFACTORED ORD & TRANSLATION LOGIC ---
-        all_langs = [lang for group in DICTIONARIES for lang in group['lang']]
-        valid_langs = [lang['id'] for lang in all_langs]
+        # 3. Handle ORD & OEM flow
         processed_word = self.target_word
         display_context_word = self.target_word
-        word_for_logging = self.target_word # Default to the direct target
+        all_langs = [lang for group in DICTIONARIES for lang in group['lang']]
+        valid_langs = [lang['id'] for lang in all_langs]
 
         if self.solId in valid_langs and self.solId != 'en':
             word_to_translate = self.target_word
-            
             if self.is_sentence and self.target_word.isascii() and self.target_word.lower() not in [w.lower() for w in self.sentence_list]:
                 display_context_word = self.sentence_list[0] if self.sentence_list else self.target_word
                 word_to_translate = display_context_word
-                word_for_logging = display_context_word # Log the original word, not the translation
                 self.log.append(f"Engine: Context preservation triggered for alternative '{self.target_word}'. Rebuilding from '{word_to_translate}'.")
 
-            self.log.append(f"Engine: Initializing ORD lookup for '{word_to_translate}'.")
             ord_handler = OrdData(word_to_translate, self.solId)
             translations, log_ord = ord_handler.get_translations()
             self.log.extend(log_ord)
 
             if translations:
-                if word_to_translate != self.target_word:
-                    processed_word = self.target_word
-                else:
-                    processed_word = translations[0]
-                
+                processed_word = translations[0] if word_to_translate == self.target_word else self.target_word
                 self.translation_info = { "primary": processed_word, "alternatives": [t for t in translations if t.lower() != processed_word.lower()] }
-                self.log.append(f"Engine: Word for OEM is '{processed_word}'. Alternatives found: {self.translation_info['alternatives']}")
             else:
-                self.log.append(f"Engine: ORD lookup for '{word_to_translate}' in '{self.solId}' found no match. Falling back to OEM.")
-                self.solId = 'en' # Reset language to English
-                self.log.append(f"Engine: Source language has been reset to '{self.solId}'.")
-
-
-        # 4. Proceed to English (OEM) search
+                self.log.append(f"Engine: ORD lookup failed for '{word_to_translate}'. Falling back to OEM.")
+                self.solId = 'en'
+        
         oem_handler = OemData(processed_word)
-        status, data, messages, log_oem, todo = oem_handler.search()
+        status, data, messages_oem, log_oem, todo, result_count = oem_handler.search()
+        messages.extend(messages_oem)
         self.log.extend(log_oem)
         
-        # 5. Log the search using the context-aware word
-        self._log_search(status, word_for_logging)
+        self._log_search(result_count, self.target_word)
         
-        # 6. Final data adjustments for translated words
         if self.translation_info and data:
             data[0]['word'] = f"{display_context_word} ({self.translation_info['primary']})"
         
-        return self._get_response(status, data, messages, self.log, todo)
+        state = "SUCCESS" if status == 1 else "NOT_FOUND"
+        
+        response = self._get_response(status, data, messages, self.log, todo, state)
+        if status == 1:
+            # Cache the core data tuple
+            cache.set(cache_key, (status, data, messages, todo, result_count), timeout=3600)
+            self.log.append(f"Engine: Stored successful result in cache for key '{cache_key}' in {cache_location}.")
+            
+        return response
 
-    def _log_search(self, status, word_to_log):
-        """
-        Creates or updates a LogSearch entry for the given word.
-        """
+    def _log_search(self, result_count, word_to_log):
         obj, created = LogSearch.objects.get_or_create(
             word=word_to_log,
             lang=self.solId,
-            defaults={'count': 1, 'status': status}
+            defaults={'count': 1, 'status': result_count}
         )
 
         if not created:
             obj.count = F('count') + 1
-            obj.status = status
+            obj.status = result_count
             obj.save(update_fields=['count', 'status', 'updated_at'])
         
-        self.log.append(f"Engine: Logged search for '{word_to_log}' in lang '{self.solId}' with status {status}.")
+        self.log.append(f"Engine: Logged search for '{word_to_log}' in lang '{self.solId}' with result count {result_count}.")
 
 
     def _validate_and_prepare_query(self):
-        """
-        Cleans, validates, and deconstructs the raw query string into its parts.
-        Correctly identifies multi-word queries as sentences.
-        """
         if not self.raw_query or not self.raw_query.strip():
             return False
 
@@ -163,11 +178,11 @@ class DictionarySearch:
         
         return True
 
-    def _generate_metadata(self, status, data):
-        """
-        Generates dynamic metadata for HTML headers based on search results.
-        """
+    def _generate_metadata(self, status, data, state):
         title = f"Search for '{self.target_word}' | {self.app_name}"
+        if state == "INVALID_QUERY":
+            title = f"Invalid Search | {self.app_name}"
+
         description = f"Search our comprehensive dictionary for millions of words and translations."
         keywords = f"{self.target_word}, dictionary, search, definition"
 
@@ -179,10 +194,8 @@ class DictionarySearch:
             # If it was a translation, make a more specific title
             if self.translation_info:
                 all_langs = [lang for group in DICTIONARIES for lang in group['lang']]
-                # Determine the correct language name for the metadata title
                 original_lang_id = self.solId
                 if self.translation_info:
-                    # Find the original source language ID before any potential fallback
                     for group in DICTIONARIES:
                         for lang in group['lang']:
                             if self.target_word.lower() not in [w.lower() for w in self.sentence_list] and self.sentence_list:
@@ -215,15 +228,17 @@ class DictionarySearch:
 
         return {"title": title, "description": description, "keywords": keywords}
 
-    def _get_response(self, status, data, messages, log, todo):
-        """
-        Constructs the final, unified JSON response object.
-        """
+    def _get_cache_db_num(self):
+        """Helper to safely get the current Redis DB number for logging."""
+        try:
+            return cache.client.connection_pool.connection_kwargs.get('db', 0)
+        except AttributeError:
+            return None # Not a Redis cache or client not available
+
+    def _get_response(self, status, data, messages, log, todo, state):
         # Determine the original word for the query context.
-        # This logic ensures the `target_word` in the response reflects the initial search intent.
         query_target = self.target_word
         if self.is_sentence:
-            # If it's a sentence and context was rebuilt, the target is the first word.
             if self.target_word.isascii() and self.target_word.lower() not in [w.lower() for w in self.sentence_list]:
                 query_target = self.sentence_list[0] if self.sentence_list else self.target_word
             else:
@@ -236,11 +251,10 @@ class DictionarySearch:
             "list": self.sentence_list
         }
 
-        # --- UPDATED: Build the enriched translation context object ---
+        # Build the enriched translation context object
         alternatives_list = []
         if self.translation_info:
             raw_alternatives = self.translation_info.get('alternatives', [])
-            # Use the original full query context for the links
             query_context_str = " ".join(self.sentence_list) if self.is_sentence else query_target
             
             for alt_word in raw_alternatives:
@@ -255,12 +269,12 @@ class DictionarySearch:
             "alternatives": alternatives_list
         }
         
-        # --- Generate and include the metadata block ---
-        metadata = self._generate_metadata(status, data)
+        # Generate and include the metadata block
+        metadata = self._generate_metadata(status, data, state)
 
         # Build the final result object
         result_obj = {
-            "status": status,
+            "state": state,
             "lang": self.solId,
             "meta": metadata,
             "log": log,
