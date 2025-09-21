@@ -191,3 +191,17 @@ LOGGING = {
         'level': 'INFO', # Set to INFO to see our debug messages
     },
 }
+
+CACHES = {
+    # "default": {
+    #     "BACKEND": "django_redis.cache.RedisCache",
+    #     "LOCATION": "redis://127.0.0.1:6379/1",  # Assumes Redis is running locally
+    #     "OPTIONS": {
+    #         "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    #     }
+    # }
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': 'c:/tmp/django_cache',
+    }
+}
