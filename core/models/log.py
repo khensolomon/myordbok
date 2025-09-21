@@ -1,8 +1,9 @@
 """
-version: 2025.09.16.3
+version: 2025.09.18.2
 
 Recent Updates:
-- Added a `status` column to track if the last search for a word was successful.
+- Updated the `status` column to a PositiveIntegerField to store the
+  total count of results found for a search, rather than just 0 or 1.
 """
 from django.db import models
 
@@ -16,12 +17,12 @@ class LogSearch(models.Model):
         db_index=True,
         help_text="The exact word or phrase searched by the user."
     )
-    equivalent = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="The corrected or canonical equivalent for the searched word."
-    )
+    # equivalent = models.CharField(
+    #     max_length=255,
+    #     blank=True,
+    #     null=True,
+    #     help_text="The corrected or canonical equivalent for the searched word."
+    # )
     lang = models.CharField(
         max_length=10,
         db_index=True,
@@ -33,7 +34,7 @@ class LogSearch(models.Model):
     )
     status = models.IntegerField(
         default=0,
-        help_text="The status of the last search (0=Not Found, 1=Found)."
+        help_text="This field now stores the number of meaning blocks returned."
     )
     updated_at = models.DateTimeField(
         auto_now=True,
@@ -46,6 +47,8 @@ class LogSearch(models.Model):
         # A unique constraint ensures we don't have duplicate rows for the same word in the same language.
         unique_together = ('word', 'lang')
         ordering = ['-count'] # By default, order results by most popular.
+        verbose_name = "Search Log"
+        verbose_name_plural = "Search Logs"
 
     def __str__(self):
         return f"{self.word} ({self.lang}) - Status: {self.status}, Count: {self.count}"
