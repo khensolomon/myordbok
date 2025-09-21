@@ -21,6 +21,7 @@ class OmeSense(models.Model):
     trid = models.ForeignKey('TypeTerm', models.DO_NOTHING, db_column='trid', blank=True, null=True, db_comment='0:unknown, 1:word, 2:phrase, 3:sentence')
     sense = models.TextField(blank=True, null=True, db_comment='Definition')
     exam = models.TextField(blank=True, null=True, db_comment='Example')
+    wseq = models.IntegerField(default=0)
     wrkd = models.IntegerField(blank=True, null=True, db_comment='Source id')
     usg = models.TextField(blank=True, null=True)
     ref = models.TextField(blank=True, null=True)

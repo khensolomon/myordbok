@@ -40,7 +40,28 @@ class TypeTerm(models.Model):
         
     def __str__(self):
         return self.name
-    
+
+"""
+Defines the model for OEM spelling and normalization corrections.
+"""
+class OemSpelling(models.Model):
+    """
+    Maps a common misspelling or variation (word) to its canonical
+    or correct equivalent.
+    Example: word='u.s.', equivalent='US'
+    """
+    word = models.CharField(max_length=255, unique=True, db_index=True)
+    equivalent = models.CharField(max_length=255)
+
+    class Meta:
+        managed = False
+        db_table = 'oem_spelling'
+        verbose_name = "OEM Spelling Correction"
+        verbose_name_plural = "OEM Spelling Corrections"
+
+    def __str__(self):
+        return f"{self.word} -> {self.equivalent}"
+
 class OemWord(models.Model):
     """Represents a word entry in the dictionary."""
     word = models.CharField(max_length=250, blank=True, null=True, db_index=True)

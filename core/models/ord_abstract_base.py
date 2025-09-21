@@ -30,6 +30,7 @@ Notes:
 - This module is part of the `dictionary` app.
 """
 from django.db import models
+from django.apps import apps
 
 class OrdAbstractBase(models.Model):
     word = models.CharField(
@@ -53,3 +54,20 @@ class OrdAbstractBase(models.Model):
         managed = False # Django will not create or modify these tables
         abstract = True
 
+
+def get_all_ord_models():
+    """
+    Dynamically finds and returns all registered Django models in the 'core'
+    app whose names start with 'Ord'.
+
+    This allows us to automatically connect signals without manually listing
+    each new ORD model.
+    """
+    ord_models = []
+    # Get the configuration for the 'core' app
+    app_config = apps.get_app_config('core')
+    # Loop through all models registered in this app
+    for model in app_config.get_models():
+        if model.__name__.startswith('Ord'):
+            ord_models.append(model)
+    return ord_models
