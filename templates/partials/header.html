@@ -1,1 +1,18 @@
-<header></header>
+<div class="ptl" id="header">
+  <div class="resz ltrt">
+    <div class="row">
+      <div class="column">
+        <ol class="menu dictionary" id="MyOrdbok-logo" data-lang="{{ sol.id }}" title="{{ appName }}">
+          <li class="active">
+            <a href="{% url 'dictionary-detail' lang_name=sol.name|slugify %}">
+              <span>{{ sol.name }}</span>-<span>Myanmar</span>
+            </a>
+          </li>
+        </ol>
+      </div>
+      <div class="column wide">
+        <search-engine action="{% url 'definition' %}"></search-engine>
+      </div>
+    </div>
+  </div>
+</div>
