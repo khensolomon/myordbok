@@ -1,18 +1,18 @@
 """
-version: 2025.09.16.6
+version: 2025.09.18.5
 
 Recent Updates:
-- Changed the `type` for derived form summaries from "meaning" to "pos" for
-  a more semantic and intuitive API structure.
+- Removed all caching logic from this class. Caching is now handled
+  centrally by the main `DictionarySearch` engine for a cleaner architecture.
 """
 # <pro>/core/assist/search/oem.py
 import re
 import nltk
 import inflect
 from nltk.corpus import wordnet
-from ...models import OemWord, OemSense, OemDerived, TypeWord
+from ...models import OemWord, OemSense, OemDerived, TypeWord, OemSpelling
 from ..notation import myanmar_notation
-from .parser import parse_sense_field, parse_exam_field
+from .parser import parse_sense_field, parse_exam_field, find_root_form
 from .ipa import IpaGenerator
 
 class OemData:
@@ -29,86 +29,125 @@ class OemData:
 
     def search(self):
         """
-        Main search method for English words.
-        Returns status, data, messages, log, and todo list.
+        Main search method for English words. Caching is handled by the parent engine.
         """
         self.log.append(f"OEM: Initiating search for '{self.current_word}'.")
+
+        # --- Search Passes ---
+        # --- First Pass: Search for the original word ---
+        self.status, self.data, messages, log, self.todo = self._perform_search(self.current_word)
+        self.messages.extend(messages)
+        self.log.extend(log)
+
+        # --- Second Pass: If failed, try spelling correction ---
+        if self.status == 0 and not self.todo:
+            try:
+                spelling_entry = OemSpelling.objects.get(word__iexact=self.current_word)
+                equivalent = spelling_entry.equivalent
+                if equivalent:
+                    self.log.append(f"OEM: No direct result. Found spelling equivalent: '{self.current_word}' -> '{equivalent}'.")
+                    self.messages.append(f"Showing results for '{equivalent}'.")
+                    self.status, self.data, messages, log, self.todo = self._perform_search(equivalent)
+                    self.messages.extend(messages)
+                    self.log.extend(log)
+                    if self.data:
+                         self.data[0]['word'] = f"{self.current_word} ({self.data[0]['word']})"
+            except OemSpelling.DoesNotExist:
+                pass
+
+        # --- Third Pass: If still failed, try finding a root form ---
+        if self.status == 0 and not self.todo:
+            root_form = find_root_form(self.current_word)
+            if root_form:
+                self.log.append(f"OEM: No direct result. Trying root form '{root_form}'.")
+                self.messages.append(f"Showing results for '{root_form}'.")
+                
+                status, data, messages_root, log_root, todo_root = self._perform_search(root_form)
+                self.messages.extend(messages_root)
+                self.log.extend(log_root)
+                self.todo.extend(todo_root)
+
+                if status == 1:
+                    self.status = status
+                    self.data = data
+                    if self.data:
+                        self.data[0]['word'] = f"{self.current_word} ({self.data[0]['word']})"
+
+        # --- Calculate the result count ---
+        result_count = 0
+        if self.data:
+            meanings = self.data[0].get('clue', {}).get('meaning', {})
+            result_count = sum(len(items) for items in meanings.values())
+        self.status = 1 if result_count > 0 else 0
+        if self.status == 0 and not self.todo:
+            self.messages.append(f"No definition found for '{self.current_word}'.")
+            self.log.append("OEM: Search failed through all methods.")
+
+        return self.status, self.data, self.messages, self.log, self.todo, result_count
+
+    def _perform_search(self, word_to_search):
+        local_status = 0
+        local_data = []
+        local_messages = []
+        local_log = []
+        local_todo = []
+
         word_entry = None
         senses = None
 
-        # --- Refactored Search Sequence ---
-        # 1. PRIMARY STRATEGY: Check for direct definitions in oem_sense first
-        senses_from_word_field = OemSense.objects.filter(word__iexact=self.current_word).prefetch_related('wrte')
+        senses_from_word_field = OemSense.objects.filter(word__iexact=word_to_search).prefetch_related('wrte').order_by('wseq') # <-- RETAINED ORDERING
         if senses_from_word_field.exists():
-            self.log.append("OEM: Found direct sense entries.")
+            local_log.append(f"OEM Sub-Search '{word_to_search}': Found direct sense entries.")
             senses = senses_from_word_field
-            word_entry = self._find_canonical_word_entry(self.current_word, senses.first().wrid)
-
-        # 2. SECONDARY STRATEGY: If no direct senses, check if it's a derived form
+            word_entry = self._find_canonical_word_entry(word_to_search, senses.first().wrid)
+        
         if not word_entry:
-            self.log.append(f"OEM: Not in senses, checking if '{self.current_word}' is a derived form.")
-            derived_mappings = OemDerived.objects.select_related('base_word', 'dete').filter(derived_word__word__iexact=self.current_word)
-            if derived_mappings.exists():
+            derived_mappings = OemDerived.objects.select_related('base_word', 'dete').filter(derived_word__word__iexact=word_to_search)
+            if derived_mappings.exists() and derived_mappings.first().base_word:
                 base_word_entry = derived_mappings.first().base_word
-                if base_word_entry:
-                    self.log.append(f"OEM: Found base word '{base_word_entry.word}'. Searching for its definitions.")
-                    senses_for_base = self._get_senses_for_word(base_word_entry)
-                    if senses_for_base.exists():
-                        word_entry = base_word_entry
-                        senses = senses_for_base
-                        for dm in derived_mappings:
-                            derivation_info = dm.dete.derivation if dm.dete else 'a form'
-                            self.messages.append(f"'{self.current_word}' is {derivation_info} of '{word_entry.word}'.")
-                else:
-                    self.log.append(f"OEM: Found derived mapping for '{self.current_word}' but it has a broken base_word link.")
-
-        # 3. TERTIARY STRATEGY: If still no result, check oem_word directly. This is the key check for the 'todo' tag.
+                senses_for_base = self._get_senses_for_word(base_word_entry)
+                if senses_for_base.exists():
+                    word_entry = base_word_entry
+                    senses = senses_for_base
+                    for dm in derived_mappings:
+                        derivation_info = dm.dete.derivation if dm.dete else 'a form'
+                        local_messages.append(f"'{word_to_search}' is {derivation_info} of '{word_entry.word}'.")
+        
         if not word_entry:
-            self.log.append(f"OEM: Not a derived form with senses. Checking `oem_word` for '{self.current_word}'.")
-            direct_word_entry = self._find_canonical_word_entry(self.current_word)
+            direct_word_entry = self._find_canonical_word_entry(word_to_search)
             if direct_word_entry:
                 senses_for_direct = self._get_senses_for_word(direct_word_entry)
                 if senses_for_direct.exists():
                     word_entry = direct_word_entry
                     senses = senses_for_direct
                 else:
-                    self.log.append(f"OEM: Found '{self.current_word}' in oem_word but it has no senses.")
-                    self.todo.append("missing_definition")
-                    self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
-                    return self.status, self.data, self.messages, self.log, self.todo
-
-        # 4. NUMBER HANDLING
-        if not word_entry and self.current_word.isdigit():
-            self.log.append("OEM: No DB entry found for number, creating placeholder to generate notation.")
+                    local_log.append(f"OEM Sub-Search '{word_to_search}': Found in list_word but has no senses.")
+                    local_todo.append("missing_definition")
+                    local_messages.append(f"While the word '{word_to_search}' exists, it has no definitions yet.")
+                    return 0, [], local_messages, local_log, local_todo
+        
+        if not word_entry and word_to_search.isdigit():
             class WordEntryPlaceholder:
-                def __init__(self, word_string):
-                    self.word = word_string
-            word_entry = WordEntryPlaceholder(self.current_word)
+                def __init__(self, word_string): self.word = word_string
+            word_entry = WordEntryPlaceholder(word_to_search)
 
-        # 5. DATA STRUCTURING
         if word_entry:
-            self.status = 1
-            self.log.append(f"OEM: Proceeding to structure data for '{word_entry.word}'.")
-            self.data = self._structure_data(word_entry, senses)
-            if not self.data or not self.data[0]['clue']['meaning']:
-                self.status = 0
-                self.data = []
+            local_status = 1
+            local_data = self._structure_data(word_entry, senses)
+            if not local_data or not local_data[0]['clue']['meaning']:
+                local_status = 0
+                local_data = []
+        
+        return local_status, local_data, local_messages, local_log, local_todo
 
-        # FINAL MESSAGE
-        if self.status == 0 and not self.todo:
-            self.messages.append(f"No definition found for '{self.current_word}'.")
-            self.log.append("OEM: Search failed. No definitions found or structured.")
-
-        return self.status, self.data, self.messages, self.log, self.todo
 
     def _get_senses_for_word(self, word_entry):
-        """A helper to get all senses for a given word_entry from all sources."""
         senses_from_wrid = OemSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
         senses_from_word = OemSense.objects.filter(word__iexact=word_entry.word).prefetch_related('wrte')
-        return (senses_from_wrid | senses_from_word).distinct()
+        # Combine and order the final queryset
+        return (senses_from_wrid | senses_from_word).distinct().order_by('wseq')
 
     def _find_canonical_word_entry(self, word, fallback_wrid=None):
-        """Finds the single best entry in oem_word, preferring a direct match."""
         entry = OemWord.objects.filter(word__iexact=word).first()
         if entry:
             return entry
@@ -117,9 +156,6 @@ class OemData:
         return None
 
     def _structure_data(self, word_entry, senses):
-        """
-        Structures the full response object, including WordNet data grouped by POS.
-        """
         meanings = {}
         
         # 1. Process standard definitions from the database
@@ -164,7 +200,7 @@ class OemData:
                 
                 meanings[pos_name].append({
                     "term": word_entry.word,
-                    "type": "pos", # <-- CHANGED FROM "meaning"
+                    "type": "pos",
                     "tag": ["part-of-speech"],
                     "sense": sense_string,
                     "exam": {"type": "examSentence", "value": []}
@@ -189,7 +225,7 @@ class OemData:
                 "exam": { "type": "examSentence", "value": [myanmar_words, english_words] }
             }]
 
-        # 4. REFACTORED: Fetch and add Antonyms/Synonyms from WordNet, grouped by POS
+        # 4. Fetch and add Antonyms/Synonyms from WordNet, grouped by POS
         if isinstance(word_entry, OemWord):
             synsets = wordnet.synsets(word_entry.word)
             pos_map = {'n': 'noun', 'v': 'verb', 'a': 'adjective', 'r': 'adverb', 's': 'adjective'}
