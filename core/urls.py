@@ -4,9 +4,11 @@ urls.py
 This is used for reversing URLs in templates, e.g., {% url 'grammar:grammar-detail' ... %}
 """
 from django.urls import path
+
+from .views import definition
 from .views import (
   general, docs, 
-  definition, dictionary, grammar, fonts,
+  dictionary, grammar, fonts,
   api,speech, ome,
   other
 )
