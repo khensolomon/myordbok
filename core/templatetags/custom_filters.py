@@ -27,3 +27,7 @@ def emphasize(value):
 def strongify(value):
     """Replace 'something' with <strong>something</strong>."""
     return re.sub(r"'(.*?)'", r" <strong>\1</strong> ", value or "")
+
+@register.filter
+def is_string(value):
+    return isinstance(value, str)
