@@ -1,9 +1,10 @@
 """
-version: 2025.09.13.2
+version: 2025.09.18.3
 
 Recent Updates:
-- Moved thesaurus results to be inside their specific part-of-speech block
-  instead of a separate top-level "thesaurus" key.
+- Implemented relevance ranking by ordering OmeSense results by the new `wseq` column.
+- Removed caching logic, as this responsibility has been centralized in the
+  main search engine controller for a cleaner architecture.
 """
 # <pro>/core/assist/search/ome.py
 import re
@@ -26,9 +27,10 @@ class OmeData:
     def search(self):
         """
         Main search method for Myanmar words.
-        Returns status, data, messages, log, and todo list.
+        Returns status, data, messages, log, todo list, and the result count.
         """
         self.log.append(f"OME: Myanmar word detected. Initiating search for '{self.current_word}'.")
+        result_count = 0
 
         # Check if the input is a Myanmar number
         try:
@@ -38,35 +40,37 @@ class OmeData:
                 notation_result = myanmar_notation.get(self.current_word)
                 self.status = 1
                 self.data = self._structure_notation_data(notation_result)
-                return self.status, self.data, self.messages, self.log, self.todo
         except Exception:
             self.log.append(f"OME: '{self.current_word}' is not a number, proceeding with word search.")
             pass
-
-        word_entry = OmeWord.objects.filter(word=self.current_word).first()
-        if not word_entry:
-            self.messages.append(f"No definition found for '{self.current_word}'.")
-            self.log.append("OME: Search failed. No entry in `ome_word`.")
-            return self.status, self.data, self.messages, self.log, self.todo
-
-        senses = OmeSense.objects.filter(wrid=word_entry).prefetch_related('wrte')
-        if not senses.exists():
-            self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
-            self.log.append("OME: Word found, but no senses available in `ome_sense`.")
-            self.todo.append("missing_definition")
-            return self.status, self.data, self.messages, self.log, self.todo
-
-        self.status = 1
-        self.log.append(f"OME: Search successful. Structuring data for '{word_entry.word}'.")
-        self.data = self._structure_data(word_entry, senses)
         
-        return self.status, self.data, self.messages, self.log, self.todo
+        if not self.data:
+            word_entry = OmeWord.objects.filter(word=self.current_word).first()
+            if not word_entry:
+                self.messages.append(f"No definition found for '{self.current_word}'.")
+                self.log.append("OME: Search failed. No entry in `med_word`.")
+            else:
+                senses = OmeSense.objects.filter(wrid=word_entry).prefetch_related('wrte').order_by('wseq') # <-- ADDED ORDERING
+                if not senses.exists():
+                    self.messages.append(f"While the word '{self.current_word}' exists, it has no definitions yet.")
+                    self.log.append("OME: Word found, but no senses available in `med_sense`.")
+                    self.todo.append("missing_definition")
+                else:
+                    self.status = 1
+                    self.log.append(f"OME: Search successful. Structuring data for '{word_entry.word}'.")
+                    self.data = self._structure_data(word_entry, senses)
+        
+        # --- NEW: Calculate the result count from the final data structure ---
+        if self.data:
+            meanings = self.data[0].get('clue', {}).get('meaning', {})
+            result_count = sum(len(items) for items in meanings.values())
+        
+        # Ensure status reflects if there's actual content
+        self.status = 1 if result_count > 0 else 0
+
+        return self.status, self.data, self.messages, self.log, self.todo, result_count
 
     def _structure_data(self, word_entry, senses):
-        """
-        Structures the response for a Myanmar word, integrating thesaurus data
-        directly into each part-of-speech block.
-        """
         meanings = {}
         # A map to hold the TypeWord object for each part of speech found
         pos_to_wrte_map = {}
@@ -126,9 +130,6 @@ class OmeData:
         }]
 
     def _structure_notation_data(self, notation_result):
-        """
-        Structures the response for a Myanmar numeric query.
-        """
         myanmar_digit = notation_result.get("number", "")
         english_digit = notation_result.get("digit", "")
         notations = notation_result.get("notation", [])
