@@ -18,3 +18,4 @@ nltk
 inflect
 htmlmin
 eng-to-ipa
+django-redis
