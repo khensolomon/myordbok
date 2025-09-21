@@ -2,6 +2,7 @@ const path = require('path');
 const BundleTracker = require('webpack-bundle-tracker');
 const { VueLoaderPlugin } = require('vue-loader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
   // The base directory for resolving entry points and loaders
@@ -30,14 +31,26 @@ module.exports = {
     // publicPath: '/static/core/bundles/',
     // publicPath: '/static/bundles/',
     // The public URL path. This MUST match Django's STATIC_URL.
-    publicPath: '',
+    // publicPath: '',
+    publicPath: isProduction ? '' : 'http://localhost:8080/',
     
     // Use [name]-[fullhash] for long-term caching. Django-webpack-loader needs this.
     filename: '[name]-[fullhash].js',
     assetModuleFilename: 'assets/[name]-[hash][ext]', // Organize assets into a subfolder
     clean: true,
   },
-
+  devServer: {
+    host: '0.0.0.0', // Makes the server accessible from your network
+    port: 8080,
+    // Allow the Django server to fetch assets from the dev server
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+    // Enables hot module replacement
+    hot: true,
+    // Disable the host check security feature for development
+    allowedHosts: 'all',
+  },
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
@@ -77,7 +90,8 @@ module.exports = {
         test: /\.(sa|sc|c)ss$/i,
         use: [
           // Extracts CSS into a file instead of injecting it into the DOM
-          MiniCssExtractPlugin.loader,
+          // MiniCssExtractPlugin.loader,
+          isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
           'css-loader',
           'sass-loader'
         ]
