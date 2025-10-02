@@ -1,0 +1,73 @@
+
+<div class="sense">
+  <script>var sugList = [];</script>
+  {% for sug in result.todo %}
+    {% comment %} {% include 'suggestion_'|add:sug.name|add:'.html' with sug=sug %} {% endcomment %}
+  {% endfor %}
+  {% for row in data %}
+    {% if row.clue is iterable and row.clue is not string %}
+      {% comment %} {% include 'translation.html' with row=row %} {% endcomment %}
+    {% else %}
+      {% comment %} {% include 'definition.html' with raw=row %} {% endcomment %}
+      <div class="definition">
+        <div class="word" data-lang="{{ row.term.source.lang }}">
+          <div>
+            <h1>{{ row.term.source.word }}<speech-engine word="{{ row.term.source.word  }}" lang="{{ row.term.source.lang }}"></speech-engine></h1>
+
+            {% if row.term.source.ipa %}
+              <p class="source"><span class="ipa">{{ row.term.source.ipa }}</span></p>
+            {% endif %}
+            {% if row.term.target %}
+              <p class="target"><span class="translate {{ row.term.target.lang }}">{{ row.term.target.word }}</span> <span class="ipa">{{ row.term.target.ipa }}</span></p>
+            {% endif %}
+          </div>
+          <div>
+            <p>?</p>
+          </div>
+        </div>
+        {% if result.query.is_sentence %}
+          <p>
+            {% for q in result.query.list %}
+              <a href="{% url 'definition' %}?q={{ result.query.input|urlencode }}~{{ q|urlencode }}">{{ q }}</a>
+            {% endfor %}
+          </p>
+        {% endif %}
+        {% if result.translation.alternatives %}
+          <p>
+            {% for q in result.translation.alternatives %}
+              <a href="{% url 'definition' %}?q={{ q.query|urlencode }}">{{ q.word }}</a>
+            {% endfor %}
+          </p>
+        {% endif %}
+        <div class="lexicon">
+          <div class="ads">
+            <div>ads</div>
+          </div>
+          <div class="meaning">
+            {% for clue_name, clue_object in row.clue.items %}
+              {% for grammar, define in clue_object.items %}
+                <div class="pos {{ grammar }}">
+                  <h2>{{ grammar }}</h2>
+                  <div>
+                    {% for mean in define %}
+                      <div class="{{ mean.tag|join:' ' }}">
+                        {% include "./internal_casting_mean.html" with obj=mean  %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>      
+    {% endif %}
+  {% endfor %}
+</div>
+<div class="promote">
+  <div class="ads">
+    <div>ads</div>
+  </div>
+</div>
+
+

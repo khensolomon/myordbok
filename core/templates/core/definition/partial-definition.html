@@ -1,0 +1,42 @@
+{% load custom_filters %}
+{% if obj %}
+    {% if obj|is_string %}
+      <span class="">
+        {{ obj|safe }}
+      </span>
+    {% else %}
+      <h1>???</h1>
+      {% for e in obj.items %}
+          <h1>id? {{ e.id}}</h1>
+          {% if e.sense %}
+            <div class="mean">
+                {% for eg in e.sense %}
+                  <p class="">
+                    {{ eg|safe }}
+                  </p>
+                {% endfor %}
+            </div>
+          {% endif %}
+          {% if e.exam %}
+            <ul>
+              {% for eg in e.exam %}
+                <li class="">
+                  {{ eg|safe }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+      {% endfor %}
+    {% endif %}
+{% endif %}
+
+
+{% if obj.sense %}
+  {% for ses in obj.sense %}
+    <div class="mean">
+      {% for ses in ses.mean %}
+        <p class=""></p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+{% endif %}

@@ -1,0 +1,42 @@
+{% load custom_filters %}
+{% load definition_filters %}
+
+{% if obj.sense %}
+  {% if obj.sense|is_string %}
+    <div class="mean makeup {{obj.tag|join:' '}}">
+      <p>{{ obj.sense|definition_filters }}</p>
+    </div>
+  {% else %}
+  <div class="mean {{ obj.type}}">
+  {% for sense in obj.sense %}
+      {% for mean in sense.mean %}
+        <p>{{ mean|definition_filters }}</p>
+      {% endfor %}
+      
+      {% if sense.exam %}
+        <ul class="examSub">
+          {% for exam in sense.exam %}
+            <li>{{ exam|definition_filters }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if obj.exam.value %}
+  {% if obj.exam.type == 'examWord' %}
+    <ol class="{{ obj.exam.type }}">
+      {% for word in obj.exam.value %}
+        <li><a href="{% url 'definition' %}?q={{ word|urlencode }}">{{ word }}</a></li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <ul class="{{ obj.exam.type }}">
+      {% for val in obj.exam.value %}
+        <li>{{ val|definition_filters }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endif %}

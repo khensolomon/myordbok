@@ -1,0 +1,39 @@
+<div>
+  <div class="notice">
+    {% if result.suggestion %}
+      <h1>for <q>{{ result.query.target_word }}</q></h1>
+      {% if result.messages %}
+        {% for msg in result.messages %}
+          <p>{{ msg }}</p>
+        {% endfor %}
+        {% endif %}
+      <p>at this time, see the following</p>
+      {% for row in result.suggestion %}
+        <h2>{{ row.type }}</h2>
+        <ul class="suggestion">
+          {% for word in row.value %}
+            <li><a href="{% url 'definition' %}?q={{ word|urlencode }}">{{ word }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    {% else %}
+      <h1>In order to get</h1>
+      <p>relevant definition with your query at this time</p>
+      <ul>
+        <li>try with general words!</li>
+        <li>check the spelling!</li>
+        <li>make sure that you are defining <q id="1">{{ result.query.target_word }}</q> in <em>{{ result.lang }}</em>!</li>
+      </ul>
+    {% endif %}
+  </div>
+  <div class="help">
+    <div>
+      <h2>Help us with <q>{{ result.query.target_word }}</q> definition</h2>
+      <p>
+        If you are familiar with the term <q>{{ result.query.target_word }}</q>, we kindly request your assistance in providing its definition in Myanmar using
+        <form-links type="suggestion" text="Google forms" title="ဝေါဟာရနှင့် အနက်များ" prefill="{{result.query.target_word}}">.
+      </p>
+      <p class="quote">Knowledge is information that has been passed down through generations. No one is intellectually apart from others. We are seeking your understanding of the term so that others may learn from it.</p>
+    </div>
+  </div>
+</div>

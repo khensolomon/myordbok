@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+
+
+{% block header %}
+  {% include "partials/header.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="ptl" id="content">
+  <div>
+    <div class="gads">
+      <div style="width: 100vw; height: 320px; display:none;" data-ad-client="ca-pub-2986689390924566" data-ad-slot="2945716327" data-auto-format="rspv" data-full-width>
+        <div style="overflow: hidden;"></div>
+      </div>
+    </div>
+    <div class="define {{ result.state.value }}">
+      {% if result.state == 'pleaseenter' %}
+        {% include './pleaseenter.html' %}
+      {% elif result.state == 'notfound' %}
+        {% include './notfound.html' %}
+      {% else %}
+        {% include './results.html' with data=data %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+  {% include "partials/footer.html" %}
+{% endblock %}
