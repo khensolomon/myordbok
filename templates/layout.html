@@ -5,86 +5,77 @@
 {% load webpack_static from webpack_loader %}
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="{{ themeMode }}">
-    {% block head %}
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="robots" content="index, follow">
-        <meta name="author" content="Khen Solomon Lethil">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="red">
-        <meta name="theme-color" content="{{ themeColor }}">
+	{% block head %}
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="robots" content="index, follow">
+		<meta name="author" content="Khen Solomon Lethil">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="red">
+		<meta name="theme-color" content="{{ themeColor }}">
 
-        {% if title %}
-            <title>{{ title }}</title>
-        {% else %}
-            <title>MyOrdbok</title>
-        {% endif %}
-        {% if keywords %}
-            <meta name="keywords" content="{{ keywords }}">
-        {% endif %}
+		<title>
+				{% block title %}{% if title %}{{ title }}{% else %}{{ appName }}{% endif %}{% endblock %}
+		</title>
+		{% if block.super or keywords %}
+				<meta name="keywords" content="{% block keywords %}{{ keywords }}{% endblock %}">
+		{% endif %}
 
-        {% if description %}
-            <meta name="description" content="{{ description }}">
-        {% endif %}
+		{% if block.super or description %}
+				<meta name="description" content="{% block description %}{{ description }}{% endblock %}">
+		{% endif %}
 
-        <meta name="application-name" content="{{ appName }}" data-version="{{ appVersion }}">
-        <base href="/">
+		<meta name="application-name" content="{{ appName }}" data-version="{{ appVersion }}">
+		<base href="/">
 
-  
-        <link rel="icon" href="{% webpack_static 'favicon.png' %}" type="image/png">
-        <meta property="og:image" content="{% webpack_static 'screenshot-home.png' %}">
+		<link rel="icon" href="{% webpack_static 'favicon.png' %}" type="image/png">
+		<meta property="og:image" content="{% webpack_static 'screenshot-home.png' %}">
 
-        {% if revised %}<meta name="revised" content="{{ revised }}">{% endif %}
+		{% if revised %}<meta name="revised" content="{{ revised }}">{% endif %}
 
-        <link rel="apple-touch-icon" sizes="180x180" href="{% webpack_static 'apple-touch-icon.png' %}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{% webpack_static 'favicon-32x32.png' %}">
-        <link rel="icon" type="image/png" sizes="16x16" href="{% webpack_static 'favicon-16x16.png' %}">
-        <link rel="manifest" href="{% webpack_static 'app.webmanifest' %}">
+		<link rel="apple-touch-icon" sizes="180x180" href="{% webpack_static 'apple-touch-icon.png' %}">
+		<link rel="icon" type="image/png" sizes="32x32" href="{% webpack_static 'favicon-32x32.png' %}">
+		<link rel="icon" type="image/png" sizes="16x16" href="{% webpack_static 'favicon-16x16.png' %}">
+		<link rel="manifest" href="{% webpack_static 'app.webmanifest' %}">
 
-        <style>
-            @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap');
-        </style>
+		<style>
+				@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap');
+		</style>
 
-        {% comment %} <script src="https://cdn.jsdelivr.net/npm/vue@3.5.20/dist/vue.global.prod.js"></script> {% endcomment %}
-        <script src="https://cdn.jsdelivr.net/npm/vue@3.5.20/dist/vue.global.prod.js"></script>
-        {% render_bundle 'main' 'css' %}
-        {% block scriptSuggestion %}{% endblock %}
-    </head>
-    {% endblock %}
-    <body class="{{ pageClass|default:'myordbok' }}">
-        <div id="myordbok" class="primary">
-            {% block bar %}
-                <div id="bar" class="ptl">
-                    <div class="ltrt">
-                        <div class="navigate">
-                            <div class="column one">
-                                {% include 'partials/bar-page.html' %}
-                            </div>
-                            <div class="column two">
-                                {% include 'partials/bar-user.html' %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endblock %}
+		{% comment %} <script src="https://cdn.jsdelivr.net/npm/vue@3.5.20/dist/vue.global.prod.js"></script> {% endcomment %}
+		<script src="https://cdn.jsdelivr.net/npm/vue@3.5.20/dist/vue.global.prod.js"></script>
+		{% render_bundle 'main' 'css' %}
+		{% block scriptSuggestion %}{% endblock %}
+	</head>
+	{% endblock %}
+	<body class="{{ pageClass|default:'myordbok' }}">
+	<div id="myordbok" class="primary">
+			{% block bar %}
+				<div id="bar" class="ptl">
+					<div class="ltrt">
+						<div class="navigate">
+							<div class="column one">
+								{% include 'partials/bar-page.html' %}
+							</div>
+						<div class="column two">
+									{% include 'partials/bar-user.html' %}
+							</div>
+						</div>
+					</div>
+				</div>
+			{% endblock %}
 
-            {% block header %}
-                {% include "partials/header.html" %}
-            {% endblock %}
+			{% block header %}{% endblock %}
+			{% block content %}{% endblock %}
+			{% block footer %}{% endblock %}
 
-            {% block content %}{% endblock %}
-
-            {% block footer %}
-                {% include "partials/footer.html" %}
-            {% endblock %}
-
-            {% block consent %}
-                <div id="consent" class="ptl">
-                    <cookie-consent name="cookie" act="Ok"></cookie-consent>
-                </div>
-            {% endblock %}        
-        </div>
-        {% render_bundle 'main' 'js' %}
-    </body>
+			{% block consent %}
+				<div id="consent" class="ptl">
+					<cookie-consent name="cookie" act="Ok"></cookie-consent>
+				</div>
+			{% endblock %}        
+		</div>
+		{% render_bundle 'main' 'js' %}
+	</body>
 </html>
