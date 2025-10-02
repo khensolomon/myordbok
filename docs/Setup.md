@@ -58,24 +58,6 @@ import nltk
 nltk.download('wordnet')
 ```
 
-## clearcache
-
-Clear Everything:
-
-```bash
-python manage.py clearcache
-```
-
-Clear a Specific Word:
-
-```bash
-# To clear the cache for the English word "love"
-python manage.py clearcache --word="love" --lang="en"
-
-# To clear the cache for the Norwegian word "avbilde"
-python manage.py clearcache --word="avbilde" --lang="no"
-```
-
 Import and Export
 
 ```bash
