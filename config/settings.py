@@ -177,6 +177,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STORAGE_DIR = config('STORAGE_DIR', default=os.path.join('/','storage'))
 FONTS_DIR = os.path.join(STORAGE_DIR, 'media', 'fonts')
 SPEECH_URL = config('SPEECH_URL')
+CACHE_DIR = config('CACHE_DIR', default=os.path.join('/','storage','cache'))
 
 LOGGING = {
     'version': 1,
@@ -202,7 +203,6 @@ CACHES = {
     # }
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': './cache/tmp',
-        # 'LOCATION': 'c:/tmp/django_cache',
+        'LOCATION': CACHE_DIR
     }
 }
