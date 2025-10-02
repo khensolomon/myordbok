@@ -1,6 +1,6 @@
 """
-python manage.py format_tag "I love <python/django> and [list:framework/library]"
-python manage.py format_tag --file ./cache/test-format-tag.txt
+python manage.py parse_format_tag "I love <python/django> and [list:framework/library]"
+python manage.py parse_format_tag --file ./cache/test-format-tag.txt
 
 this is an <example> with a [or:link/tw]
 """
