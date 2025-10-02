@@ -19,6 +19,27 @@ in compounds such as <~ကတိုး/~ကတစ်>
 [also:ဒုဗ္ဘိက္ခန္တရကပ်/သတ္ထန္တရကပ်/ရောဂန္တရကပ်]
 [see:ခေါင်းတုံး]
 [eg:example;usage]
+[etc:learning/adventure/nature]
+[with:passionate]
+(~ [taking/accepting] somebody)
+[sing] ဒေါသထွက်ခြင်း
+[sing] ~ for sth မက်မောခြင်း
+[as in:chess] ကျားကစားရာတွင်ကင်း
+fly into a passion (ie become very angry).
+
+<first/greatest>
+accredit <school/course>
+<play/love>
+(~ sb as sth)
+(~ no <passive>, sometimes in the -ing form to indicate an intention or arrangement for the future)
+(indicating a relationship) I have two sisters.
+
+(~ used with <n> and <past participle>)
+(~ used with <n> and <past participle>)
+(~ used in , esp after <will not/cannot> etc)
+(~ no <passive>)
+(~ 3rd pers sing prest ~ has/had to) (~ in , or <question>, usually formed with <do>)
+(~ esp <ironic>)
 
 take part in games <football/volleyball>
 
