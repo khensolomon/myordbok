@@ -1,0 +1,274 @@
+{
+  "page": [
+    {
+      "sectionType": "header",
+      "title": "✨ Sponsors",
+      "description": [
+        "Thank you for your incredible support! MyOrdbok has been a labor of love for over a decade, built on countless hours during holidays and free time.",
+        "",
+        "While largely a solo effort with significant server costs, the generous support from users like you is what makes its continued development possible.",
+        "",
+        "As of **{last_updated}**, **{total_contributions}** donations have been made, summing to **${total_amount_usd}**."
+      ]
+    },
+    {
+      "sectionType": "donorList",
+      "title": "🏆 Recent",
+      "description": "A special thank you to our most significant recent supporters.",
+      "filters": [
+        { "field": "year", "condition": "==", "value": "current_year" },
+        { "field": "amount", "condition": ">=", "value": 500 }
+      ],
+      "displayOptions": { "sortBy": "amount", "sortOrder": "descending" }
+    },
+    {
+      "sectionType": "summary",
+      "title": "📊 Statistics",
+      "description": "Here is a look at the project's financial support over time.",
+      "calculation": [
+        {
+          "type": "sum_amount",
+          "displayText": "- **This Year ({year})**: **${total_amount}** received from **{count}** contributions.",
+          "filters": [
+            { "field": "year", "condition": "==", "value": "current_year" }
+          ]
+        },
+        {
+          "type": "sum_amount",
+          "displayText": "- **2010**: **${total_amount}** received.",
+          "filters": [
+            { "field": "year", "condition": "==", "value": 2010 }
+          ]
+        }
+      ]
+    },
+    {
+      "sectionType": "donorList",
+      "title": "📜 History",
+      "description": "We're grateful for everyone who has supported us on this long journey. Every contribution has made a difference.",
+      "groupBy": "year",
+      "groupByTitle": "### {year}"
+    },
+    {
+      "sectionType": "footer",
+      "title": "Contribution",
+      "description": [
+        "If you find MyOrdbok useful, please consider supporting its development.",
+        "",
+        "- [Sponsor via PayPal](https://www.paypal.com/donate?hosted_button_id=C9PDG3T47WJ26&submit=)",
+        "- [Sponsor via GitHub Sponsors](https://github.com/sponsors/khensolomon)",
+        "",
+        "This list is maintained with care to ensure its accuracy. Should you find your contribution is missing or your name is displayed incorrectly, please don't hesitate to reach out so I can make the necessary update.",
+        "",
+        "You may also see partial or abbreviated names; this honors a donor's request for privacy while still acknowledging their valued contribution.",
+        "",
+        "*For full transparency, the totals shown reflect the final amounts received by the project after standard payment processing fees.*",
+        "",
+        "Thank you for being a part of the MyOrdbok journey! 🙏"
+      ]
+    }
+  ],
+  "donations": [
+    {
+      "id": "6",
+      "date": "2025-09-28",
+      "amount": 979.40,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "6",
+      "date": "2025-08-19",
+      "amount": 93.36,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2025-08-11",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2025-03-08",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-12-26",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "5",
+      "date": "2024-03-10",
+      "amount": 5.2,
+      "platformId": 5,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-12-03",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-11-02",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-05-14",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-03-23",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2024-01-26",
+      "amount": 4.89,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2023-12-12",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2023-09-17",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2023-07-07",
+      "amount": 6.85,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2023-05-10",
+      "amount": 4.89,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2023-02-11",
+      "amount": 4.43,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "4",
+      "date": "2022-08-13",
+      "amount": 1.59,
+      "platformId": 1,
+      "recurring": false
+    },
+    {
+      "id": "3",
+      "date": "2011-05-11",
+      "amount": 100,
+      "platformId": 3,
+      "recurring": false
+    },
+    {
+      "id": "2",
+      "date": "2010-03-14",
+      "amount": 112,
+      "platformId": 4,
+      "recurring": false
+    }
+  ],
+  "donors": [
+    {
+      "id": "1",
+      "displayName": "Khen Solomon Lethil",
+      "url": "",
+      "avatarUrl": "https://github.com/octocat.png?size=24",
+      "displayConsent": true,
+      "internalNotes": ""
+    },
+    {
+      "id": "2",
+      "displayName": "Sukte",
+      "url": "",
+      "avatarUrl": "",
+      "displayConsent": true,
+      "internalNotes": "Wishes to remain anonymous"
+    },
+    {
+      "id": "3",
+      "displayName": "Victor",
+      "url": "",
+      "avatarUrl": "",
+      "displayConsent": true,
+      "internalNotes": "Wishes to remain anonymous."
+    },
+    {
+      "id": "4",
+      "displayName": "Su Sone",
+      "url": "",
+      "avatarUrl": "",
+      "displayConsent": false,
+      "internalNotes": "Wishes to remain anonymous."
+    },
+    {
+      "id": "5",
+      "displayName": "t1hta",
+      "displayConsent": true,
+      "internalNotes": "Wishes to remain anonymous."
+    },
+    {
+      "id": "6",
+      "displayName": "NaS",
+      "displayConsent": true,
+      "internalNotes": "Wishes to remain anonymous."
+    }
+  ],
+  "platforms": [
+    {
+      "id": 1,
+      "name": "PayPal"
+    },
+    {
+      "id": 2,
+      "name": "Stripe"
+    },
+    {
+      "id": 3,
+      "name": "Bank"
+    },
+    {
+      "id": 4,
+      "name": "Cash"
+    },
+    {
+      "id": 5,
+      "name": "GS"
+    }
+  ]
+}
