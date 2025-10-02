@@ -108,6 +108,28 @@ div {
 	}
 }
 
+.ipa{
+	// font-style: normal;
+	font-weight: normal;
+	font-size: 90%;
+	color: rgba(var(--color-text), 0.5);
+	&::before,
+	&::after {
+		// font-style: normal;
+		// color: rgba(var(--color-highlight), 0.5);
+		color: rgba(var(--color-text), 0.5);
+		// font-size: 100%;
+		font-weight: normal;
+		font-style: normal;
+	}
+	&::before {
+		content: "/";
+	}
+	&::after {
+		content: "/";
+	}
+}
+
 // form{
 //   input{
 //     &[type="checkbox"]{
