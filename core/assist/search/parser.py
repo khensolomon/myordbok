@@ -1,9 +1,13 @@
 """
-version: 2025.09.17.4
+version: 2025.09.27.5
 
 Recent Updates:
-- Added a new `find_root_form` function to handle contractions and other
-  patterns in an expandable, regex-based way.
+- Refactored the parser to use a new common helper function,
+  `_format_exam_tag`, for handling rich text formatting.
+- Both `parse_sense_field` and `parse_exam_field` now use this common
+  function, eliminating code duplication and improving maintainability.
+- `parse_exam_field` is now capable of parsing rich text tags into a
+  flat list of strings, as requested.
 """
 import re
 
@@ -29,61 +33,80 @@ def find_root_form(word):
     
     return None
 
+def _split_by_delimiters(raw_text):
+    """
+    (Core Logic) The simplest reusable function. Splits a raw string by
+    semicolons or newlines and returns a clean list of non-empty strings.
+    """
+    if not raw_text:
+        return []
+    items = re.split(r'[;\n]', raw_text)
+    return [item.strip() for item in items if item.strip()]
+
+def _format_exam_tag(key, value):
+    """
+    (Core Logic) Formats a single key-value pair from an exam tag
+    into a display-ready string (e.g., '~ <link>').
+    Returns the formatted string, or None if the tag is invalid.
+    """
+    if not value and key == '':
+        return None
+
+    if '<' in value and '>' in value:
+        links_str = value
+    else:
+        links = value.split('/')
+        links_str = ", ".join([f"<{link.strip()}>" for link in links if link.strip()])
+
+    if not links_str:
+        return None
+
+    if key == '~':
+        return f"~ {links_str}"
+    elif key in ('or', 'and'):
+        link_parts = [f"<{link.strip()}>" for link in value.split('/') if link.strip()]
+        if len(link_parts) > 1:
+            return f"{', '.join(link_parts[:-1])} {key} {link_parts[-1]}"
+        else:
+            return links_str
+    elif key == 'etc':
+        return f"{links_str}, etc."
+    else:  # Handles empty key and any other key
+        return links_str
+
 def parse_sense_field(raw_text):
     """
-    Parses a raw sense string into a structured list of meanings and examples,
-    handling custom formatting like [key:value] and <links>.
+    (Shell) Parses a raw sense string into a structured list of meanings
+    and examples. It separates definition text from exam tags.
     """
-    # ... (existing implementation)
     if not raw_text:
         return [{"mean": [], "exam": []}]
 
-    sense_groups = re.split(r'[;\n]', raw_text)
+    sense_groups = _split_by_delimiters(raw_text)
+    
     parsed_data = []
     current_meanings = []
 
     for group in sense_groups:
-        group = group.strip()
-        if not group: continue
-
-        # Handle type tags like [type:mathematics]
         type_tag_match = re.match(r'\[type:([^\]]+)\](.*)', group)
         if type_tag_match:
             tag = type_tag_match.group(1).strip()
             text = type_tag_match.group(2).strip()
             current_meanings.append(f"<{tag}> {text}")
             continue
+        
+        exam_pattern = re.compile(r'\[([^:\]\[]*):([^\]\[]*)\]')
+        exam_matches = exam_pattern.findall(group)
+        mean_text = exam_pattern.sub('', group).strip()
 
-        # Handle exam tags like [:...], [or:...], etc.
-        exam_matches = re.findall(r'\[([^:]*):([^\]]*)\]', group)
         exam_parts = []
         for key, value in exam_matches:
-            # Check if value already contains angle brackets
-            if '<' in value and '>' in value:
-                links_str = value
-            else:
-                links = value.split('/')
-                links_str = ", ".join([f"<{link.strip()}>" for link in links])
-            
-            if key == '~':
-                exam_parts.append(f"~ {links_str}")
-            elif key in ('or', 'and'):
-                # Special handling for or/and to create a sentence
-                link_parts = [f"<{link.strip()}>" for link in value.split('/')]
-                if len(link_parts) > 1:
-                    exam_parts.append(f"{', '.join(link_parts[:-1])} {key} {link_parts[-1]}")
-                else:
-                    exam_parts.append(links_str)
-            elif key == 'etc':
-                 exam_parts.append(f"{links_str}, etc.")
-            else: # Handles empty key and any other key
-                exam_parts.append(links_str)
+            formatted_tag = _format_exam_tag(key, value)
+            if formatted_tag:
+                exam_parts.append(formatted_tag)
 
-        mean_text = re.sub(r'\[([^:]*):([^\]]*)\]', '', group).strip()
-        
         if mean_text:
             if current_meanings:
-                # Attach previous meanings to this new block
                 parsed_data.append({"mean": current_meanings, "exam": []})
                 current_meanings = []
             
@@ -92,25 +115,38 @@ def parse_sense_field(raw_text):
                 "exam": exam_parts
             })
         elif exam_parts:
-             # This is a line with only an exam part
              if parsed_data:
                  parsed_data[-1]['exam'].extend(exam_parts)
              else:
                  parsed_data.append({"mean": [], "exam": exam_parts})
-
 
     if current_meanings:
          parsed_data.append({"mean": current_meanings, "exam": []})
 
     return parsed_data if parsed_data else [{"mean": [raw_text], "exam": []}]
 
+
 def parse_exam_field(raw_text):
     """
-    Parses a raw exam string from the database into a list of sentences.
-    Splits by both semicolons and newlines.
+    (Shell) Parses a raw exam string, including special formatting, into a
+    simple list of fully formatted sentences. It integrates exam tags into the text.
     """
-    if not raw_text:
-        return []
-    items = re.split(r'[;\n]', raw_text)
-    return [item.strip() for item in items if item.strip()]
+    groups = _split_by_delimiters(raw_text)
+    formatted_groups = []
+    exam_pattern = re.compile(r'\[([^:\]\[]*):([^\]\[]*)\]')
+
+    for group in groups:
+        def replacer(match):
+            key, value = match.groups()
+            formatted_tag = _format_exam_tag(key, value)
+            return formatted_tag if formatted_tag is not None else ''
+
+        # Replace all occurrences of the pattern with their formatted versions
+        formatted_group = exam_pattern.sub(replacer, group)
+        # Clean up extra whitespace that can result from replacements
+        formatted_group = ' '.join(formatted_group.split()).strip()
+        if formatted_group:
+            formatted_groups.append(formatted_group)
+
+    return formatted_groups
 
