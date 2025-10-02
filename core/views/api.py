@@ -52,6 +52,7 @@ class SearchEngineAPIView(APIView):
     Accepts a 'q' query parameter.
     e.g., /api/search/?q=love
     e.g., /api/search/?q=love&l=en
+    e.g., /api/search/?q=øvelses&l=no
     e.g., /api/search/?q=knowledge is power~power
     """
 
