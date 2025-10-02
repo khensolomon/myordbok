@@ -9,9 +9,9 @@
 - [ ] ...suggestions
 - [ ] ...result template
 - Chain
-  - [ ] fields parser
+  - [x] fields parser
   - [x] include MED thesaurus in OME
-  - [ ] add OMV OVE
+  - [x] add OMV OVE
 - /
   - /myanmar-fonts
     - [ ] Fonts
@@ -33,8 +33,8 @@
   - [x] /terms
   - [x] /cookie-policy
 - Management command
-  - [ ] log
-  - [ ] sol.detail (dictionary status)
+  - [x] log
+  - [x] sol.detail (dictionary status)
 - Improvement
   - Database Performance
     - _Right now, every search performs multiple database queries. For a small dataset, this is fine. For a dictionary with millions of entries, this will become a bottleneck. We are making good use of select_related, but we could be even more efficient by reviewing our database indexes to ensure they perfectly match our most common query patterns._
