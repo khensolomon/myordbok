@@ -58,14 +58,15 @@ import nltk
 nltk.download('wordnet')
 ```
 
-Import and Export
+## Backup
+
+...import and export
 
 ```bash
+# clears all data but keeps schema
+python manage.py flush
+
 python manage.py dumpdata > full_backup.json
-python manage.py dumpdata --exclude contenttypes --exclude auth.Permission > full_backup.json
-
-
-python manage.py dumpdata --exclude contenttypes --exclude sessions --exclude admin.LogEntry > cache/backups/full_backup.json
 
 # Export all data from the 'products' and 'auth' apps
 python manage.py dumpdata products auth > backup.json
@@ -77,12 +78,8 @@ python manage.py dumpdata products.Product > products_backup.json
 python manage.py dumpdata --format=xml products > backup.xml
 
 # Import the data from your backup file
-python manage.py loaddata backup.json
-
-python manage.py migrate
-
 python manage.py loaddata databackup.json
-
-python -X utf8 manage.py dumpdata --exclude contenttypes --exclude sessions --exclude admin.LogEntry > cache/backups/full_backup.json
+python -X utf8  manage.py loaddata cache/backups/full_backup.json
+python -X utf8 manage.py dumpdata --exclude contenttypes --exclude auth.Permission --exclude sessions --exclude admin.LogEntry > cache/backups/full_backup.json
 
 ```
