@@ -20,6 +20,11 @@ def invalidate_oem_cache(sender, instance, **kwargs):
     """
     Invalidates the cache for an English word when its sense is updated.
     """
+    # This check safely handles both post_save and post_delete.
+    # 'raw' will be True during loaddata, but won't exist for post_delete.
+    if kwargs.get('raw'):
+        return
+    
     if hasattr(instance, 'word') and instance.word:
         word = instance.word.lower()
         cache_key = f"search:en:{word}"
@@ -32,6 +37,11 @@ def invalidate_ome_cache(sender, instance, **kwargs):
     """
     Invalidates the cache for a Myanmar word when its sense is updated.
     """
+    # This check safely handles both post_save and post_delete.
+    # 'raw' will be True during loaddata, but won't exist for post_delete.
+    if kwargs.get('raw'):
+        return
+    
     if hasattr(instance, 'wrid') and hasattr(instance.wrid, 'word') and instance.wrid.word:
         word = instance.wrid.word.lower()
         cache_key = f"search:my:{word}"
@@ -44,6 +54,11 @@ def invalidate_ord_cache(sender, instance, **kwargs):
     A generic handler for all ORD models. Invalidates the cache for a
     source-language word when its translation is updated.
     """
+    # This check safely handles both post_save and post_delete.
+    # 'raw' will be True during loaddata, but won't exist for post_delete.
+    if kwargs.get('raw'):
+        return
+    
     if hasattr(instance, 'word') and instance.word:
         # We need to figure out the language from the model's table name
         lang_id = sender._meta.db_table.replace('ord_', '').lower()
