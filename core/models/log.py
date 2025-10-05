@@ -42,7 +42,7 @@ class LogSearch(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'log_search'
         # A unique constraint ensures we don't have duplicate rows for the same word in the same language.
         unique_together = ('word', 'lang')

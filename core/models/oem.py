@@ -11,7 +11,7 @@ class TypeWord(models.Model):
     shortname = models.CharField(max_length=5, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'type_word'
 
     def __str__(self):
@@ -24,7 +24,7 @@ class TypeDerived(models.Model):
     derivation = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'type_derived'
 
     def __str__(self):
@@ -35,7 +35,7 @@ class TypeTerm(models.Model):
     name = models.CharField(max_length=250, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'type_term'
         
     def __str__(self):
@@ -54,7 +54,7 @@ class OemSpelling(models.Model):
     equivalent = models.CharField(max_length=255)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_spelling'
         verbose_name = "OEM Spelling Correction"
         verbose_name_plural = "OEM Spelling Corrections"
@@ -73,7 +73,7 @@ class OemWord(models.Model):
     antonyms = models.ManyToManyField('self', through='OemAntonym', symmetrical=False, related_name='related_antonym_entries')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_word'
 
     def __str__(self):
@@ -82,16 +82,16 @@ class OemWord(models.Model):
 class OemSense(models.Model):
     """Represents a specific sense or definition of a word."""
     word = models.CharField(max_length=250, blank=True, null=True, db_index=True)
-    wrte = models.ForeignKey(TypeWord, on_delete=models.CASCADE, db_column='wrte')
+    wrte = models.ForeignKey(TypeWord, on_delete=models.SET_NULL, db_column='wrte', null=True, blank=True)
     sense = models.TextField(blank=True, null=True)
     exam = models.TextField(blank=True, null=True)
     wseq = models.IntegerField(default=0)
     wrkd = models.IntegerField(default=0, help_text="Corresponds to type_sense.id in the original schema")
-    wrid = models.ForeignKey(OemWord, on_delete=models.CASCADE, db_column='wrid')
+    wrid = models.ForeignKey(OemWord, on_delete=models.SET_NULL, db_column='wrid', null=True, blank=True)
     dated = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_sense'
         ordering = ['wseq']
 
@@ -102,12 +102,12 @@ class OemDerived(models.Model):
     """Maps a base word to its derived form (e.g., love -> loved)."""
     base_word = models.ForeignKey(OemWord, on_delete=models.CASCADE, related_name='base_word_mappings')
     derived_word = models.ForeignKey(OemWord, on_delete=models.CASCADE, related_name='derived_word_mappings')
-    dete = models.ForeignKey(TypeDerived, on_delete=models.CASCADE, db_column='dete')
+    dete = models.ForeignKey(TypeDerived, on_delete=models.SET_NULL, db_column='dete', null=True, blank=True)
     wrig = models.IntegerField(default=0, help_text="Irregular flag")
-    wrte = models.ForeignKey(TypeWord, on_delete=models.CASCADE, db_column='wrte')
+    wrte = models.ForeignKey(TypeWord, default=0, on_delete=models.CASCADE, db_column='wrte')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_derived'
 
 # Through model for Thesaurus ManyToMany relationship
@@ -116,9 +116,9 @@ class OemThesaurus(models.Model):
     to_word = models.ForeignKey(OemWord, on_delete=models.CASCADE, db_column='wlid', related_name='to_thesaurus')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_thesaurus'
-        unique_together = ('from_word', 'to_word')
+        # unique_together = ('from_word', 'to_word')
 
 # Through model for Similar ManyToMany relationship
 class OemSimilar(models.Model):
@@ -126,9 +126,9 @@ class OemSimilar(models.Model):
     to_word = models.ForeignKey(OemWord, on_delete=models.CASCADE, db_column='wlid', related_name='to_similar')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_similar'
-        unique_together = ('from_word', 'to_word')
+        # unique_together = ('from_word', 'to_word')
 
 # Through model for Antonym ManyToMany relationship
 class OemAntonym(models.Model):
@@ -136,6 +136,6 @@ class OemAntonym(models.Model):
     to_word = models.ForeignKey(OemWord, on_delete=models.CASCADE, db_column='wlid', related_name='to_antonym')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'oem_antonym'
-        unique_together = ('from_word', 'to_word')
+        # unique_together = ('from_word', 'to_word')

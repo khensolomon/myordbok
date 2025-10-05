@@ -10,7 +10,7 @@ class OmeWord(models.Model):
     cate_count = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ome_word'
 
 class OmeSense(models.Model):
@@ -29,7 +29,7 @@ class OmeSense(models.Model):
     dated = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ome_sense'
 
 class OmeReference(models.Model):
@@ -39,7 +39,7 @@ class OmeReference(models.Model):
     variant = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ome_reference'
 
 class OmeThesaurus(models.Model):
@@ -48,5 +48,5 @@ class OmeThesaurus(models.Model):
     cate = models.ForeignKey('TypeWord', models.DO_NOTHING, db_column='cate', blank=True, null=True, db_comment='category')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ome_thesaurus'

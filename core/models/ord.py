@@ -9,7 +9,7 @@ class OrdAR(OrdAbstractBase):
     Arabic (ar)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ar"
 
 class OrdDA(OrdAbstractBase):
@@ -17,7 +17,7 @@ class OrdDA(OrdAbstractBase):
     Danish (da)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_da"
 
 class OrdDE(OrdAbstractBase):
@@ -25,7 +25,7 @@ class OrdDE(OrdAbstractBase):
     German (de)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_de"
 
 class OrdEL(OrdAbstractBase):
@@ -33,7 +33,7 @@ class OrdEL(OrdAbstractBase):
     Greek (el)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_el"
 
 class OrdEN(OrdAbstractBase):
@@ -41,7 +41,7 @@ class OrdEN(OrdAbstractBase):
     English (en)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_en"
 
 class OrdES(OrdAbstractBase):
@@ -49,7 +49,7 @@ class OrdES(OrdAbstractBase):
     Spanish (es)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_es"
 
 class OrdFI(OrdAbstractBase):
@@ -57,7 +57,7 @@ class OrdFI(OrdAbstractBase):
     Finnish (fi)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_fi"
 
 class OrdFR(OrdAbstractBase):
@@ -65,7 +65,7 @@ class OrdFR(OrdAbstractBase):
     French (fr)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_fr"
 
 class OrdHI(OrdAbstractBase):
@@ -73,7 +73,7 @@ class OrdHI(OrdAbstractBase):
     Hindi (hi)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_hi"
 
 class OrdIW(OrdAbstractBase):
@@ -81,7 +81,7 @@ class OrdIW(OrdAbstractBase):
     Hebrew (iw)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_iw"
 
 class OrdJA(OrdAbstractBase):
@@ -89,7 +89,7 @@ class OrdJA(OrdAbstractBase):
     Japanese (ja)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ja"
 
 class OrdKO(OrdAbstractBase):
@@ -97,7 +97,7 @@ class OrdKO(OrdAbstractBase):
     Korean (ko)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ko"
 
 class OrdMS(OrdAbstractBase):
@@ -105,7 +105,7 @@ class OrdMS(OrdAbstractBase):
     Malay (ms)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ms"
 
 class OrdNL(OrdAbstractBase):
@@ -113,7 +113,7 @@ class OrdNL(OrdAbstractBase):
     Dutch (nl)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_nl"
 
 class OrdNO(OrdAbstractBase):
@@ -121,7 +121,7 @@ class OrdNO(OrdAbstractBase):
     Norwegian (no)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_no"
 
 class OrdPL(OrdAbstractBase):
@@ -129,7 +129,7 @@ class OrdPL(OrdAbstractBase):
     Polish (pl)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_pl"
 
 class OrdPT(OrdAbstractBase):
@@ -137,7 +137,7 @@ class OrdPT(OrdAbstractBase):
     Portuguese (pt)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_pt"
 
 class OrdRO(OrdAbstractBase):
@@ -145,7 +145,7 @@ class OrdRO(OrdAbstractBase):
     Romanian (ro)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ro"
 
 class OrdRU(OrdAbstractBase):
@@ -153,7 +153,7 @@ class OrdRU(OrdAbstractBase):
     Russian (ru)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_ru"
 
 class OrdSV(OrdAbstractBase):
@@ -161,7 +161,7 @@ class OrdSV(OrdAbstractBase):
     Swedish (sv)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_sv"
 
 class OrdTH(OrdAbstractBase):
@@ -169,7 +169,7 @@ class OrdTH(OrdAbstractBase):
     Thai (th)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_th"
 
 class OrdTL(OrdAbstractBase):
@@ -177,7 +177,7 @@ class OrdTL(OrdAbstractBase):
     Filipion (tl)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_tl"
 
 class OrdVI(OrdAbstractBase):
@@ -185,7 +185,7 @@ class OrdVI(OrdAbstractBase):
     Vietnamese (vi)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_vi"
 
 class OrdZH(OrdAbstractBase):
@@ -193,6 +193,6 @@ class OrdZH(OrdAbstractBase):
     Chinese (zh)
     """
     class Meta:
-        managed = False
+        managed = True
         db_table = "ord_zh"
 

@@ -51,7 +51,7 @@ class OrdAbstractBase(models.Model):
     )
 
     class Meta:
-        managed = False # Django will not create or modify these tables
+        managed = True # Django will not create or modify these tables
         abstract = True
 
 
