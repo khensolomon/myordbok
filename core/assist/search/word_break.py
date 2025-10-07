@@ -4,7 +4,7 @@ Morphological Deconstructor for English Words.
 This script provides a class, WordBreak, that breaks down English words
 into their constituent parts: prefixes, roots, and suffixes.
 
-Version: 2025.09.17.8
+version: 2025.09.17.8
 """
 import re
 import os
