@@ -48,6 +48,13 @@ python -m ensurepip --upgrade
 
 
 python -m pip install --upgrade pip
+
+# No module named pip
+sudo apt update
+sudo apt install python3-pip
+sudo apt update
+sudo apt install python3-dev default-libmysqlclient-dev build-essential pkg-config
+
 ```
 
 ## NLTK
