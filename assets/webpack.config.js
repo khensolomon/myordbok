@@ -1,110 +1,145 @@
-const path = require('path');
-const BundleTracker = require('webpack-bundle-tracker');
-const { VueLoaderPlugin } = require('vue-loader');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const isProduction = process.env.NODE_ENV === 'production';
+const path = require("path");
+const BundleTracker = require("webpack-bundle-tracker");
+const { VueLoaderPlugin } = require("vue-loader");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const isProduction = process.env.NODE_ENV === "production";
 
 module.exports = {
-  // The base directory for resolving entry points and loaders
-  context: __dirname,
-  mode: 'development',
+	// The base directory for resolving entry points and loaders
+	context: __dirname,
+	mode: "development",
 
-  // The entry point for your application
-  entry: {
-    // The key 'main' is what we will reference in Django templates
-    main: './webpack/index.js'
-  },
+	// The entry point for your application
+	entry: {
+		// The key 'main' is what we will reference in Django templates
+		main: "./webpack/index.js",
+	},
 
-  // How and where webpack emits results
-  output: {
-    // The target directory for all output files
-    // path: path.resolve(__dirname, '../core/static/core/bundles/'),
-    // path: path.resolve(__dirname, '/static/bundles/'),
+	// How and where webpack emits results
+	output: {
+		// The target directory for all output files
+		// path: path.resolve(__dirname, '../core/static/core/bundles/'),
+		// path: path.resolve(__dirname, '/static/bundles/'),
 
-    // The physical path where compiled files will be placed.
-    // We'll use a new 'dist' folder inside 'assets'.
-    // path: path.resolve(__dirname, 'dist/'),
-    path: path.resolve(__dirname, '../static/'),
+		// The physical path where compiled files will be placed.
+		// We'll use a new 'dist' folder inside 'assets'.
+		// path: path.resolve(__dirname, 'dist/'),
+		path: path.resolve(__dirname, "../static/"),
 
-    // The public URL of the output directory when referenced in a browser
-    // Must match Django's STATIC_URL + BUNDLE_DIR_NAME
-    // publicPath: '/static/core/bundles/',
-    // publicPath: '/static/bundles/',
-    // The public URL path. This MUST match Django's STATIC_URL.
-    // publicPath: '',
-    publicPath: isProduction ? '' : 'http://localhost:8080/',
-    
-    // Use [name]-[fullhash] for long-term caching. Django-webpack-loader needs this.
-    filename: '[name]-[fullhash].js',
-    assetModuleFilename: 'assets/[name]-[hash][ext]', // Organize assets into a subfolder
-    clean: true,
-  },
-  devServer: {
-    host: '0.0.0.0', // Makes the server accessible from your network
-    port: 8080,
-    // Allow the Django server to fetch assets from the dev server
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-    // Enables hot module replacement
-    hot: true,
-    // Disable the host check security feature for development
-    allowedHosts: 'all',
-  },
-  resolve: {
-    extensions: ['.js', '.vue', '.json'],
-    alias: {
-      // Use the bundler-aware version of Vue
-      'vue$': 'vue/dist/vue.esm-bundler.js'
-    }
-  },
+		// The public URL of the output directory when referenced in a browser
+		// Must match Django's STATIC_URL + BUNDLE_DIR_NAME
+		// publicPath: '/static/core/bundles/',
+		// publicPath: '/static/bundles/',
+		// The public URL path. This MUST match Django's STATIC_URL.
+		// publicPath: '',
+		publicPath: isProduction ? "" : "http://localhost:8080/",
 
-  plugins: [
-    // This plugin is essential for django-webpack-loader to work.
-    new BundleTracker({
-      path: path.resolve(__dirname, '../static/'),
-      filename: 'webpack-stats.json'
-    }),
-    
-    // This plugin is required to handle .vue files
-    new VueLoaderPlugin(),
+		// Use [name]-[fullhash] for long-term caching. Django-webpack-loader needs this.
+		filename: "[name]-[fullhash].js",
+		assetModuleFilename: "assets/[name]-[hash][ext]", // Organize assets into a subfolder
+		clean: true,
+	},
+	devServer: {
+		host: "0.0.0.0", // Makes the server accessible from your network
+		port: 8080,
+		// Allow the Django server to fetch assets from the dev server
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+		},
+		// Enables hot module replacement
+		hot: true,
+		// Disable the host check security feature for development
+		allowedHosts: "all",
+	},
+	resolve: {
+		extensions: [".js", ".vue", ".json"],
+		alias: {
+			// Use the bundler-aware version of Vue
+			vue$: "vue/dist/vue.esm-bundler.js",
+		},
+	},
 
-    // This plugin extracts CSS into separate files.
-    new MiniCssExtractPlugin({ 
-      filename: '[name]-[fullhash].css' 
-    }),
-  ],
+	plugins: [
+		// This plugin is essential for django-webpack-loader to work.
+		new BundleTracker({
+			path: path.resolve(__dirname, "../static/"),
+			filename: "webpack-stats.json",
+		}),
 
-  module: {
-    rules: [
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: ['babel-loader']
-      },
-      {
-        test: /\.(sa|sc|c)ss$/i,
-        use: [
-          // Extracts CSS into a file instead of injecting it into the DOM
-          // MiniCssExtractPlugin.loader,
-          isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
-          'css-loader',
-          'sass-loader'
-        ]
-      },
-      {
-        // Rule for handling image and font files
-        test: /\.(png|ico|jpg|gif|svg|eot|ttf|woff|woff2|webmanifest)$/,
-        type: 'asset/resource',
-        generator: {
-					filename: "[name][ext]"
-				}
-      }
-    ]
-  },
+		// This plugin is required to handle .vue files
+		new VueLoaderPlugin(),
+
+		// This plugin extracts CSS into separate files.
+		new MiniCssExtractPlugin({
+			filename: "[name]-[fullhash].css",
+		}),
+	],
+
+	module: {
+		rules: [
+			{
+				test: /\.vue$/,
+				loader: "vue-loader",
+			},
+			{
+				test: /\.js$/,
+				exclude: /node_modules/,
+				use: ["babel-loader"],
+			},
+			{
+				test: /\.(sa|sc|c)ss$/i,
+				use: [
+					// Extracts CSS into a file instead of injecting it into the DOM
+					// MiniCssExtractPlugin.loader,
+					isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+					"css-loader",
+					"sass-loader",
+				],
+			},
+			{
+				test: /\.svg$/i,
+				type: "asset/resource",
+				sideEffects: true,
+				use: [
+					{
+						loader: path.resolve(__dirname, "svg-loader.js"),
+					},
+				],
+				generator: {
+					filename: (pathData) => {
+						const queryStr = pathData.module.resourceResolveData?.query || "";
+						const query = new URLSearchParams(queryStr);
+						const as = query.get("as");
+						const format = query.get("format");
+
+						if (as) {
+							// If a format is explicitly requested (e.g., &format=webp), use it
+							if (format) {
+								return `${as}.${format}`;
+							}
+							
+							// Legacy fallback for our raster icons
+							if (as.includes("favicon") || as.includes("apple") || as.includes("chrome")) {
+								return `${as}.png`;
+							}
+
+							return `${as}[ext]`; // Defaults back to .svg
+						}
+
+						// Default behavior for normal SVGs without query
+						return "[name][ext]";
+					},
+				},
+			},
+			{
+				// Rule for handling image and font files
+				test: /\.(png|ico|jpg|gif|eot|ttf|woff|woff2|webmanifest)$/,
+				type: "asset/resource",
+				sideEffects: true,
+				generator: {
+					filename: "[name][ext]",
+				},
+			},
+		],
+	},
 };
-
