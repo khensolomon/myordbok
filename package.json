@@ -1,6 +1,6 @@
 {
   "name": "assets",
-  "version": "1.0.0",
+  "version": "26.2.21",
   "description": "Frontend assets for myordbok project",
   "main": "src/js/index.js",
   "scripts": {
@@ -8,7 +8,9 @@
     "dev": "webpack serve --mode development --config ./assets/webpack.config.js",
     "build": "webpack --mode production --config ./assets/webpack.config.js",
     "dev-watch": "webpack --mode development --watch --config ./assets/webpack.config.js",
-    "django": ".\\venv\\Scripts\\python manage.py runserver"
+    "django:linux": "./venv/bin/python manage.py runserver",
+    "django:win": ".\\venv\\Scripts\\python manage.py runserver",
+    "django": "if [ -f \"./venv/bin/python\" ]; then ./venv/bin/python manage.py runserver; else .\\venv\\Scripts\\python manage.py runserver; fi"
   },
   "keywords": [],
   "author": "",
