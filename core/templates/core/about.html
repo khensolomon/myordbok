@@ -182,10 +182,13 @@
         </div>
         <div class="data">
           <p>
-            The first version number indicates the total number of changes that have been made, while the second number represents the extent of maintenance and modifications relative to the major change.
-            The third number reflects basic needs modifications and is primarily used as the key for the
-            <a href="{% url 'definition' %}?q=cookie">cookies</a>.
-            Additionally, a new cookie will be created whenever these numbers change.
+            The application uses a date-based versioning scheme formatted as <q>yy.m.d</q>, where <q>yy</q> represents the last two digits of the release year, 
+            <q>m</q> represents the release month (1–12, without zero-padding), 
+            and <q>d</q> represents the release day (1–31, without zero-padding). 
+            For example, September 29, 2018 is version <q>18.9.29</q>, and March 14, 2010 is <q>10.3.14</q>. 
+            This format replaces the previous semantic-style numbering (<q>1.9.12</q>) and serves purely as a chronological release identifier. 
+            The version string reflects the deployment date, does not encode change magnitude (major/minor/patch), 
+            and is fully independent of <a href="{% url 'definition' %}?q=cookie">cookie</a> handling, cache invalidation, or any client-side storage mechanisms.
           </p>
         </div>
       </div>
