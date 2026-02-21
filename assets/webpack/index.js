@@ -1,25 +1,27 @@
 // NOTE: favicon
-import "../img/favicon.ico";
-import "../img/favicon.png";
-import "../img/favicon-32x32.png";
-import "../img/favicon-16x16.png";
-import "../img/apple-touch-icon.png";
-import "../img/android-chrome-192x192.png";
-import "../img/android-chrome-512x512.png";
 import "../img/screenshot-home.png";
 import "../img/app.webmanifest";
 
+import "../psd/icon.svg?as=favicon&w=48&format=png";
+
+import "../psd/icon.svg?as=icon-16x16&format=png";
+import "../psd/icon.svg?as=icon-32x32&format=png";
+import "../psd/icon.svg?as=icon-192x192&format=png";
+import "../psd/icon.svg?as=icon-512x512&format=png";
+import "../psd/icon.svg?as=apple-touch-icon&format=png";
+// import "../psd/icon.svg?as=icon-reszied-250&w=250";
+// import "../psd/icon.svg";
+
+// NOTE: logo
+// import "../psd/logo.svg?as=logo&w=600&format=png";
+// import "../psd/icon.svg?as=MyOrdbok&w=250&format=png";
+
 // NOTE: icons && loader animation
-// require('../icon/myordbok.css');
-// require('../icon/animation.css');
 import "../icon/myordbok.css";
 import "../icon/animation.css";
 
 // NOTE: layout and design
-// require('../scss/style.scss');
 import "../scss/style.scss";
-// require('./middleware.css');
 // NOTE: script
-// require('../script/index.js');
 import "../script/index.js";
 // import exec from '../script/test.js';

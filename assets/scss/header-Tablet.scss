@@ -5,7 +5,7 @@
 		ol#MyOrdbok-logo {
 			height: 45px;
 			width: 45px;
-			background-image: url(../img/MyOrdbok.png);
+			background-image: url(../psd/icon.svg?as=MyOrdbok&w=250&format=png);
 			// background-position: center center;
 			&::before {
 				content: attr(data-lang);
