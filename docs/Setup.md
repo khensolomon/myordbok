@@ -4,7 +4,6 @@
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
-
 python manage.py runserver
 ```
 
@@ -70,9 +69,9 @@ python manage.py download_wordnet
 ## Logo
 
 ```bash
-MY font:Lithos Pro
-y: Brush Script Std Medium
-ORDBOK font: Cooper Std,Trajan Pro
+"MY": Lithos Pro
+"y": Brush Script Std Medium
+"ORDBOK": Cooper Std,Trajan Pro
 ```
 
 ## Backup
