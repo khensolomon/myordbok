@@ -52,6 +52,7 @@ python -m pip install --upgrade pip
 # No module named pip
 sudo apt update
 sudo apt install python3-pip
+sudo apt install nltk
 sudo apt update
 sudo apt install python3-dev default-libmysqlclient-dev build-essential pkg-config
 
@@ -59,10 +60,19 @@ sudo apt install python3-dev default-libmysqlclient-dev build-essential pkg-conf
 
 ## NLTK
 
-```python
-# run: pip install nltk
-import nltk
-nltk.download('wordnet')
+```bash
+python manage.py download_wordnet
+# pip install nltk
+# import nltk
+# nltk.download('wordnet')
+```
+
+## Logo
+
+```bash
+MY font:Lithos Pro
+y: Brush Script Std Medium
+ORDBOK font: Cooper Std,Trajan Pro
 ```
 
 ## Backup
