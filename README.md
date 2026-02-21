@@ -1,7 +1,5 @@
 # MyOrdbok
 
-[![MyOrdbok][logo]](https://myordbok.com)
-
 မိုင်အိုလ်ဗို့ လာရောက်လည်ပတ်မှုအချက်အလက်များကို ပြီးခဲ့သည့် [2022/11/27][home] မှ ပြန်လည်တွက်ချက်အရ ဧည့်သည် **21,109** ဦးနှင့် လာရောက်လည်ပတ်မှု **2,453,600** ကြိမ်ရှိသည်။ စုစုပေါင်း လာရောက်သူ **60,347** ဦး၏ အလည်အပတ်ပေါင်း [889,993,843,088,042][about] ကြိမ်ရှိပါသည်။
 
 ... is online [Myanmar dictionary][home]
@@ -91,4 +89,4 @@ python manage.py thuddar_update_snap
 [grammar]: //myordbok.com/grammar
 [fonts]: //myordbok.com/myanmar-fonts
 [about]: //myordbok.com/about
-[logo]: assets/img/MyOrdbok.png
+[logo]: assets/psd/icon.svg
