@@ -2,13 +2,13 @@ import { createApp, h } from "vue";
 
 import { createPinia, mapStores } from "pinia";
 
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+// import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import axios from "axios";
 
 // @ts-ignore
-import layout from "./office/layout.vue";
-import router from "./office/router.js";
+// import layout from "./office/layout.vue";
+// import router from "./office/router.js";
 
 import tools from "./tools.js";
 
@@ -24,43 +24,42 @@ import ThemeSwitch from "./ThemeSwitch.js";
 import HelpsImprove from "./HelpsImprove.js";
 import FormLinks from "./FormLinks.js";
 import SearchEngine from "./SearchEngine.js";
-import OfficeUser from "./OfficeUser.js";
+// import OfficeUser from "./OfficeUser.js";
 
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+// import { initializeApp } from "firebase/app";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-	apiKey: "AIzaSyCnqrfzlqIPzEmODfZRudYXlz7MSJjaSzc",
-	authDomain: "myordbok-app.firebaseapp.com",
-	projectId: "myordbok-app",
-	storageBucket: "myordbok-app.appspot.com",
-	messagingSenderId: "75095486220",
-	appId: "1:75095486220:web:1a29b88abfb0e80eb72329",
-	measurementId: "G-4JM6R8RWSP"
-};
+// const firebaseConfig = {
+// 	apiKey: "AIzaSyCnqrfzlqIPzEmODfZRudYXlz7MSJjaSzc",
+// 	authDomain: "myordbok-app.firebaseapp.com",
+// 	projectId: "myordbok-app",
+// 	storageBucket: "myordbok-app.appspot.com",
+// 	messagingSenderId: "75095486220",
+// 	appId: "1:75095486220:web:1a29b88abfb0e80eb72329",
+// 	measurementId: "G-4JM6R8RWSP"
+// };
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
+// initializeApp(firebaseConfig);
 // Vue.config.productionTip = true;
 // Vue.config.devtools = true;
-// Vue.use(VueRouter);
 
 const pinia = createPinia();
 
-function getCurrentUser() {
-	return new Promise((resolve, reject) => {
-		let listener = onAuthStateChanged(
-			getAuth(),
-			user => {
-				listener();
-				resolve(user);
-			},
-			reject
-		);
-	});
-}
+// function getCurrentUser() {
+// 	return new Promise((resolve, reject) => {
+// 		let listener = onAuthStateChanged(
+// 			getAuth(),
+// 			user => {
+// 				listener();
+// 				resolve(user);
+// 			},
+// 			reject
+// 		);
+// 	});
+// }
 
 const app = createApp({
 	components: {
@@ -71,7 +70,7 @@ const app = createApp({
 		FormLinks,
 		CookieConsent,
 		SearchEngine,
-		OfficeUser
+		// OfficeUser
 		// NavTest
 	},
 	methods: {
@@ -146,64 +145,9 @@ const app = createApp({
 		// 	this.$refs.input.focus();
 		// }
 
-		let auth = getAuth();
-		onAuthStateChanged(auth, user => {
-			if (user) {
-				this.dataStore.userInfo = user;
-				this.dataStore.userAuthenticate = true;
-			} else {
-				this.dataStore.userInfo = {};
-				this.dataStore.userAuthenticate = false;
-			}
-			this.dataStore.ready = true;
-		});
+		
 
-		if (tools.selectElement("#office")) {
-			router.beforeEach(async (to, from, next) => {
-				if (to.matched.some(record => record.meta.mustAuthenticate)) {
-					// getCurrentUser;
-					// auth.currentUser;
-					if (await getCurrentUser()) {
-						next();
-					} else {
-						next("/");
-					}
-				} else {
-					next();
-				}
-			});
 
-			const office = createApp({
-				components: {},
-				methods: {
-					test() {},
-					metadata() {},
-					async fetch(uri) {},
-					async init() {}
-				},
-				watch: {},
-				// template: "",
-				// async created() {},
-				// beforeCreate() {},
-				created() {},
-				// beforeMount() {},
-				mounted() {},
-				render: () => h(layout),
-				// ready: () {},
-				computed: {
-					// note we are not passing an array, just one store after the other
-					// each store will be accessible as its id + 'Store'
-					...mapStores(useDataStore, useStorageStore)
-				}
-			});
-
-			office.use(pinia);
-			office.use(router);
-
-			office.provide("dataStore", useDataStore());
-			office.provide("storageStore", useStorageStore());
-			office.mount("#office");
-		}
 	},
 	// render: () => h(layout),
 	// ready: () {},

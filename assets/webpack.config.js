@@ -1,77 +1,89 @@
 const path = require("path");
+const webpack = require("webpack");
 const BundleTracker = require("webpack-bundle-tracker");
 const { VueLoaderPlugin } = require("vue-loader");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const isProduction = process.env.NODE_ENV === "production";
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+
+const staticPath = "../static/";
+
+// Manually parse Node's process.argv to detect the --mode flag from the CLI
+const modeIndex = process.argv.indexOf('--mode');
+const isProduction = process.argv.includes('--mode=production') || 
+					 (modeIndex !== -1 && process.argv[modeIndex + 1] === 'production');
 
 module.exports = {
-	// The base directory for resolving entry points and loaders
 	context: __dirname,
-	mode: "development",
+	mode: isProduction ? "production" : "development",
+	
+	// IMPROVEMENT 2: Source Maps for debugging
+	devtool: isProduction ? "source-map" : "eval-source-map",
 
-	// The entry point for your application
 	entry: {
-		// The key 'main' is what we will reference in Django templates
 		main: "./webpack/index.js",
 	},
 
-	// How and where webpack emits results
 	output: {
-		// The target directory for all output files
-		// path: path.resolve(__dirname, '../core/static/core/bundles/'),
-		// path: path.resolve(__dirname, '/static/bundles/'),
-
-		// The physical path where compiled files will be placed.
-		// We'll use a new 'dist' folder inside 'assets'.
-		// path: path.resolve(__dirname, 'dist/'),
-		path: path.resolve(__dirname, "../static/"),
-
-		// The public URL of the output directory when referenced in a browser
-		// Must match Django's STATIC_URL + BUNDLE_DIR_NAME
-		// publicPath: '/static/core/bundles/',
-		// publicPath: '/static/bundles/',
-		// The public URL path. This MUST match Django's STATIC_URL.
-		// publicPath: '',
-		publicPath: isProduction ? "" : "http://localhost:8080/",
-
-		// Use [name]-[fullhash] for long-term caching. Django-webpack-loader needs this.
+		path: path.resolve(__dirname, staticPath),
+		publicPath: isProduction ? staticPath.replace(/\./g, "") : "http://localhost:8080/",
 		filename: "[name]-[fullhash].js",
-		assetModuleFilename: "assets/[name]-[hash][ext]", // Organize assets into a subfolder
+		// Use a chunkhash for split chunks to ensure optimal caching
+		chunkFilename: "[name]-[chunkhash].js", 
+		assetModuleFilename: "assets/[name]-[hash][ext]",
 		clean: true,
 	},
+
+	// IMPROVEMENT 4: Persistent File System Cache (Massive speed boost)
+	cache: {
+		type: 'filesystem',
+	},
+
 	devServer: {
-		host: "0.0.0.0", // Makes the server accessible from your network
+		host: "0.0.0.0",
 		port: 8080,
-		// Allow the Django server to fetch assets from the dev server
 		headers: {
 			"Access-Control-Allow-Origin": "*",
 		},
-		// Enables hot module replacement
 		hot: true,
-		// Disable the host check security feature for development
 		allowedHosts: "all",
 	},
+
 	resolve: {
 		extensions: [".js", ".vue", ".json"],
 		alias: {
-			// Use the bundler-aware version of Vue
 			vue$: "vue/dist/vue.esm-bundler.js",
 		},
 	},
 
+	// IMPROVEMENT 3 & 5: Optimization, CSS Minification & Code Splitting
+	optimization: {
+		minimize: isProduction,
+		minimizer: [
+			// Minifies JS (Webpack's default plugin, but we must explicitly include '...' to extend it)
+			`...`, 
+			// Minifies CSS
+			new CssMinimizerPlugin(),
+		],
+		splitChunks: {
+			chunks: 'all', // Automatically split vendor code (node_modules) into a separate file
+			name: 'vendor', // Names the resulting chunk 'vendor-[hash].js'
+		},
+	},
+
 	plugins: [
-		// This plugin is essential for django-webpack-loader to work.
 		new BundleTracker({
-			path: path.resolve(__dirname, "../static/"),
+			path: path.resolve(__dirname, staticPath),
 			filename: "webpack-stats.json",
 		}),
-
-		// This plugin is required to handle .vue files
 		new VueLoaderPlugin(),
-
-		// This plugin extracts CSS into separate files.
 		new MiniCssExtractPlugin({
 			filename: "[name]-[fullhash].css",
+		}),
+		// IMPROVEMENT 1: Vue 3 Feature Flags (Strips dead code in production)
+		new webpack.DefinePlugin({
+			__VUE_OPTIONS_API__: true,
+			__VUE_PROD_DEVTOOLS__: false,
+			__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
 		}),
 	],
 
@@ -89,8 +101,6 @@ module.exports = {
 			{
 				test: /\.(sa|sc|c)ss$/i,
 				use: [
-					// Extracts CSS into a file instead of injecting it into the DOM
-					// MiniCssExtractPlugin.loader,
 					isProduction ? MiniCssExtractPlugin.loader : "style-loader",
 					"css-loader",
 					"sass-loader",
@@ -113,26 +123,17 @@ module.exports = {
 						const format = query.get("format");
 
 						if (as) {
-							// If a format is explicitly requested (e.g., &format=webp), use it
-							if (format) {
-								return `${as}.${format}`;
-							}
-							
-							// Legacy fallback for our raster icons
+							if (format) return `${as}.${format}`;
 							if (as.includes("favicon") || as.includes("apple") || as.includes("chrome")) {
 								return `${as}.png`;
 							}
-
-							return `${as}[ext]`; // Defaults back to .svg
+							return `${as}[ext]`;
 						}
-
-						// Default behavior for normal SVGs without query
 						return "[name][ext]";
 					},
 				},
 			},
 			{
-				// Rule for handling image and font files
 				test: /\.(png|ico|jpg|gif|eot|ttf|woff|woff2|webmanifest)$/,
 				type: "asset/resource",
 				sideEffects: true,

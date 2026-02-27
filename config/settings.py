@@ -25,8 +25,11 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# wildcard — only use when DEBUG=True!
 ALLOWED_HOSTS = [
-  "127.0.0.1"
+  ".localhost", ".local", "127.0.0.1", 
+  # IPv6 localhost
+  "[::1]"
 ]
 # This is True by default, you don't even need to add it unless you want to change it.
 APPEND_SLASH = True
@@ -146,7 +149,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # The directory where `collectstatic` will place all files for Nginx to find.
@@ -155,7 +158,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Add the Webpack bundle directory to your static files search path
 STATICFILES_DIRS = [
     # os.path.join(BASE_DIR, 'assets', 'dist'), # for webpack-stats.json
-    os.path.join(BASE_DIR, 'static'), # for webpack-stats.json
+    os.path.join(BASE_DIR, STATIC_URL), # for webpack-stats.json
 ]
 
 # Configure django-webpack-loader
@@ -164,7 +167,7 @@ WEBPACK_LOADER = {
         # 'BUNDLE_DIR_NAME': 'core/bundles/', # must match webpack's output.path relative to a static dir
         'BUNDLE_DIR_NAME': '', # must match webpack's output.path relative to a static dir
         # 'STATS_FILE': os.path.join(BASE_DIR, 'assets', 'webpack-stats.json'),
-        'STATS_FILE': os.path.join(BASE_DIR, 'static', 'webpack-stats.json'),
+        'STATS_FILE': os.path.join(BASE_DIR, STATIC_URL, 'webpack-stats.json'),
     }
 }
 
