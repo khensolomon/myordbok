@@ -20,3 +20,4 @@ htmlmin
 eng-to-ipa
 django-redis
 django-webpack-loader
+python-dotenv
