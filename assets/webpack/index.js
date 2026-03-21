@@ -22,6 +22,7 @@ import "../icon/animation.css";
 
 // NOTE: layout and design
 import "../scss/style.scss";
+
 // NOTE: script
 import "../script/index.js";
 // import exec from '../script/test.js';

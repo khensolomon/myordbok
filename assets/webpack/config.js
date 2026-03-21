@@ -5,7 +5,7 @@ const { VueLoaderPlugin } = require("vue-loader");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
-const staticPath = "../static/";
+const staticPath = "../../static/";
 
 // Manually parse Node's process.argv to detect the --mode flag from the CLI
 const modeIndex = process.argv.indexOf('--mode');
@@ -20,7 +20,7 @@ module.exports = {
 	devtool: isProduction ? "source-map" : "eval-source-map",
 
 	entry: {
-		main: "./webpack/index.js",
+		main: "./index.js",
 	},
 
 	output: {
@@ -134,7 +134,7 @@ module.exports = {
 				},
 			},
 			{
-				test: /\.(png|ico|jpg|gif|eot|ttf|woff|woff2|webmanifest)$/,
+				test: /\.(png|ico|jpg|gif|eot|ttf|woff|woff2|webmanifest|txt)$/,
 				type: "asset/resource",
 				sideEffects: true,
 				generator: {
