@@ -7,6 +7,9 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 
 const staticPath = "../../static/";
 
+// Change the port to avoid conflicts with other services
+const devServerPort = 8082;
+
 // Manually parse Node's process.argv to detect the --mode flag from the CLI
 const modeIndex = process.argv.indexOf('--mode');
 const isProduction = process.argv.includes('--mode=production') || 
@@ -25,7 +28,7 @@ module.exports = {
 
 	output: {
 		path: path.resolve(__dirname, staticPath),
-		publicPath: isProduction ? staticPath.replace(/\./g, "") : "http://localhost:8080/",
+		publicPath: isProduction ? staticPath.replace(/\./g, "") : "http://localhost:?/".replace('?', devServerPort),
 		filename: "[name]-[fullhash].js",
 		// Use a chunkhash for split chunks to ensure optimal caching
 		chunkFilename: "[name]-[chunkhash].js", 
@@ -40,7 +43,7 @@ module.exports = {
 
 	devServer: {
 		host: "0.0.0.0",
-		port: 8080,
+		port: devServerPort,
 		headers: {
 			"Access-Control-Allow-Origin": "*",
 		},

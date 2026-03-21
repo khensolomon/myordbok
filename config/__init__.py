@@ -1,6 +1,6 @@
 """
 App configuration
 """
-__version__ = "26.2.21"
+__version__ = "26.3.21"
 name = "MyOrdbok"
 version = __version__
