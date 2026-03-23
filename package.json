@@ -1,7 +1,7 @@
 {
-  "name": "assets",
-  "version": "26.2.21",
-  "description": "Frontend assets for MyOrdbok project",
+  "name": "myordbok",
+  "version": "26.3.22",
+  "description": "a comprehensive online Myanmar dictionary",
   "main": "src/js/index.js",
   "scripts": {
     "start": "concurrently \"npm run dev\" \"npm run django\"",
@@ -13,8 +13,6 @@
     "django": "if [ -f \"./venv/bin/python\" ]; then ./venv/bin/python manage.py runserver; else .\\venv\\Scripts\\python manage.py runserver; fi"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.20.0",
@@ -46,5 +44,15 @@
     "webpack-dev-server": "^5.2.2",
     "webpack-hot-middleware": "^2.26.1",
     "webpack-merge": "^6.0.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khensolomon/myordbok.git"
+  },
+  "author": "Khen Solomon Lethil",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/khensolomon/myordbok/issues"
+  },
+  "homepage": "https://github.com/khensolomon/myordbok#readme"
 }
