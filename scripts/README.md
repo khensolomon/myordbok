@@ -1,5 +1,16 @@
 # Scripts
 
+## Local
+
+Generate `.env` using `origin.env` as a template.
+The will not directly replace origin `.env` file. See for the log.
+
+```bash
+make env
+# or
+~/dev/notes/scripts/env.sh ./origin.env
+```
+
 ## Cache works for Workflow
 
 ..automated process for handling a bulk update of 1,000 words:
