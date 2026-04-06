@@ -80,6 +80,7 @@ export default defineConfig(({ mode }) => {
 
 		// Translates your output, optimization, and chunks logic
 		build: {
+			manifest: 'manifest.json',
 			// Where Django expects to find the built files
 			outDir: path.resolve(__dirname, "../../static"),
 			emptyOutDir: true, // Translates clean: true
