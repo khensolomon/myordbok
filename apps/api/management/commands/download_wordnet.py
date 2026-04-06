@@ -1,5 +1,8 @@
+import os
+
 import nltk
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 
 class Command(BaseCommand):
     """
@@ -8,10 +11,22 @@ class Command(BaseCommand):
     This command is idempotent, meaning it can be run safely multiple times.
     It checks if the WordNet corpus is already available and only downloads it
     if necessary.
+
+    Usage: 
+        python manage.py download_wordnet
+        python -c "import nltk; nltk.download('wordnet')"
     """
     help = 'Downloads the NLTK WordNet corpus if it is not already present.'
 
     def handle(self, *args, **options):
+        # settings.STORAGE_DIR;
+        # download_dir = os.path.join(settings.STORAGE_DIR, 'myordbok','nltk_data')
+        # download_dir = '/usr/local/nltk_data'
+        # nltk.data.path.append(download_dir)
+        # download_dir = os.environ.get('NLTK_DATA')
+        # download_dir = os.environ.get('NLTK_DATA')
+        # nltk.download('wordnet', download_dir=download_dir)
+
         try:
             self.stdout.write("Checking for NLTK's WordNet corpus...")
             # nltk.data.find() will raise a LookupError if the resource is not found.
