@@ -1,49 +1,37 @@
 {
   "name": "myordbok",
-  "version": "26.3.22",
+  "version": "26.4.4",
   "description": "a comprehensive online Myanmar dictionary",
-  "main": "src/js/index.js",
+  "keywords": [
+    "myordbok",
+    "dictionary"
+  ],
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
   "scripts": {
     "start": "concurrently \"npm run dev\" \"npm run django\"",
-    "dev": "webpack serve --mode development --config ./assets/webpack/config.js",
-    "build": "webpack --mode production --config ./assets/webpack/config.js",
-    "dev-watch": "webpack --mode development --watch --config ./assets/webpack/config.js",
+    "dev": "vite --config ./assets/com/vite.js",
+    "build": "vite build --config ./assets/com/vite.js",
+    "dev-watch": "vite build --watch --config ./assets/com/vite.js",
     "django:linux": "./venv/bin/python manage.py runserver",
     "django:win": ".\\venv\\Scripts\\python manage.py runserver",
     "django": "if [ -f \"./venv/bin/python\" ]; then ./venv/bin/python manage.py runserver; else .\\venv\\Scripts\\python manage.py runserver; fi"
   },
-  "keywords": [],
+  "dependencies": {
+    "axios": "^1.14.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.4"
+  },
   "devDependencies": {
-    "@babel/core": "^7.28.4",
-    "@babel/preset-env": "^7.20.0",
-    "@types/jsdom": "^27.0.0",
-    "@types/number-to-words": "^1.2.3",
-    "@types/pluralize": "^0.0.33",
-    "@types/webpack-hot-middleware": "^2.25.9",
-    "axios": "^1.6.7",
-    "babel-loader": "^10.0.0",
+    "@vitejs/plugin-vue": "^6.0.5",
     "concurrently": "^9.2.1",
-    "css-loader": "^7.1.2",
-    "css-minimizer-webpack-plugin": "^7.0.4",
-    "firebase": "^12.3.0",
-    "jsdom": "^28.1.0",
-    "mini-css-extract-plugin": "^2.7.0",
-    "pinia": "^3.0.3",
-    "postcss-loader": "^8.2.0",
-    "sass": "^1.93.0",
-    "sass-loader": "^16.0.5",
+    "sass": "^1.99.0",
     "sharp": "^0.34.5",
-    "style-loader": "^4.0.0",
-    "vue": "^3.5.21",
-    "vue-loader": "^17.0.1",
-    "vue-router": "^5.0.3",
-    "webpack": "^5.75.0",
-    "webpack-bundle-tracker": "^3.2.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-middleware": "^7.4.3",
-    "webpack-dev-server": "^5.2.2",
-    "webpack-hot-middleware": "^2.26.1",
-    "webpack-merge": "^6.0.1"
+    "vite": "^8.0.3"
   },
   "repository": {
     "type": "git",
