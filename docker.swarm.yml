@@ -1,0 +1,150 @@
+services:
+  db:
+    image: mysql:8.0
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
+      - MYSQL_PASSWORD=${DB_PWD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ${DB_DIR}:/docker-entrypoint-initdb.d:ro
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  web:
+    image: ghcr.io/${GITHUB_REPOSITORY}/django-app:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    ports: 
+      - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - static_volume:/code/static
+      - storage_volume:${STORAGE_DIR}:rw
+      - media_volume:${MEDIA_DIR}:rw
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    environment:
+      - DEBUG=${DEBUG:-false}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - APP_NAME=${APP_NAME}
+      - APP_PORT=${APP_PORT}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PWD}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PWD=${DB_PWD}
+      - DB_ROOT_PWD=${DB_ROOT_PWD}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DIR=${DB_DIR}
+      - STORAGE_DIR=${STORAGE_DIR}
+      - CACHE_DIR=${CACHE_DIR}
+      - MEDIA_DIR=${MEDIA_DIR}
+      - REPO_OWNER=${REPO_OWNER}
+      - BUCKETNAME=${BUCKETNAME}
+      - BUCKETCRED=${BUCKETCRED}
+      - GOOGLE_APPLICATION_CREDENTIALS=${BUCKETCRED}
+      - NLTK_DATA=${NLTK_DATA}
+    # FIXED: Added collectstatic to the entry command to refresh the shared volume
+    command:
+      - /bin/sh
+      - -c
+      - |
+        # 1. Standard Static Collection
+        python manage.py collectstatic --noinput
+        
+        # 2. Custom Initialization Command
+        python manage.py initialize_project
+        
+        echo "Starting Gunicorn..."
+        exec gunicorn config.wsgi:application \
+             --bind 0.0.0.0:${APP_PORT} \
+             --worker-tmp-dir /tmp/gunicorn \
+             --workers 3
+    deploy:
+      replicas: 2
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 15s
+        failure_action: rollback
+        monitor: 30s
+        max_failure_ratio: 0.1
+      restart_policy:
+        condition: any
+        delay: 10s
+
+  nginx:
+    image: ghcr.io/${GITHUB_REPOSITORY}/nginx-prod:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/code/static:ro
+      - ./cache:/code/cache
+    environment:
+      - APP_PORT=${APP_PORT}
+    depends_on:
+      - web
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 15s
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
+
+volumes:
+  mysql_data:
+  static_volume:
+  storage_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${STORAGE_DIR}
+  media_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MEDIA_DIR}

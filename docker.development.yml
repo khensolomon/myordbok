@@ -1,0 +1,34 @@
+services:
+  web:
+    # Use runserver for auto-reloading in dev
+    command: python manage.py runserver 0.0.0.0:${APP_PORT}
+    environment:
+      - DEBUG=true
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+
+  nginx:
+    # We hide nginx in dev because we usually connect to django or vite directly
+    profiles:
+      - prod
+
+  frontend:
+    image: node:24-alpine
+    # Set working_dir to the actual frontend folder
+    working_dir: /code/frontend
+    # Run dev server with host 0.0.0.0 so it's accessible from the browser
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - .:/code
+      # THE TRICK: An anonymous volume for node_modules PREVENTS it 
+      # from being written back to your host machine's root.
+      - /code/frontend/node_modules
+    ports:
+      - "3011:3011"
+
+# No named volume needed for node_modules if we want to keep the host clean.
+# Docker will manage the lifecycle of the anonymous volume automatically.

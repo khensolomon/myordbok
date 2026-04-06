@@ -1,0 +1,102 @@
+services:
+  db:
+    image: mysql:8.0
+    env_file: .env
+    restart: always
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
+      - MYSQL_PASSWORD=${DB_PWD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      default:
+        aliases:
+          - localhost
+    volumes:
+      - mysql_volume:/var/lib/mysql
+      - ${DB_DIR}:/docker-entrypoint-initdb.d:ro
+
+  web:
+    build: .
+    restart: always
+    env_file: .env
+    ports: 
+      - "${APP_PORT}:${APP_PORT}"
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - .:/code
+      - static_volume:/code/static
+      - storage_volume:${STORAGE_DIR}:rw
+      - media_volume:${MEDIA_DIR}:rw
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 2
+      start_period: 5s
+    working_dir: /code
+    environment:
+      - DEBUG=false
+      - PYTHONPATH=/code
+      - APP_PORT=${APP_PORT}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PWD=${DB_PWD}
+      # FIXED: Force Gunicorn/Python to use /tmp for temporary files/heartbeats
+      - TMPDIR=/tmp
+    command:
+      - /bin/sh
+      - -c
+      - |
+        # 1. Standard Static Collection
+        python manage.py collectstatic --noinput --clear
+        
+        # 2. Custom Initialization Command
+        python manage.py initialize_project
+        
+        # --worker-tmp-dir /dev/shm
+        # --pid /tmp/gunicorn.pid
+        echo "Starting Gunicorn..."
+        exec gunicorn config.wsgi:application \
+             --bind 0.0.0.0:${APP_PORT} \
+             --worker-tmp-dir /tmp/gunicorn
+
+  nginx:
+    image: nginx:latest
+    build: ./nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/code/static:ro
+      - ./cache:/code/cache
+      - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      - APP_PORT=${APP_PORT}
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  mysql_volume:
+  static_volume:
+  storage_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${STORAGE_DIR}
+  media_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MEDIA_DIR}
