@@ -10,14 +10,22 @@
 #
 # Install with: pip install -r requirements.txt
 
-django
-python-decouple
-mysqlclient
-djangorestframework
-nltk
+django>=6.0.3
+djangorestframework>=3.17.1
+mysqlclient>=2.2.8
+
+django-cors-headers>=4.9.0
+
+python-dotenv>=1.2.2
+# python-decouple>=3.8.0
+# django-environ
+
+django-redis>=6.0.0
+
+django_vite>=3.1.0
+
+minify-html
 inflect
-htmlmin
+
+nltk
 eng-to-ipa
-django-redis
-django-webpack-loader
-python-dotenv
