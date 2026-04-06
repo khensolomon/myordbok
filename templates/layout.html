@@ -1,55 +1,49 @@
-{% load static %}
-{% comment %} Keep this line at the top {% endcomment %}
-{% load render_bundle from webpack_loader %}
-{% comment %} Add this new load tag for webpack_static {% endcomment %}
-{% load webpack_static from webpack_loader %}
-<!DOCTYPE html>
+{% load static %} {% load django_vite %}
+<!doctype html>
 <html lang="en" dir="ltr" data-theme="{{ themeMode }}">
 {% block head %}
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="robots" content="index, follow">
-	<meta name="author" content="Khen Solomon Lethil">
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="red">
-	<meta name="theme-color" content="{{ themeColor }}">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="robots" content="index, follow" />
+	<meta name="author" content="Khen Solomon Lethil" />
+	<meta name="theme-color" content="{{ themeColor }}" />
+
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta name="apple-mobile-web-app-title" content="{{ appName }}" />
 
 	<title>
-		{% block title %}{% if title %}{{ title }}{% else %}{{ appName }}{% endif %}{% endblock %}
+		{% block title %}
+		{% if title %}{{ title }}{% else %}{{ appName }}{% endif%}
+		{% endblock %}
 	</title>
 	{% if block.super or keywords %}
-	<meta name="keywords" content="{% block keywords %}{{ keywords }}{% endblock %}">
+	<meta name="keywords" content="{% block keywords %}{{ keywords }}{% endblock %}" />
+	{% endif %} {% if block.super or description %}
+	<meta name="description" content="{% block description %}{{ description }}{% endblock %}" />
 	{% endif %}
 
-	{% if block.super or description %}
-	<meta name="description" content="{% block description %}{{ description }}{% endblock %}">
-	{% endif %}
+	<meta name="application-name" content="{{ appName }}" data-version="{{ appVersion }}" />
+	<base href="/" />
 
-	<meta name="application-name" content="{{ appName }}" data-version="{{ appVersion }}">
-	<base href="/">
-
-	<link rel="icon" href="{% webpack_static 'favicon.png' %}" type="image/png">
-	<meta property="og:image" content="{% webpack_static 'screenshot-home.png' %}">
+	<link rel="icon" href="{% static 'favicon.png' %}" type="image/png" />
+	<meta property="og:image" content="{% static 'screenshot-home.png' %}" />
 
 	{% if revised %}
-	<meta name="revised" content="{{ revised }}">{% endif %}
+	<meta name="revised" content="{{ revised }}" />
+	{% endif %}
 
-	<link rel="apple-touch-icon" sizes="180x180" href="{% webpack_static 'apple-touch-icon.png' %}">
-	<link rel="icon" type="image/png" sizes="32x32" href="{% webpack_static 'icon-32x32.png' %}">
-	<link rel="icon" type="image/png" sizes="16x16" href="{% webpack_static 'icon-16x16.png' %}">
-	<link rel="manifest" href="{% webpack_static 'app.webmanifest' %}">
+	<link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}" />
+	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon.png' %}" />
+	<link rel="manifest" href="{% static 'app.webmanifest' %}" />
 
 	<style>
-		@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap');
+		@import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
 	</style>
 
-	{% comment %}
-	<script src="https://cdn.jsdelivr.net/npm/vue@3.5.20/dist/vue.global.prod.js"></script> {% endcomment %}
-	{% render_bundle 'main' 'css' %}
-	{% block scriptSuggestion %}{% endblock %}
+	{% vite_hmr_client %} {% block scriptSuggestion %}{% endblock %}
 </head>
 {% endblock %}
 
@@ -59,28 +53,22 @@
 		<div id="bar" class="ptl">
 			<div class="ltrt">
 				<div class="navigate">
-					<div class="column one">
-						{% include 'partials/bar-page.html' %}
-					</div>
-					<div class="column two">
-						{% include 'partials/bar-user.html' %}
-					</div>
+					<div class="column one">{% include 'partials/bar-page.html' %}</div>
+					<div class="column two">{% include 'partials/bar-user.html' %}</div>
 				</div>
 			</div>
 		</div>
 		{% endblock %}
-
 		{% block header %}{% endblock %}
 		{% block content %}{% endblock %}
 		{% block footer %}{% endblock %}
-
 		{% block consent %}
 		<div id="consent" class="ptl">
 			<cookie-consent name="cookie" act="Ok"></cookie-consent>
 		</div>
 		{% endblock %}
 	</div>
-	{% render_bundle 'main' 'js' %}
+	{% vite_asset 'index.js' %}
 </body>
 
 </html>
