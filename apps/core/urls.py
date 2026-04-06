@@ -8,9 +8,7 @@ from django.urls import path
 from .views import definition
 from .views import (
   general, docs, 
-  dictionary, grammar, fonts,
-  api,speech, ome,
-  other
+  dictionary, grammar, fonts
 )
 
 # app_name = 'MyOrdbok'
@@ -38,13 +36,13 @@ urlpatterns = [
     path('cookie-policy', docs.cookie_policy, name='cookie-policy'),
     
 
-    path('api/speech', speech.home, name='api-speech-stream'),
-    path('api/words', other.ListWordAPIView.as_view(), name='api-word-list-tmp'),
-    path('api/search', api.SearchEngineAPIView.as_view(), name='api-search'),
-    path('api/oem/word/suggest', api.OEMWordSuggestAPIView.as_view(), name='oem-word-suggest'),
-    # path('api/ome/word/suggest-tmp', ome.OMEWordSuggestAPIView.as_view(), name='ome-word-suggest-tmp'),
-    path('api/ome/word/suggest', ome.word_suggestion, name='ome-suggestion'),
-    path('api/ome/definition', ome.word_definition, name='ome-definition'),
+    
+    # path('api/words', other.ListWordAPIView.as_view(), name='api-word-list-tmp'),
+    # path('api/search', api.SearchEngineAPIView.as_view(), name='api-search'),
+    # path('api/oem/word/suggest', api.OEMWordSuggestAPIView.as_view(), name='oem-word-suggest'),
+    # # path('api/ome/word/suggest-tmp', ome.OMEWordSuggestAPIView.as_view(), name='ome-word-suggest-tmp'),
+    # path('api/ome/word/suggest', ome.word_suggestion, name='ome-suggestion'),
+    # path('api/ome/definition', ome.word_definition, name='ome-definition'),
 
     # Add the URLs for our notes
     # path('notes', other.note_list, name='note_list'),

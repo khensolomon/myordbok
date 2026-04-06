@@ -101,9 +101,3 @@ def cookies_read(request: HttpRequest):
         # "solId": request.COOKIES.get("solId", "en")
         "sol": request.sol,
     }
-
-def app_info(request: HttpRequest):
-    return {
-        "appName": config.name,
-        "appVersion": config.version,
-    }
