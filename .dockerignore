@@ -1,0 +1,133 @@
+# .dockerignore - Optimized for Django + MySQL (mysqlclient) + Node.js/npm
+*.v[0-9]*.*
+*tmp/
+
+# Ignore ONLY the assets folder at the root of the project
+# cache/
+docs/
+assets/
+*.md
+
+# But do NOT ignore the data subfolder inside it
+!assets/data/
+!assets/data/*.json
+.editorconfig
+!README.md
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+celerybeat-schedule
+celerybeat.pid
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+*.sqlite3
+
+# Build artifacts from local compilation (especially useful for mysqlclient)
+*.egg-info/
+build/
+dist/
+*.whl
+*.tar.gz
+pip-wheel-metadata/
+
+# Node.js / npm / frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn
+.yarnrc
+.yarn-integrity
+.next/
+out/
+build/
+dist/
+*.min.js
+*.bundle.js
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+.dockerenv
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker & development files
+Dockerfile*
+docker-compose*.yml
+.docker/
+.dockerignore
+
+# Logs & temporary files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# MySQL / Database dumps (don't copy local dumps into image)
+*.sql
+*.sql.gz
+*.dump
+mysql/
+data/
+dump/
+
+# Testing
+.coverage
+coverage/
+test-results/
+junit.xml
+
+# Misc / Security
+*.pem
+*.key
+*.crt
