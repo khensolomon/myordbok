@@ -78,11 +78,11 @@ jobs:
         run: |
           echo "Deployment failed! Fetching recent logs for debugging..."
           echo "--- WEB LOGS ---"
-          docker service logs myordbok_web --tail 100
+          docker service logs myordbok_web --tail 100 || true
           echo "--- NGINX LOGS ---"
-          docker service logs myordbok_nginx --tail 100
+          docker service logs myordbok_nginx --tail 100 || true
           echo "--- DB LOGS ---"
-          docker service logs myordbok_db --tail 100
+          docker service logs myordbok_db --tail 100 || true
 
       - name: Wait for MySQL readiness
         run: |
