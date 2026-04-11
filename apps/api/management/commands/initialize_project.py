@@ -24,5 +24,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Initialization complete."))
         else:
             self.stdout.write("Existing database found. Skipping initialization.")
-        
-        call_command('download_wordnet')
+
