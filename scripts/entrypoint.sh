@@ -7,27 +7,28 @@ echo "--- Starting Entrypoint Script ---"
 
 # 1. Standard Static Collection
 echo "Collecting static files..."
-# python manage.py collectstatic --noinput
-# python manage.py collectstatic --clear --noinput
-# python manage.py collectstatic --clear --noinput --no-default-ignore
 python manage.py collectstatic --noinput --no-default-ignore
 
+# 2. Wait for MySQL to become ready (Swarm VIP fix)
+echo "Waiting for database to accept queries..."
+attempt=1
+max_attempts=45
 
-# . Cleanup "static" folder except for .vite ---
-# echo "Cleaning up static directory (preserving .vite)..."
-# find /code/static -mindepth 1 ! -path "/code/static/.vite*" -delete
-# ------------------------------------------------
-
-# 2. Wait for MySQL to become ready
-echo "Waiting for database at ${DB_HOST:-db}:${DB_PORT:-3306}..."
-while ! python -c "import socket, os; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.settimeout(1); s.connect((os.environ.get('DB_HOST', 'db'), int(os.environ.get('DB_PORT', 3306))))" 2>/dev/null; do
-    echo "Database unavailable - sleeping for 2 seconds..."
+# We use Django's own command to verify the DB is actually accepting connections,
+# bypassing the Docker Swarm VIP port illusion.
+while ! python manage.py showmigrations > /dev/null 2>&1; do
+    if [ $attempt -ge $max_attempts ]; then
+        echo "Database did not become ready in time. Exiting."
+        exit 1
+    fi
+    echo "Database unavailable or initializing - sleeping for 2 seconds (Attempt $attempt/$max_attempts)..."
     sleep 2
+    attempt=$((attempt+1))
 done
-echo "Database is ready!"
+
+echo "Database is fully ready and accepting queries!"
 
 # 3. Apply Migrations BEFORE Initialization
-# Moving this here fixes the race condition in your GitHub Action deploy sequence
 echo "Applying database migrations..."
 python manage.py migrate --noinput
 
