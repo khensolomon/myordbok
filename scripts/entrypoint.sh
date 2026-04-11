@@ -5,11 +5,7 @@ set -e
 
 echo "--- Starting Entrypoint Script ---"
 
-# 1. Standard Static Collection
-echo "Collecting static files..."
-python manage.py collectstatic --noinput --no-default-ignore
-
-# 2. Wait for MySQL to become ready (Swarm VIP fix)
+# 1. Wait for MySQL to become ready (Swarm VIP fix)
 echo "Waiting for database to accept queries..."
 attempt=1
 max_attempts=45
@@ -27,6 +23,10 @@ while ! python manage.py showmigrations > /dev/null 2>&1; do
 done
 
 echo "Database is fully ready and accepting queries!"
+
+# 2. Standard Static Collection
+echo "Collecting static files..."
+python manage.py collectstatic --noinput --no-default-ignore
 
 # 3. Apply Migrations BEFORE Initialization
 echo "Applying database migrations..."

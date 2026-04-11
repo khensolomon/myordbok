@@ -56,12 +56,20 @@ services:
       - /bin/sh
       - -c
       - |
+        set -e
+
         # 1. Standard Static Collection
         python manage.py collectstatic --noinput --clear
         
         # 2. Custom Initialization Command
         python manage.py initialize_project
-        
+
+        # 5. Handle Command Overrides
+        if [ "$#" -gt 0 ]; then
+            echo "Executing override command: $@"
+            exec "$@"
+        fi
+
         # --worker-tmp-dir /dev/shm
         # --pid /tmp/gunicorn.pid
         echo "Starting Gunicorn..."
