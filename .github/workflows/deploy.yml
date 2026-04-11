@@ -73,6 +73,17 @@ jobs:
           # --detach=false ensures the command waits for the update to finish/fail
           docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
 
+      - name: Dump Service Logs on Failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Fetching recent logs for debugging..."
+          echo "--- WEB LOGS ---"
+          docker service logs myordbok_web --tail 100
+          echo "--- NGINX LOGS ---"
+          docker service logs myordbok_nginx --tail 100
+          echo "--- DB LOGS ---"
+          docker service logs myordbok_db --tail 100
+
       - name: Wait for MySQL readiness
         run: |
           NETWORK_NAME="myordbok_default"
