@@ -16,7 +16,7 @@ class Command(BaseCommand):
             
             # Download NLTK data
             self.stdout.write("Downloading NLTK wordnet...")
-            # call_command('download_wordnet', interactive=False)
+            call_command('download_wordnet', interactive=False)
             
             # Run your other custom setup
             # call_command('custom_setup')
