@@ -1,9 +1,12 @@
 *.v[0-9]*.*
 *tmp/
-/static
-core/static
-/cache
-
+static/
+!static/README.md
+/cache/
+!/cache/README.md
+frontend/
+frontend_build/
+staticfiles/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
