@@ -29,7 +29,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/code
-      - static_volume:/code/static
+      - static_volume:/code/staticfiles
       - storage_volume:${STORAGE_DIR}:rw
       - media_volume:${MEDIA_DIR}:rw
     depends_on:
@@ -76,7 +76,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - static_volume:/code/static:ro
+      - static_volume:/code/staticfiles:ro
       - ./cache:/code/cache
       - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
     environment:

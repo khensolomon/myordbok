@@ -48,7 +48,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
-staticfiles/
+# staticfiles/
 *.sqlite3
 
 # Build artifacts from local compilation (especially useful for mysqlclient)
