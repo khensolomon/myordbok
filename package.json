@@ -21,7 +21,7 @@
     "django": "if [ -f \"./venv/bin/python\" ]; then ./venv/bin/python manage.py runserver; else .\\venv\\Scripts\\python manage.py runserver; fi"
   },
   "dependencies": {
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
@@ -31,7 +31,7 @@
     "concurrently": "^9.2.1",
     "sass": "^1.99.0",
     "sharp": "^0.34.5",
-    "vite": "^8.0.3"
+    "vite": "^8.0.8"
   },
   "repository": {
     "type": "git",
