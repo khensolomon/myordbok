@@ -81,9 +81,9 @@ services:
       - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
     environment:
       - APP_PORT=${APP_PORT}
-    # depends_on:
-    #   web:
-    #     condition: service_healthy
+    depends_on:
+      web:
+        condition: service_healthy
 
 volumes:
   mysql_volume:
