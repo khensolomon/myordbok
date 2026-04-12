@@ -107,7 +107,9 @@ services:
       - APP_PORT=${APP_PORT}
     networks:
       - default
-      - gateway
+      - gateway:
+          aliases:
+            - myordbok_nginx 
     depends_on:
       - web
     deploy:
