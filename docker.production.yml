@@ -15,7 +15,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 300s # Increased start_period to 3 minutes (300s) to allow for MySQL initialization
+      start_period: 300s
     networks:
       - default
     volumes:

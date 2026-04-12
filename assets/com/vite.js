@@ -28,11 +28,6 @@ export default defineConfig(({ mode }) => {
 			alias: {
 				vue: "vue/dist/vue.esm-bundler.js",
 				// vue: "vue/dist/vue.runtime.esm-bundler.js",
-				// "vue": "vue/dist/vue.runtime.esm-bundler.js",
-        // // ADD THESE to catch all possible Vue import paths:
-        // "vue/dist/vue.esm-bundler.js": "vue/dist/vue.runtime.esm-bundler.js",
-        // "vue/dist/vue.cjs.js": "vue/dist/vue.runtime.cjs.js",
-        // "@vue/runtime-dom": "@vue/runtime-dom",
 			},
 		},
 
