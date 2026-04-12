@@ -91,7 +91,7 @@ services:
         condition: any
         delay: 10s
 
-  myordbok_nginx:
+  nginx:
     image: ghcr.io/${GITHUB_REPOSITORY}/nginx-prod:latest
     logging:
       driver: "json-file"
