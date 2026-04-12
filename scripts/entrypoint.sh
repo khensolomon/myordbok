@@ -7,8 +7,8 @@ echo "--- Starting Entrypoint Script ---"
 
 # 1. Standard Static Collection
 # echo "Collecting static files..."
-python manage.py collectstatic --noinput
-# python manage.py collectstatic --clear --noinput
+# python manage.py collectstatic --noinput
+python manage.py collectstatic --clear --noinput
 # python manage.py collectstatic --clear --noinput --no-default-ignore
 # python manage.py collectstatic --noinput --no-default-ignore
 

@@ -26,8 +26,13 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			extensions: [".js", ".vue", ".json"],
 			alias: {
-				// vue: "vue/dist/vue.esm-bundler.js",
-				vue: "vue/dist/vue.runtime.esm-bundler.js",
+				vue: "vue/dist/vue.esm-bundler.js",
+				// vue: "vue/dist/vue.runtime.esm-bundler.js",
+				// "vue": "vue/dist/vue.runtime.esm-bundler.js",
+        // // ADD THESE to catch all possible Vue import paths:
+        // "vue/dist/vue.esm-bundler.js": "vue/dist/vue.runtime.esm-bundler.js",
+        // "vue/dist/vue.cjs.js": "vue/dist/vue.runtime.cjs.js",
+        // "@vue/runtime-dom": "@vue/runtime-dom",
 			},
 		},
 
@@ -162,6 +167,10 @@ export default defineConfig(({ mode }) => {
 						return "assets/[name]-[hash][extname]";
 					},
 				},
+				onwarn(warning, warn) {
+            console.log('ROLLUP WARNING:', warning.code, warning.message)
+            warn(warning)
+        }
 			},
 		},
 	};

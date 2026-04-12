@@ -62,17 +62,17 @@ const pinia = createPinia();
 // }
 
 const app = createApp({
-	// components: {
-	// 	NavEngine,
-	// 	SpeechEngine,
-	// 	ThemeSwitch,
-	// 	HelpsImprove,
-	// 	FormLinks,
-	// 	CookieConsent,
-	// 	SearchEngine,
-	// 	// OfficeUser
-	// 	// NavTest
-	// },
+	components: {
+		NavEngine,
+		SpeechEngine,
+		ThemeSwitch,
+		HelpsImprove,
+		FormLinks,
+		CookieConsent,
+		SearchEngine,
+		// OfficeUser
+		// NavTest
+	},
 	methods: {
 		/**
 		 * @param {string} e
@@ -144,10 +144,6 @@ const app = createApp({
 		// if (this.$refs.input != null) {
 		// 	this.$refs.input.focus();
 		// }
-
-		
-
-
 	},
 	// render: () => h(layout),
 	// ready: () {},
@@ -165,18 +161,29 @@ const app = createApp({
 		// // or using an action instead
 		// data.increment();
 		// return { data };
-	}
+	},
+	
+	// ADD THIS — tells Vue to use the existing DOM as-is
+	// without runtime compilation
+	// template: null,
+	// render() {
+	// 		return h(
+	// 				'div',
+	// 				{ id: 'myordbok', class: 'primary' },
+	// 				// $el children are preserved via slots
+	// 		)
+	// }
 });
 
 app.use(pinia);
 
-app.component('NavEngine', NavEngine)
-app.component('SpeechEngine', SpeechEngine)
-app.component('CookieConsent', CookieConsent)
-app.component('ThemeSwitch', ThemeSwitch)
-app.component('HelpsImprove', HelpsImprove)
-app.component('FormLinks', FormLinks)
-app.component('SearchEngine', SearchEngine)
+// app.component('NavEngine', NavEngine)
+// app.component('SpeechEngine', SpeechEngine)
+// app.component('CookieConsent', CookieConsent)
+// app.component('ThemeSwitch', ThemeSwitch)
+// app.component('HelpsImprove', HelpsImprove)
+// app.component('FormLinks', FormLinks)
+// app.component('SearchEngine', SearchEngine)
 
 // app.provide("dataStore", useDataStore());
 // app.provide("storageStore", useStorageStore());
@@ -217,5 +224,6 @@ const clickOutside = {
 app.directive("click-outside", clickOutside);
 
 app.mount("#myordbok");
+// app.mount('body')
 
 // document.addEventListener("DOMContentLoaded", function() { });

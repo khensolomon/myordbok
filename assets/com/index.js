@@ -36,7 +36,7 @@ import '../scss/style.scss';
 // We removed sw.js and data-worker.js imports. They are now built as separate 
 // files via webpack entries. sw.register.js can remain here if you want the 
 // registration logic to run as part of the main UI thread.
-import '../script/sw-register.js';
+// import '../script/sw-register.js';
 
 // NOTE: script
 import '../script/index.js';

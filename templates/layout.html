@@ -14,11 +14,9 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 	<meta name="apple-mobile-web-app-title" content="{{ appName }}" />
 
-	<title>
-		{% block title %}
+	<title>{% block title %}
 		{% if title %}{{ title }}{% else %}{{ appName }}{% endif%}
-		{% endblock %}
-	</title>
+		{% endblock %}</title>
 	{% if block.super or keywords %}
 	<meta name="keywords" content="{% block keywords %}{{ keywords }}{% endblock %}" />
 	{% endif %} {% if block.super or description %}
@@ -39,9 +37,12 @@
 	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon.png' %}" />
 	<link rel="manifest" href="{% static 'app.webmanifest' %}" />
 
-	<style>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+	<!-- <style>
 		@import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
-	</style>
+	</style> -->
 
 	{% vite_hmr_client %} {% block scriptSuggestion %}{% endblock %}
 </head>
