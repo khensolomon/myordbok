@@ -8,14 +8,14 @@ services:
         max-file: "3"
     environment:
       - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
       - MYSQL_PASSWORD=${DB_PWD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allows root to connect without a password
     healthcheck:
-      # test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
+      start_period: 300s # Increased start_period to 3 minutes (300s) to allow for MySQL initialization
     networks:
       - default
     volumes:
@@ -46,11 +46,11 @@ services:
     depends_on:
       - db
     healthcheck:
-      test: ["CMD", "python", "manage.py", "healthcheck"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-      start_period: 90s
+      test: ["CMD", "python", "manage.py", "check"]
+      interval: 10s
+      timeout: 10s
+      retries: 2
+      start_period: 5s
     environment:
       - DEBUG=${DEBUG:-false}
       - SECRET_KEY=${SECRET_KEY}

@@ -5,13 +5,14 @@ services:
     restart: always
     environment:
       - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
       - MYSQL_PASSWORD=${DB_PWD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allows root to connect without a password
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
+      start_period: 300s # Increased start_period to 3 minutes (300s) to allow for MySQL initialization
     networks:
       default:
         aliases:
@@ -36,9 +37,9 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "manage.py", "healthcheck"]
+      test: ["CMD", "python", "manage.py", "check"]
       interval: 10s
-      timeout: 3s
+      timeout: 10s
       retries: 2
       start_period: 5s
     working_dir: /code
@@ -50,32 +51,6 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PWD=${DB_PWD}
-      # FIXED: Force Gunicorn/Python to use /tmp for temporary files/heartbeats
-      - TMPDIR=/tmp
-    command:
-      - /bin/sh
-      - -c
-      - |
-        set -e
-
-        # 1. Standard Static Collection
-        python manage.py collectstatic --noinput --clear
-        
-        # 2. Custom Initialization Command
-        python manage.py initialize_project
-
-        # 5. Handle Command Overrides
-        if [ "$#" -gt 0 ]; then
-            echo "Executing override command: $@"
-            exec "$@"
-        fi
-
-        # --worker-tmp-dir /dev/shm
-        # --pid /tmp/gunicorn.pid
-        echo "Starting Gunicorn..."
-        exec gunicorn config.wsgi:application \
-             --bind 0.0.0.0:${APP_PORT} \
-             --worker-tmp-dir /tmp/gunicorn
 
   nginx:
     image: nginx:latest
