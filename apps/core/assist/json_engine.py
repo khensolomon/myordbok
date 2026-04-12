@@ -18,7 +18,8 @@ class Thuddar:
     """
     def __init__(self):
         """Initializes the data directory and file path configuration."""
-        self.data_dir = settings.BASE_DIR / 'docs' / 'thuddar'
+        # self.data_dir = settings.BASE_DIR / 'docs' / 'thuddar'
+        self.data_dir = settings.BASE_DIR / 'assets'/ 'data' / 'thuddar'
         self.file_paths = {
             'snap': self.data_dir / 'snap.json',
             'structure': self.data_dir / 'structure.json',
@@ -50,7 +51,7 @@ class SolInfo:
     for the Dictionary Info.
     Initializes the data directory and file path configuration.
     """
-    data_dir = settings.BASE_DIR / 'docs' / 'info'
+    data_dir = settings.BASE_DIR / 'assets'/ 'data' / 'info'
     file_paths = {
         'info': str(data_dir / '{}.json')
     }

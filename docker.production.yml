@@ -76,8 +76,7 @@ services:
       - BUCKETCRED=${BUCKETCRED}
       - GOOGLE_APPLICATION_CREDENTIALS=${BUCKETCRED}
       - NLTK_DATA=${NLTK_DATA}
-    # Removed the inline command block. 
-    # The Dockerfile ENTRYPOINT will handle the startup logic.
+    # Removed the inline command block, Dockerfile ENTRYPOINT will handle the startup logic.
     deploy:
       replicas: 2
       update_config:
@@ -98,8 +97,6 @@ services:
       options:
         max-size: "20m"
         max-file: "3"
-    # ports:
-    #   - "80:80" (NPM will handle port 80 now)
     volumes:
       - static_volume:/code/staticfiles:ro
       - cache_volume:/code/cache:ro

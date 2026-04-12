@@ -10,7 +10,6 @@ assets/
 
 # But do NOT ignore the data subfolder inside it
 !assets/data/
-!assets/data/*.json
 .editorconfig
 !README.md
 
