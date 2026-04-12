@@ -112,7 +112,7 @@ services:
       - web
     deploy:
       replicas: 1
-      # endpoint_mode: dnsrr
+      endpoint_mode: dnsrr
       update_config:
         order: start-first
       restart_policy:
