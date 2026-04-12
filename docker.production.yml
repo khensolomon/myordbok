@@ -50,7 +50,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 2
-      start_period: 5s
+      start_period: 90s
     environment:
       - DEBUG=${DEBUG:-false}
       - SECRET_KEY=${SECRET_KEY}

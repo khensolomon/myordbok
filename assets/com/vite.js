@@ -26,7 +26,8 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			extensions: [".js", ".vue", ".json"],
 			alias: {
-				vue: "vue/dist/vue.esm-bundler.js",
+				// vue: "vue/dist/vue.esm-bundler.js",
+				vue: "vue/dist/vue.runtime.esm-bundler.js",
 			},
 		},
 
@@ -76,11 +77,15 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 
+		html: {
+			cspNonce: "{NONCE}", // Vite will replace this
+		},
+
 		assetsInclude: ["**/*.webmanifest", "**/*.txt"],
 
 		// Translates your output, optimization, and chunks logic
 		build: {
-			manifest: 'manifest.json',
+			manifest: "manifest.json",
 			// Where Django expects to find the built files
 			outDir: path.resolve(__dirname, "../../static"),
 			emptyOutDir: true, // Translates clean: true
@@ -96,7 +101,7 @@ export default defineConfig(({ mode }) => {
 				input: {
 					main: path.resolve(__dirname, "./index.js"),
 					"sw-register": path.resolve(__dirname, "../script/sw-register.js"),
-					"sw-installer": path.resolve(__dirname, "../script/sw-installer.js")
+					"sw-installer": path.resolve(__dirname, "../script/sw-installer.js"),
 				},
 				output: {
 					// // Translates your filename and chunkFilename logic exactly

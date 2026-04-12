@@ -62,17 +62,17 @@ const pinia = createPinia();
 // }
 
 const app = createApp({
-	components: {
-		NavEngine,
-		SpeechEngine,
-		ThemeSwitch,
-		HelpsImprove,
-		FormLinks,
-		CookieConsent,
-		SearchEngine,
-		// OfficeUser
-		// NavTest
-	},
+	// components: {
+	// 	NavEngine,
+	// 	SpeechEngine,
+	// 	ThemeSwitch,
+	// 	HelpsImprove,
+	// 	FormLinks,
+	// 	CookieConsent,
+	// 	SearchEngine,
+	// 	// OfficeUser
+	// 	// NavTest
+	// },
 	methods: {
 		/**
 		 * @param {string} e
@@ -169,6 +169,14 @@ const app = createApp({
 });
 
 app.use(pinia);
+
+app.component('NavEngine', NavEngine)
+app.component('SpeechEngine', SpeechEngine)
+app.component('CookieConsent', CookieConsent)
+app.component('ThemeSwitch', ThemeSwitch)
+app.component('HelpsImprove', HelpsImprove)
+app.component('FormLinks', FormLinks)
+app.component('SearchEngine', SearchEngine)
 
 // app.provide("dataStore", useDataStore());
 // app.provide("storageStore", useStorageStore());

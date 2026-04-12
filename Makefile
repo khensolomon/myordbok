@@ -70,6 +70,10 @@ mysqldump: ## MySQL Dump: Run mysqldump in the database service
 # 	mysqldump -u $(DB_USER) -p $(DB_NAME) > $(STORAGE_DIR)/$(APP_NAME)/mysql/latest.sql
 	@echo "mysqldump -u $(DB_USER) -p $(DB_NAME) > $(DB_DIR)/latest.sql"
 
+collectstatic: ## Build frontend and collect static files (for production)
+	npm run build
+	python manage.py collectstatic --noinput
+
 ssh-dev: ## SSH into the development container
 	ssh $(SSH_USER)@$(SSH_HOST)
 

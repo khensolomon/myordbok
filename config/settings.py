@@ -24,6 +24,11 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 # Split ALLOWED_HOSTS and remove empty entries
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '*').split(',') if host.strip()]
 
+# SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # keep this one
+# SECURE_CONTENT_TYPE_NOSNIFF = False        # keep this one
+# X_FRAME_OPTIONS = "SAMEORIGIN"             # revert to string, not None
+# SECURE_BROWSER_XSS_FILTER = False          # keep this one
+
 # --- APP DEFINITION ---
 INSTALLED_APPS = [
     'django.contrib.admin',

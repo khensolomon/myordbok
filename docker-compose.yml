@@ -12,7 +12,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 300s # Increased start_period to 3 minutes (300s) to allow for MySQL initialization
+      start_period: 300s
     networks:
       default:
         aliases:
@@ -30,7 +30,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/code
-      - static_volume:/code/staticfiles
+      - ./staticfiles:/code/staticfiles   # ← bind mount instead of named volume
       - storage_volume:${STORAGE_DIR}:rw
       - media_volume:${MEDIA_DIR}:rw
     depends_on:
@@ -41,7 +41,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 2
-      start_period: 5s
+      start_period: 90s
     working_dir: /code
     environment:
       - DEBUG=false
@@ -59,7 +59,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - static_volume:/code/staticfiles:ro
+      - ./staticfiles:/code/staticfiles:ro   # ← same bind mount, read-only for nginx
       - ./cache:/code/cache
       - ./nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
     environment:
@@ -70,7 +70,7 @@ services:
 
 volumes:
   mysql_volume:
-  static_volume:
+  # static_volume:
   storage_volume:
     driver: local
     driver_opts:
