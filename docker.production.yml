@@ -91,7 +91,7 @@ services:
         condition: any
         delay: 10s
 
-  nginx:
+  myordbok_nginx:
     image: ghcr.io/${GITHUB_REPOSITORY}/nginx-prod:latest
     logging:
       driver: "json-file"
@@ -107,9 +107,7 @@ services:
       - APP_PORT=${APP_PORT}
     networks:
       - default
-      - gateway:
-          aliases:
-            - myordbok_nginx 
+      - gateway
     depends_on:
       - web
     deploy:
