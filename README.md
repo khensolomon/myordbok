@@ -1,6 +1,6 @@
 # A comprehensive online Myanmar dictionary
 
-[MyOrdbok][home] is a high-performance, multi-language dictionary designed to bridge the gap between [English and Burmese][about]. Supporting 24 languages and featuring over 57,000 primary words with 100,000+ definitions, it serves as a robust tool for learners and linguists alike.
+[MyOrdbok][home] is a high-performance, multi-language dictionary designed to bridge the gap between [English and Burmese][about]. Featuring over 57,000 primary words with 100,000+ definitions, it serves as a robust tool for learners and linguists alike.
 
 ## 🚀 Key Features
 
@@ -15,8 +15,6 @@
 
 | Category        | Details                                                                 |
 |-----------------|-------------------------------------------------------------------------|
-| Dictionary Data | 57,223 primary words                                                    |
-| Languages       | 24 languages supported                                                  |
 | Grammar         | Instant [Myanmar grammar][grammar] lookup                               |
 | Fonts           | Integrated [Myanmar fonts][fonts] support                               |
 | Backend         | Transitioned from deprecated MySQL to high-speed session-based reading  |
