@@ -12,9 +12,9 @@ services:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allows root to connect without a password
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root"]
-      interval: 10s
+      interval: 45s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 300s
     networks:
       - default
