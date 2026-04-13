@@ -1,94 +1,54 @@
-# MyOrdbok
+# A comprehensive online Myanmar dictionary
 
-- [ ] fonts
-- [ ] docker
-- [ ] github actions
-- [ ] self-hosted
+[MyOrdbok][home] is a high-performance, multi-language dictionary designed to bridge the gap between [English and Burmese][about]. Supporting 24 languages and featuring over 57,000 primary words with 100,000+ definitions, it serves as a robust tool for learners and linguists alike.
 
-မိုင်အိုလ်ဗို့ လာရောက်လည်ပတ်မှုအချက်အလက်များကို ပြီးခဲ့သည့် [2022/11/27][home] မှ ပြန်လည်တွက်ချက်အရ ဧည့်သည် **21,109** ဦးနှင့် လာရောက်လည်ပတ်မှု **2,453,600** ကြိမ်ရှိသည်။ စုစုပေါင်း လာရောက်သူ **60,347** ဦး၏ အလည်အပတ်ပေါင်း [889,993,843,088,042][about] ကြိမ်ရှိပါသည်။
+## 🚀 Key Features
 
-... is online [Myanmar dictionary][home]
+- **Rich Definitions**: Includes parts of speech, thesaurus, and synonyms.
+- **Smart Search**: Instant suggestions and real-time results for over 200,000 searchable terms.
+- **Accessibility**: Built-in Text-to-Speech (TTS).
+- **Privacy-First**: No ads, no authentication required, and a clear focus on data security.
+- **User Experience**: Elegant, customizable interface designed for ease of use.
+- **Open Source**: Actively developed and free for everyone.
 
-## Definition
+## 🛠 Technical Overview
 
-- read temporary sessions: source words list, definition, type, usage but watch
-- read target words list instantly
-- deprecated MySQL(live data)
+| Category        | Details                                                                 |
+|-----------------|-------------------------------------------------------------------------|
+| Dictionary Data | 57,223 primary words                                                    |
+| Languages       | 24 languages supported                                                  |
+| Grammar         | Instant [Myanmar grammar][grammar] lookup                               |
+| Fonts           | Integrated [Myanmar fonts][fonts] support                               |
+| Backend         | Transitioned from deprecated MySQL to high-speed session-based reading  |
 
-...
+## 📱 Installation
 
-## Grammar
+Get the app on your preferred platform or build it from source:
 
-read source instantly, [Myanmar grammar][grammar]
-
-## Fonts
-
-read source instantly, [Myanmar fonts][fonts]. But restricted items are not available to download
-
-### Secret key
-
-```shell
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-- year of copyright
-
-### static data
-
-- year of copyright
-
-```shell
-myordbok/
-├── config/
-│   ├── settings.py
-│   └── ...
-├── core/
-│   ├── management/
-│   │   └── commands/
-│   |       ├── tmp.py
-│   │       └── __init__.py
-│   ├── templates/
-│   │   └── core/
-│   |       ├── home.html
-│   |       ├── about.html
-│   │       └── base.html
-│   ├── admin.py
-│   ├── app.py
-│   ├── context_processors.py
-│   ├── serializers.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── __init__.py
-├── templates/
-│   ├── rest_framework/
-│   │   └── api.html
-│   ├── base.html
-│   └── ...
-├── assets/
-│   ├── scripts/
-│   │   └── index.js
-│   ├── scss/
-│   │   └── style.scss
-│   ├── webpack/
-│   │   └── index.js
-│   ├── src/
-│   │   ├── js/
-│   │   │   └── index.js
-│   │   └── css/
-│   │       └── styles.css
-│   ├── package.json
-│   └── webpack.config.js
-├── requirements-dev.txt
-├── requirements.txt
-└── manage.py
-```
+- **Mobile**: Available on the [App Store][appstore], [Google play][playStore].
+- **Desktop/Web**: Clone the repository to get started:
 
 ```bash
-npm install --save-dev webpack webpack-cli webpack-bundle-tracker @babel/core @babel/preset-env babel-loader css-loader style-loader
-python manage.py thuddar_update_snap
-./myordbok/cache, ./myordbok/static, ./myordbok/tmp, ./myordbok/venv
+git clone https://github.com/khensolomon/myordbok.git
 ```
+
+## 🛡 Privacy & Security
+
+We value your privacy. The app operates with **no authentication**, meaning your search history and data stay with you. For a detailed breakdown of how we handle data, please refer to our Privacy Policy.
+
+## 💬 Feedback & Contribution
+
+MyOrdbok is in active development. We thrive on community feedback to make this the best Myanmar dictionary available.
+
+- **Rate & Review**: Please leave a review on the App Store or Google Play.
+- **Contribute**: Found a bug or want to add a feature? Open an issue or submit a pull request!
+
+---
+
+*MyOrdbok — Empowering language learning for the Myanmar community.*
+
+[appStore]: https://apps.apple.com/us/app/myordbok/id1570959654
+[playStore]: https://play.google.com/store/apps/details?id=com.myordbok.app
 
 [home]: //myordbok.com
 [grammar]: //myordbok.com/grammar
