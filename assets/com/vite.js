@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
 
 		assetsInclude: ["**/*.webmanifest", "**/*.txt"],
 
-		// Translates your output, optimization, and chunks logic
+		// Translates output, optimization, and chunks logic
 		build: {
 			manifest: "manifest.json",
 			// Where Django expects to find the built files
@@ -96,8 +96,8 @@ export default defineConfig(({ mode }) => {
 			assetsInlineLimit: 0,
 
 			rollupOptions: {
-				// 1. Define your multiple entry points
-				// Translates your entry object
+				// 1. Define multiple entry points
+				// Translates entry object
 				input: {
 					main: path.resolve(__dirname, "./index.js"),
 					"sw-register": path.resolve(__dirname, "../script/sw-register.js"),
