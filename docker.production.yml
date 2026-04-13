@@ -46,11 +46,11 @@ services:
     depends_on:
       - db
     healthcheck:
-      test: ["CMD", "python", "manage.py", "check"]
-      interval: 10s
+      test: ["CMD", "python", "/code/scripts/healthcheck.py"]
+      interval: 30s
       timeout: 10s
-      retries: 2
-      start_period: 90s
+      retries: 3
+      start_period: 60s
     environment:
       - DEBUG=${DEBUG:-false}
       - SECRET_KEY=${SECRET_KEY}

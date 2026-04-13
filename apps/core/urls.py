@@ -14,6 +14,9 @@ from .views import (
 # app_name = 'MyOrdbok'
 urlpatterns = [
     path('', general.home, name='home'),
+    
+    path('health', general.health, name='health'),
+
     path('about', general.about, name='about'),
 
     path('grammar', grammar.home, name='grammar-home'),

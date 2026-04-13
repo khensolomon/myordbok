@@ -17,6 +17,9 @@ def home(request: HttpRequest) -> HttpResponse:
     }
     return render(request, 'core/home.html', context)
 
+def health(request: HttpRequest) -> HttpResponse:
+    return HttpResponse("ok")
+
 def about(request: HttpRequest) -> HttpResponse:
     context = {
         'title': 'About',
