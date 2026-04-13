@@ -5,6 +5,7 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 ![GitHub stars](https://img.shields.io/github/stars/khensolomon/myordbok)
 ![License](https://img.shields.io/github/license/khensolomon/myordbok)
 ![Last commit](https://img.shields.io/github/last-commit/khensolomon/myordbok)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/khensolomon/myordbok/deploy.yml)
 
 - Works ⚡ instantly in your browser
 - Search across **200,000+ terms**
