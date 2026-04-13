@@ -34,6 +34,22 @@ env: ## Load environment variables from origin.env (if it exists) and export the
 	~/dev/notes/scripts/env.sh ./origin.env
 
 # --- CORE COMMANDS ---
+compose-build: ## Build Docker images before starting containers
+	@echo "=> Building assets..."
+	@npm run build
+	@echo "=> Starting Docker containers..."
+	@docker compose up -d $(EXTRA_ARGS)
+
+compose-clean: ## Clean up Docker containers and volumes
+	@echo "=> Cleaning up Docker containers and volumes..."
+	@docker compose down -v $(EXTRA_ARGS)
+
+compose-nuke: ## Nuclear option: Stop containers, remove volumes, and prune all images
+	@echo "=> Removing all unused images..."
+	@docker image prune -a
+	@echo "=> Full nuclear cleanup of everything Docker-related..."
+	@docker system prune -a --volumes
+
 production: ## Production Mode: Uses base + prod (if exists)
 	docker compose -f docker-compose.yml $(PROD_FLAG) up -d $(EXTRA_ARGS)
 	@echo "Running in Production Mode (Prod config detected: $(if $(PROD_CONF),Yes,No))"
