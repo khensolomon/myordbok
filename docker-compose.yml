@@ -70,6 +70,11 @@ services:
 
 volumes:
   mysql_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/mysql/data
   # static_volume:
   storage_volume:
     driver: local
