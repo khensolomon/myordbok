@@ -46,8 +46,33 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.repository }}/nginx-prod:latest
 
-  deploy:
+  check_local_vm_runner:
     needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      is_online: ${{ steps.runner_status.outputs.is_online }}
+    steps:
+      - name: Check Self-Hosted Runner Status
+        id: runner_status
+        run: |
+          echo "Checking runner status via GitHub API..."
+          # Note: We must use a Personal Access Token (PAT) here. 
+          # The default GITHUB_TOKEN does not have the required permissions to list runners.
+          RESPONSE=$(curl -sL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.VM_RUNNER_STATUS_PAT }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runners")
+          
+          # Use jq to check if there is at least one runner with status == "online"
+          IS_ONLINE=$(echo "$RESPONSE" | jq -r 'if .runners then (any(.runners[]; .status == "online")) else "false" end')
+          
+          echo "Local runner online status: $IS_ONLINE"
+          echo "is_online=$IS_ONLINE" >> "$GITHUB_OUTPUT"
+
+  deploy_local:
+    needs: [build, check_local_vm_runner]
+    if: needs.check_local_vm_runner.outputs.is_online == 'true'
     runs-on: self-hosted
     steps:
       - name: Checkout code
