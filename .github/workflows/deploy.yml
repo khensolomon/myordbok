@@ -4,7 +4,15 @@ on:
   push:
     branches: [ master ]
 
+# CONCURRENCY: Prevents two deployments from running at the exact same time
+concurrency:
+  group: production_deploy
+  cancel-in-progress: false
+
 jobs:
+  # ==========================================
+  # 1. BUILD PHASE
+  # ==========================================
   build:
     if: startsWith(github.event.head_commit.message, 'deploy:')
     runs-on: ubuntu-latest
@@ -23,7 +31,7 @@ jobs:
       - name: Install & Build Frontend
         run: |
           npm install
-          npm run build 
+          npm run build
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -32,20 +40,30 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Images are tagged with both :latest and the commit SHA.
+      # The SHA tag enables precise rollbacks — to roll back, change
+      # IMAGE_NAME in the deploy step to the desired SHA tag.
       - name: Build and Push Django App
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}/django-app:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/django-app:latest
+            ghcr.io/${{ github.repository }}/django-app:${{ github.sha }}
 
       - name: Build and Push Nginx
         uses: docker/build-push-action@v5
         with:
           context: ./nginx
           push: true
-          tags: ghcr.io/${{ github.repository }}/nginx-prod:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/nginx-prod:latest
+            ghcr.io/${{ github.repository }}/nginx-prod:${{ github.sha }}
 
+  # ==========================================
+  # 2. LOCAL VM PHASE (Checks runner status first)
+  # ==========================================
   check_local_vm_runner:
     needs: build
     runs-on: ubuntu-latest
@@ -56,28 +74,26 @@ jobs:
         id: runner_status
         run: |
           echo "Checking runner status via GitHub API..."
-          # Note: We must use a Personal Access Token (PAT) here. 
-          # The default GITHUB_TOKEN does not have the required permissions to list runners.
           RESPONSE=$(curl -sL \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.VM_RUNNER_STATUS_PAT }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runners")
-          
-          # Use jq to check if there is at least one runner with status == "online"
+
           IS_ONLINE=$(echo "$RESPONSE" | jq -r 'if .runners then (any(.runners[]; .status == "online")) else "false" end')
-          
+
           echo "Local runner online status: $IS_ONLINE"
           echo "is_online=$IS_ONLINE" >> "$GITHUB_OUTPUT"
 
-  deploy_local:
+  deploy_local_vm:
+    name: Deploy to Local VM
     needs: [build, check_local_vm_runner]
     if: needs.check_local_vm_runner.outputs.is_online == 'true'
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Log in to GHCR on VM
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
@@ -92,24 +108,13 @@ jobs:
           [ -f .env ] && . .env
           set +a
           export GITHUB_REPOSITORY=${{ github.repository }}
-          # mkdir -p "$DB_DIR" "$STORAGE_DIR" "$MEDIA_DIR"
-          
+
           docker compose -f docker.production.yml pull
-          # --detach=false ensures the command waits for the update to finish/fail
           docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
 
-      - name: Dump Service Logs on Failure
-        if: failure()
-        run: |
-          echo "Deployment failed! Fetching recent logs for debugging..."
-          echo "--- WEB LOGS ---"
-          docker service logs myordbok_web --tail 100 || true
-          echo "--- NGINX LOGS ---"
-          docker service logs myordbok_nginx --tail 100 || true
-          echo "--- DB LOGS ---"
-          docker service logs myordbok_db --tail 100 || true
-
+      # shell: bash required — brace expansion {1..20} is bash-only, not POSIX sh
       - name: Wait for MySQL readiness
+        shell: bash
         run: |
           NETWORK_NAME="myordbok_default"
           set -a
@@ -120,6 +125,7 @@ jobs:
               echo "MySQL is ready!"
               break
             fi
+            echo "Waiting for MySQL... attempt $i/20"
             sleep 5
           done
 
@@ -132,26 +138,220 @@ jobs:
           set +a
           docker run --rm --network $NETWORK_NAME --env-file .env $IMAGE_NAME python manage.py migrate --noinput
 
-      - name: Verify Data Import
+      - name: Verify Healthy Deployment & Clean Up
         run: |
-          set -a
-          [ -f .env ] && . .env
-          set +a
-          DB_CONTAINER=$(docker ps -q -f name=myordbok_db)
-          echo "--- DATA VERIFICATION ---"
-          docker exec -i $DB_CONTAINER mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$DB_NAME" -e "SELECT COUNT(*) as album_count FROM album;" || echo "Table 'album' not found."
-
-      - name: Verify Healthy Deployment
-        run: |
-          echo "Monitoring deployment health..."
-          # Since we use --detach=false, we just check final state
           RUNNING=$(docker service ls --filter name=myordbok_web --format "{{.Replicas}}")
-          echo "Final Replicas: $RUNNING"
           if [[ "$RUNNING" == "2/2" ]]; then
             echo "Deployment successful!"
+            echo "Cleaning up old Docker images..."
+            docker image prune -af
             exit 0
           else
-            echo "Deployment failed health checks. Showing logs..."
-            docker service logs myordbok_web --tail 50
+            echo "Deployment failed health checks. Replicas: $RUNNING"
             exit 1
           fi
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "### Deployed to Local VM" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method:** Self-hosted runner" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Dump Service Logs on Failure (Local)
+        if: failure()
+        run: |
+          echo "Deployment failed! Fetching recent logs for debugging..."
+          echo "--- WEB LOGS ---"
+          docker service logs myordbok_web --tail 100 || true
+          echo "--- NGINX LOGS ---"
+          docker service logs myordbok_nginx --tail 100 || true
+          echo "--- DB LOGS ---"
+          docker service logs myordbok_db --tail 100 || true
+
+  # ==========================================
+  # 3. REMOTE PHASE: TUNNEL DEPLOYMENT
+  # ==========================================
+  # MUTEX: [tunnel] and [ssh] are mutually exclusive.
+  # If both appear in the commit message, [tunnel] wins and [ssh] is suppressed.
+  # Never intentionally use both tags — they target the same server.
+  deploy_via_tunnel:
+    name: Deploy via Cloudflare Tunnel
+    needs: build
+    if: |
+      contains(github.event.head_commit.message, '[tunnel]') &&
+      !contains(github.event.head_commit.message, '[ssh]')
+    runs-on: ubuntu-latest
+    environment: production-tunnel
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Cloudflared is pinned to a specific version to prevent surprise breakage
+      # from upstream releases. Update the version key deliberately when needed.
+      # Releases: https://github.com/cloudflare/cloudflared/releases
+      - name: Cache Cloudflared binary
+        uses: actions/cache@v4
+        id: cache-cloudflared
+        with:
+          path: /usr/local/bin/cloudflared
+          key: cloudflared-2025.4.0
+
+      - name: Install Cloudflared
+        if: steps.cache-cloudflared.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/download/2025.4.0/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          sudo cp /usr/bin/cloudflared /usr/local/bin/cloudflared
+
+      - name: Configure SSH via Cloudflare Proxy
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Collect the host key so StrictHostKeyChecking can verify it.
+          # StrictHostKeyChecking is set to 'yes' — the scanned key is the guard.
+          ssh-keyscan -H ${{ secrets.SERVER_HOSTNAME }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          cat << EOF > ~/.ssh/config
+          Host prod-server
+              HostName ${{ secrets.SERVER_HOSTNAME }}
+              User ${{ secrets.SERVER_USER }}
+              IdentityFile ~/.ssh/id_rsa
+              StrictHostKeyChecking yes
+              UserKnownHostsFile ~/.ssh/known_hosts
+              ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_SERVICE_TOKEN_ID }} --service-token-secret ${{ secrets.CF_SERVICE_TOKEN_SECRET }}
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Prepare .env file
+        run: |
+          printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          chmod 600 .env
+
+      - name: Copy Files (SCP over Tunnel)
+        run: |
+          ssh -F ~/.ssh/config prod-server "mkdir -p /opt/myordbok"
+          scp -F ~/.ssh/config docker.production.yml .env prod-server:/opt/myordbok/
+
+      - name: Execute Deployment (SSH over Tunnel)
+        run: |
+          ssh -F ~/.ssh/config prod-server << 'ENDSSH'
+            set -e
+            cd /opt/myordbok
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            set -a; [ -f .env ] && . .env; set +a
+            export GITHUB_REPOSITORY="${{ github.repository }}"
+
+            docker compose -f docker.production.yml pull
+            docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
+
+            NETWORK_NAME="myordbok_default"
+            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+            docker run --rm --network $NETWORK_NAME --env-file .env $IMAGE_NAME python manage.py migrate --noinput
+
+            echo "Cleaning up old Docker images..."
+            docker image prune -af
+          ENDSSH
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "### Deployed via Cloudflare Tunnel" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method:** Cloudflare Zero Trust SSH" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Dump Service Logs on Failure (Tunnel)
+        if: failure()
+        run: |
+          ssh -F ~/.ssh/config prod-server << 'ENDSSH'
+            echo "Deployment failed! Fetching recent logs..."
+            docker service logs myordbok_web --tail 100 || true
+            docker service logs myordbok_nginx --tail 100 || true
+            docker service logs myordbok_db --tail 100 || true
+          ENDSSH
+
+  # ==========================================
+  # 4. REMOTE PHASE: NATIVE SSH DEPLOYMENT
+  # ==========================================
+  # MUTEX: [ssh] only fires when [tunnel] is NOT also present.
+  # Use [ssh] for environments where port 22 is open directly.
+  deploy_via_ssh:
+    name: Deploy via Native SSH
+    needs: build
+    if: |
+      contains(github.event.head_commit.message, '[ssh]') &&
+      !contains(github.event.head_commit.message, '[tunnel]')
+    runs-on: ubuntu-latest
+    environment: production-ssh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare .env file
+        run: |
+          printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          chmod 600 .env
+
+      - name: Copy Files via Native SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker.production.yml,.env"
+          target: "/opt/myordbok/"
+
+      - name: Execute Deployment via Native SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /opt/myordbok
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            set -a; [ -f .env ] && . .env; set +a
+            export GITHUB_REPOSITORY="${{ github.repository }}"
+
+            docker compose -f docker.production.yml pull
+            docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
+
+            NETWORK_NAME="myordbok_default"
+            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+            docker run --rm --network $NETWORK_NAME --env-file .env $IMAGE_NAME python manage.py migrate --noinput
+
+            echo "Cleaning up old Docker images..."
+            docker image prune -af
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "### Deployed via Native SSH" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method:** Direct SSH (port 22)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Dump Service Logs on Failure (SSH)
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOSTNAME }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Deployment failed! Fetching recent logs..."
+            docker service logs myordbok_web --tail 100 || true
+            docker service logs myordbok_nginx --tail 100 || true
+            docker service logs myordbok_db --tail 100 || true
