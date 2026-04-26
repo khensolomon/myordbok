@@ -85,10 +85,17 @@ jobs:
           echo "Local runner online status: $IS_ONLINE"
           echo "is_online=$IS_ONLINE" >> "$GITHUB_OUTPUT"
 
+  # MUTEX: deploy_local_vm only fires when neither [tunnel] nor [ssh] is
+  # present in the commit message. This makes the three deploy paths fully
+  # mutually exclusive — exactly one runs per push, never two against the
+  # same server in parallel.
   deploy_local_vm:
     name: Deploy to Local VM
     needs: [build, check_local_vm_runner]
-    if: needs.check_local_vm_runner.outputs.is_online == 'true'
+    if: |
+      needs.check_local_vm_runner.outputs.is_online == 'true' &&
+      !contains(github.event.head_commit.message, '[tunnel]') &&
+      !contains(github.event.head_commit.message, '[ssh]')
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -101,6 +108,16 @@ jobs:
         run: |
           printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
           chmod 600 .env
+
+      # Place .env at /opt/<app>/.env for consistency with Tunnel/SSH deploy
+      # paths, which scp it to that exact location. This makes /opt/<app>/.env
+      # a reliable marker that the app exists on this host (used by r2.py and
+      # any other tool that needs to detect deployed apps).
+      - name: Place .env at /opt/myordbok/
+        run: |
+          sudo mkdir -p /opt/myordbok
+          sudo cp .env /opt/myordbok/.env
+          sudo chmod 600 /opt/myordbok/.env
 
       - name: Initialize/Update Stack
         run: |
@@ -120,14 +137,20 @@ jobs:
           set -a
           [ -f .env ] && . .env
           set +a
+          ready=0
           for i in {1..20}; do
-            if docker run --rm --network $NETWORK_NAME mysql:8.0 mysqladmin ping -h db -u root --password="$MYSQL_ROOT_PASSWORD" > /dev/null 2>&1; then
+            if docker run --rm --network $NETWORK_NAME mysql:8.0 mysqladmin ping -h db -u root > /dev/null 2>&1; then
               echo "MySQL is ready!"
+              ready=1
               break
             fi
             echo "Waiting for MySQL... attempt $i/20"
             sleep 5
           done
+          if [ "$ready" -ne 1 ]; then
+            echo "ERROR: MySQL did not become ready after 20 attempts (~100s). Aborting."
+            exit 1
+          fi
 
       - name: Run Database Migrations
         run: |
@@ -212,16 +235,17 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Collect the host key so StrictHostKeyChecking can verify it.
-          # StrictHostKeyChecking is set to 'yes' — the scanned key is the guard.
-          ssh-keyscan -H ${{ secrets.SERVER_HOSTNAME }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
+          # StrictHostKeyChecking accept-new: trusts the host key on first
+          # connection and enforces it on all subsequent connections.
+          # ssh-keyscan is intentionally omitted — it requires raw TCP to port 22
+          # which is closed. The tunnel delivers connections via Cloudflare,
+          # not directly to port 22, so keyscan cannot work here.
           cat << EOF > ~/.ssh/config
           Host prod-server
               HostName ${{ secrets.SERVER_HOSTNAME }}
               User ${{ secrets.SERVER_USER }}
               IdentityFile ~/.ssh/id_rsa
-              StrictHostKeyChecking yes
+              StrictHostKeyChecking accept-new
               UserKnownHostsFile ~/.ssh/known_hosts
               ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_SERVICE_TOKEN_ID }} --service-token-secret ${{ secrets.CF_SERVICE_TOKEN_SECRET }}
           EOF
@@ -253,6 +277,25 @@ jobs:
 
             NETWORK_NAME="myordbok_default"
             IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+
+            # Wait for MySQL to actually accept connections before migrating.
+            # 'stack deploy --detach=false' returns when services converge,
+            # but MySQL may still be initializing inside the container.
+            ready=0
+            for i in $(seq 1 20); do
+              if docker run --rm --network $NETWORK_NAME mysql:8.0 mysqladmin ping -h db -u root > /dev/null 2>&1; then
+                echo "MySQL is ready!"
+                ready=1
+                break
+              fi
+              echo "Waiting for MySQL... attempt $i/20"
+              sleep 5
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "ERROR: MySQL did not become ready after 20 attempts. Aborting."
+              exit 1
+            fi
+
             docker run --rm --network $NETWORK_NAME --env-file .env $IMAGE_NAME python manage.py migrate --noinput
 
             echo "Cleaning up old Docker images..."
@@ -329,6 +372,23 @@ jobs:
 
             NETWORK_NAME="myordbok_default"
             IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+
+            # Wait for MySQL to actually accept connections before migrating.
+            ready=0
+            for i in $(seq 1 20); do
+              if docker run --rm --network $NETWORK_NAME mysql:8.0 mysqladmin ping -h db -u root > /dev/null 2>&1; then
+                echo "MySQL is ready!"
+                ready=1
+                break
+              fi
+              echo "Waiting for MySQL... attempt $i/20"
+              sleep 5
+            done
+            if [ "$ready" -ne 1 ]; then
+              echo "ERROR: MySQL did not become ready after 20 attempts. Aborting."
+              exit 1
+            fi
+
             docker run --rm --network $NETWORK_NAME --env-file .env $IMAGE_NAME python manage.py migrate --noinput
 
             echo "Cleaning up old Docker images..."
