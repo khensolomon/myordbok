@@ -6,10 +6,18 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    # NOTE on MySQL env vars and the "first-init only" rule:
+    # MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, and MYSQL_ALLOW_EMPTY_PASSWORD
+    # are only consulted by the entrypoint when the data directory is empty
+    # (i.e. a fresh /var/lib/mysql). Once the volume is initialized, these
+    # variables are ignored on every subsequent container start. If you ever
+    # need to change the app user or root auth, either edit the live DB
+    # directly or wipe /opt/mysql/data after taking a backup with r2.py.
     environment:
       - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PWD}
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Allows root to connect without a password
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Root has no password; only reachable from inside the swarm overlay.
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root"]
       interval: 45s
@@ -37,7 +45,7 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
-    ports: 
+    ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
       - static_volume:/code/staticfiles
@@ -103,8 +111,8 @@ services:
     environment:
       - APP_PORT=${APP_PORT}
     networks:
-      - default
-      - gateway
+      - default       # to reach 'web' (Django/Gunicorn) for proxied requests
+      - gateway       # so NPM (sitting on 'gateway') can forward traffic here
     depends_on:
       - web
     deploy:
@@ -120,6 +128,9 @@ networks:
   default:
     driver: overlay
     attachable: true
+  # 'gateway' is the single shared network between NPM and every app stack.
+  # NPM joins it directly; each stack's public-facing service (this nginx)
+  # joins it too. Created externally by setup.py before any stack deploy.
   gateway:
     external: true
 
