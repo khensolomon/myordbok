@@ -129,11 +129,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.environ.get('MEDIA_DIR', str(BASE_DIR / 'media'))
 
 # --- CUSTOM DIRECTORIES ---
-STORAGE_DIR = os.environ.get('STORAGE_DIR')
+STORAGE_ROOT = os.environ.get('STORAGE_ROOT','/tmp/storage')
+STORAGE_DIR =  os.path.join(STORAGE_ROOT,'myordbok')
 CACHE_DIR = os.environ.get('CACHE_DIR')
 MEDIA_DIR = MEDIA_ROOT
 
-FONTS_DIR = os.path.join(STORAGE_DIR, 'media', 'fonts')
+FONTS_DIR = os.path.join(STORAGE_ROOT, 'media', 'fonts')
 SPEECH_URL = os.environ.get('SPEECH_URL')
 CACHE_DIR = os.environ.get('CACHE_DIR', os.path.join('/','storage','cache'))
 

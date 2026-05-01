@@ -31,7 +31,7 @@ services:
     volumes:
       - .:/code
       - ./staticfiles:/code/staticfiles   # ← bind mount instead of named volume
-      - storage_volume:${STORAGE_DIR}:rw
+      - storage_volume:${STORAGE_ROOT}:rw
       - media_volume:${MEDIA_DIR}:rw
     depends_on:
       db:
@@ -81,7 +81,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${STORAGE_DIR}
+      device: ${STORAGE_ROOT}
   media_volume:
     driver: local
     driver_opts:

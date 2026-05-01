@@ -49,7 +49,7 @@ services:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
       - static_volume:/code/staticfiles
-      - storage_volume:${STORAGE_DIR}:rw
+      - storage_volume:${STORAGE_ROOT}:rw
       - media_volume:${MEDIA_DIR}:rw
     depends_on:
       - db
@@ -76,7 +76,7 @@ services:
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-3306}
       - DB_DIR=${DB_DIR}
-      - STORAGE_DIR=${STORAGE_DIR}
+      - STORAGE_ROOT=${STORAGE_ROOT}
       - CACHE_DIR=${CACHE_DIR}
       - MEDIA_DIR=${MEDIA_DIR}
       - REPO_OWNER=${REPO_OWNER}
@@ -148,7 +148,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${STORAGE_DIR}
+      device: ${STORAGE_ROOT}
   media_volume:
     driver: local
     driver_opts:

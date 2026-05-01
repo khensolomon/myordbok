@@ -19,8 +19,8 @@ class Command(BaseCommand):
     help = 'Downloads the NLTK WordNet corpus if it is not already present.'
 
     def handle(self, *args, **options):
-        # settings.STORAGE_DIR;
-        # download_dir = os.path.join(settings.STORAGE_DIR, 'myordbok','nltk_data')
+        # settings.STORAGE_ROOT;
+        # download_dir = os.path.join(settings.STORAGE_ROOT, 'myordbok','nltk_data')
         # download_dir = '/usr/local/nltk_data'
         # nltk.data.path.append(download_dir)
         # download_dir = os.environ.get('NLTK_DATA')

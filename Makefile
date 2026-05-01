@@ -83,7 +83,7 @@ run: ## Docker Run: Run a command in a specific service (e.g., 'make run fronten
 	docker compose run --rm $(EXTRA_ARGS)
 
 mysqldump: ## MySQL Dump: Run mysqldump in the database service
-# 	mysqldump -u $(DB_USER) -p $(DB_NAME) > $(STORAGE_DIR)/$(APP_NAME)/mysql/latest.sql
+# 	mysqldump -u $(DB_USER) -p $(DB_NAME) > $(STORAGE_ROOT)/$(APP_NAME)/mysql/latest.sql
 	@echo "mysqldump -u $(DB_USER) -p $(DB_NAME) > $(DB_DIR)/latest.sql"
 
 collectstatic: ## Build frontend and collect static files (for production)
