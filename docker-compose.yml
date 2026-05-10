@@ -32,12 +32,12 @@ services:
       - .:/code
       - ./staticfiles:/code/staticfiles   # ← bind mount instead of named volume
       - storage_volume:${STORAGE_ROOT}:rw
-      - media_volume:${MEDIA_DIR}:rw
+      - media_volume:${MEDIA_ROOT}:rw
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "manage.py", "check"]
+      test: ["CMD", "python", "/code/scripts/healthcheck.py"]
       interval: 10s
       timeout: 10s
       retries: 2
@@ -87,4 +87,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${MEDIA_DIR}
+      device: ${MEDIA_ROOT}

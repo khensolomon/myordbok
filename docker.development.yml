@@ -28,7 +28,7 @@ services:
       # from being written back to your host machine's root.
       - /code/frontend/node_modules
     ports:
-      - "3011:3011"
+      - "3021:3021"
 
 # No named volume needed for node_modules if we want to keep the host clean.
 # Docker will manage the lifecycle of the anonymous volume automatically.

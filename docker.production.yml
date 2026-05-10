@@ -50,7 +50,7 @@ services:
     volumes:
       - static_volume:/code/staticfiles
       - storage_volume:${STORAGE_ROOT}:rw
-      - media_volume:${MEDIA_DIR}:rw
+      - media_volume:${MEDIA_ROOT}:rw
     depends_on:
       - db
     healthcheck:
@@ -60,30 +60,48 @@ services:
       retries: 3
       start_period: 60s
     environment:
-      - DEBUG=${DEBUG:-false}
-      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=false
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - APP_NAME=${APP_NAME}
       - APP_PORT=${APP_PORT}
+
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PWD}
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
+
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PWD=${DB_PWD}
       - DB_ROOT_PWD=${DB_ROOT_PWD}
-      - DB_HOST=${DB_HOST:-db}
+      - DB_HOST=db
       - DB_PORT=${DB_PORT:-3306}
       - DB_DIR=${DB_DIR}
+
       - STORAGE_ROOT=${STORAGE_ROOT}
+      - MEDIA_ROOT=${MEDIA_ROOT}
+      - STORE_DIR=${STORE_DIR}
       - CACHE_DIR=${CACHE_DIR}
-      - MEDIA_DIR=${MEDIA_DIR}
+
       - REPO_OWNER=${REPO_OWNER}
-      - BUCKETNAME=${BUCKETNAME}
-      - BUCKETCRED=${BUCKETCRED}
-      - GOOGLE_APPLICATION_CREDENTIALS=${BUCKETCRED}
+      - REPO_NAME=${REPO_NAME}
+
+      - SECRET_KEY=${SECRET_KEY}
+      - APP_SECRET_SHARED=${APP_SECRET_SHARED}
+
+      - STORAGE_BACKEND=${STORAGE_BACKEND}
+
+      - GCS_BUCKETNAME=${GCS_BUCKETNAME}
+      - GCS_SECRET=${GCS_SECRET}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GCS_SECRET}
+
+      - R2_BUCKETNAME=${R2_BUCKETNAME}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_ID=${R2_ACCESS_ID}
+      - R2_SECRET_KEY=${R2_SECRET_KEY}
+      - WORKER_URL=${WORKER_URL}
       - NLTK_DATA=${NLTK_DATA}
+    
     # Removed the inline command block, Dockerfile ENTRYPOINT will handle the startup logic.
     deploy:
       replicas: 2
@@ -128,9 +146,6 @@ networks:
   default:
     driver: overlay
     attachable: true
-  # 'gateway' is the single shared network between NPM and every app stack.
-  # NPM joins it directly; each stack's public-facing service (this nginx)
-  # joins it too. Created externally by setup.py before any stack deploy.
   gateway:
     external: true
 
@@ -154,4 +169,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${MEDIA_DIR}
+      device: ${MEDIA_ROOT}
