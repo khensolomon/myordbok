@@ -226,8 +226,7 @@ jobs:
         if: steps.cache-cloudflared.outputs.cache-hit != 'true'
         run: |
           wget -q https://github.com/cloudflare/cloudflared/releases/download/2025.4.0/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
-          sudo cp /usr/bin/cloudflared /usr/local/bin/cloudflared
+          sudo dpkg -i --force-overwrite cloudflared-linux-amd64.deb
 
       - name: Configure SSH via Cloudflare Proxy
         run: |
@@ -250,6 +249,14 @@ jobs:
               ProxyCommand cloudflared access ssh --hostname %h --service-token-id ${{ secrets.CF_SERVICE_TOKEN_ID }} --service-token-secret ${{ secrets.CF_SERVICE_TOKEN_SECRET }}
           EOF
           chmod 600 ~/.ssh/config
+
+      - name: Debug Cloudflared Access
+        run: |
+          cloudflared access ssh \
+            --hostname "${{ secrets.SERVER_HOSTNAME }}" \
+            --service-token-id "${{ secrets.CF_SERVICE_TOKEN_ID }}" \
+            --service-token-secret "${{ secrets.CF_SERVICE_TOKEN_SECRET }}" \
+            --log-level debug 2>&1 | head -50 || true
 
       - name: Prepare .env file
         run: |
@@ -314,11 +321,15 @@ jobs:
       - name: Dump Service Logs on Failure (Tunnel)
         if: failure()
         run: |
+          if [ ! -f ~/.ssh/config ]; then
+            echo "SSH config was never created — failure occurred before SSH setup. Skipping remote log dump."
+            exit 0
+          fi
           ssh -F ~/.ssh/config prod-server << 'ENDSSH'
             echo "Deployment failed! Fetching recent logs..."
-            docker service logs myordbok_web --tail 100 || true
-            docker service logs myordbok_nginx --tail 100 || true
-            docker service logs myordbok_db --tail 100 || true
+            docker service logs zaideih_web --tail 100 || true
+            docker service logs zaideih_nginx --tail 100 || true
+            docker service logs zaideih_db --tail 100 || true
           ENDSSH
 
   # ==========================================
