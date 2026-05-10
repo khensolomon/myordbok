@@ -6,28 +6,31 @@
 # cache/
 docs/
 assets/
+tests/
 *.md
 
 # But do NOT ignore the data subfolder inside it
 !assets/data/
+!assets/data/*.json
 .editorconfig
 !README.md
 
 # Version control
 .git
+.venv
 .gitignore
 .gitattributes
 .github
 
 # Python / Django
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.so
 .Python
 env/
 venv/
-ENV/
 env.bak/
 venv.bak/
 .mypy_cache/
