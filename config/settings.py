@@ -19,6 +19,7 @@ sys.path.insert(0, str(APPS_DIR))
 
 # --- CORE SECURITY ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'unsafe-fallback-key-change-me')
+APP_SECRET_SHARED = os.environ.get('APP_SECRET_SHARED', 'unsafe-fallback-worker-key-change-me')
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
 # Split ALLOWED_HOSTS and remove empty entries
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     # Local
     'core',
     'api',
+    # 'worker',
 ]
 
 MIDDLEWARE = [
@@ -111,43 +113,6 @@ DATABASES = {
     }
 }
 
-# Force collectstatic to include hidden directories like .vite/
-# STATICFILES_FINDERS = [
-#     'django.contrib.staticfiles.finders.FileSystemFinder',
-#     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-# ]
-
-# --- STATIC & MEDIA ---
-STATIC_URL = 'static/'
-# STATIC_ROOT must be separate from STATICFILES_DIRS during dev
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-   BASE_DIR / 'static',
-]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.environ.get('MEDIA_DIR', str(BASE_DIR / 'media'))
-
-# --- CUSTOM DIRECTORIES ---
-STORAGE_ROOT = os.environ.get('STORAGE_ROOT','/tmp/storage')
-STORAGE_DIR =  os.path.join(STORAGE_ROOT,'myordbok')
-CACHE_DIR = os.environ.get('CACHE_DIR')
-MEDIA_DIR = MEDIA_ROOT
-
-FONTS_DIR = os.path.join(STORAGE_ROOT, 'media', 'fonts')
-SPEECH_URL = os.environ.get('SPEECH_URL')
-CACHE_DIR = os.environ.get('CACHE_DIR', os.path.join('/','storage','cache'))
-
-# --- VITE CONFIGURATION ---
-DJANGO_VITE = {
-  "default": {
-    "dev_mode": DEBUG,
-    "dev_server_port": 3021,
-    "manifest_path": BASE_DIR / 'static' / ".vite" / "manifest.json",
-    "static_url_prefix": "", 
-  }
-}
-
 # --- LOGGING ---
 LOGGING = {
     'version': 1,
@@ -170,11 +135,6 @@ LOGGING = {
     },
 }
 
-# --- GOOGLE CLOUD ---
-BUCKETNAME = os.environ.get('BUCKETNAME')
-if os.environ.get('BUCKETCRED'):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.environ.get('BUCKETCRED')
-
 # --- CORS & SECURITY ---
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 if not DEBUG:
@@ -194,3 +154,49 @@ if not DEBUG:
     CSRF_TRUSTED_ORIGINS = [o for o in map(normalize_origin, raw_csrf) if o]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- STATIC & MEDIA ---
+STATIC_URL = 'static/'
+# STATIC_ROOT must be separate from STATICFILES_DIRS during dev
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+   BASE_DIR / 'static',
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/tmp/myordbok/media')
+
+# --- CUSTOM DIRECTORIES ---
+STORAGE_ROOT = os.environ.get('STORAGE_ROOT','/tmp/storage')
+STORAGE_DIR =  os.path.join(STORAGE_ROOT,'myordbok')
+
+STORE_DIR = os.environ.get('STORE_DIR','/tmp/myordbok/store')
+CACHE_DIR = os.environ.get('CACHE_DIR','/tmp/myordbok/cache')
+
+SPEECH_URL = os.environ.get('SPEECH_URL')
+FONTS_DIR = os.path.join(STORAGE_ROOT, 'media', 'fonts')
+
+# --- VITE CONFIGURATION ---
+DJANGO_VITE = {
+  "default": {
+    "dev_mode": DEBUG,
+    "dev_server_port": 3021,
+    "manifest_path": BASE_DIR / 'static' / ".vite" / "manifest.json",
+    "static_url_prefix": "", 
+  }
+}
+
+# --- Bucket ---
+STORAGE_BACKEND = os.environ.get('STORAGE_BACKEND', 'r2')
+
+# --- GCS ---
+GCS_BUCKETNAME = os.environ.get('GCS_BUCKETNAME')
+R2_BUCKETNAME = os.environ.get('R2_BUCKETNAME')
+if os.environ.get('GCS_SECRET'):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.environ.get('GCS_SECRET')
+
+# --- R2 / S3 ---
+WORKER_URL = os.environ.get('WORKER_URL', 'https://media.example.com')
+R2_ACCOUNT_ID = os.environ['R2_ACCOUNT_ID']
+R2_ACCESS_ID = os.environ['R2_ACCESS_ID']
+R2_SECRET_KEY = os.environ['R2_SECRET_KEY']
