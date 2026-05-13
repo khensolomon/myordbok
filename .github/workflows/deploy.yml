@@ -239,7 +239,7 @@ jobs:
           # ssh-keyscan is intentionally omitted — it requires raw TCP to port 22
           # which is closed. The tunnel delivers connections via Cloudflare,
           # not directly to port 22, so keyscan cannot work here.
-          cat << EOF > ~/.ssh/config
+          cat << 'EOF' > ~/.ssh/config
           Host prod-server
               HostName ${{ secrets.SERVER_HOSTNAME }}
               User ${{ secrets.SERVER_USER }}
