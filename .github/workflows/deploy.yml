@@ -250,13 +250,25 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-      - name: Debug Cloudflared Access
+      - name: Debug — show actual SSH config and test auth
         run: |
-          cloudflared access ssh \
+          echo "=== Length and shape of secrets as seen by the workflow ==="
+          echo "ID length:     $(echo -n '${{ secrets.CF_SERVICE_TOKEN_ID }}' | wc -c)"
+          echo "Secret length: $(echo -n '${{ secrets.CF_SERVICE_TOKEN_SECRET }}' | wc -c)"
+          echo "ID ends with:  $(echo -n '${{ secrets.CF_SERVICE_TOKEN_ID }}' | tail -c 10)"
+
+          echo ""
+          echo "=== Bytes of the ProxyCommand line in ~/.ssh/config ==="
+          grep ProxyCommand ~/.ssh/config | wc -c
+          grep ProxyCommand ~/.ssh/config | od -c | head -20
+
+          echo ""
+          echo "=== Direct cloudflared invocation (no ssh wrapper) ==="
+          timeout 10 cloudflared access ssh \
             --hostname "${{ secrets.SERVER_HOSTNAME }}" \
             --service-token-id "${{ secrets.CF_SERVICE_TOKEN_ID }}" \
             --service-token-secret "${{ secrets.CF_SERVICE_TOKEN_SECRET }}" \
-            --log-level debug 2>&1 | head -50 || true
+            --log-level debug 2>&1 | head -80 || echo "(timed out or failed)"
 
       - name: Prepare .env file
         run: |
