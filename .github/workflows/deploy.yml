@@ -31,7 +31,7 @@ jobs:
       - name: Install & Build Frontend
         run: |
           npm install
-          npm run build
+          npm run build 
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -107,7 +107,7 @@ jobs:
       - name: Recreate .env file from Secret
         run: |
           printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          chmod 600 .env
+          chmod 644 .env
 
       # Place .env at /opt/<app>/.env for consistency with Tunnel/SSH deploy
       # paths, which scp it to that exact location. This makes /opt/<app>/.env
@@ -239,7 +239,7 @@ jobs:
           # ssh-keyscan is intentionally omitted — it requires raw TCP to port 22
           # which is closed. The tunnel delivers connections via Cloudflare,
           # not directly to port 22, so keyscan cannot work here.
-          cat << 'EOF' > ~/.ssh/config
+          cat << EOF > ~/.ssh/config
           Host prod-server
               HostName ${{ secrets.SERVER_HOSTNAME }}
               User ${{ secrets.SERVER_USER }}
@@ -250,30 +250,18 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-      - name: Debug — show actual SSH config and test auth
+      - name: Debug Cloudflared Access
         run: |
-          echo "=== Length and shape of secrets as seen by the workflow ==="
-          echo "ID length:     $(echo -n '${{ secrets.CF_SERVICE_TOKEN_ID }}' | wc -c)"
-          echo "Secret length: $(echo -n '${{ secrets.CF_SERVICE_TOKEN_SECRET }}' | wc -c)"
-          echo "ID ends with:  $(echo -n '${{ secrets.CF_SERVICE_TOKEN_ID }}' | tail -c 10)"
-
-          echo ""
-          echo "=== Bytes of the ProxyCommand line in ~/.ssh/config ==="
-          grep ProxyCommand ~/.ssh/config | wc -c
-          grep ProxyCommand ~/.ssh/config | od -c | head -20
-
-          echo ""
-          echo "=== Direct cloudflared invocation (no ssh wrapper) ==="
-          timeout 10 cloudflared access ssh \
+          cloudflared access ssh \
             --hostname "${{ secrets.SERVER_HOSTNAME }}" \
             --service-token-id "${{ secrets.CF_SERVICE_TOKEN_ID }}" \
             --service-token-secret "${{ secrets.CF_SERVICE_TOKEN_SECRET }}" \
-            --log-level debug 2>&1 | head -80 || echo "(timed out or failed)"
+            --log-level debug 2>&1 | head -50 || true
 
       - name: Prepare .env file
         run: |
           printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          chmod 600 .env
+          chmod 644 .env
 
       - name: Copy Files (SCP over Tunnel)
         run: |
@@ -339,9 +327,9 @@ jobs:
           fi
           ssh -F ~/.ssh/config prod-server << 'ENDSSH'
             echo "Deployment failed! Fetching recent logs..."
-            docker service logs zaideih_web --tail 100 || true
-            docker service logs zaideih_nginx --tail 100 || true
-            docker service logs zaideih_db --tail 100 || true
+            docker service logs myordbok_web --tail 100 || true
+            docker service logs myordbok_nginx --tail 100 || true
+            docker service logs myordbok_db --tail 100 || true
           ENDSSH
 
   # ==========================================
@@ -364,7 +352,7 @@ jobs:
       - name: Prepare .env file
         run: |
           printf "%s" "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          chmod 600 .env
+          chmod 644 .env
 
       - name: Copy Files via Native SCP
         uses: appleboy/scp-action@v0.1.7
