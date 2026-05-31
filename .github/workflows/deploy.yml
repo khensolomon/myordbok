@@ -283,7 +283,7 @@ jobs:
             docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
 
             NETWORK_NAME="myordbok_default"
-            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:${{ github.sha }}"
 
             # Wait for MySQL to actually accept connections before migrating.
             # 'stack deploy --detach=false' returns when services converge,
@@ -375,14 +375,18 @@ jobs:
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-            set -a; [ -f .env ] && . .env; set +a
+            # 1. Export the commit SHA so the compose file can read it
+            export COMMIT_SHA="${{ github.sha }}"
             export GITHUB_REPOSITORY="${{ github.repository }}"
+            
+            set -a; [ -f .env ] && . .env; set +a
 
             docker compose -f docker.production.yml pull
             docker stack deploy -c docker.production.yml --with-registry-auth --detach=false myordbok
 
             NETWORK_NAME="myordbok_default"
-            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:latest"
+            IMAGE_NAME="ghcr.io/${{ github.repository }}/django-app:${{ github.sha }}"
+            
 
             # Wait for MySQL to actually accept connections before migrating.
             ready=0
