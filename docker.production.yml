@@ -12,13 +12,26 @@ services:
     # (i.e. a fresh /var/lib/mysql). Once the volume is initialized, these
     # variables are ignored on every subsequent container start. If you ever
     # need to change the app user or root auth, either edit the live DB
-    # directly or wipe /opt/mysql/data after taking a backup with r2.py.
+    # directly or wipe /opt/myordbok/mysql after taking a backup with r2.py.
+    env_file:
+      - /opt/zaideih/.env
+    # The environment block below is OPTIONAL overrides on top of env_file.
+    # Anything listed here wins over the same key in .env. Anything not listed
+    # comes through from .env unchanged. Delete a line to defer fully to .env.
+    #
+    # The MYSQL_* names map .env's DB_* into the names the MySQL official
+    # image's entrypoint expects (the image only reads MYSQL_*, not DB_*).
+    # MYSQL_ALLOW_EMPTY_PASSWORD is intentional — it lets the healthcheck
+    # below ping as root without a password. See healthcheck section.
     environment:
       - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=admin
+      - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PWD}
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Root has no password; only reachable from inside the swarm overlay.
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     healthcheck:
+      # Works with MYSQL_ALLOW_EMPTY_PASSWORD=yes above. If you ever drop
+      # that line (e.g. for a fresh-init with a real root password), switch
+      # to: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root"]
       interval: 45s
       timeout: 10s
@@ -39,14 +52,14 @@ services:
         window: 120s
 
   web:
-    image: ghcr.io/${GITHUB_REPOSITORY}/django-app:${COMMIT_SHA:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY}/django:${COMMIT_SHA}
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
         max-file: "5"
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
+    networks:
+      - default
     volumes:
       - static_volume:/code/staticfiles
       - storage_volume:${STORAGE_ROOT}:rw
@@ -57,69 +70,40 @@ services:
       test: ["CMD", "python", "/code/scripts/healthcheck.py"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
-    environment:
-      - DEBUG=false
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - APP_NAME=${APP_NAME}
-      - APP_PORT=${APP_PORT}
-
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=${DB_PWD}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PWD}
-
-      - DB_NAME=${DB_NAME}
-      - DB_USER=admin
-      - DB_PWD=${DB_PWD}
-      - DB_ROOT_PWD=${DB_ROOT_PWD}
-      - DB_HOST=db
-      - DB_PORT=${DB_PORT:-3306}
-      - DB_DIR=${DB_DIR}
-
-      - STORAGE_ROOT=${STORAGE_ROOT}
-      - MEDIA_ROOT=${MEDIA_ROOT}
-      - STORE_DIR=${STORE_DIR}
-      - CACHE_DIR=${CACHE_DIR}
-
-      - REPO_OWNER=${REPO_OWNER}
-      - REPO_NAME=${REPO_NAME}
-
-      - SECRET_KEY=${SECRET_KEY}
-      - APP_SECRET_SHARED=${APP_SECRET_SHARED}
-
-      - STORAGE_BACKEND=${STORAGE_BACKEND}
-
-      - GCS_BUCKETNAME=${GCS_BUCKETNAME}
-      - GCS_SECRET=${GCS_SECRET}
-      - GOOGLE_APPLICATION_CREDENTIALS=${GCS_SECRET}
-
-      - R2_BUCKETNAME=${R2_BUCKETNAME}
-      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-      - R2_ACCESS_ID=${R2_ACCESS_ID}
-      - R2_SECRET_KEY=${R2_SECRET_KEY}
-      - WORKER_URL=${WORKER_URL}
-      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
-
-      - NLTK_DATA=${NLTK_DATA}
-    
+      retries: 5
+      start_period: 300s
+    env_file:
+      - /opt/zaideih/.env
+    # The environment block below is OPTIONAL overrides on top of env_file.
+    # All real config flows through .env (built by the build-env action from
+    # ENV_BASE / VAR_BASE / ENV_OVERRIDES). Add a line here only when you
+    # want this compose file to override what .env says — useful for pinning
+    # a value to swarm-topology facts (e.g. DB_HOST=db when the service is
+    # called `db:` above) or for one-off testing.
+    #
+    # Examples of values you might want to pin here (uncomment to use):
+    #   - DB_HOST=db                 # pin to this file's db service name
+    #   - DEBUG=true                 # force debug regardless of .env
+    environment: []
     # Removed the inline command block, Dockerfile ENTRYPOINT will handle the startup logic.
     deploy:
       replicas: 2
       update_config:
-        order: start-first
+        order: stop-first
         parallelism: 1
         delay: 15s
         failure_action: rollback
         monitor: 30s
         max_failure_ratio: 0.1
+      rollback_config:
+        parallelism: 1
+        order: stop-first  # Clean and valid property replacement
       restart_policy:
         condition: any
         delay: 10s
 
   nginx:
-    image: ghcr.io/${GITHUB_REPOSITORY}/nginx-prod:${COMMIT_SHA:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY}/nginx:${COMMIT_SHA}
     logging:
       driver: "json-file"
       options:
@@ -128,18 +112,49 @@ services:
     volumes:
       - static_volume:/code/staticfiles:ro
       - cache_volume:/code/cache:ro
+    env_file:
+      - /opt/zaideih/.env
+    # OPTIONAL overrides on top of env_file. APP_PORT is listed explicitly
+    # because the nginx image's envsubst step (which fills in the .conf
+    # template) reads this variable at container start. Leaving it explicit
+    # makes the dependency visible. Delete if you confirm envsubst sees
+    # env_file values on your nginx image version.
     environment:
       - APP_PORT=${APP_PORT}
     networks:
-      - default       # to reach 'web' (Django/Gunicorn) for proxied requests
-      - gateway       # so NPM (sitting on 'gateway') can forward traffic here
+      - default
+      - gateway
+    ports:
+      # Host mode (rather than ingress/routing-mesh mode) is required here.
+      # Swarm's ingress listener has a known issue on this dockerd version
+      # where IPv6 connections to the published port are accepted but never
+      # served — cloudflared on the host dials localhost (which resolves to
+      # ::1 first via getaddrinfo) and hangs. Host mode gives us real
+      # docker-proxy sockets on 0.0.0.0 AND [::], matching how ports 22 and
+      # 80 listen, and both IPv4 and IPv6 work cleanly.
+      #
+      # Tradeoff: host mode bypasses the routing mesh, so the published port
+      # is only available on whichever node actually runs the nginx task.
+      # Acceptable here — this is a single-node swarm.
+      - target: 80
+        published: ${APP_PORT}
+        protocol: tcp
+        mode: host
     depends_on:
       - web
     deploy:
       replicas: 1
-      endpoint_mode: dnsrr
+      # endpoint_mode: dnsrr
       update_config:
-        order: start-first
+        # stop-first (not start-first) is REQUIRED with host-mode ports above.
+        # Host mode means the published port is bound directly on the host's
+        # network namespace, so two containers cannot hold the same port at
+        # once. start-first would deadlock: new container tries to bind
+        # :${APP_PORT}, old container still holds it, swarm logs
+        # "host-mode port already in use" and retries forever.
+        # Tradeoff: ~5s of downtime per nginx update while the old container
+        # stops before the new one starts.
+        order: stop-first
       restart_policy:
         condition: any
         delay: 15s
@@ -157,7 +172,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/mysql/data
+      device: /opt/myordbok/mysql
   static_volume:
   cache_volume:
   storage_volume:

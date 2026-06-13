@@ -1,42 +1,69 @@
-FROM python:3.12-slim
+# syntax=docker/dockerfile:1.6
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV HOME=/tmp
+# =============================================================================
+# Stage 1: Builder
+# -----------------------------------------------------------------------------
+# Compiles mysqlclient and installs all Python dependencies into an isolated
+# prefix. This stage carries the full build toolchain (gcc, dev headers) but
+# is discarded — only the finished /install directory is copied to the final
+# image.
+# =============================================================================
+FROM python:3.12-slim AS builder
 
-# Set work directory
-WORKDIR /code
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    default-libmysqlclient-dev \
-    pkg-config \
-    && pip install --no-cache-dir mysqlclient \
-    && apt-get purge -y --auto-remove gcc python3-dev \
+# Build-time system dependencies. default-libmysqlclient-dev provides the
+# headers mysqlclient needs to compile against; on Debian this points to
+# MariaDB's client library by default.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        default-libmysqlclient-dev \
+        pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies into /install. Using --prefix lets us copy the
+# whole tree to the final stage in one COPY without dragging pip's cache,
+# build artifacts, or apt state along with it.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+RUN pip install --prefix=/install -r requirements.txt gunicorn
 
-# Copy the entire project into the container
-# This includes the frontend build artifacts (provided .dockerignore allows them)
+
+# =============================================================================
+# Stage 2: Final runtime image
+# -----------------------------------------------------------------------------
+# Starts fresh from python:3.12-slim. No compilers, no -dev headers — only
+# the runtime MariaDB client library and the installed Python packages from
+# the builder stage.
+# =============================================================================
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    HOME=/tmp
+
+# Runtime-only system dependencies. libmariadb3 is the shared library
+# mysqlclient was linked against in the builder stage; it must be present
+# at runtime too, but the much larger -dev package is not needed here.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libmariadb3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pull the installed Python packages over from the builder stage.
+COPY --from=builder /install /usr/local
+
+WORKDIR /code
+
+# Copy the project. Make sure .dockerignore excludes .git, __pycache__,
+# node_modules, .venv, .env*, tests/, etc. — everything in the build
+# context lands in the image.
 COPY . .
 
-# ---> BUILD STEP: Static Collection <---
-# This ensures the Vite manifest is gathered into the image layers.
-# We use dummy variables to bypass Django settings checks during build.
-# RUN SECRET_KEY="dummy-key-for-build" DATABASE_URL="sqlite:///" python manage.py collectstatic --noinput
+# Entrypoint setup + Gunicorn heartbeat dir, combined into one layer.
+RUN chmod +x /code/scripts/entrypoint.sh \
+    && mkdir -p /tmp/gunicorn \
+    && chmod 777 /tmp/gunicorn
 
-# Setup the entrypoint script
-# We ensure the script has execution permissions
-RUN chmod +x /code/scripts/entrypoint.sh
-
-# Create tmp directory for Gunicorn heartbeat
-RUN mkdir -p /tmp/gunicorn && chmod 777 /tmp/gunicorn
-
-# Use ENTRYPOINT to run our startup script.
-# This replaces the CMD and ensures initialization logic runs in production.
 ENTRYPOINT ["/code/scripts/entrypoint.sh"]
