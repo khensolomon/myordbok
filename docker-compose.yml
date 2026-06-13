@@ -74,7 +74,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/myordbok/mysql
+      device: /opt/${APP_NAME}/mysql
   # static_volume:
   storage_volume:
     driver: local

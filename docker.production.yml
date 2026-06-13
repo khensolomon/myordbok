@@ -12,7 +12,7 @@ services:
     # (i.e. a fresh /var/lib/mysql). Once the volume is initialized, these
     # variables are ignored on every subsequent container start. If you ever
     # need to change the app user or root auth, either edit the live DB
-    # directly or wipe /opt/myordbok/mysql after taking a backup with r2.py.
+    # directly or wipe /opt/${APP_NAME}/mysql after taking a backup with r2.py.
     env_file:
       - /opt/zaideih/.env
     # The environment block below is OPTIONAL overrides on top of env_file.
@@ -172,7 +172,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/myordbok/mysql
+      device: /opt/${APP_NAME}/mysql
   static_volume:
   cache_volume:
   storage_volume:
