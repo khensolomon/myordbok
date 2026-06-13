@@ -84,11 +84,9 @@ TEMPLATES = [
 
                 # Context processors for navigation and cookies
                 # 'app_name.filename.function_name'
-                # 'core.context_processors.main_menu',
                 'core.context_processors.nav_pages_builder',
                 'core.context_processors.nav_terms_builder',
                 "core.context_processors.cookies_read",
-                
             ],
         },
     },
@@ -101,7 +99,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
+        'USER': os.getenv('DB_USER', 'admin'),
         'PASSWORD': os.environ.get('DB_PWD'),
         'HOST': os.environ.get('DB_HOST', 'db'),
         'PORT': os.environ.get('DB_PORT', '3306'),
@@ -197,6 +195,6 @@ if os.environ.get('GCS_SECRET'):
 
 # --- R2 / S3 ---
 WORKER_URL = os.environ.get('WORKER_URL', 'https://media.example.com')
-R2_ACCOUNT_ID = os.environ['R2_ACCOUNT_ID']
-R2_ACCESS_ID = os.environ['R2_ACCESS_ID']
-R2_SECRET_KEY = os.environ['R2_SECRET_KEY']
+CF_ACCOUNT_ID = os.environ['CF_ACCOUNT_ID']
+R2_ACCESS_KEY_ID = os.environ['R2_ACCESS_KEY_ID']
+R2_ACCESS_SECRET = os.environ['R2_ACCESS_SECRET']

@@ -8,8 +8,9 @@ from django.urls import path
 from .views import definition
 from .views import (
   general, docs, 
-  dictionary, grammar, fonts
+  dictionary, grammar
 )
+# from .views import fonts
 
 # app_name = 'MyOrdbok'
 urlpatterns = [
@@ -23,10 +24,10 @@ urlpatterns = [
     path('grammar/<slug:pos_slug>', grammar.detail, name='grammar-detail'),
 
     # Main page for listing all fonts
-    path('myanmar-fonts', fonts.home, name='fonts-home'),
-    path('myanmar-fonts/<str:font_type>', fonts.home, name='fonts-detail'),
-    path('myanmar-fonts/download/<str:font_type>', fonts.download, name='fonts-download'),
-    path('myanmar-fonts/scan/<str:font_type>', fonts.scan, name='fonts-scan'),
+    # path('myanmar-fonts', fonts.home, name='fonts-home'),
+    # path('myanmar-fonts/<str:font_type>', fonts.home, name='fonts-detail'),
+    # path('myanmar-fonts/download/<str:font_type>', fonts.download, name='fonts-download'),
+    # path('myanmar-fonts/scan/<str:font_type>', fonts.scan, name='fonts-scan'),
 
 
     path('dictionary', dictionary.home, name='dictionary-home'),

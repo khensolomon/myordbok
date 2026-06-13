@@ -30,7 +30,7 @@ NAV_PAGES = [
     {'text': 'Home', 'url_name': 'home'},
     {'text': 'About', 'url_name': 'about'},
     {'text': 'Grammar', 'url_name': 'grammar-home'},
-    {'text': 'Fonts', 'url_name': 'fonts-home'},
+    # {'text': 'Fonts', 'url_name': 'fonts-home'},
 ]
 # MENU_PAGES, MENU_TERMS
 

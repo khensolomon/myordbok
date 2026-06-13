@@ -1,0 +1,15 @@
+name: Clean containers
+
+# CALLER STUB — lives in each app repo. Per-repo change: the `packages` list.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call:
+    uses: khensolomon/lethil/.github/workflows/clean-containers.yml@master
+    with:
+      packages: '["myordbok/nginx","myordbok/django"]'
+      min_versions_to_keep: 5
+      # delete_only_untagged: true   # uncomment for the safer untagged-only mode
+    secrets: inherit

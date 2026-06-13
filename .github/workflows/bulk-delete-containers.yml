@@ -1,0 +1,41 @@
+name: Bulk Delete Container Versions
+
+# CALLER STUB — lives in each app repo. Per-repo change: the `packages` list.
+# The dispatch form is kept here so the "Run workflow" UI still offers the
+# knobs; the values are forwarded to the core reusable workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      min-versions-to-keep:
+        description: 'How many recent versions to keep per package'
+        required: true
+        default: '5'
+        type: string
+      max-sweeps:
+        description: 'Max delete sweeps per package (each sweep removes up to 100 versions)'
+        required: true
+        default: '3'
+        type: choice
+        options: ['1', '2', '3', '4', '6', '10']
+      delete-only-untagged:
+        description: 'Only delete untagged/broken images (safer)'
+        required: true
+        default: false
+        type: boolean
+      dry-run:
+        description: 'Dry run — count versions, delete nothing'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  call:
+    uses: khensolomon/lethil/.github/workflows/bulk-delete-containers.yml@master
+    with:
+      packages: '["myordbok/django","myordbok/nginx"]'
+      min_versions_to_keep: ${{ inputs.min-versions-to-keep }}
+      max_sweeps: ${{ inputs.max-sweeps }}
+      delete_only_untagged: ${{ inputs.delete-only-untagged }}
+      dry_run: ${{ inputs.dry-run }}
+    secrets: inherit
