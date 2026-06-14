@@ -31,7 +31,7 @@ on:
 
 jobs:
   call:
-    uses: khensolomon/lethil/.github/workflows/bulk-delete-containers.yml@master
+    uses: khensolomon/lethil/.github/workflows/reuse_bulk-delete-containers.yml@master
     with:
       packages: '["myordbok/django","myordbok/nginx"]'
       min_versions_to_keep: ${{ inputs.min-versions-to-keep }}

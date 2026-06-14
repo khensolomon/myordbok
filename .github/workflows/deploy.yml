@@ -38,7 +38,7 @@ on:
 jobs:
   call:
     # Pin to a tag once you've cut one (e.g. @v1). @main tracks latest.
-    uses: khensolomon/lethil/.github/workflows/deploy.yml@master
+    uses: khensolomon/lethil/.github/workflows/reuse_deploy.yml@master
     with:
       app: myordbok
       # On push these inputs are empty, so the defaults apply and the push

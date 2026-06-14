@@ -7,7 +7,7 @@ on:
 
 jobs:
   call:
-    uses: khensolomon/lethil/.github/workflows/clean-containers.yml@master
+    uses: khensolomon/lethil/.github/workflows/reuse_clean-containers.yml@master
     with:
       packages: '["myordbok/nginx","myordbok/django"]'
       min_versions_to_keep: 5
