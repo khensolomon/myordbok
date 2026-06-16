@@ -14,7 +14,7 @@ services:
     # need to change the app user or root auth, either edit the live DB
     # directly or wipe /opt/${APP_NAME}/mysql after taking a backup with r2.py.
     env_file:
-      - /opt/zaideih/.env
+      - /opt/myordbok/.env
     # The environment block below is OPTIONAL overrides on top of env_file.
     # Anything listed here wins over the same key in .env. Anything not listed
     # comes through from .env unchanged. Delete a line to defer fully to .env.
@@ -73,7 +73,7 @@ services:
       retries: 5
       start_period: 300s
     env_file:
-      - /opt/zaideih/.env
+      - /opt/myordbok/.env
     # The environment block below is OPTIONAL overrides on top of env_file.
     # All real config flows through .env (built by the build-env action from
     # ENV_BASE / VAR_BASE / ENV_OVERRIDES). Add a line here only when you
@@ -113,7 +113,7 @@ services:
       - static_volume:/code/staticfiles:ro
       - cache_volume:/code/cache:ro
     env_file:
-      - /opt/zaideih/.env
+      - /opt/myordbok/.env
     # OPTIONAL overrides on top of env_file. APP_PORT is listed explicitly
     # because the nginx image's envsubst step (which fills in the .conf
     # template) reads this variable at container start. Leaving it explicit
