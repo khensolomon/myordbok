@@ -12,6 +12,8 @@ tests/
 # But do NOT ignore the data subfolder inside it
 !assets/data/
 !assets/data/*.json
+!assets/db-query/
+!assets/db-query/*.sql
 .editorconfig
 !README.md
 
