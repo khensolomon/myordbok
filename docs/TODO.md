@@ -17,7 +17,7 @@
     - [ ] Fonts
   - /dictionary
     - [ ] dictionaries
-    - [ ] management command for docs/info
+    - [ ] management command for assets/data/info
   - /definition
     - [ ] result
     - [ ] Search engine
