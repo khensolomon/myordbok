@@ -1,0 +1,185 @@
+/* Layout and components. Mobile first; wider screens add room. */
+
+/* ---------------------------------------------------------- header */
+
+.site-header {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	padding: 12px var(--gutter);
+	padding-top: max(12px, env(safe-area-inset-top));
+	background: var(--glass);
+	-webkit-backdrop-filter: saturate(180%) blur(20px);
+	backdrop-filter: saturate(180%) blur(20px);
+	border-bottom: 0.5px solid var(--glass-edge);
+}
+
+.brand-mark { display: block; width: 132px; }
+.site-nav { display: flex; gap: 2px; font-size: 14px; font-weight: 500; }
+.site-nav a { padding: 8px 12px; border-radius: 999px; color: var(--ink-2); }
+.site-nav a:hover { text-decoration: none; background: var(--surface); }
+.site-nav a[aria-current="page"] { color: var(--ink); background: var(--surface); }
+
+.you {
+	margin-left: auto;
+	width: 44px; height: 44px;
+	display: flex; align-items: center; justify-content: center;
+	border: none; border-radius: 999px;
+	background: var(--surface);
+}
+
+/* Home keeps the header bare: no brand (the page shows the logo) and no border. */
+body[data-route="home"] .site-header { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body[data-route="home"] .brand { visibility: hidden; }
+
+/* Dark theme shows brand marks in one colour so the grey wordmark stays legible. */
+:root[data-theme="dark"] .brand-mark,
+:root[data-theme="dark"] .brand-logo,
+:root[data-theme="dark"] .footer-brand img { filter: brightness(0) invert(1); }
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) :is(.brand-mark, .brand-logo, .footer-brand img) { filter: brightness(0) invert(1); }
+}
+
+@media (max-width: 640px) {
+	.site-nav { display: none; } /* phones navigate from the home page; a tab bar arrives with the You sheet */
+}
+
+/* ---------------------------------------------------------- main + footer */
+
+main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 24px var(--gutter) 48px; outline: none; }
+
+.site-footer {
+	width: 100%;
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 24px var(--gutter) max(32px, env(safe-area-inset-bottom));
+	display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+	border-top: 0.5px solid var(--line);
+	font-size: 13px; color: var(--muted);
+}
+.site-footer nav { display: flex; gap: 20px; }
+.site-footer a { color: var(--muted); }
+.footer-brand { display: flex; align-items: center; gap: 8px; }
+body[data-route="home"] .site-footer { display: none; }
+
+/* ---------------------------------------------------------- home */
+
+.home { display: flex; flex-direction: column; align-items: center; padding-top: 10vh; }
+.brand-logo { width: min(340px, 70vw); }
+.home-pair { margin: 8px 0 0; font-size: 15px; color: var(--muted); }
+.home-pair [aria-hidden] { color: var(--brand); }
+.search-hero { display: block; width: min(680px, 100%); margin-top: 36px; }
+
+/* ---------------------------------------------------------- search */
+
+mo-search { display: block; position: relative; }
+
+.search {
+	display: flex; align-items: center; gap: 4px;
+	height: 56px;
+	padding: 0 6px 0 22px;
+	border-radius: 999px;
+	background: var(--card);
+	box-shadow: 0 1px 2px rgba(23, 32, 43, 0.06), var(--shadow), 0 0 0 1px var(--line);
+}
+.search input {
+	flex: 1; min-width: 0;
+	border: none; outline: none; background: none;
+	font: inherit; font-size: 17px; color: var(--ink);
+}
+.search input::-webkit-search-cancel-button { display: none; }
+.search-go {
+	width: 44px; height: 44px;
+	display: flex; align-items: center; justify-content: center;
+	border: none; border-radius: 999px;
+	background: var(--brand); color: #ffffff; cursor: pointer;
+}
+
+.search-list {
+	position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 4;
+	margin: 0; padding: 6px; list-style: none;
+	border-radius: 18px;
+	background: var(--card);
+	box-shadow: var(--shadow), 0 0 0 1px var(--line);
+}
+.search-list a { display: block; padding: 10px 14px; border-radius: 12px; color: var(--ink); }
+.search-list a:hover, .search-list [aria-selected="true"] a { background: var(--surface); text-decoration: none; }
+
+.search-top { max-width: 620px; margin-bottom: 28px; }
+.search-top .search { height: 48px; box-shadow: none; background: var(--surface); }
+
+/* ---------------------------------------------------------- entry */
+
+.entry-head { display: flex; align-items: center; gap: 14px; }
+.lang-badge {
+	width: 32px; height: 32px;
+	display: flex; align-items: center; justify-content: center;
+	border: 1.5px solid var(--node); border-radius: 999px;
+	font-size: 13px; font-style: italic; color: var(--faint);
+}
+.headword { margin: 0; font-size: clamp(34px, 6vw, 48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+
+/* Wide screens: the open timeline from the current site. */
+.timeline { margin-left: 15px; padding: 28px 0 8px 40px; border-left: 1px solid var(--line); }
+.pos { position: relative; margin-bottom: 36px; padding-left: 32px; border-left: 1px solid var(--line-soft); }
+.pos-name {
+	margin: 0;
+	font-size: 15px; font-weight: 400; font-style: italic; color: var(--faint); line-height: 21px;
+}
+.pos-name::before {
+	content: "";
+	position: absolute; left: -11px; top: 0;
+	width: 21px; height: 21px;
+	border: 1.5px solid var(--node); border-radius: 999px;
+	background: var(--ground);
+	box-sizing: border-box;
+}
+.senses { margin: 18px 0 0; padding: 0; list-style: none; }
+.sense { position: relative; padding: 0 0 16px 26px; }
+.sense::before {
+	content: "";
+	position: absolute; left: 0; top: 14px;
+	width: 10px; height: 10px;
+	border: 1.5px solid var(--ring); border-radius: 999px;
+	box-sizing: border-box;
+}
+.gloss { margin: 0; font-size: 20px; }
+.example {
+	position: relative;
+	margin: 6px 0 4px 4px; padding: 2px 0 2px 32px;
+	border-left: 1px dotted var(--guide);
+	font-size: 15px; line-height: 1.6; color: var(--ink-2);
+}
+.example::before {
+	content: "";
+	position: absolute; left: 16px; top: 0.85em;
+	width: 5px; height: 5px; border-radius: 999px; background: var(--dot);
+}
+
+/* Phones: one card per part of speech with the curved corner tab. */
+@media (max-width: 640px) {
+	.timeline { margin: 20px -4px 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 18px; }
+	.pos {
+		margin: 0; padding: 0 0 6px; border: 0.5px solid var(--line);
+		border-radius: 18px; background: var(--card); box-shadow: var(--shadow); overflow: hidden;
+	}
+	.pos-name {
+		display: inline-block; padding: 6px 26px 7px 22px;
+		border-right: 0.5px solid var(--line); border-bottom: 0.5px solid var(--line);
+		border-bottom-right-radius: 22px; background: var(--surface);
+	}
+	.pos-name::before { content: none; }
+	.senses { margin: 14px 16px 0; }
+	.gloss { font-size: 19px; }
+}
+
+/* ---------------------------------------------------------- pages */
+
+.page h1 { font-size: 32px; letter-spacing: -0.01em; margin: 0 0 12px; }
+.notice { color: var(--muted); }
+.notice-title { font-size: 24px; margin: 0 0 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.chips a { display: block; padding: 6px 14px; border-radius: 999px; background: var(--surface); color: var(--ink); }

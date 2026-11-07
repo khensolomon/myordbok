@@ -1,46 +1,44 @@
 {
-  "name": "myordbok",
-  "version": "26.4.4",
-  "description": "a comprehensive online Myanmar dictionary",
-  "keywords": [
-    "myordbok",
-    "dictionary"
-  ],
-  "type": "commonjs",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "scripts": {
-    "start": "concurrently \"npm run dev\" \"npm run django\"",
-    "dev": "vite --config ./assets/com/vite.js",
-    "build": "vite build --config ./assets/com/vite.js",
-    "dev-watch": "vite build --watch --config ./assets/com/vite.js",
-    "django:linux": "./venv/bin/python manage.py runserver",
-    "django:win": ".\\venv\\Scripts\\python manage.py runserver",
-    "django": "if [ -f \"./venv/bin/python\" ]; then ./venv/bin/python manage.py runserver; else .\\venv\\Scripts\\python manage.py runserver; fi"
-  },
-  "dependencies": {
-    "axios": "^1.20.0",
-    "pinia": "^3.0.4",
-    "vue": "^3.5.44",
-    "vue-router": "^5.0.4"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.5",
-    "concurrently": "^9.2.5",
-    "sass": "^1.99.0",
-    "sharp": "^0.35.5",
-    "vite": "^8.3.5"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/khensolomon/myordbok.git"
-  },
-  "author": "Khen Solomon Lethil",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/khensolomon/myordbok/issues"
-  },
-  "homepage": "https://github.com/khensolomon/myordbok#readme"
+	"name": "myordbok",
+	"version": "26.11.7+1",
+	"description": "a comprehensive online Myanmar dictionary",
+	"keywords": [
+		"myordbok",
+		"dictionary",
+		"myanmar",
+		"pwa"
+	],
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#shared/*": "./shared/*",
+		"#platform/*": "./app/platform/web/*"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"dev": "node scripts/serve.js",
+		"dev:api": "wrangler dev --local --port 8787",
+		"db:migrate": "wrangler d1 migrations apply myordbok --local",
+		"db:seed": "wrangler d1 execute myordbok --local --file db/seed.dev.sql",
+		"build": "node scripts/build.js",
+		"build:tauri": "node scripts/build.js --target tauri",
+		"test": "node --test \"tests/*.test.js\"",
+		"version:next": "node scripts/version.js",
+		"deploy": "node scripts/build.js && wrangler deploy"
+	},
+	"devDependencies": {
+		"wrangler": "^4.158.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/khensolomon/myordbok.git"
+	},
+	"author": "Khen Solomon Lethil",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/khensolomon/myordbok/issues"
+	},
+	"homepage": "https://github.com/khensolomon/myordbok#readme"
 }

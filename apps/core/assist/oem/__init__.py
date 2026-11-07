@@ -1,3 +1,0 @@
-"""
-OEM - English -> Myanmar
-"""

@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"checkJs": true,
+		"strict": true,
+		"noEmit": true,
+		"target": "es2022",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"lib": ["es2022", "dom", "dom.iterable", "webworker"],
+		"resolveJsonModule": true,
+		"skipLibCheck": true
+	},
+	"include": ["app", "shared", "worker", "scripts", "tests"],
+	"exclude": ["dist", "node_modules"]
+}

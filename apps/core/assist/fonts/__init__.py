@@ -1,3 +1,0 @@
-"""
-TrueType font (.ttf) files
-"""

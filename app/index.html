@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>MyOrdbok</title>
+	<meta name="description" content="A comprehensive English–Myanmar dictionary that also works offline.">
+	<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+	<meta name="theme-color" content="#0d1116" media="(prefers-color-scheme: dark)">
+	<link rel="manifest" href="/manifest.webmanifest">
+	<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+	<!--styles-->
+	<link rel="stylesheet" href="/styles/tokens.css">
+	<link rel="stylesheet" href="/styles/base.css">
+	<link rel="stylesheet" href="/styles/app.css">
+	<!--/styles-->
+	<!--importmap: replaced by scripts/build.js with hashed paths-->
+	<script type="importmap">
+	{
+		"imports": {
+			"#platform/": "/platform/web/",
+			"#shared/": "/shared/"
+		}
+	}
+	</script>
+	<!--/importmap-->
+</head>
+<body>
+	<a class="skip" href="#view">Skip to content</a>
+	<header class="site-header">
+		<a class="brand" href="/" aria-label="MyOrdbok home"><img class="brand-mark" src="/static/logo.svg" alt="" width="168" height="28"></a>
+		<nav class="site-nav" aria-label="Main">
+			<a href="/">Dictionary</a>
+			<a href="/grammar">Grammar</a>
+			<a href="/myanmar-fonts">Fonts</a>
+			<a href="/about">About</a>
+		</nav>
+		<button class="you" type="button" aria-label="You: sign in and settings" title="You" disabled>
+			<svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>
+		</button>
+	</header>
+
+	<main id="view" tabindex="-1"></main>
+
+	<footer class="site-footer">
+		<span class="footer-brand"><img src="/static/icon.svg" alt="" width="20" height="20"> © MyOrdbok</span>
+		<nav aria-label="Legal">
+			<a href="/about">About</a>
+			<a href="/privacy">Privacy</a>
+			<a href="/terms">Terms</a>
+		</nav>
+	</footer>
+
+	<noscript><p class="page notice">MyOrdbok needs JavaScript to search the dictionary.</p></noscript>
+	<script type="module" src="/main.js"></script>
+</body>
+</html>

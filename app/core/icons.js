@@ -1,0 +1,16 @@
+// @ts-check
+/**
+ * MyOrdbok icon set: 24 grid, 2px safe area, 1.1 line, round ends,
+ * separate strokes never touch. Stroke width and colour come from CSS (.icon).
+ */
+export const ICONS = Object.freeze({
+	search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M16 16l4 4"/><path d="M7.6 9.4a3.2 3.2 0 0 1 2-2"/>',
+	dictionary: '<path d="M12 6.8C10.2 5.3 7.8 4.8 4 4.8v12.6c3.8 0 6.2.5 8 2 1.8-1.5 4.2-2 8-2V4.8c-3.8 0-6.2.5-8 2z"/><path d="M12 8.4v9.4"/>',
+	grammar: '<path d="M6.5 4H17a1.5 1.5 0 0 1 1.5 1.5V20H7a2 2 0 0 1-2-2V5.5A1.5 1.5 0 0 1 6.5 4z"/><path d="M5 17.5a2 2 0 0 1 2-2h11.5"/><path d="M9.5 4v5.5l1.75-1.2L13 9.5V4"/>',
+	account: '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/>',
+	pronounce: '<path d="M4 9.5h2.8L11 6v12l-4.2-3.5H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"/><path d="M14.8 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.6a7.6 7.6 0 0 1 0 10.8"/>',
+	like: '<path d="M12 19.5c-4-2.6-8-6-8-10C4 6.9 6 5 8.4 5c1.5 0 2.8.8 3.6 2 .8-1.2 2.1-2 3.6-2C18 5 20 6.9 20 9.5c0 4-4 7.4-8 10z"/>',
+	suggest: '<path d="M16.6 3.9a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L9 18.5l-4.5 1 1-4.5z"/><path d="M14.5 6l3.5 3.5"/>',
+	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
+	close: '<path d="M7 7l10 10M17 7 7 17"/>',
+});

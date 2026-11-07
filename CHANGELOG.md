@@ -1,33 +1,57 @@
-# Version
+# Changelog
 
-## 1.9.7
+## 26.11.7+1
+
+Rewrite begins: the Django version is replaced by an HTML5 app (PWA) on
+Cloudflare Workers and D1, in plain JavaScript modules with JSDoc.
+
+- Remove the Django app, Docker setup, deploy workflows and the previous
+  front end (`assets/com`, `icon`, `img`, `queries`, `script`, `scss`)
+- Add the app shell: router with deep links, search with live suggestions,
+  definition page (timeline on wide screens, cards on phones), light and dark
+  theme, Myanmar3 web font shipped with the app
+- Add PWA manifest, app icons and a service worker that keeps the shell
+  available offline; the studio is never precached
+- Add platform adapters (`app/platform/web`), with `app/platform/tauri`
+  reserved for desktop and mobile builds
+- Add the Worker API: `/api/health`, `/api/search`, `/api/entry/:lang/:word`
+- Add the D1 schema: dictionary tables, members and roles, sessions,
+  change log, reactions (like / dislike), suggestions and comments
+- Add stdlib-only scripts: build (hashing, import map, precache), dev server,
+  version bump with dry run
+- Add tests on Node's built-in runner
+- Version scheme is now `yy.mm.dd+changes`
+
+## Previous version (Django)
+
+### 1.9.7
 
 - Introduce <> in instead of [list:*]
 - Update dependencies
 
-## 1.9.6
+### 1.9.6
 
 - add antonym & anth-class
   - Provided by `view_antonym`
 
-## 1.9.3-4-5
+### 1.9.3-4-5
 
 - Update dependencies
 - Add prepare environment for `.env` & `package.json`, calling `environment()`
 
-## 1.9.1-2
+### 1.9.1-2
 
 - ThemeMode [auto, light, dark]
 - Suggestion on non-definition
 - Fonts counter db integrations & robot JSON generator
 
-## 1.9.0
+### 1.9.0
 
 - Improved performance, rewrite data-structure
 - Todo
   - [ ] oem word source and its relative langs
 
-## 1.8.2-3-4-5-6-7
+### 1.8.2-3-4-5-6-7
 
 - NEN
 - Cookie consent
@@ -51,14 +75,14 @@
   - sense: 101876
   - usage: 55418
 
-## 1.8.1
+### 1.8.1
 
 - MED
 - Theme mode
 - js interactive with vue (component)
 - Authentication (firebase)
 
-## 1.8.0
+### 1.8.0
 
 - Move thuddar and glossary.info to rep
 - Improved flat, gist, orth, sea, setup, sqlite, thuddar, wordbreak
@@ -66,14 +90,14 @@
 - Fixed thuddar section
 - Update time of individual dictionary
 
-## 1.7.9
+### 1.7.9
 
 - Customized input form for mobile
 - Update dependencies
 - Add list_cache
 - Change file.cache directory
 
-## 1.7.8
+### 1.7.8
 
 Font noticed
 
@@ -83,11 +107,11 @@ Glossary
 - definition: 100855
 - example: 54138
 
-## 1.7.7
+### 1.7.7
 
 testing
 
-## 1.7.6
+### 1.7.6
 
 Package
 
@@ -103,7 +127,7 @@ Glossary
 - definition: 100485
 - example: 53829
 
-## 1.7.0
+### 1.7.0
 
 Package
 
@@ -119,7 +143,7 @@ Glossary
 - definition: 100472
 - example: 53807
 
-## 1.6.3
+### 1.6.3
 
 Package
 
@@ -135,7 +159,7 @@ Glossary
 - definition: 100480
 - example: 53738
 
-## 1.0
+### 1.0
 
 Feature
 

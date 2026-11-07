@@ -5,12 +5,12 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 ![GitHub stars](https://img.shields.io/github/stars/khensolomon/myordbok)
 ![License](https://img.shields.io/github/license/khensolomon/myordbok)
 ![Last commit](https://img.shields.io/github/last-commit/khensolomon/myordbok)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/khensolomon/myordbok/deploy.yml)
 
 - Works ⚡ instantly in your browser
 - Search across **200,000+ terms**
 - Built specifically for Myanmar language structure
-- No login, no tracking
+- No account needed to read, no tracking
+- Works offline once the dictionary is downloaded
 - **Smart search** with real-time suggestions
 - **Rich definitions** with grammar support
 - Integrated Myanmar font rendering
@@ -34,9 +34,32 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 git clone https://github.com/khensolomon/myordbok.git
 ```
 
+## Development
+
+A single-page HTML5 app (PWA) in plain JavaScript modules with JSDoc, served
+by a Cloudflare Worker with D1. No framework and no bundler; Node 22+ and
+wrangler are the only tools. Tauri desktop and mobile builds reuse the same
+code through platform adapters (see [docs/architecture.md](docs/architecture.md)).
+
+```bash
+npm install          # wrangler only
+npm run db:migrate   # create the local D1 database
+npm run db:seed      # a few sample entries
+npm run dev:api      # worker + D1 on :8787
+npm run dev          # app on :8000, no build step, /api proxied to :8787
+```
+
+| Command | What it does |
+|---|---|
+| `npm test` | Node's built-in test runner |
+| `npm run build` | `dist/web`: hashed files, import map, service worker |
+| `npm run build:tauri` | `dist/tauri` (stops until the Tauri adapters exist) |
+| `npm run version:next -- --note "…"` | next `yy.mm.dd+changes` version and CHANGELOG entry; dry run unless `--apply` |
+| `npm run deploy` | build and deploy the worker |
+
 ## Privacy & Security
 
-We value your privacy. The app operates with **no authentication**, meaning your search history and data stay with you. For a detailed breakdown of how we handle data, please refer to our Privacy Policy.
+We value your privacy. Reading, searching and offline use need **no account**, so your search history stays with you. Signing in with Google or GitHub is optional and only used to like entries, suggest edits and comment. For a detailed breakdown of how we handle data, please refer to our Privacy Policy.
 
 ---
 
