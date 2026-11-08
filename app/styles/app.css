@@ -205,20 +205,31 @@ body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32
 mo-search { display: block; position: relative; height: 44px; }
 
 .search-box {
+	--field-r: 22px;  /* closed: a pill */
 	position: absolute;
 	inset: 0 0 auto 0;
 	z-index: 4;
+	padding: 0;
 	border: 0.5px solid var(--glass-edge);
-	border-radius: 22px;
+	border-radius: var(--field-r);
 	background: var(--glass-fill);
 	-webkit-backdrop-filter: saturate(180%) blur(20px);
 	backdrop-filter: saturate(180%) blur(20px);
 	box-shadow: var(--glass-shine);
-	transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
+	transition: inset 0.18s, padding 0.18s, border-radius 0.18s, background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 .search-box:hover { background: var(--glass-fill-hover); }
+
+/* Focused: the box grows 4px outward (the field and the text do not move)
+   and its corners ease from a pill to --field-r. The field keeps its own
+   shape inside it; the box's corners are the field's plus the 4px gap, so
+   the two curves run parallel (concentric). */
 .search-box:focus-within,
 mo-search[data-open] .search-box {
+	--field-r: 16px;
+	inset: -4px -4px auto -4px;
+	padding: 4px;
+	border-radius: calc(var(--field-r) + 4px);
 	background: var(--glass-lens);
 	border-color: var(--ring);
 	box-shadow: var(--glass-shine), var(--shadow);
@@ -228,7 +239,11 @@ mo-search[data-open] .search-box {
 	display: flex; align-items: center; gap: 4px;
 	height: 43px;
 	padding: 0 4px 0 18px;
+	border-radius: var(--field-r);
+	transition: border-radius 0.18s, background-color 0.15s;
 }
+.search-box:focus-within .search,
+mo-search[data-open] .search { background: var(--glass-fill); }
 .search input {
 	flex: 1; min-width: 0;
 	border: none; outline: none; background: none;
@@ -236,6 +251,7 @@ mo-search[data-open] .search-box {
 }
 .search input::placeholder { color: var(--faint); }
 .search input::-webkit-search-cancel-button { display: none; }
+/* The button stays a circle in every state. */
 .search-go {
 	width: 34px; height: 34px;
 	display: flex; align-items: center; justify-content: center;
@@ -247,12 +263,13 @@ mo-search[data-open] .search-box {
 .search-go:hover { filter: brightness(1.08); }
 .search-go:active { filter: brightness(0.92); }
 
-.search-list {
-	margin: 0; padding: 4px 6px 8px; list-style: none;
-	border-top: 0.5px solid var(--line);
-}
-.search-list a { display: block; padding: 8px 12px; border-radius: 12px; color: var(--ink); }
+.search-list { margin: 0; padding: 6px 0 2px; list-style: none; }
+.search-list a { display: block; padding: 8px 18px; border-radius: var(--field-r); color: var(--ink); }
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) {
+	.search-box, .search { transition: none; }
+}
 
 /* ---------------------------------------------------------- main + footer */
 

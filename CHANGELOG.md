@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+16
+
+- Search box: closed it is a pill; on focus the whole box grows 4 px outward and its corners ease to 20 px around the field's 16 px (concentric), with the button always a circle and the text never moving
+
 ## 26.11.8+15
 
 - Definition pages: larger logo (180 px) and icon (40 px) beside the search box
