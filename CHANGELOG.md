@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+26
+
+- Terms of Use rewritten for the new app: a short summary; free use for study, teaching, work and personal purposes; quoting with credit welcome, bulk copying, scraping and sharing the offline download not; WordNet and Moby Thesaurus under their own terms; the MIT licence covers the code only; accuracy and draft meanings; accounts and contributions (licence to publish, editor review, removal of abuse); Myanmar fonts; liability; how to report a problem
+- The contact address placeholder and the repository link live in one place (app/core/config.js) for the About, Privacy and Terms pages
+
 ## 26.11.8+25
 
 - Header links quieter on wider screens: no capsule, the current page under a barely-there pill and an even paler hover, both still gliding; phones keep the icon capsule

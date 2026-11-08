@@ -680,3 +680,13 @@ h3.g-h { font-size: 18px; }
 	.g-example, .g-exam { padding: 10px 12px; }
 }
 body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var(--gutter)); }
+
+/* ---------------------------------------------------------- terms */
+
+/* The summary at the top of the terms: a glass panel. */
+.in-short {
+	margin: 24px 0 8px; padding: 4px 20px 8px;
+	border: 0.5px solid var(--glass-edge); border-radius: var(--radius);
+	background: var(--glass-fill); box-shadow: var(--glass-shine);
+}
+.in-short h2 { margin-top: 14px !important; font-size: 13px !important; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }

@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Information pages still to move over: fonts and terms.
+ * Information pages still to move over: fonts.
  * Content moves over from the previous site in a later change.
  */
 import { h } from '../core/dom.js';
@@ -8,7 +8,6 @@ import { h } from '../core/dom.js';
 /** @type {Record<string, string>} */
 const TITLES = {
 	'myanmar-fonts': 'Myanmar fonts',
-	terms: 'Terms',
 };
 
 function pageName() {

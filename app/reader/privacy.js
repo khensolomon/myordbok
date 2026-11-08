@@ -3,11 +3,11 @@
  * Privacy policy. Kept in step with what the app actually does; any change
  * to data handling (analytics, sign-in, storage) updates this page too.
  */
+import { CONTACT } from '../core/config.js';
 import { analyticsAvailable, getChoice, setChoice } from '../core/consent.js';
 import { h } from '../core/dom.js';
 
 const UPDATED = '8 November 2026';
-const CONTACT = '[contact email]';
 
 export function title() {
 	return 'Privacy Policy';

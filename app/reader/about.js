@@ -7,10 +7,10 @@
  */
 import { getJSON } from '#platform/http.js';
 import { parseVersion } from '#shared/version.js';
+import { REPOSITORY as REPO } from '../core/config.js';
 import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 
-const REPO = 'https://github.com/khensolomon/myordbok';
 const PAYPAL = 'https://www.paypal.com/donate/?hosted_button_id=C9PDG3T47WJ26';
 const SPONSORS = 'https://github.com/sponsors/khensolomon';
 
