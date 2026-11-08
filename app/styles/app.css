@@ -42,6 +42,14 @@ main {
 
 /* ---------------------------------------------------------- header */
 
+/* The brand blue as a thin bar across the top of every page. */
+body::before {
+	content: "";
+	display: block;
+	height: 3px;
+	background: var(--brand);
+}
+
 /* Text navigation that scrolls away with the page. */
 .site-header {
 	display: flex;
@@ -50,14 +58,47 @@ main {
 	padding-top: max(8px, env(safe-area-inset-top));
 	padding-bottom: 8px;
 }
-.site-nav { display: flex; gap: 2px; margin-left: -12px; font-size: 14px; font-weight: 500; }
-.site-nav a {
-	display: flex; align-items: center; justify-content: center;
-	padding: 8px 12px; border-radius: 999px; color: var(--ink-2);
+/* The links sit in a faint glass capsule. Two shapes move inside it (nav.js):
+   a light tint that follows the pointer from link to link, and a raised
+   lens on the page you are on, which glides to the new link on navigation. */
+.site-nav {
+	position: relative;
+	display: flex; gap: 0; padding: 3px;
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-fill);
+	box-shadow: var(--glass-shine);
+	font-size: 14px; font-weight: 500;
 }
-.site-nav a:hover { text-decoration: none; background: var(--glass-fill); }
+.site-nav a {
+	position: relative; z-index: 1;
+	display: flex; align-items: center; justify-content: center;
+	padding: 7px 14px; border-radius: 999px; color: var(--ink-2);
+	transition: color 0.2s;
+}
+.site-nav a:hover { text-decoration: none; color: var(--ink); }
 .site-nav a[aria-current="page"] { color: var(--ink); }
 .nav-icon { display: none; }
+
+.nav-lens,
+.nav-hover {
+	position: absolute; top: 3px; bottom: 3px; left: 0;
+	width: var(--w, 0px);
+	transform: translateX(var(--x, 0px));
+	border-radius: 999px;
+	pointer-events: none;
+	opacity: 0;
+	transition: transform 0.32s cubic-bezier(0.3, 0.8, 0.25, 1), width 0.32s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.2s;
+}
+.nav-hover { background: var(--glass-fill-hover); }
+.nav-lens { background: var(--glass-lens); box-shadow: var(--glass-shine), var(--glass-lift); }
+.nav-hover[data-on],
+.nav-lens[data-on] { opacity: 1; }
+/* Placed without moving: the first time it appears, or after a resize. */
+.nav-hover[data-jump],
+.nav-lens[data-jump] { transition: opacity 0.2s; }
+@media (prefers-reduced-motion: reduce) {
+	.nav-lens, .nav-hover { transition: none; }
+}
 
 .you {
 	margin-left: auto;
@@ -68,17 +109,11 @@ main {
 	box-shadow: var(--glass-shine);
 }
 
-/* Phones: the links become icons in a glass capsule; the page's own link
-   sits under a brighter lens, as in iOS tab bars. */
+/* Phones: the links become icons, as in iOS tab bars. */
 @media (max-width: 640px) {
-	.site-nav {
-		margin-left: 0; padding: 3px; gap: 0;
-		border: 0.5px solid var(--glass-edge); border-radius: 999px;
-		background: var(--glass-fill);
-		box-shadow: var(--glass-shine), var(--glass-lift);
-	}
+	.site-nav { box-shadow: var(--glass-shine), var(--glass-lift); }
 	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--muted); }
-	.site-nav a[aria-current="page"] { color: var(--brand); background: var(--glass-lens); box-shadow: var(--glass-shine), var(--glass-lift); }
+	.site-nav a[aria-current="page"] { color: var(--brand); }
 	.nav-icon { display: block; }
 	.nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }

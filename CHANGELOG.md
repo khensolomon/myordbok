@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+24
+
+- Header links in a glass capsule on every screen size: a raised lens marks the page you are on and glides to the new link when the page changes; a light tint follows the pointer from link to link
+- A thin brand-blue bar across the top of every page
+
 ## 26.11.8+23
 
 - Myanmar text uses Noto Sans Myanmar with true regular and semibold weights (SIL Open Font License, shipped with the app) instead of Myanmar3, whose bold was faked by the browser; about the same size to download
