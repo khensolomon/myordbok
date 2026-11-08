@@ -34,17 +34,18 @@ Until cutover, myordbok.com keeps serving the previous Django site and
 ### 2. Databases
 
 The app database `myordbok` (`526dfd31-5d80-40ce-82aa-8f9c94e27456`) already
-exists and is set in `wrangler.toml`. Create the two dictionary slots:
+exists and is set in `wrangler.toml`. Create the two dictionary slots; the
+command reuses databases that already exist and writes their ids into
+`wrangler.toml` for the top level, beta and production:
 
 ```bash
-npx wrangler login                    # once, in a browser
-npx wrangler d1 create myordbok-dict-a
-npx wrangler d1 create myordbok-dict-b
+npx wrangler login          # once, in a browser
+make data-setup             # dry run: shows what exists and what would be created
+make data-setup APPLY=1
+git commit -am "Dictionary database ids"   # ids are identifiers, not secrets
 ```
 
-Each command prints a `database_id`. Put them in `wrangler.toml` in place of
-the placeholders ending in `…0a` and `…0b` (three places each: top level,
-beta, production). Then the app tables:
+Then the app tables:
 
 ```bash
 make db-status              # lists applied and pending migrations

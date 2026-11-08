@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+6
+
+- make data-setup creates the dictionary databases (or finds them) and writes their ids into wrangler.toml for every environment; data commands also refuse ids that are not UUIDs
+
 ## 26.11.8+5
 
 - Data commands stop before contacting Cloudflare while wrangler.toml still has placeholder database ids for the dictionary slots, and say how to fix it

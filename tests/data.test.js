@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { exportEdits, placeholderBindings, planExport, publish, status, switchSlot, tsv, verifyBuild } from '../scripts/data.js';
+import { badDatabaseIds, exportEdits, planExport, setDatabaseIds, publish, status, switchSlot, tsv, verifyBuild } from '../scripts/data.js';
 import { MIGRATION, SAMPLE, runner, sqlite } from './helpers/d1.js';
 
 /** @param {Partial<import('../scripts/data.js').Edit>} e */
@@ -155,13 +155,17 @@ test('publish refuses an incomplete build and leaves the sites alone', () => {
 	assert.equal(dbs.DB.prepare('SELECT count(*) AS n FROM dict_release').get()?.n, 0);
 });
 
-test('placeholder database ids in wrangler.toml are found before any remote call', () => {
+test('database ids: placeholders and non-ids are refused, setup fills every environment', () => {
 	const toml = readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8');
-	const real = toml.replaceAll(/0{8}-0{4}-0{4}-0{4}-0{10}0([ab])/g, '11111111-2222-3333-4444-55555555550$1');
-	assert.deepEqual(placeholderBindings(real), []);
-	assert.deepEqual(
-		placeholderBindings('[[d1_databases]]\nbinding = "DICT_B"\ndatabase_name = "myordbok-dict-b"\ndatabase_id = "00000000-0000-0000-0000-00000000000b"\n'),
-		['DICT_B (myordbok-dict-b)'],
-	);
-	assert.deepEqual(placeholderBindings('[[d1_databases]]\nbinding = "DB"\ndatabase_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"\n'), []);
+	assert.equal(badDatabaseIds(toml).length, 2);
+	assert.deepEqual(badDatabaseIds('[[d1_databases]]\nbinding = "DICT_A"\ndatabase_name = "myordbok-dict-a"\ndatabase_id = "<id of dict-a>"\n'), ['DICT_A (myordbok-dict-a): "<id of dict-a>"']);
+	const a = '11111111-2222-3333-4444-555555555555';
+	const b = '66666666-7777-8888-9999-000000000000';
+	const filled = setDatabaseIds(toml, { DICT_A: a, DICT_B: b });
+	assert.deepEqual(badDatabaseIds(filled), []);
+	assert.equal(filled.split(a).length - 1, 3);
+	assert.equal(filled.split(b).length - 1, 3);
+	assert.equal(filled.split('526dfd31-5d80-40ce-82aa-8f9c94e27456').length, toml.split('526dfd31-5d80-40ce-82aa-8f9c94e27456').length);
+	assert.equal(setDatabaseIds(filled.replaceAll(a, '<id of dict-a>'), { DICT_A: a, DICT_B: b }), filled);
+	assert.throws(() => setDatabaseIds(toml, { DICT_A: 'nope' }), /Not a database id/);
 });

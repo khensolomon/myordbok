@@ -8,6 +8,8 @@
  * are exported here as the dataset's own patch files, applied and merged in
  * the dataset, and come back with the next release.
  *
+ *   setup                           create the dictionary databases, write their ids
+ *                                   into wrangler.toml (once)
  *   status                          releases, slots and edits at a glance
  *   export  --out DIR               approved edits → TSV files for the dataset scripts
  *   publish --file build/myordbok.sql
@@ -24,7 +26,7 @@
  * outside it (exports/ is ignored by git for convenience).
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -35,23 +37,53 @@ const SLOTS = /** @type {const} */ (['a', 'b']);
 const ENVS = /** @type {const} */ (['beta', 'production']);
 /** IDs per IN (…) list, to keep each command well under argument limits. */
 const CHUNK = 400;
-/** The database_id values wrangler.toml ships with, before `wrangler d1 create`. */
+/** The database_id values wrangler.toml ships with, before `make data-setup`. */
 const PLACEHOLDER_ID = /^0{8}-0{4}-0{4}-0{4}-0{10}[0-9a-f]{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Dictionary slot bindings and the D1 databases behind them. */
+export const SLOT_DATABASES = Object.freeze({ DICT_A: 'myordbok-dict-a', DICT_B: 'myordbok-dict-b' });
 
 /**
- * Bindings in wrangler.toml whose database_id is still a placeholder.
+ * The [[…d1_databases]] blocks of wrangler.toml.
  * @param {string} toml
- * @returns {string[]}  e.g. ["DICT_A (myordbok-dict-a)"], once per binding.
  */
-export function placeholderBindings(toml) {
+function d1Blocks(toml) {
+	return toml.split(/^(?=\[\[)/m).filter((b) => /^\[\[(env\.\w+\.)?d1_databases\]\]/.test(b));
+}
+
+/**
+ * Bindings whose database_id is a placeholder or not a UUID at all.
+ * @param {string} toml
+ * @returns {string[]}  e.g. ["DICT_A (myordbok-dict-a): 00000000-…"], once per binding.
+ */
+export function badDatabaseIds(toml) {
 	const found = new Set();
-	for (const block of toml.split(/^\[\[/m).slice(1)) {
+	for (const block of d1Blocks(toml)) {
 		const binding = /^binding\s*=\s*"([^"]+)"/m.exec(block)?.[1];
 		const name = /^database_name\s*=\s*"([^"]+)"/m.exec(block)?.[1];
-		const id = /^database_id\s*=\s*"([^"]+)"/m.exec(block)?.[1];
-		if (binding && id && PLACEHOLDER_ID.test(id)) found.add(`${binding} (${name ?? '?'})`);
+		const id = /^database_id\s*=\s*"([^"]*)"/m.exec(block)?.[1] ?? '';
+		if (binding && (PLACEHOLDER_ID.test(id) || !UUID.test(id))) found.add(`${binding} (${name ?? '?'}): "${id}"`);
 	}
 	return [...found];
+}
+
+/**
+ * wrangler.toml with the database_id of the given bindings replaced in every
+ * environment. Comments on those lines are dropped; nothing else changes.
+ * @param {string} toml
+ * @param {Record<string, string>} ids  By binding.
+ */
+export function setDatabaseIds(toml, ids) {
+	for (const id of Object.values(ids)) if (!UUID.test(id)) throw new Error(`Not a database id: ${id}`);
+	return toml
+		.split(/^(?=\[\[)/m)
+		.map((block) => {
+			const binding = /^binding\s*=\s*"([^"]+)"/m.exec(block)?.[1];
+			if (!binding || !(binding in ids) || !/^\[\[(env\.\w+\.)?d1_databases\]\]/.test(block)) return block;
+			return block.replace(/^database_id\s*=.*$/m, `database_id = "${ids[binding]}"`);
+		})
+		.join('');
 }
 
 /** Columns of the patch files, per dictionary (the dataset's edit scripts). */
@@ -636,19 +668,61 @@ function option(args, name) {
 	return i >= 0 ? args[i + 1] : undefined;
 }
 
+const WRANGLER_TOML = join(import.meta.dirname, '..', 'wrangler.toml');
+
+/**
+ * Creates the dictionary databases that do not exist yet and writes their
+ * ids into wrangler.toml. Safe to run again: existing databases are reused.
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ */
+function setup(apply, log) {
+	/** @param {string[]} args */
+	const wrangler = (args) => execFileSync('npx', ['wrangler', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+	const list = () => /** @type {Array<{ name: string, uuid: string }>} */ (JSON.parse(wrangler(['d1', 'list', '--json'])));
+
+	let databases = list();
+	const missing = Object.values(SLOT_DATABASES).filter((name) => !databases.some((d) => d.name === name));
+	for (const name of Object.values(SLOT_DATABASES)) {
+		log(`${name}: ${missing.includes(name) ? (apply ? 'creating' : 'missing, would be created') : 'exists'}`);
+	}
+	if (!apply) {
+		log('Dry run. Add APPLY=1 to create what is missing and write the ids into wrangler.toml.');
+		return;
+	}
+	for (const name of missing) wrangler(['d1', 'create', name]);
+	if (missing.length) databases = list();
+
+	/** @type {Record<string, string>} */
+	const ids = {};
+	for (const [binding, name] of Object.entries(SLOT_DATABASES)) {
+		const found = databases.find((d) => d.name === name);
+		if (!found) throw new Error(`${name} is not in wrangler d1 list after creating it`);
+		ids[binding] = found.uuid;
+		log(`${binding} = ${name} (${found.uuid})`);
+	}
+	const before = readFileSync(WRANGLER_TOML, 'utf8');
+	const after = setDatabaseIds(before, ids);
+	const bad = badDatabaseIds(after);
+	if (bad.length) throw new Error(`wrangler.toml still has bad ids after the update: ${bad.join(', ')}`);
+	if (after === before) {
+		log('wrangler.toml already has these ids.');
+		return;
+	}
+	writeFileSync(WRANGLER_TOML, after);
+	log('Wrote the ids into wrangler.toml (top level, beta, production). Commit it: ids are not secrets.');
+}
+
 async function main() {
 	const args = process.argv.slice(2);
 	const command = args[0];
 	const apply = args.includes('--apply');
 	const local = args.includes('--local');
+	if (command === 'setup') return setup(apply, (line) => console.log(line));
 	if (!local) {
-		const missing = placeholderBindings(readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8'));
-		if (missing.length) {
-			throw new Error(
-				`wrangler.toml still has placeholder database ids for ${missing.join(', ')}.\n` +
-					'Create each database once (npx wrangler d1 create myordbok-dict-a, … myordbok-dict-b) and put the\n' +
-					'printed database_id in wrangler.toml everywhere the placeholder appears (top level, beta, production).',
-			);
+		const bad = badDatabaseIds(readFileSync(WRANGLER_TOML, 'utf8'));
+		if (bad.length) {
+			throw new Error(`wrangler.toml has no real database id for ${bad.join(', ')}.\nRun make data-setup APPLY=1 to create the databases and fill in their ids.`);
 		}
 	}
 	const db = wranglerRunner({ local });
@@ -672,7 +746,7 @@ async function main() {
 			return switchSlot(db, env, slot, apply, log);
 		}
 		default:
-			throw new Error('Commands: status, export, publish, switch (see the top of scripts/data.js)');
+			throw new Error('Commands: setup, status, export, publish, switch (see the top of scripts/data.js)');
 	}
 }
 

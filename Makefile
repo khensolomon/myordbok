@@ -12,7 +12,7 @@ OUT      ?= exports
 
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
-        version dataset-sync db-status db-migrate-remote data-status edits-export data-publish data-switch \
+        version dataset-sync db-status db-migrate-remote data-setup data-status edits-export data-publish data-switch \
         deploy-beta deploy-production logs-beta release clean
 
 help: ## List the commands
@@ -79,6 +79,9 @@ else
 endif
 
 ## Dictionary data (dry run unless APPLY=1; LOCAL=1 for the local databases)
+
+data-setup: ## Create the dictionary databases and write their ids into wrangler.toml [APPLY=1]
+	$(DATA) setup $(if $(filter 1,$(APPLY)),--apply)
 
 data-status: ## Which build each slot holds and each site reads; edits by status
 	$(DATA) status $(if $(LOCAL),--local)
