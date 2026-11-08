@@ -1,5 +1,12 @@
 # Changelog
 
+## 26.11.8+10
+
+- Header: plain text navigation (Home, Grammar, Fonts, About) that scrolls away; no logo and no empty space for one on the home page
+- One search bar for every page, in the page shell: the logo on its left (the icon alone on phones), sticky under the header while the page scrolls; on the home page it is the centrepiece
+- Search box: lower (44 px), its background follows rest, hover and focus; a smaller search button inside it; suggestions open inside the same box instead of a separate panel
+- Header, search bar, content and footer share one column and one left edge; the footer is a left-aligned line of text without the icon
+
 ## 26.11.8+9
 
 - Databases renamed, each with one fixed role: myordbok-app (APP: members, reactions, comments, studio edits), myordbok-dataset (DATASET: every new build lands here; beta previews it) and myordbok-dictionary (DICTIONARY: what production readers get). They replace myordbok, myordbok-dict-a and myordbok-dict-b

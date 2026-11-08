@@ -1,7 +1,8 @@
 // @ts-check
 /**
- * <mo-search>: the search field with live suggestions.
- * Emits `mo-search` (detail: query) on submit; the page decides where to go.
+ * <mo-search>: the search field with live suggestions, in one box: the list
+ * opens inside the same box, under the field, over the page.
+ * Emits `mo-search` (detail: query) on submit; the shell decides where to go.
  * Suggestions are links, so the router handles them like any other link.
  */
 import { h, icon } from '../core/dom.js';
@@ -41,12 +42,30 @@ export class SearchBox extends HTMLElement {
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
 			h('label', { for: id, class: 'visually-hidden' }, 'Search a word'),
 			this.input,
-			h('button', { type: 'submit', class: 'search-go', 'aria-label': 'Search', title: 'Search' }, icon(ICONS.search, 20)),
+			h('button', { type: 'submit', class: 'search-go', 'aria-label': 'Search', title: 'Search' }, icon(ICONS.search, 18)),
 		);
-		this.append(form, this.list, this.status);
+		this.box = h('div', { class: 'search-box' }, form, this.list);
+		this.append(this.box, this.status);
+		// Closing when focus or a click leaves the box keeps the list from covering the page.
+		this.addEventListener('focusout', (e) => {
+			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget))) this.show([]);
+		});
+		// A chosen suggestion navigates; the list closes behind it.
+		this.list.addEventListener('click', () => this.show([]));
 		/** @type {number | undefined} */
 		this.timer = undefined;
 		this.seq = 0;
+	}
+
+	/**
+	 * Puts a word in the field without searching (the shell keeps it in step
+	 * with the page shown).
+	 * @param {string} value
+	 */
+	setValue(value) {
+		if (this.input && this.input.value !== value) this.input.value = value;
+		this.seq++; // a suggestion request still under way is no longer wanted
+		this.show([]);
 	}
 
 	schedule() {
@@ -76,6 +95,7 @@ export class SearchBox extends HTMLElement {
 			...words.map((w, i) => h('li', { role: 'option', id: `${list.id}-${i}` }, h('a', { href: definitionHref(w), tabindex: '-1' }, w))),
 		);
 		list.hidden = words.length === 0;
+		this.toggleAttribute('data-open', words.length > 0);
 		this.input?.setAttribute('aria-expanded', String(words.length > 0));
 		if (this.status) this.status.textContent = words.length ? `${words.length} suggestions` : '';
 	}

@@ -18,6 +18,7 @@
 	--brand: #318ed7;
 	--ground: #ffffff;
 	--surface: #f3f5f8;
+	--surface-hover: #eaeef3;
 	--card: #ffffff;
 	--ink: #17202b;
 	--ink-2: #4a5462;
@@ -39,12 +40,15 @@
 	--icon-line: 1.1;
 	--radius: 16px;
 	--gutter: 16px;
+	/* One column for header, search bar, content and footer: same left edge. */
+	--page: 1040px;
 	color-scheme: light;
 }
 
 :root[data-theme="dark"] {
 	--ground: #0d1116;
 	--surface: #18202a;
+	--surface-hover: #1f2933;
 	--card: #151b22;
 	--ink: #e8edf2;
 	--ink-2: #c3ccd6;
@@ -68,6 +72,7 @@
 	:root:not([data-theme="light"]) {
 		--ground: #0d1116;
 		--surface: #18202a;
+		--surface-hover: #1f2933;
 		--card: #151b22;
 		--ink: #e8edf2;
 		--ink-2: #c3ccd6;

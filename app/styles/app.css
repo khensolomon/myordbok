@@ -1,115 +1,162 @@
 /* Layout and components. Mobile first; wider screens add room. */
 
-/* ---------------------------------------------------------- header */
 
-.site-header {
-	position: sticky;
-	top: 0;
-	z-index: 5;
-	display: flex;
-	align-items: center;
-	gap: 20px;
-	padding: 12px var(--gutter);
-	padding-top: max(12px, env(safe-area-inset-top));
-	background: var(--glass);
-	-webkit-backdrop-filter: saturate(180%) blur(20px);
-	backdrop-filter: saturate(180%) blur(20px);
-	border-bottom: 0.5px solid var(--glass-edge);
+/* Every band shares one column (--page) and one left edge. */
+.site-header,
+.search-bar-inner,
+main,
+.site-footer {
+	width: 100%;
+	max-width: var(--page);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
 }
 
-.brand-mark { display: block; width: 132px; }
-.site-nav { display: flex; gap: 2px; font-size: 14px; font-weight: 500; }
+/* ---------------------------------------------------------- header */
+
+/* Plain text navigation; it scrolls away with the page. */
+.site-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-top: max(10px, env(safe-area-inset-top));
+	padding-bottom: 6px;
+}
+.site-nav { display: flex; gap: 2px; margin-left: -12px; font-size: 14px; font-weight: 500; }
 .site-nav a { padding: 8px 12px; border-radius: 999px; color: var(--ink-2); }
 .site-nav a:hover { text-decoration: none; background: var(--surface); }
-.site-nav a[aria-current="page"] { color: var(--ink); background: var(--surface); }
+.site-nav a[aria-current="page"] { color: var(--ink); }
 
 .you {
 	margin-left: auto;
-	width: 44px; height: 44px;
+	width: 40px; height: 40px;
 	display: flex; align-items: center; justify-content: center;
 	border: none; border-radius: 999px;
 	background: var(--surface);
 }
 
-/* Home keeps the header bare: no brand (the page shows the logo) and no border. */
-body[data-route="home"] .site-header { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-body[data-route="home"] .brand { visibility: hidden; }
+/* ---------------------------------------------------------- search bar */
 
-/* Dark theme shows brand marks in one colour so the grey wordmark stays legible. */
-:root[data-theme="dark"] .brand-mark,
-:root[data-theme="dark"] .brand-logo,
-:root[data-theme="dark"] .footer-brand img { filter: brightness(0) invert(1); }
+/* The bar stays in view while the page scrolls (Liquid Glass on top of the content). */
+.search-bar {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	padding: 8px 0;
+	background: var(--glass);
+	-webkit-backdrop-filter: saturate(180%) blur(20px);
+	backdrop-filter: saturate(180%) blur(20px);
+	border-bottom: 0.5px solid var(--glass-edge);
+}
+.search-bar-inner { display: flex; align-items: center; gap: 20px; }
+.bar-logo { flex-shrink: 0; display: block; }
+.bar-logo .logo-full { display: block; width: 150px; }
+.bar-logo .logo-mark { display: none; width: 34px; }
+.search-bar mo-search { flex: 1; max-width: 640px; }
+
+/* Home: the bar is the page. It sits lower, does not stick, and has no edge. */
+body[data-route="home"] .search-bar {
+	position: static;
+	padding: 18vh 0 0;
+	background: none;
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+	border: none;
+}
+body[data-route="home"] .bar-logo .logo-full { width: 190px; }
+
+/* Dark theme shows the logo in one colour so the grey wordmark stays legible. */
+:root[data-theme="dark"] .bar-logo img { filter: brightness(0) invert(1); }
 @media (prefers-color-scheme: dark) {
-	:root:not([data-theme="light"]) :is(.brand-mark, .brand-logo, .footer-brand img) { filter: brightness(0) invert(1); }
+	:root:not([data-theme="light"]) .bar-logo img { filter: brightness(0) invert(1); }
 }
 
 @media (max-width: 640px) {
-	.site-nav { display: none; } /* phones navigate from the home page; a tab bar arrives with the You sheet */
+	.search-bar-inner { gap: 12px; }
+	.bar-logo .logo-full { display: none; }
+	.bar-logo .logo-mark { display: block; }
+	body[data-route="home"] .search-bar { padding-top: 12vh; }
 }
+
+/* ---------------------------------------------------------- search box */
+
+/* The field and its suggestions are one box. The element keeps the height of
+   the field; the box grows over the page when suggestions open. */
+mo-search { display: block; position: relative; height: 44px; }
+
+.search-box {
+	position: absolute;
+	inset: 0 0 auto 0;
+	z-index: 4;
+	border-radius: 22px;
+	background: var(--surface);
+	box-shadow: inset 0 0 0 1px transparent;
+	transition: background-color 0.15s, box-shadow 0.15s;
+}
+.search-box:hover { background: var(--surface-hover); }
+.search-box:focus-within,
+mo-search[data-open] .search-box {
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px var(--ring), var(--shadow);
+}
+
+.search {
+	display: flex; align-items: center; gap: 4px;
+	height: 44px;
+	padding: 0 5px 0 18px;
+}
+.search input {
+	flex: 1; min-width: 0;
+	border: none; outline: none; background: none;
+	font: inherit; font-size: 16px; color: var(--ink);
+}
+.search input::placeholder { color: var(--faint); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search-go {
+	width: 34px; height: 34px;
+	display: flex; align-items: center; justify-content: center;
+	border: none; border-radius: 999px;
+	background: var(--brand); color: #ffffff; cursor: pointer;
+	transition: filter 0.15s;
+}
+.search-go:hover { filter: brightness(1.08); }
+.search-go:active { filter: brightness(0.92); }
+
+.search-list {
+	margin: 0; padding: 4px 6px 8px; list-style: none;
+	border-top: 0.5px solid var(--line);
+}
+.search-list a { display: block; padding: 8px 12px; border-radius: 12px; color: var(--ink); }
+.search-list a:hover, .search-list [aria-selected="true"] a { background: var(--surface); text-decoration: none; }
 
 /* ---------------------------------------------------------- main + footer */
 
-main { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 24px var(--gutter) 48px; outline: none; }
+main { flex: 1; padding-top: 28px; padding-bottom: 48px; outline: none; }
 
 .site-footer {
-	width: 100%;
-	max-width: 1120px;
-	margin: 0 auto;
-	padding: 24px var(--gutter) max(32px, env(safe-area-inset-bottom));
-	display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+	/* The rule above the footer spans the column, not the gutters. */
+	width: calc(100% - 2 * var(--gutter));
+	max-width: calc(var(--page) - 2 * var(--gutter));
+	padding-inline: 0;
+	display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
+	padding-top: 20px;
+	padding-bottom: max(28px, env(safe-area-inset-bottom));
 	border-top: 0.5px solid var(--line);
 	font-size: 13px; color: var(--muted);
 }
 .site-footer nav { display: flex; gap: 20px; }
 .site-footer a { color: var(--muted); }
-.footer-brand { display: flex; align-items: center; gap: 8px; }
 body[data-route="home"] .site-footer { display: none; }
 
 /* ---------------------------------------------------------- home */
 
-.home { display: flex; flex-direction: column; align-items: center; padding-top: 10vh; }
-.brand-logo { width: min(340px, 70vw); }
-.home-pair { margin: 8px 0 0; font-size: 15px; color: var(--muted); }
+/* Lines up with the text in the search field, under the logo's width. */
+.home-pair { margin: 10px 0 0 calc(190px + 20px + 18px); font-size: 14px; color: var(--muted); }
 .home-pair [aria-hidden] { color: var(--brand); }
-.search-hero { display: block; width: min(680px, 100%); margin-top: 36px; }
-
-/* ---------------------------------------------------------- search */
-
-mo-search { display: block; position: relative; }
-
-.search {
-	display: flex; align-items: center; gap: 4px;
-	height: 56px;
-	padding: 0 6px 0 22px;
-	border-radius: 999px;
-	background: var(--card);
-	box-shadow: 0 1px 2px rgba(23, 32, 43, 0.06), var(--shadow), 0 0 0 1px var(--line);
+@media (max-width: 640px) {
+	.home-pair { margin-left: calc(34px + 12px + 18px); }
 }
-.search input {
-	flex: 1; min-width: 0;
-	border: none; outline: none; background: none;
-	font: inherit; font-size: 17px; color: var(--ink);
-}
-.search input::-webkit-search-cancel-button { display: none; }
-.search-go {
-	width: 44px; height: 44px;
-	display: flex; align-items: center; justify-content: center;
-	border: none; border-radius: 999px;
-	background: var(--brand); color: #ffffff; cursor: pointer;
-}
-
-.search-list {
-	position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 4;
-	margin: 0; padding: 6px; list-style: none;
-	border-radius: 18px;
-	background: var(--card);
-	box-shadow: var(--shadow), 0 0 0 1px var(--line);
-}
-.search-list a { display: block; padding: 10px 14px; border-radius: 12px; color: var(--ink); }
-.search-list a:hover, .search-list [aria-selected="true"] a { background: var(--surface); text-decoration: none; }
-
-.search-top { max-width: 620px; margin-bottom: 28px; }
-.search-top .search { height: 48px; box-shadow: none; background: var(--surface); }
+body[data-route="home"] main { padding-top: 0; }
 
 /* ---------------------------------------------------------- entry */
 

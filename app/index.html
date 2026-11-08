@@ -29,9 +29,8 @@
 <body>
 	<a class="skip" href="#view">Skip to content</a>
 	<header class="site-header">
-		<a class="brand" href="/" aria-label="MyOrdbok home"><img class="brand-mark" src="/static/logo.svg" alt="" width="168" height="28"></a>
 		<nav class="site-nav" aria-label="Main">
-			<a href="/">Dictionary</a>
+			<a href="/">Home</a>
 			<a href="/grammar">Grammar</a>
 			<a href="/myanmar-fonts">Fonts</a>
 			<a href="/about">About</a>
@@ -41,10 +40,21 @@
 		</button>
 	</header>
 
+	<!-- One search bar for every page; it stays in view while the page scrolls. -->
+	<div class="search-bar">
+		<div class="search-bar-inner">
+			<a class="bar-logo" href="/" aria-label="MyOrdbok home">
+				<img class="logo-full" src="/static/logo.svg" alt="" width="168" height="28">
+				<img class="logo-mark" src="/static/icon.svg" alt="" width="34" height="34">
+			</a>
+			<mo-search id="search"></mo-search>
+		</div>
+	</div>
+
 	<main id="view" tabindex="-1"></main>
 
 	<footer class="site-footer">
-		<span class="footer-brand"><img src="/static/icon.svg" alt="" width="20" height="20"> © MyOrdbok</span>
+		<span>© MyOrdbok</span>
 		<nav aria-label="Legal">
 			<a href="/about">About</a>
 			<a href="/privacy">Privacy</a>

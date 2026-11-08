@@ -13,7 +13,6 @@ import { h } from '../core/dom.js';
 import { renderMarkup } from '../core/markup.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, suggest } from '../data/api.js';
-import './search-box.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
 /** @typedef {import('#shared/types.js').MyanmarResult} MyanmarResult */
@@ -29,26 +28,20 @@ export function title(ctx) {
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
 	const q = (ctx.query.get('q') ?? '').trim();
-	const box = h('mo-search', { class: 'search-top', value: q });
-	box.addEventListener('mo-search', (e) => ctx.go(definitionHref(/** @type {CustomEvent<string>} */ (e).detail)));
-
-	if (!q) return h('section', { class: 'page' }, box, h('p', { class: 'notice' }, 'Type a word to look it up.'));
+	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, 'Type a word to look it up.'));
 
 	const data = await lookup(q);
 	if (data.language === 'my') {
-		if (!data.entries.length) return missing(box, data.query);
-		return h('article', { class: 'entry', lang: 'my' }, box, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
+		if (!data.entries.length) return missing(data.query);
+		return h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
 	}
-	return english(box, data);
+	return english(data);
 }
 
-/**
- * @param {HTMLElement} box
- * @param {EnglishResult} data
- */
-async function english(box, data) {
+/** @param {EnglishResult} data */
+async function english(data) {
 	const roots = [...new Set(data.forms_of.map(([root]) => root))];
-	if (!data.entries.length && !roots.length) return missing(box, data.query);
+	if (!data.entries.length && !roots.length) return missing(data.query);
 
 	/** @type {import('../core/dom.js').Child[]} */
 	const body = [];
@@ -73,7 +66,7 @@ async function english(box, data) {
 			);
 		}
 	}
-	return h('article', { class: 'entry', lang: 'en' }, box, englishHead(data.query), body);
+	return h('article', { class: 'entry', lang: 'en' }, englishHead(data.query), body);
 }
 
 /** @param {string} word */
@@ -228,16 +221,12 @@ function related(data) {
 	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', null, name), h('dd', null, value)]));
 }
 
-/**
- * @param {HTMLElement} box
- * @param {string} q
- */
-async function missing(box, q) {
+/** @param {string} q */
+async function missing(q) {
 	const { words } = await suggest(q).catch(() => ({ words: /** @type {string[]} */ ([]) }));
 	return h(
 		'section',
 		{ class: 'page' },
-		box,
 		h('h1', { class: 'notice-title' }, `No entry for “${q}”`),
 		words.length
 			? h('div', null, h('p', null, 'Words that start the same way:'), h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w)))))
