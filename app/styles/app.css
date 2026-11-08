@@ -231,8 +231,8 @@ mo-search[data-open] .search-box {
 	padding: 4px;
 	border-radius: calc(var(--field-r) + 4px);
 	background: var(--glass-lens);
-	border-color: var(--ring);
-	box-shadow: var(--glass-shine), var(--shadow);
+	border-color: transparent;
+	box-shadow: var(--glass-shine), var(--lift-shadow);
 }
 
 .search {
