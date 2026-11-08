@@ -11,6 +11,7 @@ import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { errorResponse, json } from './lib/http.js';
 import { lookup } from './routes/lookup.js';
 import { phrase } from './routes/phrase.js';
+import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
 import { suggest } from './routes/suggest.js';
 
@@ -66,6 +67,7 @@ async function api(request, env) {
 		if (parts[0] === 'suggest') return suggest(url, env);
 		if (parts[0] === 'spelling') return spelling(url, env);
 		if (parts[0] === 'phrase') return phrase(url, env);
+		if (parts[0] === 'read') return read(url, env);
 	}
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }

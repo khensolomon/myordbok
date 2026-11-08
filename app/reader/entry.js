@@ -16,9 +16,12 @@
  * shows the root's entry under a line saying so.
  *
  * A phrase that is not an entry ("king of Denmark", "big house") is read
- * from its words' entries (/api/phrase): the Myanmar of the whole phrase,
+ * from its words' entries: the Myanmar of the whole phrase,
  * made in Myanmar word order and labelled as made, then each word's sense
  * that fits, on the same timeline.
+ *
+ * Which of these a query is comes from one request (/api/read), so a slow
+ * connection waits once.
  *
  * Words the dictionary does not have: a sentence is shown one word at a time
  * (&w=index), each fetched only when opened, so a slow connection loads one
@@ -31,8 +34,7 @@ import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
-import { planPhrase } from '#shared/query/phrase.js';
-import { lookup, phrase, savingData, spelling, suggest } from '../data/api.js';
+import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -40,9 +42,6 @@ import { classify, understoodHref } from './query.js';
 
 /** Roots shown in full under a form (went → go); more are listed as links. */
 const ROOTS_SHOWN = 2;
-
-/** Words of a sentence offered one by one. */
-const SENTENCE_WORDS = 30;
 
 /** Ids of the related-word rows a question can point to (#synonyms). */
 const FOCUS_ROWS = /** @type {Record<string, string>} */ ({ Forms: 'forms', Synonyms: 'synonyms', Opposite: 'opposite' });
@@ -73,18 +72,20 @@ export async function view(ctx) {
 		}
 	}
 
-	const words = sentenceWords(q);
-	if (at !== null && words.length > 1) return sentence(q, words, Number(at) || 0);
-
-	const data = await lookup(q);
-	const found = await result(data, asked);
-	if (found) return found;
-	if (planPhrase(q)) {
-		const read = await phrase(q);
-		if (read.parts.some((p) => p.sense)) return phraseView(read, asked);
+	// One request decides what the query is (worker/routes/read.js).
+	const reading = await read(q);
+	switch (reading.kind) {
+		case 'entry':
+			return (await result(reading.result, asked)) ?? missing(q, { close: [], starts: [] });
+		case 'phrase':
+			return phraseView(reading.phrase, asked);
+		case 'sentence':
+			// The first word came with the reading; it is not fetched again.
+			if (reading.first) remember(reading.words[0].text, reading.first);
+			return sentence(q, reading.words, at === null ? 0 : Number(at) || 0);
+		default:
+			return missing(q, reading);
 	}
-	if (words.length > 1) return sentence(q, words, 0);
-	return missing(data.query);
 }
 
 /**
@@ -484,41 +485,26 @@ function phraseView(read, asked) {
 }
 
 /**
- * The words of a sentence, each once, in order: "love is good, love is an
- * open door" → love, is, good, an, open, door.
- * @param {string} q
- */
-export function sentenceWords(q) {
-	const seen = new Set();
-	/** @type {string[]} */
-	const out = [];
-	for (const w of q.normalize('NFC').match(/[\p{L}\p{M}\p{N}]+(?:['’-][\p{L}\p{M}]+)*/gu) ?? []) {
-		const key = w.toLowerCase();
-		if (seen.has(key)) continue;
-		seen.add(key);
-		out.push(w);
-		if (out.length === SENTENCE_WORDS) break;
-	}
-	return out;
-}
-
-/**
  * A sentence, one word at a time: the words as links, the current word's
  * entry, and the next and previous words. Only the word shown is fetched; the
  * next is fetched ahead unless the reader is saving data.
+ * Myanmar text arrives split into headwords; syllables no headword covers
+ * are marked as such.
  * @param {string} q
- * @param {string[]} words
+ * @param {Array<{ text: string, known?: boolean }>} list
  * @param {number} index
  */
-async function sentence(q, words, index) {
+async function sentence(q, list, index) {
+	const words = list.map((w) => w.text);
 	const i = Math.min(Math.max(0, Math.trunc(index)), words.length - 1);
 	const word = words[i];
 	const at = (/** @type {number} */ n) => `${definitionHref(q)}&w=${n}`;
 	const next = words[i + 1];
-	if (next && !savingData()) lookup(next).catch(() => {});
+	if (next && list[i + 1].known !== false && !savingData()) lookup(next).catch(() => {});
 
-	const data = await lookup(word);
-	const entry = (await result(data)) ?? (await missing(word, { inline: true }));
+	const entry = list[i].known === false
+		? h('p', { class: 'notice no-result inline' }, `“${word}” is not a word in the dictionary.`)
+		: ((await result(await lookup(word))) ?? (await missing(word, null, { inline: true })));
 	const pager = h(
 		'nav',
 		{ class: 'sentence-pager', 'aria-label': 'Words of the sentence' },
@@ -533,7 +519,7 @@ async function sentence(q, words, index) {
 			'header',
 			{ class: 'sentence-head' },
 			h('p', { class: 'sentence-text' }, h('span', { class: 'sentence-label' }, 'Sentence'), ' ', q),
-			h('ol', { class: 'chips sentence-words' }, words.map((w, n) => h('li', null, h('a', { href: at(n), 'aria-current': n === i ? 'true' : null }, w)))),
+			h('ol', { class: 'chips sentence-words' }, list.map((w, n) => h('li', null, h('a', { href: at(n), 'aria-current': n === i ? 'true' : null, class: w.known === false ? 'unknown' : null, lang: /[\u1000-\u109f]/.test(w.text) ? 'my' : null }, w.text)))),
 		),
 		entry,
 		pager,
@@ -542,15 +528,16 @@ async function sentence(q, words, index) {
 
 /**
  * Nothing for `q`: "did you mean", words starting the same way, and a way to
- * ask for it. Inline (a word of a sentence), a shorter version.
+ * ask for it. Inline (a word of a sentence), a shorter version that fetches
+ * its own "did you mean".
  * @param {string} q
+ * @param {{ close: string[], starts: string[] } | null} found  From the reading.
  * @param {{ inline?: boolean }} [options]
  */
-async function missing(q, options = {}) {
-	const none = { words: /** @type {string[]} */ ([]) };
-	const [near, starts] = await Promise.all([spelling(q).catch(() => none), options.inline ? none : suggest(q).catch(() => none)]);
-	const close = near.words.filter((w) => w.toLowerCase() !== q.toLowerCase());
-	const prefix = starts.words.filter((w) => !close.includes(w) && w.toLowerCase() !== q.toLowerCase());
+async function missing(q, found, options = {}) {
+	const near = found ?? { close: (await spelling(q).catch(() => ({ words: [] }))).words.filter((w) => w.toLowerCase() !== q.toLowerCase()), starts: [] };
+	const close = near.close;
+	const prefix = near.starts;
 	/** @param {string[]} words */
 	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
 	const issue = `${REPOSITORY}/issues/new?title=${encodeURIComponent(`Add “${q}”`)}&body=${encodeURIComponent(`The dictionary has no entry for “${q}”.\n\nMeaning, example or source:\n`)}`;

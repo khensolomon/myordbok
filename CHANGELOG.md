@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.8+31
+
+- One request decides what a query is: an entry, a phrase, a sentence or nothing found, so a slow connection waits once
+- Myanmar text written without spaces is split into the dictionary's headwords and shown one word at a time; syllables no headword covers are marked
+- Punctuation around a single word no longer hides it (love!, ချစ်။)
+
 ## 26.11.8+30
 
 - Each spelling the dataset holds is its own headword: a search for 'god' shows God and god separately

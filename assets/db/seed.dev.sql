@@ -94,7 +94,9 @@ CREATE TABLE mya_word (id INTEGER, word TEXT, ipa TEXT, mlc TEXT, PRIMARY KEY (i
 INSERT INTO mya_word (id, word, ipa, mlc) VALUES
 (1, 'ရေ', 'jè', 're'),
 (2, 'ချစ်', 'tɕʰɪʔ', 'hkyit'),
-(3, 'ချစ်သူ', 'tɕʰɪʔ θù', 'hkyit su');
+(3, 'ချစ်သူ', 'tɕʰɪʔ θù', 'hkyit su'),
+(4, 'သောက်', 'θauʔ', 'sauk'),
+(5, 'သူ', 'θù', 'su');
 CREATE INDEX mya_word_1 ON mya_word (word);
 
 DROP TABLE IF EXISTS med_sense;
@@ -102,7 +104,9 @@ CREATE TABLE med_sense (id INTEGER, wrid INTEGER, wrte INTEGER, sense TEXT, exam
 INSERT INTO med_sense (id, wrid, wrte, sense, exam, wseq, wrkd, cate, usg, ref, etymology, variant, reference) VALUES
 (1, 1, 0, '<water>', '~ချိုး; ~သောက်', 1, 1, 0, NULL, NULL, NULL, NULL, NULL),
 (2, 2, 1, 'to <love>; to be fond of', '~သူ', 1, 1, 0, NULL, NULL, NULL, NULL, NULL),
-(3, 3, 0, '<lover>; <sweetheart>', NULL, 1, 1, 0, NULL, NULL, NULL, NULL, NULL);
+(3, 3, 0, '<lover>; <sweetheart>', NULL, 1, 1, 0, NULL, NULL, NULL, NULL, NULL),
+(4, 4, 1, 'to <drink>', '~ရေ~', 1, 1, 0, NULL, NULL, NULL, NULL, NULL),
+(5, 5, 0, 'he; she', NULL, 1, 1, 0, NULL, NULL, NULL, NULL, NULL);
 CREATE INDEX med_sense_1 ON med_sense (wrid, wseq);
 
 DROP TABLE IF EXISTS med_thesaurus;
@@ -122,4 +126,4 @@ INSERT INTO meta (key, value) VALUES
 ('source', 'sample'),
 ('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '29'), ('rows.emd_sense', '24'),
 ('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
-('rows.mya_word', '3'), ('rows.med_sense', '3'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');
+('rows.mya_word', '5'), ('rows.med_sense', '5'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');

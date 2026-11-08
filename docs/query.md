@@ -17,10 +17,13 @@ Code: `shared/query/` (browser and Worker), `app/reader/query.js`,
 | 0. Tidy | browser | Unicode NFC, invisible characters removed, spaces collapsed; capitals kept (`AI` and `ai` differ). |
 | 1. Answer locally | browser | Number, sum, percentage, time, date; a sum read two ways asks; a sum without an answer says why. Nothing is fetched. |
 | 2. Take the question off | browser | The words around the subject are removed and the subject kept, with the part asked about (`#synonyms`, `#opposite`, `#forms`). The question stays in the address (`asked=`). |
-| 3. Entry | Worker | The subject as a headword, ignoring case; a form leads to its root (went → go). |
-| 4. Phrase | Worker | Not an entry, but one of the phrase patterns: each part found as typed, as a form's root or by spelling; the sense that fits chosen; the Myanmar put together. One request. |
-| 5. Sentence | browser + Worker | Anything longer: one word at a time, each fetched when opened. |
+| 3. Entry | Worker | The subject as a headword, ignoring case; a form leads to its root (went → go); punctuation around a single word ignored (`love!`, `ချစ်။`). |
+| 4. Phrase | Worker | Not an entry, but one of the phrase patterns: each part found as typed, as a form's root or by spelling; the sense that fits chosen; the Myanmar put together. |
+| 5. Sentence | Worker, then browser | Several words: English split at spaces, Myanmar split into headwords (below). The first word's entry comes with the answer; each other word is fetched when opened. |
 | 6. Nothing | Worker | Did you mean (one edit away), words that start the same way, a way to suggest it. |
+
+Steps 3 to 6 are one request, `/api/read` (`worker/routes/read.js`), so a
+slow connection waits once for any query.
 
 `exact=1` skips steps 1 and 2 and looks up the text as typed.
 
@@ -43,6 +46,7 @@ Code: `shared/query/` (browser and Worker), `app/reader/query.js`,
 | `big house`, `school bus` | what the phrase means | the phrase, as above |
 | `king of the castle` | the idiom | the entry: a whole phrase that is a headword wins |
 | `love is good, love is an open door` | each word | one word at a time |
+| `ချစ်သူရေသောက်`, `အချစ်ဆိုတာဘာလဲ` (no spaces) | each word | split into headwords, one word at a time |
 | `lvoe` | love | did you mean, then a way to suggest it |
 
 ## Phrases
@@ -74,6 +78,22 @@ The Myanmar line is made from the first gloss of each chosen sense, without
 labels or notes in brackets; a country's နိုင်ငံ is dropped when it
 describes. It is labelled as made from the entries, never shown as an entry.
 
+## Myanmar words
+
+Myanmar is written without spaces between words (`shared/query/segment.js`):
+
+1. The text is split at spaces and punctuation (၊ ။), then into syllables. A
+   consonant starts a syllable unless it closes the one before (ချစ်, the
+   first တ of မေတ္တာ) or is stacked under it.
+2. Every run of up to ten syllables is a possible headword; the Worker asks
+   the dictionary once which of them are headwords with senses.
+3. The reading with the fewest syllables left over, then the fewest words,
+   is taken, so the longest headwords win: ချစ်သူရေ → ချစ်သူ · ရေ. Syllables no
+   headword covers stay together, marked as not in the dictionary.
+
+On the real word list: ကျွန်တော်မြန်မာစာလေ့လာနေပါတယ် → ကျွန်တော် · မြန်မာ · စာ ·
+လေ့လာ · နေ · ပါ · တယ်; ကွန်ပျူတာနည်းပညာ → ကွန်ပျူတာ · နည်းပညာ.
+
 ## Display
 
 A headword is always a word as the dataset spells it, never the text
@@ -86,5 +106,5 @@ off, a spelling corrected) is one quiet line above the first headword.
 ## Not yet
 
 - Zawgyi text detected and converted.
-- Myanmar sentences split into words (they have no spaces between words).
+- Headwords of several words found inside a sentence ("look after").
 - More phrase patterns, each with its own tests before it is shown.

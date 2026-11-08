@@ -23,9 +23,21 @@ import { closeWords } from './spelling.js';
  */
 export async function phrase(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
-	const plan = planPhrase(q);
-	if (!plan) return json(/** @type {import('../../shared/types.js').Phrase} */ ({ q, pattern: null, myanmar: null, parts: [] }), { cache: 300 });
 	const { dict, db } = await dictionary(env);
+	const body = await readPhrase(db, q).catch((err) => {
+		throw explainDictError(err, dict, env);
+	});
+	return json(body, { cache: 300 });
+}
+
+/**
+ * @param {D1Database} db
+ * @param {string} q  Normalised.
+ * @returns {Promise<import('../../shared/types.js').Phrase>}
+ */
+export async function readPhrase(db, q) {
+	const plan = planPhrase(q);
+	if (!plan) return { q, pattern: null, myanmar: null, parts: [] };
 	const database = d1Database(db);
 	const look = (/** @type {string} */ word) => /** @type {Promise<any>} */ (search(database, statements, word));
 
@@ -53,9 +65,7 @@ export async function phrase(url, env) {
 		return { term, word: senses[0]?.word ?? term, note, senses };
 	};
 
-	const found = await Promise.all(plan.terms.map(resolve)).catch((err) => {
-		throw explainDictError(err, dict, env);
-	});
+	const found = await Promise.all(plan.terms.map(resolve));
 	// The describing part first: whether it names something decides the head's sense.
 	const modifiers = found.map((f, i) => (i === plan.head ? null : bestSense(f.senses, { word: f.word, pattern: plan.pattern, role: 'modifier' })));
 	const named = found.some((f, i) => i !== plan.head && isProper(f.word, modifiers[i]));
@@ -64,7 +74,5 @@ export async function phrase(url, env) {
 		return { term: f.term, word: f.word, note: f.note, entries: f.senses, fit: sense ? f.senses.indexOf(sense) : -1, sense };
 	});
 	const myanmar = composeMyanmar(plan, parts.map((p) => p.sense));
-	/** @type {import('../../shared/types.js').Phrase} */
-	const body = { q, pattern: plan.pattern, head: plan.head, myanmar, parts };
-	return json(body, { cache: 300 });
+	return { q, pattern: plan.pattern, head: plan.head, myanmar, parts };
 }

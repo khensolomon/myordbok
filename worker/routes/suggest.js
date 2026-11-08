@@ -31,15 +31,23 @@ export async function suggest(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const lang = detectLang(q);
 	const { dict, db } = await dictionary(env);
-	// \uffff sorts after every character, so the range holds exactly the words starting with q.
-	const { results } = await db
-		.prepare(SQL[lang])
-		.bind(q, `${q}\uffff`, SUGGEST_LIMIT)
-		.all()
-		.catch((err) => {
-			throw explainDictError(err, dict, env);
-		});
+	const words = await startingWith(db, q).catch((err) => {
+		throw explainDictError(err, dict, env);
+	});
 	/** @type {import('../../shared/types.js').Suggestions} */
-	const body = { q, lang, words: results.map((r) => String(r.word)) };
+	const body = { q, lang, words };
 	return json(body, { cache: 300 });
+}
+
+/**
+ * Headwords with senses that start with `q`, in either script.
+ * @param {D1Database} db
+ * @param {string} q  Normalised.
+ * @param {number} [limit]
+ * @returns {Promise<string[]>}
+ */
+export async function startingWith(db, q, limit = SUGGEST_LIMIT) {
+	// \uffff sorts after every character, so the range holds exactly the words starting with q.
+	const { results } = await db.prepare(SQL[detectLang(q)]).bind(q, `${q}\uffff`, limit).all();
+	return results.map((r) => String(r.word));
 }

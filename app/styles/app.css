@@ -533,6 +533,8 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w));
 	margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line-soft);
 }
+.sentence-words a.unknown { background: none; border: 1px dashed var(--line); color: var(--muted); }
+.sentence-words a:lang(my) { font-family: var(--font-my); }
 .sentence-count { font-size: 14px; color: var(--faint); }
 .no-result.inline { padding: 8px 0; }
 

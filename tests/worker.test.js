@@ -51,7 +51,7 @@ test('health reports the version and the dictionary database in use', async () =
 	const { rows, ...dictionary } = res.body.dictionary;
 	assert.deepEqual(dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
 	assert.equal(rows.emd_sense, 24);
-	assert.equal(rows.mya_word, 3);
+	assert.equal(rows.mya_word, 5);
 });
 
 test('each site reads the database dict_release names', async () => {
@@ -171,4 +171,30 @@ test('lookup keeps each spelling found: God and god', async () => {
 	const king = (await call(`/api/phrase?q=${encodeURIComponent('king of Norway')}`, localEnv())).body.parts[0];
 	assert.equal(king.entries.length, 2);
 	assert.equal(king.entries[king.fit].sense, 'ဘုရင်; မင်း');
+});
+
+test('read: one request decides entry, phrase, sentence or nothing', async () => {
+	const read = async (/** @type {string} */ q) => (await call(`/api/read?q=${encodeURIComponent(q)}`, localEnv())).body;
+	assert.equal((await read('love')).kind, 'entry');
+	assert.equal((await read('went')).kind, 'entry', 'a form');
+	assert.equal((await read('ချစ်သူ')).kind, 'entry');
+	assert.equal((await read('love!')).result.query, 'love', 'punctuation only');
+	assert.equal((await read('ချစ်။')).result.query, 'ချစ်');
+	assert.equal((await read('king of Norway')).phrase.myanmar, 'နော်ဝေ ဘုရင်');
+
+	const en = await read('love is good, love is an open door');
+	assert.equal(en.kind, 'sentence');
+	assert.deepEqual(en.words.map((w) => w.text), ['love', 'is', 'good', 'an', 'open', 'door']);
+	assert.equal(en.first.query, 'love');
+
+	const my = await read('ချစ်သူရေသောက်');
+	assert.equal(my.kind, 'sentence');
+	assert.deepEqual(my.words, [{ text: 'ချစ်သူ', known: true }, { text: 'ရေ', known: true }, { text: 'သောက်', known: true }]);
+	assert.equal(my.first.query, 'ချစ်သူ');
+	assert.deepEqual((await read('ရေကကသောက်')).words.map((w) => w.known), [true, false, true]);
+
+	const none = await read('lvoe');
+	assert.equal(none.kind, 'none');
+	assert.deepEqual(none.close, ['love']);
+	assert.deepEqual((await read('lo')).starts, ['lovable', 'love', 'love affair']);
 });
