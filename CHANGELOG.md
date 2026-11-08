@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+20
+
+- Suggestion rows are square under the hairline; only the last row rounds, at the bottom, inside the box's corners
+- Open suggestions: the box turns opaque so the page behind never shows through the list; glass again once closed
+
 ## 26.11.8+19
 
 - Suggestion highlight follows the box: the first row rounds at the top, the last at the bottom, rows between are square

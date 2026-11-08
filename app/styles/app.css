@@ -262,13 +262,16 @@ mo-search[data-open] .search-box {
 .search-go:active { filter: brightness(0.92); }
 
 .search-list { margin: 4px 0 0; padding: 4px 0 0; list-style: none; border-top: 0.5px solid var(--glass-edge); }
-/* The highlight follows the box: the first row's top corners and the last
-   row's bottom corners take the field's curve (the last sits 4px inside the
-   box's corner, so they run parallel); rows between are square. */
+/* Rows are square: above them is the straight hairline. Only the last row
+   meets a curve, the box's bottom corners, so only its bottom corners round,
+   4px inside the box's (concentric). */
 .search-list a { display: block; padding: 8px 18px; border-radius: 0; color: var(--ink); }
-.search-list li:first-child a { border-top-left-radius: var(--field-r); border-top-right-radius: var(--field-r); }
 .search-list li:last-child a { border-bottom-left-radius: var(--field-r); border-bottom-right-radius: var(--field-r); }
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
+
+/* Open over a page, nothing behind may show through the suggestions: the
+   box turns opaque while the list is open, glass again once it closes. */
+mo-search[data-open] .search-box { background: var(--glass-solid); }
 
 @media (prefers-reduced-motion: reduce) {
 	.search-box, .search { transition: none; }
