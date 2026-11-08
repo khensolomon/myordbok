@@ -190,8 +190,8 @@ test('a promotion that stops half way leaves production on the dataset, and can 
 test('publish refuses an incomplete build and leaves the sites alone', () => {
 	const { dir, dbs, db, log } = setupRelease();
 	const broken = join(dir, 'broken.sql');
-	writeFileSync(broken, SAMPLE.replace("('rows.eng_word', '27')", "('rows.eng_word', '28')"));
-	assert.throws(() => publish(db, broken, true, log), /myordbok-dataset failed its checks:\n  eng_word: 27 rows, meta says 28/);
+	writeFileSync(broken, SAMPLE.replace("('rows.eng_word', '29')", "('rows.eng_word', '30')"));
+	assert.throws(() => publish(db, broken, true, log), /myordbok-dataset failed its checks:\n  eng_word: 29 rows, meta says 30/);
 	assert.equal(dbs.APP.prepare('SELECT count(*) AS n FROM dict_release').get()?.n, 0);
 });
 

@@ -38,7 +38,8 @@ Code: `shared/query/` (browser and Worker), `app/reader/query.js`,
 | `similar word of love`, `opposite of hot`, `past tense of go` | one part of an entry | the entry, at that part, or a line saying it is not listed |
 | `how do you say love in Myanmar`, `love in burmese` | the Myanmar | the entry |
 | `what is AI`, `tell me what is ai` | the meaning | the entry for AI (matching ignores case) |
-| `king of Denmark`, `what is the king of danmark`, `who is the king of Norway` | what the phrase means | the phrase: its Myanmar (ဒိန်းမတ် ဘုရင်), then the fitting sense of each word |
+| `god` | the meaning | each spelling the dataset has as its own headword: God, then god |
+| `king of Denmark`, `what is the king of danmark`, `who is the king of Norway` | what the phrase means | each word as its own headword (king, Denmark), the sense that fits first and marked; beside them, the phrase and its Myanmar reading (ဒိန်းမတ် ဘုရင်) |
 | `big house`, `school bus` | what the phrase means | the phrase, as above |
 | `king of the castle` | the idiom | the entry: a whole phrase that is a headword wins |
 | `love is good, love is an open door` | each word | one word at a time |
@@ -72,6 +73,15 @@ The sense of each part:
 The Myanmar line is made from the first gloss of each chosen sense, without
 labels or notes in brackets; a country's နိုင်ငံ is dropped when it
 describes. It is labelled as made from the entries, never shown as an entry.
+
+## Display
+
+A headword is always a word as the dataset spells it, never the text
+typed: a search for `god` shows `God` and `god` as two headwords, each with
+its own timeline. A phrase shows its words this way, each sense that fits
+the phrase first with the phrase as its label, and the phrase with its
+Myanmar reading in the side panel. How the query was read (a question taken
+off, a spelling corrected) is one quiet line above the first headword.
 
 ## Not yet
 

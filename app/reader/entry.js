@@ -41,9 +41,6 @@ import { classify, understoodHref } from './query.js';
 /** Roots shown in full under a form (went → go); more are listed as links. */
 const ROOTS_SHOWN = 2;
 
-/** Kinds of sense shown beside the part of speech in a phrase. */
-const PLACE_KINDS = ['Country', 'Capital city'];
-
 /** Words of a sentence offered one by one. */
 const SENTENCE_WORDS = 30;
 
@@ -147,39 +144,76 @@ async function english(data, asked) {
 	const roots = [...new Set(data.forms_of.map(([root]) => root))];
 	if (!data.entries.length && !roots.length) return null;
 
-	/** @type {import('../core/dom.js').Child[]} */
 	const rel = data.entries.length ? related(data) : null;
-	const body = [understood(data.query, asked, rel)];
+	/** @type {import('../core/dom.js').Child[]} */
+	const notes = [understood(data.query, asked, rel)];
+	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, 'A spelling of ', wordLinks(data.variant_of), '.'));
+	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */
 	let shown = data.entries;
-	/** @type {string} */
 	let summary = lead(data.query, data.entries);
-	if (data.variant_of.length) {
-		body.push(h('p', { class: 'entry-note' }, 'A spelling of ', wordLinks(data.variant_of), '.'));
-	}
-	if (roots.length) body.push(formNote(data));
+	/** @type {import('../core/dom.js').Child[]} */
+	const blocks = [];
 
 	if (data.entries.length) {
-		body.push(timeline(groupByType(data.entries), 'my', data.query), rel);
+		blocks.push(...bySpelling(data.entries).map(([word, senses], i) => wordBlock(word, senses, { first: i === 0 })), rel);
 	} else {
-		// Only a form of other words: show the roots that have senses.
+		// Only a form of other words: the roots that have senses, each a headword of its own.
 		const withSenses = roots.filter((r) => (data.root_senses[r] ?? 0) > 0).slice(0, ROOTS_SHOWN);
 		const results = await Promise.all(withSenses.map((r) => lookup(r)));
 		const found = results.filter((r) => r.language === 'en' && r.entries.length);
 		shown = found.flatMap((r) => (r.language === 'en' ? r.entries : []));
 		const [rootWord, pos, form] = data.forms_of[0];
 		summary = `“${data.query}” is the ${form}${pos ? ` (${pos})` : ''} of “${rootWord}”.${found.length === 1 ? ` ${lead(found[0].query, shown)}` : ''}`;
-		for (const root of results) {
-			if (root.language !== 'en' || !root.entries.length) continue;
-			body.push(
-				h('section', { class: 'root' },
-					h('h2', { class: 'root-word' }, h('a', { href: definitionHref(root.query) }, root.query)),
-					timeline(groupByType(root.entries), 'my', root.query),
-					related(root)),
-			);
-		}
+		found.forEach((root, n) => {
+			if (root.language !== 'en') return;
+			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true })));
+			blocks.push(related(root));
+		});
 	}
-	return withAside(h('article', { class: 'entry', lang: 'en' }, englishHead(data.query), body), aside(data.query, summary, shown));
+	const word = data.entries[0]?.word ?? data.query;
+	return withAside(h('article', { class: 'entry', lang: 'en' }, notes, blocks), aside(word, summary, shown));
+}
+
+/**
+ * Senses grouped by the spelling they belong to, in the order found: a
+ * search for "god" finds both "God" and "god", and each is its own headword.
+ * @template {{ word: string }} S
+ * @param {S[]} senses
+ * @returns {Array<[string, S[]]>}
+ */
+function bySpelling(senses) {
+	/** @type {Map<string, S[]>} */
+	const groups = new Map();
+	for (const s of senses) {
+		const list = groups.get(s.word) ?? [];
+		list.push(s);
+		groups.set(s.word, list);
+	}
+	return [...groups];
+}
+
+/**
+ * One headword as the dataset spells it, with its senses on the timeline.
+ * The first on a page is the page's h1.
+ * @param {string} word
+ * @param {import('#shared/types.js').EnglishSense[]} senses
+ * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string }} [options]
+ *   link: the headword links to its own page; fit: the sense that fits a
+ *   phrase, shown first and marked with fitLabel.
+ */
+function wordBlock(word, senses, options = {}) {
+	const { first = false, link = false, fit = null, fitLabel = '' } = options;
+	const ordered = fit ? [fit, ...senses.filter((s) => s !== fit)] : senses;
+	const name = link ? h('a', { href: definitionHref(word) }, word) : word;
+	return h(
+		'section',
+		{ class: 'entry-block' },
+		h('header', { class: 'entry-head' },
+			h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'),
+			h(first ? 'h1' : 'h2', { class: 'headword' }, name)),
+		timeline(groupByType(ordered), 'my', word, fit, fitLabel),
+	);
 }
 
 /**
@@ -246,16 +280,6 @@ function iconButton(paths, label) {
 	return h('button', { type: 'button', class: 'aside-icon', 'aria-label': label, title: label, disabled: true }, icon(paths, 20));
 }
 
-/** @param {string} word */
-function englishHead(word) {
-	return h(
-		'header',
-		{ class: 'entry-head' },
-		h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'),
-		h('h1', { class: 'headword' }, word),
-	);
-}
-
 /** @param {MyanmarResult} data */
 function myanmarHead(data) {
 	const [ipa, mlc] = data.pronunciation ?? [null, null];
@@ -313,8 +337,10 @@ function groupByType(senses) {
  * @param {Array<[string, Array<import('#shared/types.js').EnglishSense | import('#shared/types.js').MyanmarSense>]>} groups
  * @param {'en' | 'my'} glossLang  Language of the glosses.
  * @param {string} headword
+ * @param {object | null} [fit]  The sense that fits a phrase, marked.
+ * @param {string} [fitLabel]
  */
-function timeline(groups, glossLang, headword) {
+function timeline(groups, glossLang, headword, fit = null, fitLabel = '') {
 	return h(
 		'div',
 		{ class: 'timeline' },
@@ -323,7 +349,7 @@ function timeline(groups, glossLang, headword) {
 				'section',
 				{ class: 'pos' },
 				h('h2', { class: 'pos-name' }, type.toLowerCase()),
-				h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword))),
+				h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 			),
 		),
 	);
@@ -333,14 +359,16 @@ function timeline(groups, glossLang, headword) {
  * @param {import('#shared/types.js').EnglishSense | import('#shared/types.js').MyanmarSense} s
  * @param {'en' | 'my'} glossLang
  * @param {string} headword
+ * @param {string} [fitLabel]  Marks the sense that fits a phrase.
  */
-function sense(s, glossLang, headword) {
+function sense(s, glossLang, headword, fitLabel = '') {
 	const kind = 'kind' in s ? kindBadge(s.kind) : null;
+	const fits = fitLabel ? h('span', { class: 'kind kind-fit' }, fitLabel) : null;
 	const etymology = 'etymology' in s && s.etymology ? h('p', { class: 'etymology' }, renderMarkup(s.etymology)) : null;
 	return h(
 		'li',
-		{ class: 'sense' },
-		h('p', { class: 'gloss', lang: glossLang }, kind, renderMarkup(s.sense ?? '', { headword })),
+		{ class: fitLabel ? 'sense sense-fit' : 'sense' },
+		h('p', { class: 'gloss', lang: glossLang }, fits, kind, renderMarkup(s.sense ?? '', { headword })),
 		s.example
 			? splitExamples(s.example).map((ex) => h('p', { class: 'example', lang: glossLang === 'my' ? 'en' : 'my' }, renderMarkup(ex, { headword })))
 			: null,
@@ -401,62 +429,58 @@ function related(data) {
 }
 
 /**
- * A phrase read from its words: the phrase and its Myanmar, how each word
- * was found when not as typed, then each word's fitting sense.
+ * A phrase read from its words: each word the dataset has is a headword of
+ * its own, with the sense that fits the phrase first and marked; the
+ * phrase and its Myanmar reading are beside them.
  * @param {import('#shared/types.js').Phrase} read
  * @param {string | null} asked
  */
 function phraseView(read, asked) {
 	const words = read.parts.map((p) => p.word);
 	const title = read.pattern === 'of' ? `${words[0]} of ${words.slice(1).join(' ')}` : words.join(' ');
-	const found = read.parts.filter((p) => p.sense).length;
 	const notes = read.parts
 		.filter((p) => p.note)
 		.map((p) => (p.note === 'spelling' ? `“${p.term}” read as “${p.word}”.` : `“${p.term}” is a form of “${p.word}”.`));
-
-	const head = h(
-		'header',
-		{ class: 'entry-head' },
-		h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'),
-		h('div', null,
-			h('h1', { class: 'headword' }, title),
-			read.myanmar ? h('p', { class: 'phrase-my', lang: 'my' }, read.myanmar) : null,
-			h('p', { class: 'phrase-made' }, `Phrase · made from ${found} ${found === 1 ? 'entry' : 'entries'}`)),
+	const intro = h(
+		'p',
+		{ class: 'entry-note understood' },
+		`“${title}” is not an entry of its own; here are its words. `,
+		asked ? `Read from “${asked}”. ` : null,
+		notes.map((n) => `${n} `),
+		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`) : null,
 	);
-	const parts = h(
-		'div',
-		{ class: 'timeline' },
-		read.parts.map((p) => {
-			const label = p.sense ? [p.sense.type.toLowerCase(), PLACE_KINDS.includes(p.sense.kind) ? p.sense.kind.toLowerCase() : null].filter(Boolean).join(' · ') : 'no entry';
-			return h(
-				'section',
-				{ class: 'pos phrase-part' },
-				h('h2', { class: 'pos-name' }, h('a', { href: definitionHref(p.word), class: 'phrase-word' }, p.word), ` · ${label}`),
-				p.sense
-					// The place kind is in the heading already.
-					? h('ul', { class: 'senses' }, sense(PLACE_KINDS.includes(p.sense.kind) ? { ...p.sense, kind: 'Active' } : p.sense, 'my', p.word))
-					: h('p', { class: 'notice phrase-none' }, `The dictionary has no entry for “${p.term}”.`),
-				p.senses > 1 ? h('p', { class: 'phrase-more' }, h('a', { href: definitionHref(p.word) }, `All ${p.senses} meanings of “${p.word}” →`)) : null,
-			);
-		}),
-	);
+	let first = true;
+	const blocks = read.parts.flatMap((p) => {
+		if (!p.entries.length) {
+			return h('section', { class: 'entry-block' },
+				h('header', { class: 'entry-head' }, h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'), h('h2', { class: 'headword headword-none' }, p.term)),
+				h('p', { class: 'notice phrase-none' }, `The dictionary has no entry for “${p.term}”.`));
+		}
+		const fit = p.fit >= 0 ? p.entries[p.fit] : null;
+		return bySpelling(p.entries).map(([word, senses]) => {
+			const own = fit && senses.includes(fit) ? fit : null;
+			const block = wordBlock(word, senses, { first, link: true, fit: own, fitLabel: own ? title : '' });
+			first = false;
+			return block;
+		});
+	});
 	const side = h(
 		'aside',
 		{ class: 'entry-aside', 'aria-label': 'About this phrase' },
 		h('section', { class: 'aside-card' },
-			h('h2', null, 'About this phrase'),
-			h('p', { class: 'aside-lead' }, `“${title}” is not an entry of its own. It is read from the entries for ${words.map((w) => `“${w}”`).join(' and ')}.`),
-			read.myanmar ? h('p', { class: 'aside-quiet' }, 'The Myanmar line is put together from those entries in Myanmar word order, so it is a reading, not a checked translation.') : null),
+			h('h2', null, 'The phrase'),
+			h('p', { class: 'aside-phrase' }, title),
+			read.myanmar ? h('p', { class: 'aside-phrase-my', lang: 'my' }, read.myanmar) : null,
+			h('p', { class: 'aside-quiet' }, read.myanmar
+				? `Put together from the marked meanings of ${words.map((w) => `“${w}”`).join(' and ')}, in Myanmar word order: a reading, not a checked translation.`
+				: `Read from the entries for ${words.map((w) => `“${w}”`).join(' and ')}.`)),
 		h('section', { class: 'aside-card' },
 			h('h2', null, 'Should it be an entry?'),
 			h('div', { class: 'aside-actions' },
 				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggesting needs a sign-in' }, icon(ICONS.suggest, 18), 'Suggest this phrase')),
 			h('p', { class: 'aside-quiet' }, 'Suggesting needs a sign-in, which arrives soon.')),
 	);
-	return withAside(
-		h('article', { class: 'entry phrase', lang: 'en' }, head, understood(title, asked, null, notes), parts),
-		side,
-	);
+	return withAside(h('article', { class: 'entry phrase', lang: 'en' }, intro, blocks), side);
 }
 
 /**

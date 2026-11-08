@@ -390,8 +390,6 @@ body[data-route="home"] .site-footer { display: none; }
 
 .pron { display: flex; gap: 14px; margin: 6px 0 0; color: var(--muted); font-size: 15px; }
 .entry-note { margin: 14px 0 0; padding: 0; list-style: none; color: var(--muted); }
-.root { margin-top: 28px; }
-.root-word { margin: 0 0 4px; font-size: 26px; font-weight: 600; }
 .etymology { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
 
 /* Dataset markup */
@@ -518,9 +516,11 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.answer-lead, .answer .notice, .answer-options, .answer-escape, .answer-table { margin-left: 0; }
 }
 
-/* "Showing love for what is love". */
-.understood { margin: 10px 0 0 46px; font-size: 15px; }
-@media (max-width: 640px) { .understood { margin-left: 0; } }
+/* "Showing love for what is love": above the headwords, quiet. */
+.understood { margin: 0 0 18px; font-size: 15px; }
+.entry > .entry-note:not(.understood) { margin: 0 0 18px; }
+/* Each spelling found is a headword of its own (God, god). */
+.entry-block + .entry-block { margin-top: 28px; }
 
 /* A sentence, one word at a time. */
 .sentence-head { margin-bottom: 28px; max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
@@ -536,13 +536,15 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .sentence-count { font-size: 14px; color: var(--faint); }
 .no-result.inline { padding: 8px 0; }
 
-/* A phrase read from its words. */
-.phrase-my { margin: 6px 0 0; font-family: var(--font-my); font-size: 26px; line-height: 1.5; color: var(--ink); }
-.phrase-made { margin: 2px 0 0; font-size: 13px; color: var(--faint); }
-.phrase .pos-name { font-style: normal; }
-.phrase-word { font-style: normal; font-weight: 600; color: var(--ink); }
-.phrase-more { margin: 0 0 0 26px; font-size: 14px; }
-.phrase-none { margin: 14px 0 8px; }
+/* A phrase: its words as headwords; the phrase itself beside them. */
+.kind-fit { color: var(--link); border-color: var(--guide); }
+.headword-none { color: var(--faint); }
+/* A headword that opens its own page reads as a headword, not a link. */
+.headword a { color: inherit; }
+.headword a:hover { text-decoration-thickness: 2px; }
+.phrase-none { margin: 14px 0 8px 46px; }
+.aside-phrase { margin: 0; font-size: 20px; font-weight: 600; color: var(--ink); }
+.aside-phrase-my { margin: 4px 0 0; font-family: var(--font-my); font-size: 22px; line-height: 1.6; color: var(--ink); }
 
 /* Nothing found. */
 .no-result-part > p { margin: 18px 0 0; color: var(--muted); }

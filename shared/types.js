@@ -79,8 +79,9 @@
  * @property {string} term
  * @property {string} word
  * @property {'form' | 'spelling' | null} note
- * @property {number} senses  How many senses the word has.
- * @property {EnglishSense | null} sense  The sense that fits the phrase.
+ * @property {EnglishSense[]} entries  The word's senses, every spelling found (God, god).
+ * @property {number} fit  Index in entries of the sense that fits the phrase, or -1.
+ * @property {EnglishSense | null} sense  That sense.
  */
 
 /**

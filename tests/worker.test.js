@@ -50,7 +50,7 @@ test('health reports the version and the dictionary database in use', async () =
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
 	const { rows, ...dictionary } = res.body.dictionary;
 	assert.deepEqual(dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
-	assert.equal(rows.emd_sense, 22);
+	assert.equal(rows.emd_sense, 24);
 	assert.equal(rows.mya_word, 3);
 });
 
@@ -144,7 +144,8 @@ test('spelling: headwords one edit away, with senses', async () => {
 	assert.ok(!edits1('love').includes('love'));
 	assert.deepEqual((await call('/api/spelling?q=lvoe', localEnv())).body.words, ['love']);
 	assert.deepEqual((await call('/api/spelling?q=Wtaer', localEnv())).body.words, ['water']);
-	assert.deepEqual((await call('/api/spelling?q=gon', localEnv())).body.words, ['go'], 'gone has no senses of its own');
+	const gon = (await call('/api/spelling?q=gon', localEnv())).body.words;
+	assert.ok(gon.includes('go') && !gon.includes('gone'), 'gone has no senses of its own');
 	assert.deepEqual((await call(`/api/spelling?q=${encodeURIComponent('ချစ')}`, localEnv())).body.words, []);
 });
 
@@ -162,4 +163,12 @@ test('phrase: parts found as typed, by form or by spelling, put together in Myan
 	assert.equal(none.myanmar, null);
 	assert.equal(none.parts[1].sense, null);
 	assert.equal((await call('/api/phrase?q=love', localEnv())).body.pattern, null);
+});
+
+test('lookup keeps each spelling found: God and god', async () => {
+	const body = (await call('/api/lookup?q=god', localEnv())).body;
+	assert.deepEqual([...new Set(body.entries.map((e) => e.word))].sort(), ['God', 'god']);
+	const king = (await call(`/api/phrase?q=${encodeURIComponent('king of Norway')}`, localEnv())).body.parts[0];
+	assert.equal(king.entries.length, 2);
+	assert.equal(king.entries[king.fit].sense, 'ဘုရင်; မင်း');
 });

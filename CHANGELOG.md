@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+30
+
+- Each spelling the dataset holds is its own headword: a search for 'god' shows God and god separately
+- A phrase shows its words as headwords, the sense that fits first and marked; the phrase and its Myanmar reading move beside them
+
 ## 26.11.8+29
 
 - Phrases that are not entries, such as 'king of Denmark' or 'big house', are read from their words: the Myanmar of the whole phrase, then the sense of each word that fits

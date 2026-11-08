@@ -59,13 +59,10 @@ export async function phrase(url, env) {
 	// The describing part first: whether it names something decides the head's sense.
 	const modifiers = found.map((f, i) => (i === plan.head ? null : bestSense(f.senses, { word: f.word, pattern: plan.pattern, role: 'modifier' })));
 	const named = found.some((f, i) => i !== plan.head && isProper(f.word, modifiers[i]));
-	const parts = found.map((f, i) => ({
-		term: f.term,
-		word: f.word,
-		note: f.note,
-		senses: f.senses.length,
-		sense: i === plan.head ? bestSense(f.senses, { word: f.word, pattern: plan.pattern, role: 'head', proper: named }) : modifiers[i],
-	}));
+	const parts = found.map((f, i) => {
+		const sense = i === plan.head ? bestSense(f.senses, { word: f.word, pattern: plan.pattern, role: 'head', proper: named }) : modifiers[i];
+		return { term: f.term, word: f.word, note: f.note, entries: f.senses, fit: sense ? f.senses.indexOf(sense) : -1, sense };
+	});
 	const myanmar = composeMyanmar(plan, parts.map((p) => p.sense));
 	/** @type {import('../../shared/types.js').Phrase} */
 	const body = { q, pattern: plan.pattern, head: plan.head, myanmar, parts };

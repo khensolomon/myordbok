@@ -26,7 +26,8 @@ INSERT INTO eng_word (id, word, derived) VALUES
 (10, 'colour', 0), (11, 'color', 0), (12, 'water', 0), (13, 'hate', 0),
 (14, 'affection', 0), (15, 'lovable', 0), (16, 'love affair', 0), (17, 'adore', 0),
 (18, 'school', 0), (19, 'plant', 0), (20, 'family', 0), (21, 'waters', 2),
-(22, 'king', 0), (23, 'Denmark', 0), (24, 'Norway', 0), (25, 'big', 0), (26, 'house', 0), (27, 'kings', 2);
+(22, 'king', 0), (23, 'Denmark', 0), (24, 'Norway', 0), (25, 'big', 0), (26, 'house', 0), (27, 'kings', 2),
+(28, 'God', 0), (29, 'god', 0);
 CREATE INDEX eng_word_1 ON eng_word (word COLLATE NOCASE);
 
 DROP TABLE IF EXISTS emd_sense;
@@ -53,7 +54,9 @@ INSERT INTO emd_sense (id, wrid, wrte, sense, exam, wseq, wrkd, synset) VALUES
 (19, 23, 0, 'ဒိန်းမတ်နိုင်ငံ', NULL, 1, 3, NULL),
 (20, 24, 0, 'နော်ဝေနိုင်ငံ', NULL, 1, 3, NULL),
 (21, 25, 2, 'ကြီးသော', 'a big house', 1, 1, NULL),
-(22, 26, 0, 'အိမ်', NULL, 1, 1, NULL);
+(22, 26, 0, 'အိမ်', NULL, 1, 1, NULL),
+(23, 28, 0, 'ဘုရားသခင်', 'pray to God', 1, 1, NULL),
+(24, 29, 0, 'နတ်ဘုရား', 'the gods of ancient Greece', 1, 1, NULL);
 CREATE INDEX emd_sense_1 ON emd_sense (wrid, wseq);
 CREATE INDEX emd_sense_2 ON emd_sense (synset);
 
@@ -117,6 +120,6 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 INSERT INTO meta (key, value) VALUES
 ('built', 'sample'),
 ('source', 'sample'),
-('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '27'), ('rows.emd_sense', '22'),
+('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '29'), ('rows.emd_sense', '24'),
 ('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
 ('rows.mya_word', '3'), ('rows.med_sense', '3'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');
