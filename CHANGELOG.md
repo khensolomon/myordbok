@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+13
+
+- The definition timeline's line runs down from the middle of the language badge again; the word lists start on the same line
+- Side padding of header, search bar, content and footer grows with the window: clamp(16px, 2.5vw, 48px)
+
 ## 26.11.8+12
 
 - The search bar shows only on the home and definition pages

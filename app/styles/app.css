@@ -227,7 +227,9 @@ body[data-route="home"] .site-footer { display: none; }
 .entry[lang="my"] .headword { font-family: var(--font-my); letter-spacing: 0; line-height: 1.4; }
 
 /* Wide screens: the open timeline from the current site. */
-.timeline { margin-left: 15px; padding: 28px 0 8px 40px; border-left: 1px solid var(--line); }
+.lang-badge { flex-shrink: 0; }
+/* The timeline's line runs down from the middle of the language badge. */
+.timeline { margin-left: 15.5px; padding: 28px 0 8px 40px; border-left: 1px solid var(--line); }
 .pos { position: relative; margin-bottom: 36px; padding-left: 32px; border-left: 1px solid var(--line-soft); }
 .pos-name {
 	margin: 0;
@@ -285,18 +287,13 @@ mark { background: none; color: inherit; font-weight: 600; }
 .kind-review { color: var(--link); border-color: var(--guide); }
 
 /* Forms, synonyms and related words */
-/* A definition is as wide as the logo and the search box together; its
-   timeline and word lists start under the left edge of the search box, and
-   move left with it as the logo shrinks. */
+/* A definition is as wide as the logo and the search box together. */
 .entry { max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
-@media (min-width: 641px) {
-	.entry .timeline,
-	.entry .related { margin-left: calc(var(--logo-w) + var(--bar-gap)); }
 }
 
 .related {
 	display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px;
-	margin: 8px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line-soft);
+	margin: 8px 0 0 15.5px; padding: 18px 0 0; border-top: 1px solid var(--line-soft);
 	font-size: 15px; line-height: 1.6;
 }
 .related dt { color: var(--faint); }

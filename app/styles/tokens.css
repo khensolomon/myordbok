@@ -45,7 +45,8 @@
 
 	--icon-line: 1.1;
 	--radius: 16px;
-	--gutter: 16px;
+	/* Side padding grows with the window: 16px on phones, up to 48px on wide screens. */
+	--gutter: clamp(16px, 2.5vw, 48px);
 	/* Reading width of page content, from the left edge. */
 	--page: 1040px;
 	color-scheme: light;
