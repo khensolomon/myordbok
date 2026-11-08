@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+19
+
+- Suggestion highlight follows the box: the first row rounds at the top, the last at the bottom, rows between are square
+
 ## 26.11.8+18
 
 - Open search box: no fill behind the field; a hairline separates the field from the suggestions
