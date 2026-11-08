@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+25
+
+- Header links quieter on wider screens: no capsule, the current page under a barely-there pill and an even paler hover, both still gliding; phones keep the icon capsule
+
 ## 26.11.8+24
 
 - Header links in a glass capsule on every screen size: a raised lens marks the page you are on and glides to the new link when the page changes; a light tint follows the pointer from link to link

@@ -52,6 +52,9 @@
 	--glass-solid: #ffffff;
 	/* Soft highlighter behind a term being explained. */
 	--term-tint: rgba(49, 142, 215, 0.12);
+	/* Header links: the page you are on, and the pointer. Barely there. */
+	--nav-current: rgba(118, 128, 142, 0.075);
+	--nav-hover: rgba(118, 128, 142, 0.045);
 	--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -0.5px 0 rgba(0, 0, 0, 0.06);
 	--glass-lift: 0 1px 2px rgba(23, 32, 43, 0.06), 0 4px 14px rgba(23, 32, 43, 0.06);
 	/* Behind floating controls once the page scrolls under them. */
@@ -94,6 +97,8 @@
 	--glass-lens: rgba(40, 50, 62, 0.88);
 	--glass-solid: #1f2833;
 	--term-tint: rgba(109, 179, 242, 0.18);
+	--nav-current: rgba(150, 165, 185, 0.1);
+	--nav-hover: rgba(150, 165, 185, 0.06);
 	--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -0.5px 0 rgba(0, 0, 0, 0.3);
 	--glass-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.3);
 	--scrim: rgba(13, 17, 22, 0.82);
@@ -128,6 +133,8 @@
 		--glass-lens: rgba(40, 50, 62, 0.88);
 		--glass-solid: #1f2833;
 		--term-tint: rgba(109, 179, 242, 0.18);
+		--nav-current: rgba(150, 165, 185, 0.1);
+		--nav-hover: rgba(150, 165, 185, 0.06);
 		--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -0.5px 0 rgba(0, 0, 0, 0.3);
 		--glass-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.3);
 		--scrim: rgba(13, 17, 22, 0.82);
