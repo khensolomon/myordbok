@@ -156,7 +156,11 @@ test('publish refuses an incomplete build and leaves the sites alone', () => {
 });
 
 test('database ids: placeholders and non-ids are refused, setup fills every environment', () => {
-	const toml = readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8');
+	// wrangler.toml as shipped before setup: dictionary ids are placeholders.
+	const toml = setDatabaseIds(readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8'), {
+		DICT_A: '00000000-0000-0000-0000-00000000000a',
+		DICT_B: '00000000-0000-0000-0000-00000000000b',
+	});
 	assert.equal(badDatabaseIds(toml).length, 2);
 	assert.deepEqual(badDatabaseIds('[[d1_databases]]\nbinding = "DICT_A"\ndatabase_name = "myordbok-dict-a"\ndatabase_id = "<id of dict-a>"\n'), ['DICT_A (myordbok-dict-a): "<id of dict-a>"']);
 	const a = '11111111-2222-3333-4444-555555555555';

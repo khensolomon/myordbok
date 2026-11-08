@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+8
+
+- Fix: a test assumed wrangler.toml still had placeholder dictionary ids
+
 ## 26.11.8+7
 
 - An empty dictionary slot answers 503 with how to fill it (locally make data-sample or make data-local, remotely make data-publish) instead of a raw SQL error
