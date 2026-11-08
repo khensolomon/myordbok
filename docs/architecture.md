@@ -2,6 +2,7 @@
 
 MyOrdbok is a single-page HTML5 app (PWA) backed by a Cloudflare Worker and
 D1. One codebase serves the web today and Tauri desktop and mobile later.
+The dictionary data comes from a separate, private dataset.
 
 ## Layout
 
@@ -19,10 +20,13 @@ app/                  client: plain ES modules, JSDoc types, no framework
   static/             logo, icon, app icons, Myanmar3 font
   sw.js               service worker (web build only)
 worker/               Cloudflare Worker: /api routes, static assets
-shared/               used by app and worker: errors, roles, validation, version
-db/migrations/        D1 schema (wrangler migrations)
-scripts/              build, dev server, version bump (Node stdlib only)
-tests/                node:test
+shared/               used by app and worker: errors, roles, validation, version, markup
+  search/             lookup code copied from the dataset (make dataset-sync)
+assets/db/
+  migrations/         app database schema (wrangler migrations)
+  seed.dev.sql        sample dictionary: real tables, made-up rows
+scripts/              build, dev server, version, data releases (Node stdlib only)
+tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 ```
 
 ## Decisions
@@ -38,11 +42,23 @@ tests/                node:test
   for any unknown app path, and the service worker does the same offline.
   Paths keep the previous site's URLs (`/definition?q=…`, `/grammar`,
   `/myanmar-fonts`) so existing links and search rankings carry over.
-- **D1 is the single source of truth.** Headwords are stored once
-  (`eng_word`, `mya_word`); senses refer to them by `wrid`.
-- **Every edit is logged.** `changes` is append-only. It provides history,
-  revert (a revert is a new change), attribution, and the version number that
-  offline clients sync from.
+- **The dataset is the source of truth.** The dictionary is a set of TSV
+  files in a private repository. Its build (`scripts/db_build.py`) produces
+  the SQLite database the app reads, and its lookup (`search/search.mjs` and
+  `search.sql`, copied to `shared/search/`) is the one the Worker runs, so
+  the dataset's own search tests describe what the site answers. This
+  repository holds only a made-up sample in the same tables.
+- **The app never writes to the dictionary.** Two D1 databases take turns
+  holding it (`DICT_A`, `DICT_B`); a release is imported whole into the one
+  not in use, checked, and switched to (`dict_release`). Switching back is
+  the rollback. The app database (`DB`) holds everything the app writes.
+- **Studio edits wait in their own table.** `dict_edits` records each
+  correction, addition or deletion with the value it replaces. Approved edits
+  are exported as the dataset's patch files, applied there by its scripts,
+  and reach readers with the next release, which marks them merged. Stale
+  edits become conflicts instead of overwriting newer work.
+- **Ids belong to a build, words do not.** Reactions and comments name the
+  headword by spelling, so they survive any rebuild.
 - **Roles are checked on the server on every write**, reading the role from
   D1: `member` reacts, comments and suggests; `editor` edits and reviews;
   `admin` also grants and removes levels. The first admin is created from the
@@ -56,14 +72,16 @@ tests/                node:test
 - **Analytics only with consent.** Google Analytics loads on the public
   hosts after the visitor allows it (`app/core/consent.js`); the choice
   stays on the device and can be changed on the privacy page.
-- **Deployment.** Beta and production are Wrangler environments sharing one
-  D1 database; see [deploy.md](deploy.md).
+- **Deployment.** Beta and production are Wrangler environments sharing the
+  databases; each reads the dictionary slot its release names. See
+  [deploy.md](deploy.md).
 
 ## Next
 
 1. Google and GitHub sign-in (OAuth with PKCE in the Worker, server-side
    sessions), the You menu, member roles.
 2. Reactions, comments and suggestions; studio review queue.
-3. Data migration from the dataset into D1 (dry run by default).
-4. Offline packs and delta sync.
+3. Studio: edit and review screens over `dict_edits`.
+4. Offline packs: the dataset build as a download, searched with the same
+   lookup code in the browser.
 5. Tauri adapters.

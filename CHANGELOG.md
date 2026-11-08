@@ -1,5 +1,17 @@
 # Changelog
 
+## 26.11.8+4
+
+- Dictionary data now comes from the private dataset build (khensolomon/lai, branch dataset), the TSV files staying the source of truth; the app never writes to the dictionary tables
+- Two dictionary slots (D1 myordbok-dict-a and myordbok-dict-b): a release is imported into the free slot, checked against its row counts, then switched to; switching back is the rollback (make data-publish, data-switch, data-status)
+- Studio edits get their own table, dict_edits (pending, approved, exported, merged or conflict); make edits-export writes approved edits as the dataset scripts' patch files and turns stale edits into conflicts
+- App database schema rewritten as assets/db/migrations/0001_app.sql: members, identities, sessions, role grants, reactions, comments, dict_edits, dict_exports, dict_release; reactions and comments name headwords by spelling
+- Database files moved under assets/db/; seed.dev.sql is a made-up sample in the real tables (make data-sample, make data-local FILE= for a real build on your machine)
+- The Worker runs the dataset's own lookup (shared/search, kept in step by make dataset-sync): /api/lookup and /api/suggest replace /api/search and /api/entry; /api/health reports the dictionary in use
+- Definition page shows the full result: senses by part of speech with draft and awaiting-review badges, a root's entry under its forms (went, go), spelling variants, forms, synonyms, similar, broader, opposite and related words, Myanmar pronunciation, and the dataset markup (labels, patterns, highlights)
+- Fix: Myanmar headwords no longer break at large sizes
+- Tests run the Worker and the release tool against node:sqlite with the real migration and the sample; Node 22.13 or later
+
 ## 26.11.8+3
 
 - Fix: make api and npm run dev:api build dist/web first, so a fresh clone starts without the missing assets directory error

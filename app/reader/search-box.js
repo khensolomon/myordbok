@@ -7,7 +7,7 @@
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
-import { search } from '../data/api.js';
+import { suggest } from '../data/api.js';
 
 const DEBOUNCE_MS = 150;
 let uid = 0;
@@ -60,7 +60,7 @@ export class SearchBox extends HTMLElement {
 		const mine = ++this.seq;
 		if (!q) return this.show([]);
 		try {
-			const { words } = await search(q);
+			const { words } = await suggest(q);
 			if (mine === this.seq) this.show(words);
 		} catch (err) {
 			// Suggestions are optional; the search itself still submits and reports errors.

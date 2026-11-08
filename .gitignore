@@ -21,3 +21,6 @@ Thumbs.db
 # Logs and temporary files
 *.log
 *tmp/
+
+# Exported studio edits hold dataset text; never commit them.
+exports/

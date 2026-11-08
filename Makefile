@@ -6,10 +6,14 @@
 WRANGLER := npx wrangler
 DB       := myordbok
 APPLY    ?=
+DATA     := node scripts/data.js
+# Where exported edits are written; keep it outside this public repository.
+OUT      ?= exports
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev api db-migrate db-seed db-reset test build build-beta build-tauri \
-        version db-status db-migrate-remote deploy-beta deploy-production logs-beta release clean
+.PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
+        version dataset-sync db-status db-migrate-remote data-status edits-export data-publish data-switch \
+        deploy-beta deploy-production logs-beta release clean
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -25,15 +29,19 @@ dev: ## App on :8000 from source, /api proxied to :8787
 api: build ## Worker + local D1 on :8787 (builds dist/web first)
 	$(WRANGLER) dev --local --port 8787
 
-db-migrate: ## Create or update the local database
+db-migrate: ## Create or update the local app database
 	$(WRANGLER) d1 migrations apply $(DB) --local
 
-db-seed: ## Add sample entries to the local database
-	$(WRANGLER) d1 execute $(DB) --local --file db/seed.dev.sql
+data-sample: ## Load the sample dictionary into the local slot A
+	$(WRANGLER) d1 execute DICT_A --local --yes --file assets/db/seed.dev.sql
 
-db-reset: ## Delete the local database, then migrate and seed
+data-local: ## Load a real build into the local slot A: FILE=…/build/myordbok.sql
+	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
+	$(WRANGLER) d1 execute DICT_A --local --yes --file "$(FILE)"
+
+db-reset: ## Delete the local databases, then migrate and load the sample
 	rm -rf .wrangler/state/v3/d1
-	$(MAKE) db-migrate db-seed
+	$(MAKE) db-migrate data-sample
 
 ## Checks and builds
 
@@ -53,7 +61,11 @@ version: ## Next version + CHANGELOG entry: NOTE="…" [APPLY=1]
 	@test -n "$(NOTE)" || { echo 'Give NOTE="what changed"'; exit 1; }
 	node scripts/version.js --note "$(NOTE)" $(if $(APPLY),--apply)
 
-## Cloudflare (dry run unless APPLY=1)
+dataset-sync: ## Copy the lookup code from the dataset, check the sample: DATASET=…/myordbok [APPLY=1]
+	@test -n "$(DATASET)" || { echo 'Give DATASET=path/to/lai/myordbok (branch dataset)'; exit 1; }
+	node --disable-warning=ExperimentalWarning scripts/dataset-sync.js --dataset "$(DATASET)" $(if $(filter 1,$(APPLY)),--apply)
+
+## App database on Cloudflare (dry run unless APPLY=1)
 
 db-status: ## Remote migrations: applied and pending (read-only)
 	$(WRANGLER) d1 migrations list $(DB) --remote --env beta
@@ -65,6 +77,24 @@ else
 	$(WRANGLER) d1 migrations list $(DB) --remote --env beta
 	@echo 'Dry run. Add APPLY=1 to apply. This database also serves production.'
 endif
+
+## Dictionary data (dry run unless APPLY=1; LOCAL=1 for the local databases)
+
+data-status: ## Which build each slot holds and each site reads; edits by status
+	$(DATA) status $(if $(LOCAL),--local)
+
+edits-export: ## Approved studio edits → dataset patch files in OUT=… [APPLY=1]
+	$(DATA) export --out "$(OUT)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-publish: ## Import a build into the free slot, check it, point beta at it: FILE=… [APPLY=1]
+	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
+	$(DATA) publish --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-switch: ## Point a site at a slot: SITE=production|beta [SLOT=a|b] [APPLY=1]
+	@test -n "$(SITE)" || { echo 'Give SITE=production (promote beta) or SITE=beta SLOT=a|b (roll back)'; exit 1; }
+	$(DATA) switch --env $(SITE) $(if $(SLOT),--slot $(SLOT)) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+## Deploy (dry run unless APPLY=1)
 
 deploy-beta: test ## Build and deploy beta.myordbok.com [APPLY=1]
 	node scripts/build.js --noindex

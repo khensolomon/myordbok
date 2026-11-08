@@ -37,13 +37,13 @@ git clone https://github.com/khensolomon/myordbok.git
 ## Development
 
 A single-page HTML5 app (PWA) in plain JavaScript modules with JSDoc, served
-by a Cloudflare Worker with D1. No framework and no bundler; Node 22+ and
+by a Cloudflare Worker with D1. No framework and no bundler; Node 22.13+ and
 wrangler are the only tools. Tauri desktop and mobile builds reuse the same
 code through platform adapters (see [docs/architecture.md](docs/architecture.md)).
 
 ```bash
 make install              # wrangler only
-make db-migrate db-seed   # local D1 database with a few sample entries
+make db-reset             # local D1: app tables + a small made-up sample dictionary
 make api                  # worker + local D1 on :8787
 make dev                  # app on :8000, no build step, /api proxied to :8787
 ```

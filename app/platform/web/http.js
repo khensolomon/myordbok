@@ -7,7 +7,7 @@
 import { AppError } from '#shared/errors.js';
 
 /**
- * @param {string} path  Same-origin API path, e.g. "/api/search?q=love".
+ * @param {string} path  Same-origin API path, e.g. "/api/lookup?q=love".
  * @returns {Promise<any>}
  */
 export async function getJSON(path) {

@@ -10,6 +10,15 @@
 # migrations must stay backward compatible, because beta can run newer code
 # against the same data that production reads.
 #
+# Two kinds of database:
+#   DB              app data: members, reactions, comments, studio edits
+#                   (assets/db/migrations). Shared by beta and production.
+#   DICT_A, DICT_B  the dictionary, built from the private dataset. Two slots,
+#                   so a new release is imported and checked in one while the
+#                   sites keep reading the other (docs/deploy.md, Data releases).
+#                   Which slot a site reads is stored in DB (dict_release);
+#                   DICT_SLOT overrides that, and local development uses it.
+#
 # The database_id is an identifier, not a credential. Remote access needs a
 # Cloudflare API token or login for the owning account; local commands never
 # touch it.
@@ -31,7 +40,21 @@ run_worker_first = ["/api/*"]
 binding = "DB"
 database_name = "myordbok"
 database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
-migrations_dir = "db/migrations"
+migrations_dir = "assets/db/migrations"
+
+[[d1_databases]]
+binding = "DICT_A"
+database_name = "myordbok-dict-a"
+database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+
+[[d1_databases]]
+binding = "DICT_B"
+database_name = "myordbok-dict-b"
+database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b
+
+# Local development reads the sample dictionary from slot A (make data-sample).
+[vars]
+DICT_SLOT = "a"
 
 # ---------------------------------------------------------------- beta
 
@@ -41,13 +64,24 @@ workers_dev = false
 preview_urls = false
 routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
 # Keeps beta out of search results (static files get the same header from _headers).
-vars = { NOINDEX = "1" }
+# DICT_SLOT empty: the slot comes from dict_release (make data-switch).
+vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_SLOT = "" }
 
 [[env.beta.d1_databases]]
 binding = "DB"
 database_name = "myordbok"
 database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
-migrations_dir = "db/migrations"
+migrations_dir = "assets/db/migrations"
+
+[[env.beta.d1_databases]]
+binding = "DICT_A"
+database_name = "myordbok-dict-a"
+database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+
+[[env.beta.d1_databases]]
+binding = "DICT_B"
+database_name = "myordbok-dict-b"
+database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b
 
 # ---------------------------------------------------------------- production
 # Deploying this takes over the myordbok.com DNS record from the current
@@ -59,9 +93,20 @@ name = "myordbok-production"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
+vars = { ENV_NAME = "production", DICT_SLOT = "" }
 
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "myordbok"
 database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
-migrations_dir = "db/migrations"
+migrations_dir = "assets/db/migrations"
+
+[[env.production.d1_databases]]
+binding = "DICT_A"
+database_name = "myordbok-dict-a"
+database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+
+[[env.production.d1_databases]]
+binding = "DICT_B"
+database_name = "myordbok-dict-b"
+database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b

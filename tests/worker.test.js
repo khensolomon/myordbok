@@ -1,37 +1,19 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { beforeEach, test } from 'node:test';
+import { resetSlotCache } from '../worker/lib/dict.js';
 import worker from '../worker/index.js';
-
-/**
- * Minimal D1 stand-in: answers each prepared statement by matching its SQL.
- * @param {Array<{ match: RegExp, first?: unknown, all?: unknown[] }>} answers
- */
-function fakeDB(answers) {
-	return {
-		/** @type {Array<{ sql: string, args: unknown[] }>} */
-		calls: [],
-		prepare(sql) {
-			const answer = answers.find((a) => a.match.test(sql));
-			if (!answer) throw new Error(`Unexpected SQL: ${sql}`);
-			const calls = this.calls;
-			return {
-				bind(...args) {
-					calls.push({ sql, args });
-					return {
-						first: async () => answer.first ?? null,
-						all: async () => ({ results: answer.all ?? [] }),
-					};
-				},
-			};
-		},
-	};
-}
+import { MIGRATION, SAMPLE, d1, sqlite } from './helpers/d1.js';
 
 const assets = { fetch: async () => new Response('asset') };
 
-/** @param {string} path @param {unknown} DB @param {RequestInit} [init] @param {Record<string, string>} [vars] */
-async function call(path, DB, init, vars = {}) {
-	const res = await worker.fetch(new Request(`https://myordbok.test${path}`, init), /** @type {any} */ ({ DB, ASSETS: assets, ...vars }));
+/** Local setup: sample in slot A, pinned by DICT_SLOT. */
+function localEnv(vars = {}) {
+	return { DB: d1(sqlite(MIGRATION)), DICT_A: d1(sqlite(SAMPLE)), DICT_B: d1(sqlite()), ASSETS: assets, DICT_SLOT: 'a', ...vars };
+}
+
+/** @param {string} path @param {any} env @param {RequestInit} [init] */
+async function call(path, env, init) {
+	const res = await worker.fetch(new Request(`https://myordbok.test${path}`, init), env);
 	return {
 		status: res.status,
 		robots: res.headers.get('x-robots-tag'),
@@ -39,65 +21,91 @@ async function call(path, DB, init, vars = {}) {
 	};
 }
 
+beforeEach(() => resetSlotCache());
+
 test('beta API responses carry noindex, production ones do not', async () => {
-	assert.equal((await call('/api/health', fakeDB([]), undefined, { NOINDEX: '1' })).robots, 'noindex');
-	assert.equal((await call('/api/nope', fakeDB([]), undefined, { NOINDEX: '1' })).robots, 'noindex');
-	assert.equal((await call('/api/health', fakeDB([]))).robots, null);
+	assert.equal((await call('/api/health', localEnv({ NOINDEX: '1' }))).robots, 'noindex');
+	assert.equal((await call('/api/nope', localEnv({ NOINDEX: '1' }))).robots, 'noindex');
+	assert.equal((await call('/api/health', localEnv())).robots, null);
 });
 
 test('non-API paths are static assets', async () => {
-	const res = await call('/definition?q=love', fakeDB([]));
-	assert.equal(res.body, 'asset');
+	assert.equal((await call('/definition?q=love', localEnv())).body, 'asset');
 });
 
-test('health reports the version', async () => {
-	const res = await call('/api/health', fakeDB([]));
+test('health reports the version and the dictionary in use', async () => {
+	const res = await call('/api/health', localEnv());
 	assert.equal(res.status, 200);
-	assert.equal(res.body.ok, true);
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
+	assert.deepEqual(res.body.dictionary, { slot: 'a', built: 'sample', source: 'sample' });
 });
 
-test('search uses a key range on the right dictionary', async () => {
-	const DB = fakeDB([{ match: /FROM mya_word/, all: [{ word: 'ကကွက်' }] }]);
-	const res = await call('/api/search?q=%E1%80%80', DB);
-	assert.equal(res.status, 200);
-	assert.equal(res.body.lang, 'my');
-	assert.deepEqual(res.body.words, ['ကကွက်']);
-	assert.equal(DB.calls[0].args[0], 'က');
+test('a site reads the slot its release names', async () => {
+	const app = sqlite(MIGRATION);
+	app.exec("INSERT INTO dict_release (env, slot, source, switched_by) VALUES ('beta', 'b', 'sample', 'test')");
+	const env = { DB: d1(app), DICT_A: d1(sqlite()), DICT_B: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: 'beta', DICT_SLOT: '' };
+	assert.equal((await call('/api/health', env)).body.dictionary.slot, 'b');
+	assert.equal((await call('/api/lookup?q=love', env)).body.entries.length, 4);
 });
 
-test('entry groups senses by part of speech in order', async () => {
-	const DB = fakeDB([
-		{ match: /FROM eng_word/, first: { id: 1, word: 'love' } },
-		{
-			match: /FROM emd_sense/,
-			all: [
-				{ id: 1, sense: 'အချစ်', exam: 'a love <song>', pos: 'noun' },
-				{ id: 2, sense: 'ချစ်သူ', exam: null, pos: 'noun' },
-				{ id: 3, sense: 'ချစ်', exam: 'do you love me?', pos: 'verb' },
-			],
-		},
+test('with no release, the API says so instead of guessing', async () => {
+	const env = { DB: d1(sqlite(MIGRATION)), DICT_A: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: 'production', DICT_SLOT: '' };
+	const health = await call('/api/health', env);
+	assert.equal(health.status, 503);
+	assert.match(health.body.error, /No dictionary has been published for production/);
+	const lookup = await call('/api/lookup?q=love', env);
+	assert.equal(lookup.status, 503);
+	assert.equal(lookup.body.error.code, 'unavailable');
+});
+
+test('lookup: senses, forms, synonyms and opposites', async () => {
+	const { body } = await call('/api/lookup?q=love', localEnv());
+	assert.equal(body.language, 'en');
+	assert.deepEqual(body.entries.map((e) => [e.type, e.kind]), [
+		['Noun', 'Active'], ['Noun', 'Checked: awaiting native review'], ['Verb', 'Active'], ['Verb', 'Draft'],
 	]);
-	const res = await call('/api/entry/en/Love', DB);
-	assert.equal(res.status, 200);
-	assert.deepEqual(res.body.pos.map((p) => [p.name, p.senses.length]), [['noun', 2], ['verb', 1]]);
-	assert.equal(DB.calls[0].args[0], 'love');
+	assert.deepEqual(body.forms.map((f) => f[0]), ['loves', 'loves', 'loved', 'loved', 'loving']);
+	assert.deepEqual(body.synonyms, ['adore', 'affection']);
+	assert.deepEqual(body.opposite, ['hate']);
+});
+
+test('lookup: a form points to its root, a variant to its headword', async () => {
+	const went = (await call('/api/lookup?q=went', localEnv())).body;
+	assert.deepEqual(went.entries, []);
+	assert.deepEqual(went.forms_of, [['go', 'verb', 'past']]);
+	assert.deepEqual(went.root_senses, { go: 1 });
+
+	const color = (await call('/api/lookup?q=Color', localEnv())).body;
+	assert.deepEqual(color.variant_of, ['colour']);
+	assert.equal(color.entries[0].word, 'colour');
+});
+
+test('lookup: Myanmar headword with pronunciation', async () => {
+	const { body } = await call(`/api/lookup?q=${encodeURIComponent('ရေ')}`, localEnv());
+	assert.equal(body.language, 'my');
+	assert.deepEqual(body.pronunciation, ['jè', 're']);
+	assert.equal(body.entries[0].sense, '<water>');
+});
+
+test('suggest: headwords with senses, by prefix, in either script', async () => {
+	assert.deepEqual((await call('/api/suggest?q=LO', localEnv())).body.words, ['lovable', 'love', 'love affair']);
+	assert.deepEqual((await call('/api/suggest?q=wen', localEnv())).body.words, []); // a form, not a headword
+	const my = (await call(`/api/suggest?q=${encodeURIComponent('ချ')}`, localEnv())).body;
+	assert.equal(my.lang, 'my');
+	assert.deepEqual(my.words, ['ချစ်', 'ချစ်သူ']);
 });
 
 test('errors are JSON with a stable code', async () => {
-	const missing = await call('/api/entry/en/zzz', fakeDB([{ match: /FROM eng_word/, first: null }]));
-	assert.equal(missing.status, 404);
-	assert.equal(missing.body.error.code, 'not_found');
-
-	const badLang = await call('/api/entry/fr/love', fakeDB([]));
-	assert.equal(badLang.body.error.code, 'bad_request');
-
-	const empty = await call('/api/search?q=', fakeDB([]));
+	const empty = await call('/api/lookup?q=', localEnv());
 	assert.equal(empty.status, 400);
+	assert.equal(empty.body.error.code, 'bad_request');
 
-	const write = await call('/api/search', fakeDB([]), { method: 'POST' });
+	const write = await call('/api/lookup?q=love', localEnv(), { method: 'POST' });
 	assert.equal(write.status, 501);
 
-	const unknown = await call('/api/nope', fakeDB([]));
+	const unknown = await call('/api/entry/en/love', localEnv());
 	assert.equal(unknown.body.error.code, 'not_found');
+
+	const badSlot = await call('/api/lookup?q=love', localEnv({ DICT_SLOT: 'c' }));
+	assert.equal(badSlot.status, 500);
 });

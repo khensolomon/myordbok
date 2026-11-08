@@ -121,6 +121,8 @@ mo-search { display: block; position: relative; }
 	font-size: 13px; font-style: italic; color: var(--faint);
 }
 .headword { margin: 0; font-size: clamp(34px, 6vw, 48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+/* Letter spacing splits Myanmar clusters; Myanmar headwords use the Myanmar font as is. */
+.entry[lang="my"] .headword { font-family: var(--font-my); letter-spacing: 0; line-height: 1.4; }
 
 /* Wide screens: the open timeline from the current site. */
 .timeline { margin-left: 15px; padding: 28px 0 8px 40px; border-left: 1px solid var(--line); }
@@ -159,6 +161,38 @@ mo-search { display: block; position: relative; }
 	width: 5px; height: 5px; border-radius: 999px; background: var(--dot);
 }
 
+.pron { display: flex; gap: 14px; margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+.entry-note { margin: 14px 0 0; padding: 0; list-style: none; color: var(--muted); }
+.root { margin-top: 28px; }
+.root-word { margin: 0 0 4px; font-size: 26px; font-weight: 600; }
+.etymology { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+
+/* Dataset markup */
+.mk-label { font-size: 0.8em; color: var(--muted); }
+.mk-label-name { font-style: italic; }
+.mk-pattern { color: var(--ink-2); font-style: italic; }
+mark { background: none; color: inherit; font-weight: 600; }
+
+/* Draft, awaiting review, or a label such as idiom. */
+.kind {
+	display: inline-block; margin-right: 8px; padding: 1px 8px;
+	border: 0.5px solid var(--line); border-radius: 999px;
+	font-size: 12px; line-height: 18px; vertical-align: 0.2em; color: var(--muted);
+}
+.kind-draft { border-style: dashed; }
+.kind-review { color: var(--link); border-color: var(--guide); }
+
+/* Forms, synonyms and related words */
+.related {
+	display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px;
+	margin: 8px 0 0 15px; padding: 18px 0 0; border-top: 1px solid var(--line-soft);
+	font-size: 15px; line-height: 1.6;
+}
+.related dt { color: var(--faint); }
+.related dd { margin: 0; color: var(--ink-2); }
+.related .forms { margin-right: 14px; }
+.related em { color: var(--faint); }
+
 /* Phones: one card per part of speech with the curved corner tab. */
 @media (max-width: 640px) {
 	.timeline { margin: 20px -4px 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 18px; }
@@ -174,6 +208,8 @@ mo-search { display: block; position: relative; }
 	.pos-name::before { content: none; }
 	.senses { margin: 14px 16px 0; }
 	.gloss { font-size: 19px; }
+	.related { grid-template-columns: 1fr; gap: 2px; margin: 20px 4px 0; }
+	.related dd { margin-bottom: 10px; }
 }
 
 /* ---------------------------------------------------------- consent */

@@ -6,18 +6,19 @@
 import { getJSON } from '#platform/http.js';
 
 /**
+ * Headwords starting with `q`, for the search box.
  * @param {string} q
- * @returns {Promise<import('#shared/types.js').SearchResult>}
+ * @returns {Promise<import('#shared/types.js').Suggestions>}
  */
-export function search(q) {
-	return getJSON(`/api/search?q=${encodeURIComponent(q)}`);
+export function suggest(q) {
+	return getJSON(`/api/suggest?q=${encodeURIComponent(q)}`);
 }
 
 /**
- * @param {import('#shared/validate.js').Lang} lang
- * @param {string} word
- * @returns {Promise<import('#shared/types.js').Entry>}
+ * Everything the dictionary knows about `q`.
+ * @param {string} q
+ * @returns {Promise<import('#shared/types.js').LookupResult>}
  */
-export function entry(lang, word) {
-	return getJSON(`/api/entry/${lang}/${encodeURIComponent(word)}`);
+export function lookup(q) {
+	return getJSON(`/api/lookup?q=${encodeURIComponent(q)}`);
 }
