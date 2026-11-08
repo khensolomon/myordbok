@@ -1,14 +1,24 @@
 /* Design tokens. Light is the default; dark follows the device unless the
    person picks a theme (data-theme on <html>). */
 
-/* Shipped with the app (and precached) so Myanmar text shapes correctly on
-   devices without a Myanmar font, online or offline. Only Myanmar characters
-   use it, so English pages never download it. */
+/* Noto Sans Myanmar (SIL Open Font License, static/fonts/NotoSansMyanmar-OFL.txt),
+   shipped with the app and precached so Myanmar text shapes correctly on
+   devices without a Myanmar font, online or offline. Two true weights, so
+   headings and emphasis are drawn, never thickened by the browser. Only
+   Myanmar characters use it, so English pages never download it. */
 @font-face {
 	font-family: "MyOrdbok Myanmar";
-	src: url("/static/fonts/Myanmar3.woff") format("woff");
+	font-weight: 400;
+	src: url("/static/fonts/NotoSansMyanmar-400.woff2") format("woff2");
 	font-display: swap;
-	unicode-range: U+1000-109F, U+AA60-AA7F, U+A9E0-A9FF, U+200B-200D;
+	unicode-range: U+1000-109F, U+200C-200D, U+25CC, U+A92E, U+A9E0-A9FE, U+AA60-AA7F, U+116D0-116E3;
+}
+@font-face {
+	font-family: "MyOrdbok Myanmar";
+	font-weight: 600;
+	src: url("/static/fonts/NotoSansMyanmar-600.woff2") format("woff2");
+	font-display: swap;
+	unicode-range: U+1000-109F, U+200C-200D, U+25CC, U+A92E, U+A9E0-A9FE, U+AA60-AA7F, U+116D0-116E3;
 }
 
 :root {
@@ -40,6 +50,8 @@
 	--glass-fill-hover: rgba(118, 128, 142, 0.15);
 	--glass-lens: rgba(255, 255, 255, 0.86);
 	--glass-solid: #ffffff;
+	/* Soft highlighter behind a term being explained. */
+	--term-tint: rgba(49, 142, 215, 0.12);
 	--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -0.5px 0 rgba(0, 0, 0, 0.06);
 	--glass-lift: 0 1px 2px rgba(23, 32, 43, 0.06), 0 4px 14px rgba(23, 32, 43, 0.06);
 	/* Behind floating controls once the page scrolls under them. */
@@ -81,6 +93,7 @@
 	--glass-fill-hover: rgba(150, 165, 185, 0.18);
 	--glass-lens: rgba(40, 50, 62, 0.88);
 	--glass-solid: #1f2833;
+	--term-tint: rgba(109, 179, 242, 0.18);
 	--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -0.5px 0 rgba(0, 0, 0, 0.3);
 	--glass-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.3);
 	--scrim: rgba(13, 17, 22, 0.82);
@@ -114,6 +127,7 @@
 		--glass-fill-hover: rgba(150, 165, 185, 0.18);
 		--glass-lens: rgba(40, 50, 62, 0.88);
 		--glass-solid: #1f2833;
+		--term-tint: rgba(109, 179, 242, 0.18);
 		--glass-shine: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -0.5px 0 rgba(0, 0, 0, 0.3);
 		--glass-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.3);
 		--scrim: rgba(13, 17, 22, 0.82);

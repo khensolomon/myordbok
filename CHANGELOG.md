@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.8+23
+
+- Myanmar text uses Noto Sans Myanmar with true regular and semibold weights (SIL Open Font License, shipped with the app) instead of Myanmar3, whose bold was faked by the browser; about the same size to download
+- Grammar: terms being explained get a soft blue highlight instead of bold
+- Grammar terms without a section of their own show as chips like the others
+
 ## 26.11.8+22
 
 - Grammar topics: a back button before the title replaces the Grammar link; opened from the list it returns to the list where it was left, otherwise it opens the list

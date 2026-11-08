@@ -494,7 +494,9 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .notice { color: var(--muted); }
 .notice-title { font-size: 24px; margin: 0 0 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
-.chips a { display: block; padding: 6px 14px; border-radius: 999px; background: var(--surface); color: var(--ink); }
+/* A chip without a link (a grammar term with no section of its own) looks
+   the same, without the link colour or hover. */
+.chips a, .chips span { display: block; padding: 6px 14px; border-radius: 999px; background: var(--surface); color: var(--ink); }
 
 /* ---------------------------------------------------------- about */
 
@@ -536,7 +538,13 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	transition: background-color 0.15s;
 }
 .g-back:hover { background: var(--glass-fill-hover); color: var(--ink); text-decoration: none; }
-.g-q { font-weight: 600; color: var(--ink); }
+/* A term being explained: a soft highlighter, not bold. */
+.g-q {
+	font-weight: 400; color: var(--ink);
+	padding: 0.05em 0.3em; border-radius: 6px;
+	background: var(--term-tint);
+	-webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
 
 .g-terms { margin: 24px 0 0; }
 .g-terms dt { font-weight: 600; color: var(--ink); }

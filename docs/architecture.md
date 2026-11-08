@@ -17,7 +17,7 @@ app/                  client: plain ES modules, JSDoc types, no framework
   platform/web/       browser adapters: boot, http, storage
   platform/tauri/     reserved: same exports, native implementations
   styles/             tokens, base, app
-  static/             logo, icon, app icons, Myanmar3 font
+  static/             logo, icon, app icons, Noto Sans Myanmar (400, 600)
   sw.js               service worker (web build only)
 worker/               Cloudflare Worker: /api routes, static assets
 shared/               used by app and worker: errors, roles, validation, version, markup

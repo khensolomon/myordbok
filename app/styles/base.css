@@ -15,6 +15,10 @@ body {
 }
 
 :lang(my) { font-family: var(--font-my); line-height: 1.8; }
+/* Bold Myanmar uses the semibold face; anything heavier would be faked.
+   Kept as weak as a class (:where) so components can set their own weight. */
+:where(b, strong, h1, h2, h3, h4):lang(my) { font-weight: 600; }
+:lang(my) { font-synthesis-weight: none; }
 
 a { color: var(--link); text-decoration: none; }
 a:hover { color: var(--link-hover); text-decoration: underline; }
