@@ -286,11 +286,18 @@ mark { background: none; color: inherit; font-weight: 600; }
 .kind-draft { border-style: dashed; }
 .kind-review { color: var(--link); border-color: var(--guide); }
 
-/* Forms, synonyms and related words */
 /* A definition is as wide as the logo and the search box together. */
 .entry { max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
+/* Large screens: each part of speech's line (the one with the circle) starts
+   under the left edge of the search box; the outer line stays under the
+   language badge. The timeline's margin (15.5px) and border (1px) are
+   subtracted so the line lands exactly. The word lists follow it. */
+@media (min-width: 1024px) {
+	.entry .timeline { padding-left: calc(var(--logo-w) + var(--bar-gap) - 16.5px); }
+	.entry .related { margin-left: calc(var(--logo-w) + var(--bar-gap)); }
 }
 
+/* Forms, synonyms and related words */
 .related {
 	display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px;
 	margin: 8px 0 0 15.5px; padding: 18px 0 0; border-top: 1px solid var(--line-soft);

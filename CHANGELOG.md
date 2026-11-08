@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+14
+
+- Large screens: each part of speech's line starts under the left edge of the search box, and the word lists line up with it; the outer line stays under the language badge
+- Fix: a stray brace in app.css dropped the word-list styles; a test now checks every stylesheet for balanced braces
+
 ## 26.11.8+13
 
 - The definition timeline's line runs down from the middle of the language badge again; the word lists start on the same line
