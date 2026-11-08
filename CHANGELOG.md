@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+27
+
+- Terms: MyOrdbok is a free, non-commercial service for general information; use is personal, educational and non-commercial, as in the previous terms
+
 ## 26.11.8+26
 
 - Terms of Use rewritten for the new app: a short summary; free use for study, teaching, work and personal purposes; quoting with credit welcome, bulk copying, scraping and sharing the offline download not; WordNet and Moby Thesaurus under their own terms; the MIT licence covers the code only; accuracy and draft meanings; accounts and contributions (licence to publish, editor review, removal of abuse); Myanmar fonts; liability; how to report a problem

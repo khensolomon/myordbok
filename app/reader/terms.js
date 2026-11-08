@@ -40,7 +40,7 @@ export function view() {
 			{ class: 'in-short' },
 			h('h2', null, 'In short'),
 			list(
-				'Look words up freely, for study, teaching, work or personal use.',
+				'Use MyOrdbok for personal, educational and other non-commercial purposes.',
 				'Quote short passages with credit; do not copy the dictionary in bulk or harvest it automatically.',
 				'Meanings can be wrong; check anything important against other sources.',
 				'Suggestions and comments made when signed in may be edited and published as part of the dictionary.',
@@ -53,7 +53,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'MyOrdbok is a free English–Myanmar dictionary. Reading and searching need no account. It may be used for study, teaching, work and personal purposes, but not for anything unlawful, or in a way that harms the service or other readers.',
+				'MyOrdbok is a free, non-commercial English–Myanmar dictionary, offered as general information. It sells nothing and provides no paid or commercial services. Reading and searching need no account. It may be used for personal, educational and other non-commercial purposes, and not for anything unlawful, or in a way that harms the service or other readers.',
 			),
 		),
 
@@ -93,7 +93,7 @@ export function view() {
 				h('em', null, 'draft'),
 				' or ',
 				h('em', null, 'awaiting review'),
-				' have not been fully checked. MyOrdbok is a reference, not a professional translation or legal, medical or other advice. Anything important should be checked against other sources.',
+				' have not been fully checked. MyOrdbok is general information, not a professional translation or legal, medical or other advice. Anything important should be checked against other sources.',
 			),
 		),
 
