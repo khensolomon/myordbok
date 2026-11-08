@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+5
+
+- Data commands stop before contacting Cloudflare while wrangler.toml still has placeholder database ids for the dictionary slots, and say how to fix it
+
 ## 26.11.8+4
 
 - Dictionary data now comes from the private dataset build (khensolomon/lai, branch dataset), the TSV files staying the source of truth; the app never writes to the dictionary tables

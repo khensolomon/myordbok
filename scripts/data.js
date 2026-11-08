@@ -24,7 +24,7 @@
  * outside it (exports/ is ignored by git for convenience).
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -35,6 +35,24 @@ const SLOTS = /** @type {const} */ (['a', 'b']);
 const ENVS = /** @type {const} */ (['beta', 'production']);
 /** IDs per IN (…) list, to keep each command well under argument limits. */
 const CHUNK = 400;
+/** The database_id values wrangler.toml ships with, before `wrangler d1 create`. */
+const PLACEHOLDER_ID = /^0{8}-0{4}-0{4}-0{4}-0{10}[0-9a-f]{2}$/;
+
+/**
+ * Bindings in wrangler.toml whose database_id is still a placeholder.
+ * @param {string} toml
+ * @returns {string[]}  e.g. ["DICT_A (myordbok-dict-a)"], once per binding.
+ */
+export function placeholderBindings(toml) {
+	const found = new Set();
+	for (const block of toml.split(/^\[\[/m).slice(1)) {
+		const binding = /^binding\s*=\s*"([^"]+)"/m.exec(block)?.[1];
+		const name = /^database_name\s*=\s*"([^"]+)"/m.exec(block)?.[1];
+		const id = /^database_id\s*=\s*"([^"]+)"/m.exec(block)?.[1];
+		if (binding && id && PLACEHOLDER_ID.test(id)) found.add(`${binding} (${name ?? '?'})`);
+	}
+	return [...found];
+}
 
 /** Columns of the patch files, per dictionary (the dataset's edit scripts). */
 export const FIELDS = Object.freeze({
@@ -622,7 +640,18 @@ async function main() {
 	const args = process.argv.slice(2);
 	const command = args[0];
 	const apply = args.includes('--apply');
-	const db = wranglerRunner({ local: args.includes('--local') });
+	const local = args.includes('--local');
+	if (!local) {
+		const missing = placeholderBindings(readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8'));
+		if (missing.length) {
+			throw new Error(
+				`wrangler.toml still has placeholder database ids for ${missing.join(', ')}.\n` +
+					'Create each database once (npx wrangler d1 create myordbok-dict-a, … myordbok-dict-b) and put the\n' +
+					'printed database_id in wrangler.toml everywhere the placeholder appears (top level, beta, production).',
+			);
+		}
+	}
+	const db = wranglerRunner({ local });
 	const log = (/** @type {string} */ line) => console.log(line);
 
 	switch (command) {

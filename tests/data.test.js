@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { exportEdits, planExport, publish, status, switchSlot, tsv, verifyBuild } from '../scripts/data.js';
+import { exportEdits, placeholderBindings, planExport, publish, status, switchSlot, tsv, verifyBuild } from '../scripts/data.js';
 import { MIGRATION, SAMPLE, runner, sqlite } from './helpers/d1.js';
 
 /** @param {Partial<import('../scripts/data.js').Edit>} e */
@@ -153,4 +153,15 @@ test('publish refuses an incomplete build and leaves the sites alone', () => {
 	writeFileSync(broken, SAMPLE.replace("('rows.eng_word', '21')", "('rows.eng_word', '22')"));
 	assert.throws(() => publish(runner(dbs), broken, true, () => {}), /eng_word: 21 rows, meta says 22/);
 	assert.equal(dbs.DB.prepare('SELECT count(*) AS n FROM dict_release').get()?.n, 0);
+});
+
+test('placeholder database ids in wrangler.toml are found before any remote call', () => {
+	const toml = readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8');
+	const real = toml.replaceAll(/0{8}-0{4}-0{4}-0{4}-0{10}0([ab])/g, '11111111-2222-3333-4444-55555555550$1');
+	assert.deepEqual(placeholderBindings(real), []);
+	assert.deepEqual(
+		placeholderBindings('[[d1_databases]]\nbinding = "DICT_B"\ndatabase_name = "myordbok-dict-b"\ndatabase_id = "00000000-0000-0000-0000-00000000000b"\n'),
+		['DICT_B (myordbok-dict-b)'],
+	);
+	assert.deepEqual(placeholderBindings('[[d1_databases]]\nbinding = "DB"\ndatabase_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"\n'), []);
 });
