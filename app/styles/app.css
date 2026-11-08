@@ -495,3 +495,126 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .notice-title { font-size: 24px; margin: 0 0 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
 .chips a { display: block; padding: 6px 14px; border-radius: 999px; background: var(--surface); color: var(--ink); }
+
+/* ---------------------------------------------------------- about */
+
+.about-lead { font-size: 18px; color: var(--ink); }
+.prose .about-figures { display: flex; flex-wrap: wrap; gap: 12px; margin: 4px 0 8px; padding: 0; list-style: none; }
+.about-figures li {
+	min-width: 150px; padding: 12px 16px;
+	border: 0.5px solid var(--glass-edge); border-radius: var(--radius);
+	background: var(--glass-fill); box-shadow: var(--glass-shine);
+	color: var(--muted); font-size: 13px; line-height: 1.4;
+}
+.about-figures strong { display: block; font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.about-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.about-button {
+	display: inline-flex; align-items: center; height: 40px; padding: 0 16px;
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-lens); color: var(--ink); font-weight: 500;
+	box-shadow: var(--glass-shine), var(--glass-lift);
+}
+.about-button:hover { text-decoration: none; filter: brightness(0.98); }
+
+/* ---------------------------------------------------------- grammar */
+
+/* Myanmar text reads best a little larger, with room between lines. */
+.grammar { max-width: 760px; }
+.grammar [lang="my"] { line-height: 1.9; }
+.g-head h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); font-weight: 600; line-height: 1.5; }
+.g-lead { margin: 8px 0 0; font-size: 17px; color: var(--ink-2); }
+.g-en { margin: 0; font-size: 15px; font-style: italic; color: var(--faint); }
+.g-crumb { margin: 0 0 4px; font-size: 14px; }
+.g-q { font-weight: 600; color: var(--ink); }
+
+.g-terms { margin: 24px 0 0; }
+.g-terms dt { font-weight: 600; color: var(--ink); }
+.g-terms dd { margin: 0 0 12px; color: var(--ink-2); }
+
+/* Index: topics as a grid of text, no cards. */
+.g-group { margin-top: 40px; }
+.g-group h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }
+.g-group h2 span { font-size: 15px; letter-spacing: 0; text-transform: none; }
+.g-topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 20px; margin: 0; padding: 0; list-style: none; }
+.g-topics a { display: block; padding: 10px 12px; margin: 0 -12px; border-radius: 12px; color: var(--ink); }
+.g-topics a:hover { text-decoration: none; background: var(--glass-fill); }
+.g-topic-my { font-size: 20px; font-weight: 600; }
+.g-topic-en { margin-left: 8px; font-size: 14px; font-style: italic; color: var(--faint); }
+.g-topic-desc {
+	display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+	margin-top: 2px; font-size: 14px; line-height: 1.7; color: var(--muted);
+}
+.g-source { margin-top: 40px; font-size: 13px; color: var(--muted); }
+
+/* Topic: the text, and the contents beside it on wide screens. */
+.g-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+.g-toc-side { display: none; }
+@media (min-width: 1100px) {
+	.g-layout { grid-template-columns: minmax(0, 760px) 240px; gap: 56px; }
+	.g-toc-top { display: none; }
+	.g-toc-side { display: block; position: sticky; top: 24px; align-self: start; }
+	.g-toc-side summary { pointer-events: none; list-style: none; }
+	.g-toc-side summary::-webkit-details-marker { display: none; }
+}
+.g-toc { margin: 20px 0 8px; font-size: 14px; }
+.g-toc summary { cursor: pointer; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }
+.g-toc ol { margin: 8px 0 0; padding: 0; list-style: none; }
+.g-toc li a { display: block; padding: 4px 0; color: var(--ink-2); line-height: 1.6; }
+.g-toc-top {
+	padding: 12px 16px;
+	border: 0.5px solid var(--glass-edge); border-radius: var(--radius);
+	background: var(--glass-fill); box-shadow: var(--glass-shine);
+}
+
+.g-body { margin-top: 24px; font-size: 17px; color: var(--ink-2); }
+.g-body p { margin: 0 0 10px; }
+.g-def { color: var(--ink); }
+.g-note { font-size: 15px; color: var(--muted); }
+.g-label { margin: 0 0 6px !important; font-size: 13px; font-weight: 600; color: var(--faint); }
+.g-section { scroll-margin-top: 80px; }
+/* Sections nest like the definition timeline: a line on the left. */
+.g-depth-1 { margin-top: 36px; padding-left: 20px; border-left: 1px solid var(--line); }
+.g-depth-2, .g-depth-3 { margin-top: 24px; padding-left: 18px; border-left: 1px solid var(--line-soft); }
+.g-h { margin: 0 0 8px; font-weight: 600; color: var(--ink); line-height: 1.6; }
+h2.g-h { font-size: 22px; }
+h3.g-h { font-size: 18px; }
+
+.g-cate { margin: 14px 0; }
+.g-cate .chips { margin-top: 6px; }
+.g-example, .g-exam {
+	margin: 14px 0; padding: 12px 16px;
+	border-radius: 14px; background: var(--glass-fill);
+}
+.g-example p:last-child, .g-exam p:last-child { margin-bottom: 0; }
+.g-words { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 8px; padding: 0; list-style: none; font-weight: 600; color: var(--ink); }
+.g-sentence { font-size: 18px; color: var(--ink) !important; }
+
+.g-table { overflow-x: auto; margin: 6px 0; }
+.g-table table { border-collapse: collapse; font-size: 16px; }
+.g-table th { padding: 4px 10px; text-align: left; font-size: 13px; font-weight: 600; color: var(--faint); }
+.g-table td { padding: 4px 10px; color: var(--ink); border-top: 0.5px solid var(--line); }
+.g-table .g-chain { padding: 4px 2px; color: var(--faint); }
+.g-table caption { caption-side: bottom; text-align: left; padding-top: 6px; font-size: 13px; color: var(--muted); }
+
+.g-english { margin-top: 32px; padding: 12px 16px; border-radius: var(--radius); border: 0.5px solid var(--glass-edge); }
+.g-english summary { cursor: pointer; font-weight: 600; color: var(--ink); }
+.g-english h3 { margin: 20px 0 4px; font-size: 16px; }
+.g-english p { color: var(--ink-2); line-height: 1.65; }
+.g-quote { font-style: italic; color: var(--muted) !important; }
+
+.g-pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 48px; padding-top: 20px; border-top: 0.5px solid var(--line); }
+.g-pager a { display: flex; flex-direction: column; max-width: 48%; color: var(--ink); }
+.g-pager a:hover { text-decoration: none; }
+.g-pager a:hover span { color: var(--link); }
+.g-pager .g-next { text-align: right; margin-left: auto; }
+.g-pager small { font-size: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.03em; }
+.g-pager span { font-size: 18px; font-weight: 600; line-height: 1.7; }
+.g-pager em { font-size: 13px; color: var(--faint); }
+
+@media (max-width: 640px) {
+	.g-body { font-size: 16px; }
+	.g-depth-1 { padding-left: 14px; }
+	.g-depth-2, .g-depth-3 { padding-left: 12px; }
+	.g-example, .g-exam { padding: 10px 12px; }
+}
+body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var(--gutter)); }

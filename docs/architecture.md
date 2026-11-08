@@ -61,6 +61,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   are exported as the dataset's patch files, applied there by its scripts,
   and reach readers with the next release, which marks them merged. Stale
   edits become conflicts instead of overwriting newer work.
+- **Grammar is content, not dictionary data.** The Myanmar grammar
+  (`assets/data/thuddar`) ships with the app: the build checks it and writes
+  one JSON file per topic to `/data/grammar/` (`scripts/grammar-data.js`), the
+  service worker keeps them for offline use, and the dev server serves the
+  same files from the same function. It never goes to D1.
 - **Ids belong to a build, words do not.** Reactions and comments name the
   headword by spelling, so they survive any rebuild.
 - **Roles are checked on the server on every write**, reading the role from

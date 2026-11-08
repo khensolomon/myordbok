@@ -48,7 +48,10 @@ test('health reports the version and the dictionary database in use', async () =
 	const res = await call('/api/health', localEnv());
 	assert.equal(res.status, 200);
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
-	assert.deepEqual(res.body.dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
+	const { rows, ...dictionary } = res.body.dictionary;
+	assert.deepEqual(dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
+	assert.equal(rows.emd_sense, 16);
+	assert.equal(rows.mya_word, 3);
 });
 
 test('each site reads the database dict_release names', async () => {

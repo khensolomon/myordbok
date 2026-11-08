@@ -6,7 +6,8 @@
  *   node scripts/build.js --noindex        web build for beta: X-Robots-Tag noindex on every file
  *   node scripts/build.js --target tauri   Tauri build (no service worker)
  *
- * Steps: copy app/ and shared/, add a content hash to every .js and .css file,
+ * Steps: copy app/ and shared/, write the grammar content (scripts/grammar-data.js)
+ * to /data/grammar/, add a content hash to every .js and .css file,
  * write an import map from the original paths to the hashed ones (so source
  * imports never change), add modulepreload links, and for the web target fill
  * the service worker's precache list. Studio code is never precached.
@@ -15,6 +16,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { GRAMMAR_DIR, grammarFiles } from './grammar-data.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TARGETS = ['web', 'tauri'];
@@ -54,8 +56,9 @@ function replaceOnce(text, pattern, replacement, what) {
  * @param {string} [options.out]
  * @param {string} [options.root]
  * @param {boolean} [options.noindex]  Ask search engines not to index (beta).
+ * @param {string} [options.grammar]  Grammar source folder (tests use a fixture).
  */
-export async function build({ target, out, root = ROOT, noindex = false }) {
+export async function build({ target, out, root = ROOT, noindex = false, grammar = GRAMMAR_DIR }) {
 	if (!TARGETS.includes(target)) throw new Error(`build: unknown target "${target}" (expected ${TARGETS.join(' or ')})`);
 	const app = join(root, 'app');
 	const shared = join(root, 'shared');
@@ -101,6 +104,13 @@ export async function build({ target, out, root = ROOT, noindex = false }) {
 		const dest = join(dist, ...url.split('/').filter(Boolean));
 		await mkdir(dirname(dest), { recursive: true });
 		await writeFile(dest, data);
+	}
+
+	// Grammar content: plain JSON, fetched per page and precached for offline use.
+	for (const [url, json] of await grammarFiles(grammar)) {
+		const dest = join(dist, ...url.split('/').filter(Boolean));
+		await mkdir(dirname(dest), { recursive: true });
+		await writeFile(dest, json);
 	}
 
 	/** @type {Record<string, string>} */

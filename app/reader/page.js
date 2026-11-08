@@ -1,15 +1,13 @@
 // @ts-check
 /**
- * Static information pages: grammar, fonts, about, privacy, terms.
+ * Information pages still to move over: fonts and terms.
  * Content moves over from the previous site in a later change.
  */
 import { h } from '../core/dom.js';
 
 /** @type {Record<string, string>} */
 const TITLES = {
-	grammar: 'Grammar',
 	'myanmar-fonts': 'Myanmar fonts',
-	about: 'About',
 	terms: 'Terms',
 };
 

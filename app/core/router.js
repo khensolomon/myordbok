@@ -32,7 +32,10 @@ export function startRouter(outlet, onRoute) {
 			if (mine !== token) return; // a newer navigation won
 			outlet.replaceChildren(node);
 			document.title = mod.title ? `${mod.title(ctx)} · MyOrdbok` : 'MyOrdbok';
-			window.scrollTo(0, 0);
+			// A deep link to a place in the page (/grammar/noun#s-2) lands there.
+			const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+			if (target) target.scrollIntoView();
+			else window.scrollTo(0, 0);
 			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
 		} catch (err) {
 			if (mine !== token) return;
@@ -53,6 +56,8 @@ export function startRouter(outlet, onRoute) {
 		if (!a || a.target || a.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey) return;
 		const url = new URL(a.href, location.href);
 		if (url.origin !== location.origin || !match(url.pathname)) return;
+		// A link to a place on this same page: the browser scrolls to it.
+		if (url.hash && url.pathname === location.pathname && url.search === location.search) return;
 		event.preventDefault();
 		go(url.pathname + url.search);
 	});

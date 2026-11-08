@@ -31,9 +31,9 @@
 export const ROUTES = Object.freeze([
 	{ name: 'home', path: '/', load: () => import('../reader/home.js'), offline: true },
 	{ name: 'definition', path: '/definition', load: () => import('../reader/entry.js'), offline: true },
-	{ name: 'grammar', path: '/grammar', load: () => import('../reader/page.js'), offline: true },
+	{ name: 'grammar', path: '/grammar', load: () => import('../reader/grammar.js'), offline: true },
 	{ name: 'fonts', path: '/myanmar-fonts', load: () => import('../reader/page.js'), offline: true },
-	{ name: 'about', path: '/about', load: () => import('../reader/page.js'), offline: true },
+	{ name: 'about', path: '/about', load: () => import('../reader/about.js'), offline: true },
 	{ name: 'privacy', path: '/privacy', load: () => import('../reader/privacy.js'), offline: true },
 	{ name: 'terms', path: '/terms', load: () => import('../reader/page.js'), offline: true },
 	{ name: 'studio', path: '/studio', load: () => import('../workspace/index.js') },

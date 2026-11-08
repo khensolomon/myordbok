@@ -1,5 +1,12 @@
 # Changelog
 
+## 26.11.8+21
+
+- Grammar pages: /grammar lists the nine parts of speech and the other topics with their Myanmar and English names; /grammar/<slug> shows a topic's sections, classifications (linked to their sections), example words, example sentences and tables, with the contents beside the text on wide screens and above it on phones, and previous/next topics
+- Grammar content is built from assets/data/thuddar into /data/grammar/ and kept for offline use; malformed data stops the build with the file named; the English parts of speech appear on the part-of-speech topic
+- About page rewritten with current information: the name, live figures and last update from the dictionary in use, how meanings are checked, aim, how the dictionary grows, how to help (GitHub issues until sign-in), support (PayPal, GitHub Sponsors), the running version explained, and sources (WordNet, Moby Thesaurus, မြန်မာသဒ္ဒါ); visit counts, the language list, social sharing, Google Forms and outdated notes removed
+- /api/health also returns the dictionary's row counts; links to a place on the same page (#…) scroll there, also when opened directly
+
 ## 26.11.8+20
 
 - Suggestion rows are square under the hairline; only the last row rounds, at the bottom, inside the box's corners

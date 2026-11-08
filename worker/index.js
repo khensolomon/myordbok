@@ -21,7 +21,8 @@ import { suggest } from './routes/suggest.js';
  */
 
 /**
- * GET /api/health — the app version and the dictionary in use.
+ * GET /api/health — the app version and the dictionary in use: its
+ * database, build, source and row counts (meta), which the About page shows.
  * Answers even when no dictionary is published, saying why.
  * @param {Env} env
  */
@@ -29,13 +30,17 @@ async function health(env) {
 	try {
 		const { dict, db } = await dictionary(env);
 		const { results } = await db
-			.prepare("SELECT key, value FROM meta WHERE key IN ('built', 'source')")
+			.prepare('SELECT key, value FROM meta')
 			.all()
 			.catch((err) => {
 				throw explainDictError(err, dict, env);
 			});
+		/** @type {Record<string, string>} */
 		const meta = Object.fromEntries(results.map((r) => [String(r.key), String(r.value)]));
-		return json({ ok: true, version: pkg.version, dictionary: { database: DATABASE_NAME[dict], ...meta } });
+		/** @type {Record<string, number>} */
+		const rows = {};
+		for (const [key, value] of Object.entries(meta)) if (key.startsWith('rows.')) rows[key.slice(5)] = Number(value);
+		return json({ ok: true, version: pkg.version, dictionary: { database: DATABASE_NAME[dict], built: meta.built ?? null, source: meta.source ?? null, rows } });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		return json({ ok: false, version: pkg.version, dictionary: null, error: message }, { status: 503 });
