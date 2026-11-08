@@ -1,8 +1,21 @@
 /* Layout and components. Mobile first; wider screens add room. */
 
+/* Widths that line the definition up with the search bar: the logo, the gap
+   after it, and the search box. Tablets use the icon, phones no logo. */
+:root {
+	--logo-w: 150px;
+	--bar-gap: 20px;
+	--search-w: 640px;
+}
+@media (max-width: 1023px) {
+	:root { --logo-w: 34px; --bar-gap: 14px; }
+}
+@media (max-width: 640px) {
+	:root { --logo-w: 0px; --bar-gap: 0px; }
+}
 
 /* Header and footer span the window. The search bar and the content start
-   at the same left edge and stop at a reading width (--page). */
+   at the same left edge and stop at a reading width. */
 .site-header,
 .site-footer {
 	width: 100%;
@@ -15,50 +28,88 @@ main {
 	padding-inline: var(--gutter);
 }
 
+/* Liquid Glass surfaces: blurred, tinted, a bright top edge. */
+.site-header,
+.site-footer,
+.search-bar {
+	background: var(--glass);
+	-webkit-backdrop-filter: saturate(180%) blur(20px);
+	backdrop-filter: saturate(180%) blur(20px);
+}
+
 /* ---------------------------------------------------------- header */
 
-/* Plain text navigation; it scrolls away with the page. */
+/* Text navigation that scrolls away with the page. */
 .site-header {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding-top: max(10px, env(safe-area-inset-top));
-	padding-bottom: 6px;
+	padding-top: max(8px, env(safe-area-inset-top));
+	padding-bottom: 8px;
+	box-shadow: inset 0 -0.5px 0 var(--glass-edge);
 }
 .site-nav { display: flex; gap: 2px; margin-left: -12px; font-size: 14px; font-weight: 500; }
-.site-nav a { padding: 8px 12px; border-radius: 999px; color: var(--ink-2); }
-.site-nav a:hover { text-decoration: none; background: var(--surface); }
+.site-nav a {
+	display: flex; align-items: center; justify-content: center;
+	padding: 8px 12px; border-radius: 999px; color: var(--ink-2);
+}
+.site-nav a:hover { text-decoration: none; background: var(--glass-fill); }
 .site-nav a[aria-current="page"] { color: var(--ink); }
+.nav-icon { display: none; }
 
 .you {
 	margin-left: auto;
 	width: 40px; height: 40px;
 	display: flex; align-items: center; justify-content: center;
-	border: none; border-radius: 999px;
-	background: var(--surface);
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-fill);
+	box-shadow: var(--glass-shine);
+}
+
+/* Phones: the links become icons in a glass capsule; the page's own link
+   sits under a brighter lens, as in iOS tab bars. */
+@media (max-width: 640px) {
+	.site-nav {
+		margin-left: 0; padding: 3px; gap: 0;
+		border: 0.5px solid var(--glass-edge); border-radius: 999px;
+		background: var(--glass-fill);
+		box-shadow: var(--glass-shine), var(--glass-lift);
+	}
+	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--muted); }
+	.site-nav a[aria-current="page"] { color: var(--brand); background: var(--glass-lens); box-shadow: var(--glass-shine), var(--glass-lift); }
+	.nav-icon { display: block; }
+	.nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 /* ---------------------------------------------------------- search bar */
 
-/* The bar stays in view while the page scrolls (Liquid Glass on top of the content). */
+/* Only the home and definition pages search. On a definition the bar stays
+   in view while the page scrolls. */
+.search-bar { display: none; }
+body[data-route="home"] .search-bar,
+body[data-route="definition"] .search-bar { display: block; }
 .search-bar {
 	position: sticky;
 	top: 0;
 	z-index: 5;
 	padding: 8px 0;
-	background: var(--glass);
-	-webkit-backdrop-filter: saturate(180%) blur(20px);
-	backdrop-filter: saturate(180%) blur(20px);
-	border-bottom: 0.5px solid var(--glass-edge);
+	box-shadow: inset 0 -0.5px 0 var(--glass-edge);
 }
-.search-bar-inner { display: flex; align-items: center; gap: 20px; }
+.search-bar-inner { display: flex; align-items: center; gap: var(--bar-gap); }
 .bar-logo { flex-shrink: 0; display: block; }
-.bar-logo .logo-full { display: block; width: 150px; }
-.bar-logo .logo-mark { display: none; width: 34px; }
-.search-bar mo-search { flex: 1; max-width: 640px; }
+.bar-logo .logo-full { display: block; width: var(--logo-w); }
+.bar-logo .logo-mark { display: none; width: var(--logo-w); }
+.search-bar mo-search { flex: 1; max-width: var(--search-w); }
+@media (max-width: 1023px) {
+	.bar-logo .logo-full { display: none; }
+	.bar-logo .logo-mark { display: block; }
+}
+@media (max-width: 640px) {
+	.bar-logo { display: none; }
+}
 
 /* Home: as before, the logo with the language line above the search box,
-   centred, and the bar does not stick. */
+   centred; the bar does not stick and has no band of its own. */
 .home-pair { display: none; }
 body[data-route="home"] .search-bar {
 	position: static;
@@ -66,7 +117,7 @@ body[data-route="home"] .search-bar {
 	background: none;
 	-webkit-backdrop-filter: none;
 	backdrop-filter: none;
-	border: none;
+	box-shadow: none;
 }
 body[data-route="home"] .search-bar-inner {
 	max-width: calc(680px + 2 * var(--gutter));
@@ -74,11 +125,15 @@ body[data-route="home"] .search-bar-inner {
 	flex-direction: column;
 	gap: 0;
 }
+body[data-route="home"] .bar-logo { display: block; }
 body[data-route="home"] .bar-logo .logo-full { display: block; width: min(340px, 70vw); }
 body[data-route="home"] .bar-logo .logo-mark { display: none; }
 body[data-route="home"] .home-pair { display: block; margin: 8px 0 0; font-size: 15px; color: var(--muted); }
 body[data-route="home"] .home-pair [aria-hidden] { color: var(--brand); }
 body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32px; }
+@media (max-width: 640px) {
+	body[data-route="home"] .search-bar { padding-top: 10vh; }
+}
 
 /* Dark theme shows the logo in one colour so the grey wordmark stays legible. */
 :root[data-theme="dark"] .bar-logo img { filter: brightness(0) invert(1); }
@@ -86,39 +141,36 @@ body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32
 	:root:not([data-theme="light"]) .bar-logo img { filter: brightness(0) invert(1); }
 }
 
-@media (max-width: 640px) {
-	.search-bar-inner { gap: 12px; }
-	.bar-logo .logo-full { display: none; }
-	.bar-logo .logo-mark { display: block; }
-	body[data-route="home"] .search-bar { padding-top: 10vh; }
-}
-
 /* ---------------------------------------------------------- search box */
 
-/* The field and its suggestions are one box. The element keeps the height of
-   the field; the box grows over the page when suggestions open. */
+/* The field and its suggestions are one glass box. The element keeps the
+   height of the field; the box grows over the page when suggestions open. */
 mo-search { display: block; position: relative; height: 44px; }
 
 .search-box {
 	position: absolute;
 	inset: 0 0 auto 0;
 	z-index: 4;
+	border: 0.5px solid var(--glass-edge);
 	border-radius: 22px;
-	background: var(--surface);
-	box-shadow: inset 0 0 0 1px transparent;
-	transition: background-color 0.15s, box-shadow 0.15s;
+	background: var(--glass-fill);
+	-webkit-backdrop-filter: saturate(180%) blur(20px);
+	backdrop-filter: saturate(180%) blur(20px);
+	box-shadow: var(--glass-shine);
+	transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.search-box:hover { background: var(--surface-hover); }
+.search-box:hover { background: var(--glass-fill-hover); }
 .search-box:focus-within,
 mo-search[data-open] .search-box {
-	background: var(--card);
-	box-shadow: inset 0 0 0 1px var(--ring), var(--shadow);
+	background: var(--glass-lens);
+	border-color: var(--ring);
+	box-shadow: var(--glass-shine), var(--shadow);
 }
 
 .search {
 	display: flex; align-items: center; gap: 4px;
-	height: 44px;
-	padding: 0 5px 0 18px;
+	height: 43px;
+	padding: 0 4px 0 18px;
 }
 .search input {
 	flex: 1; min-width: 0;
@@ -132,6 +184,7 @@ mo-search[data-open] .search-box {
 	display: flex; align-items: center; justify-content: center;
 	border: none; border-radius: 999px;
 	background: var(--brand); color: #ffffff; cursor: pointer;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(23, 32, 43, 0.2);
 	transition: filter 0.15s;
 }
 .search-go:hover { filter: brightness(1.08); }
@@ -142,23 +195,23 @@ mo-search[data-open] .search-box {
 	border-top: 0.5px solid var(--line);
 }
 .search-list a { display: block; padding: 8px 12px; border-radius: 12px; color: var(--ink); }
-.search-list a:hover, .search-list [aria-selected="true"] a { background: var(--surface); text-decoration: none; }
+.search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
 
 /* ---------------------------------------------------------- main + footer */
 
 main { flex: 1; padding-top: 28px; padding-bottom: 48px; outline: none; }
+body[data-route="home"] main { padding-top: 0; }
 
 .site-footer {
 	display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
-	padding-top: 20px;
-	padding-bottom: max(28px, env(safe-area-inset-bottom));
+	padding-top: 18px;
+	padding-bottom: max(22px, env(safe-area-inset-bottom));
+	box-shadow: var(--glass-shine);
 	font-size: 13px; color: var(--muted);
 }
 .site-footer nav { display: flex; gap: 20px; }
 .site-footer a { color: var(--muted); }
 body[data-route="home"] .site-footer { display: none; }
-
-body[data-route="home"] main { padding-top: 0; }
 
 /* ---------------------------------------------------------- entry */
 
@@ -232,9 +285,18 @@ mark { background: none; color: inherit; font-weight: 600; }
 .kind-review { color: var(--link); border-color: var(--guide); }
 
 /* Forms, synonyms and related words */
+/* A definition is as wide as the logo and the search box together; its
+   timeline and word lists start under the left edge of the search box, and
+   move left with it as the logo shrinks. */
+.entry { max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
+@media (min-width: 641px) {
+	.entry .timeline,
+	.entry .related { margin-left: calc(var(--logo-w) + var(--bar-gap)); }
+}
+
 .related {
 	display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px;
-	margin: 8px 0 0 15px; padding: 18px 0 0; border-top: 1px solid var(--line-soft);
+	margin: 8px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line-soft);
 	font-size: 15px; line-height: 1.6;
 }
 .related dt { color: var(--faint); }

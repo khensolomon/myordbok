@@ -1,5 +1,13 @@
 # Changelog
 
+## 26.11.8+12
+
+- The search bar shows only on the home and definition pages
+- A definition is as wide as the logo and the search box; its timeline and word lists start under the left edge of the search box and follow it as the screen narrows
+- Logo by screen size: full logo on desktop, the icon on tablets and large phones, none beside the search box on phones (the home page keeps the full logo above it)
+- Phones: the main links become icons (home, grammar, fonts, about) in a glass capsule, the current page under a brighter lens
+- Liquid Glass on the header, the footer, the search bar and the search box: blurred tinted fill, bright top edge, soft lift
+
 ## 26.11.8+11
 
 - Home: the logo and the English ⇄ မြန်မာ line above the search box again, centred
