@@ -3,12 +3,15 @@
 /* Widths that line the definition up with the search bar: the logo, the gap
    after it, and the search box. Tablets use the icon, phones no logo. */
 :root {
-	--logo-w: 150px;
+	--logo-w: 180px;
 	--bar-gap: 20px;
 	--search-w: 640px;
+	--aside-w: 300px;
+	--aside-gap: 48px;
+	--header-h: 58px;
 }
 @media (max-width: 1023px) {
-	:root { --logo-w: 34px; --bar-gap: 14px; }
+	:root { --logo-w: 40px; --bar-gap: 14px; }
 }
 @media (max-width: 640px) {
 	:root { --logo-w: 0px; --bar-gap: 0px; }
@@ -46,7 +49,6 @@ main {
 	gap: 12px;
 	padding-top: max(8px, env(safe-area-inset-top));
 	padding-bottom: 8px;
-	box-shadow: inset 0 -0.5px 0 var(--glass-edge);
 }
 .site-nav { display: flex; gap: 2px; margin-left: -12px; font-size: 14px; font-weight: 500; }
 .site-nav a {
@@ -93,7 +95,61 @@ body[data-route="definition"] .search-bar { display: block; }
 	top: 0;
 	z-index: 5;
 	padding: 8px 0;
-	box-shadow: inset 0 -0.5px 0 var(--glass-edge);
+	transition: box-shadow 0.2s;
+}
+
+/* Desktop: a hairline under each band. Smaller screens: no line; once the
+   page scrolls under the search bar, a soft shadow lifts it instead. */
+@media (min-width: 1024px) {
+	.site-header,
+	.search-bar { box-shadow: inset 0 -0.5px 0 var(--glass-edge); }
+}
+@media (max-width: 1023px) {
+	body[data-scrolled] .search-bar { box-shadow: var(--float-shadow); }
+}
+
+/* Phones (Liquid Glass): no bands. The header and the search bar float; the
+   capsule, the You button and the search box carry their own glass, and
+   only once the page scrolls under them does a fading scrim appear behind,
+   never a box. */
+@media (max-width: 640px) {
+	.site-header,
+	.search-bar {
+		position: sticky;
+		isolation: isolate;
+		background: none;
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow: none;
+	}
+	.site-header { top: 0; z-index: 6; min-height: calc(var(--header-h) + env(safe-area-inset-top)); }
+	.search-bar { top: calc(var(--header-h) + env(safe-area-inset-top)); padding-top: 2px; }
+	body[data-scrolled] .search-bar { box-shadow: none; }
+	.site-header::before,
+	.search-bar::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.2s;
+		background: linear-gradient(to bottom, var(--scrim), transparent);
+		-webkit-backdrop-filter: blur(10px);
+		backdrop-filter: blur(10px);
+		-webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent);
+		mask-image: linear-gradient(to bottom, #000 50%, transparent);
+	}
+	/* With a search bar below, the header's scrim continues into it. */
+	body[data-route="definition"] .site-header::before {
+		background: var(--scrim);
+		-webkit-mask-image: none;
+		mask-image: none;
+	}
+	.search-bar::before { bottom: -16px; }
+	body[data-scrolled] .site-header::before,
+	body[data-scrolled] .search-bar::before { opacity: 1; }
+	.site-footer { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 .search-bar-inner { display: flex; align-items: center; gap: var(--bar-gap); }
 .bar-logo { flex-shrink: 0; display: block; }
@@ -119,6 +175,7 @@ body[data-route="home"] .search-bar {
 	backdrop-filter: none;
 	box-shadow: none;
 }
+body[data-route="home"] .search-bar::before { display: none; }
 body[data-route="home"] .search-bar-inner {
 	max-width: calc(680px + 2 * var(--gutter));
 	margin-inline: auto;
@@ -296,6 +353,47 @@ mark { background: none; color: inherit; font-weight: 600; }
 	.entry .timeline { padding-left: calc(var(--logo-w) + var(--bar-gap) - 16.5px); }
 	.entry .related { margin-left: calc(var(--logo-w) + var(--bar-gap)); }
 }
+
+/* ---------------------------------------------------------- definition aside */
+
+/* Large screens: two columns, the definition and, beside it, what the result
+   holds and a place to react. Smaller screens: the aside follows the entry. */
+body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w) + var(--aside-gap) + var(--aside-w) + 2 * var(--gutter)); }
+.definition { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; }
+@media (min-width: 1280px) {
+	.definition { grid-template-columns: minmax(0, calc(var(--logo-w) + var(--bar-gap) + var(--search-w))) var(--aside-w); gap: var(--aside-gap); }
+	.entry-aside { position: sticky; top: 84px; align-self: start; }
+}
+@media (min-width: 641px) and (max-width: 1279px) {
+	.entry-aside { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
+}
+
+.entry-aside { display: flex; flex-direction: column; gap: 16px; }
+.aside-card {
+	padding: 16px 18px;
+	border: 0.5px solid var(--glass-edge);
+	border-radius: var(--radius);
+	background: var(--glass-fill);
+	box-shadow: var(--glass-shine);
+}
+.aside-card h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }
+.aside-lead { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink); }
+.aside-facts { margin: 10px 0 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.aside-facts li + li { margin-top: 6px; }
+.aside-facts .kind { margin-right: 4px; }
+.aside-quiet { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.aside-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.aside-icon,
+.aside-suggest {
+	height: 38px;
+	display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-lens); color: var(--ink-2);
+	box-shadow: var(--glass-shine), var(--glass-lift);
+	cursor: pointer;
+}
+.aside-icon { width: 38px; }
+.aside-suggest { padding: 0 14px 0 12px; font-size: 14px; font-weight: 500; }
 
 /* Forms, synonyms and related words */
 .related {

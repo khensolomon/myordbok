@@ -1,5 +1,13 @@
 # Changelog
 
+## 26.11.8+15
+
+- Definition pages: larger logo (180 px) and icon (40 px) beside the search box
+- Below desktop, the header and the search bar have no bottom line; once the page scrolls under the search bar, a soft, partly transparent shadow lifts it
+- Phones (Liquid Glass): the header and the search bar float without a band; the nav capsule, You button and search box carry their own glass, and a fading scrim appears behind them only once the page scrolls
+- Definition pages get a second column on large screens (below the entry on smaller ones): a summary of the result (meanings, parts of speech, what is still a draft or awaiting review) and a place to like, dislike or suggest a correction, disabled until sign-in arrives
+- New dislike icon in the same line style
+
 ## 26.11.8+14
 
 - Large screens: each part of speech's line starts under the left edge of the search box, and the word lists line up with it; the outer line stays under the language badge

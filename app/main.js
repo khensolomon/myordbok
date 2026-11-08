@@ -29,5 +29,11 @@ const router = startRouter(outlet, (route) => {
 
 search.addEventListener('mo-search', (e) => router.go(definitionHref(/** @type {CustomEvent<string>} */ (e).detail)));
 
+// The bars change look once the page scrolls under them (app.css, data-scrolled).
+const markScrolled = () => document.body.toggleAttribute('data-scrolled', window.scrollY > 4);
+window.addEventListener('scroll', markScrolled, { passive: true });
+window.addEventListener('mo:navigated', markScrolled);
+markScrolled();
+
 initConsent();
 boot();

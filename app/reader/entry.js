@@ -9,7 +9,8 @@
  * shows the root's entry under a line saying so.
  */
 import { splitExamples } from '#shared/markup.js';
-import { h } from '../core/dom.js';
+import { h, icon } from '../core/dom.js';
+import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, suggest } from '../data/api.js';
@@ -33,9 +34,22 @@ export async function view(ctx) {
 	const data = await lookup(q);
 	if (data.language === 'my') {
 		if (!data.entries.length) return missing(data.query);
-		return h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
+		return withAside(
+			h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query)),
+			aside(data.query, lead(data.query, data.entries), data.entries),
+		);
 	}
 	return english(data);
+}
+
+/**
+ * The definition and, beside it on large screens (below it otherwise), what
+ * the result holds and a place to react or suggest.
+ * @param {HTMLElement} article
+ * @param {HTMLElement} side
+ */
+function withAside(article, side) {
+	return h('div', { class: 'definition' }, article, side);
 }
 
 /** @param {EnglishResult} data */
@@ -45,6 +59,10 @@ async function english(data) {
 
 	/** @type {import('../core/dom.js').Child[]} */
 	const body = [];
+	/** Senses on the page, for the summary beside it. */
+	let shown = data.entries;
+	/** @type {string} */
+	let summary = lead(data.query, data.entries);
 	if (data.variant_of.length) {
 		body.push(h('p', { class: 'entry-note' }, 'A spelling of ', wordLinks(data.variant_of), '.'));
 	}
@@ -56,6 +74,10 @@ async function english(data) {
 		// Only a form of other words: show the roots that have senses.
 		const withSenses = roots.filter((r) => (data.root_senses[r] ?? 0) > 0).slice(0, ROOTS_SHOWN);
 		const results = await Promise.all(withSenses.map((r) => lookup(r)));
+		const found = results.filter((r) => r.language === 'en' && r.entries.length);
+		shown = found.flatMap((r) => (r.language === 'en' ? r.entries : []));
+		const [rootWord, pos, form] = data.forms_of[0];
+		summary = `“${data.query}” is the ${form}${pos ? ` (${pos})` : ''} of “${rootWord}”.${found.length === 1 ? ` ${lead(found[0].query, shown)}` : ''}`;
 		for (const root of results) {
 			if (root.language !== 'en' || !root.entries.length) continue;
 			body.push(
@@ -66,7 +88,71 @@ async function english(data) {
 			);
 		}
 	}
-	return h('article', { class: 'entry', lang: 'en' }, englishHead(data.query), body);
+	return withAside(h('article', { class: 'entry', lang: 'en' }, englishHead(data.query), body), aside(data.query, summary, shown));
+}
+
+/**
+ * One sentence: how many meanings, as which parts of speech.
+ * @param {string} word
+ * @param {Array<{ type: string }>} senses
+ */
+function lead(word, senses) {
+	const types = [...new Set(senses.map((s) => s.type.toLowerCase()))].map((t) => `${/^[aeiou]/.test(t) ? 'an' : 'a'} ${t}`);
+	const list = types.length > 1 ? `${types.slice(0, -1).join(', ')} and ${types.at(-1)}` : types[0];
+	const n = senses.length;
+	return `“${word}” has ${n} meaning${n === 1 ? '' : 's'} as ${list}.`;
+}
+
+/**
+ * @param {string} word
+ * @param {string} summary
+ * @param {Array<{ type: string, kind?: string }>} senses
+ */
+function aside(word, summary, senses) {
+	const kinds = senses.map((s) => s.kind ?? 'Active');
+	const drafts = kinds.filter((k) => k === 'Draft').length;
+	const awaiting = kinds.filter((k) => /awaiting/i.test(k)).length;
+	/** @param {number} n @param {string} one @param {string} many */
+	const count = (n, one, many) => `${n} meaning${n === 1 ? ` ${one}` : `s ${many}`}.`;
+	return h(
+		'aside',
+		{ class: 'entry-aside', 'aria-label': 'About this result' },
+		h(
+			'section',
+			{ class: 'aside-card' },
+			h('h2', null, 'About this entry'),
+			h('p', { class: 'aside-lead' }, summary),
+			awaiting || drafts
+				? h(
+						'ul',
+						{ class: 'aside-facts' },
+						awaiting ? h('li', null, kindBadge('Checked: awaiting native review'), ' ', count(awaiting, 'is checked and waits for a native speaker’s review', 'are checked and wait for a native speaker’s review')) : null,
+						drafts ? h('li', null, kindBadge('Draft'), ' ', count(drafts, 'is a draft, not yet checked', 'are drafts, not yet checked')) : null,
+					)
+				: h('p', { class: 'aside-quiet' }, 'Every meaning here has been reviewed.'),
+		),
+		h(
+			'section',
+			{ class: 'aside-card' },
+			h('h2', null, 'Is this helpful?'),
+			h(
+				'div',
+				{ class: 'aside-actions' },
+				iconButton(ICONS.like, `Like “${word}”`),
+				iconButton(ICONS.dislike, `Dislike “${word}”`),
+				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggest a correction or a new meaning' }, icon(ICONS.suggest, 18), 'Suggest a correction'),
+			),
+			h('p', { class: 'aside-quiet' }, 'Liking, commenting and suggesting need a sign-in, which arrives soon.'),
+		),
+	);
+}
+
+/**
+ * @param {string} paths  Icon from ICONS.
+ * @param {string} label  Shown as the hint and read by screen readers.
+ */
+function iconButton(paths, label) {
+	return h('button', { type: 'button', class: 'aside-icon', 'aria-label': label, title: label, disabled: true }, icon(paths, 20));
 }
 
 /** @param {string} word */
