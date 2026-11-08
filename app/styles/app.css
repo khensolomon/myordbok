@@ -536,6 +536,14 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .sentence-count { font-size: 14px; color: var(--faint); }
 .no-result.inline { padding: 8px 0; }
 
+/* A phrase read from its words. */
+.phrase-my { margin: 6px 0 0; font-family: var(--font-my); font-size: 26px; line-height: 1.5; color: var(--ink); }
+.phrase-made { margin: 2px 0 0; font-size: 13px; color: var(--faint); }
+.phrase .pos-name { font-style: normal; }
+.phrase-word { font-style: normal; font-weight: 600; color: var(--ink); }
+.phrase-more { margin: 0 0 0 26px; font-size: 14px; }
+.phrase-none { margin: 14px 0 8px; }
+
 /* Nothing found. */
 .no-result-part > p { margin: 18px 0 0; color: var(--muted); }
 .no-result-ask { max-width: 560px; margin-top: 32px; border-radius: var(--radius); }

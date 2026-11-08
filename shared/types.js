@@ -72,4 +72,24 @@
  * @property {string[]} words  Headwords one edit away from `q`, the most used first.
  */
 
+/**
+ * One part of a phrase as found: `word` is the headword used, `note` says
+ * how it was found when not as typed.
+ * @typedef {object} PhrasePart
+ * @property {string} term
+ * @property {string} word
+ * @property {'form' | 'spelling' | null} note
+ * @property {number} senses  How many senses the word has.
+ * @property {EnglishSense | null} sense  The sense that fits the phrase.
+ */
+
+/**
+ * @typedef {object} Phrase
+ * @property {string} q
+ * @property {'of' | 'pair' | null} pattern  null: not a phrase this reads.
+ * @property {number} [head]  Index of the part the phrase is about.
+ * @property {string | null} myanmar  Made from the parts, in Myanmar order.
+ * @property {PhrasePart[]} parts
+ */
+
 export {};

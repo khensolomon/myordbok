@@ -79,7 +79,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   (`#synonyms`); `exact=1` looks up the text as typed. The Myanmar number
   reading is a rewrite of myanmar-notation with decimals, negatives, exact
   digits and the reverse direction; `tests/fixtures/numeral-my.json` holds
-  the original library's readings it is tested against.
+  the original library's readings it is tested against. A phrase that is not
+  an entry (`king of Denmark`) is read from its words' entries
+  (`/api/phrase`). The full map is in [query.md](query.md).
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

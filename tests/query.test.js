@@ -117,3 +117,18 @@ test('time and date', () => {
 	assert.match(dateWords(d).en, /Sunday.*8 November 2026/);
 	assert.equal(dateWords(d).my, '၂၀၂၆ ခုနှစ်၊ နိုဝင်ဘာလ ၈ ရက်၊ တနင်္ဂနွေနေ့');
 });
+
+test('questions around a phrase keep the phrase', () => {
+	const cases = [
+		['what is the king of danmark', 'king of danmark'],
+		['who is the king of Norway?', 'king of Norway'],
+		['where is Denmark', 'Denmark'],
+		['what does love mean', 'love'],
+		['how do you say love in Myanmar', 'love'],
+		['love in burmese', 'love'],
+		['translate big house to myanmar', 'big house'],
+		['tell me about AI', 'AI'],
+		['tell me what is ai', 'ai'],
+	];
+	for (const [typed, word] of cases) assert.equal(classify(typed).word, word, typed);
+});

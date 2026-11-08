@@ -16,7 +16,7 @@ INSERT INTO type_word (id, name, shortname) VALUES
 DROP TABLE IF EXISTS type_sense;
 CREATE TABLE type_sense (id INTEGER, name TEXT, PRIMARY KEY (id));
 INSERT INTO type_sense (id, name) VALUES
-(0, 'Draft'), (1, 'Active'), (9, 'Idiom'), (39, 'Checked: awaiting native review');
+(0, 'Draft'), (1, 'Active'), (3, 'Country'), (9, 'Idiom'), (39, 'Checked: awaiting native review');
 
 DROP TABLE IF EXISTS eng_word;
 CREATE TABLE eng_word (id INTEGER, word TEXT, derived INTEGER, PRIMARY KEY (id));
@@ -25,7 +25,8 @@ INSERT INTO eng_word (id, word, derived) VALUES
 (5, 'go', 0), (6, 'went', 1), (7, 'gone', 1), (8, 'goes', 2), (9, 'going', 0),
 (10, 'colour', 0), (11, 'color', 0), (12, 'water', 0), (13, 'hate', 0),
 (14, 'affection', 0), (15, 'lovable', 0), (16, 'love affair', 0), (17, 'adore', 0),
-(18, 'school', 0), (19, 'plant', 0), (20, 'family', 0), (21, 'waters', 2);
+(18, 'school', 0), (19, 'plant', 0), (20, 'family', 0), (21, 'waters', 2),
+(22, 'king', 0), (23, 'Denmark', 0), (24, 'Norway', 0), (25, 'big', 0), (26, 'house', 0), (27, 'kings', 2);
 CREATE INDEX eng_word_1 ON eng_word (word COLLATE NOCASE);
 
 DROP TABLE IF EXISTS emd_sense;
@@ -46,7 +47,13 @@ INSERT INTO emd_sense (id, wrid, wrte, sense, exam, wseq, wrkd, synset) VALUES
 (13, 17, 1, 'အလွန်ချစ်မြတ်နိုးသည်', NULL, 1, 1, 201775164),
 (14, 18, 0, 'ကျောင်း', NULL, 1, 1, NULL),
 (15, 19, 0, 'အပင်', NULL, 1, 1, NULL),
-(16, 20, 0, 'မိသားစု', NULL, 1, 1, NULL);
+(16, 20, 0, 'မိသားစု', NULL, 1, 1, NULL),
+(17, 22, 0, 'အကောင်းဆုံးသူ; ထိပ်ဆုံးသူ', 'the king of jazz', 1, 1, NULL),
+(18, 22, 0, 'ဘုရင်; မင်း', 'the King of Spain; The king opened the bridge.', 2, 1, NULL),
+(19, 23, 0, 'ဒိန်းမတ်နိုင်ငံ', NULL, 1, 3, NULL),
+(20, 24, 0, 'နော်ဝေနိုင်ငံ', NULL, 1, 3, NULL),
+(21, 25, 2, 'ကြီးသော', 'a big house', 1, 1, NULL),
+(22, 26, 0, 'အိမ်', NULL, 1, 1, NULL);
 CREATE INDEX emd_sense_1 ON emd_sense (wrid, wseq);
 CREATE INDEX emd_sense_2 ON emd_sense (synset);
 
@@ -55,7 +62,7 @@ CREATE TABLE eng_form (form INTEGER, root INTEGER, pos TEXT, type INTEGER, PRIMA
 INSERT INTO eng_form (form, root, pos, type) VALUES
 (2, 1, 'n', 1), (2, 1, 'v', 2), (3, 1, 'v', 3), (3, 1, 'v', 4), (4, 1, 'v', 5),
 (6, 5, 'v', 3), (7, 5, 'v', 4), (8, 5, 'v', 2), (9, 5, 'v', 5),
-(21, 12, 'n', 1), (21, 12, 'v', 2);
+(21, 12, 'n', 1), (21, 12, 'v', 2), (27, 22, 'n', 1);
 CREATE INDEX eng_form_1 ON eng_form (root);
 
 DROP TABLE IF EXISTS wn_member;
@@ -110,6 +117,6 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 INSERT INTO meta (key, value) VALUES
 ('built', 'sample'),
 ('source', 'sample'),
-('rows.type_word', '4'), ('rows.type_sense', '4'), ('rows.eng_word', '21'), ('rows.emd_sense', '16'),
-('rows.eng_form', '11'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
+('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '27'), ('rows.emd_sense', '22'),
+('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
 ('rows.mya_word', '3'), ('rows.med_sense', '3'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');

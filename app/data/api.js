@@ -31,6 +31,15 @@ export function spelling(q) {
 }
 
 /**
+ * A phrase that is not an entry, read from its words' entries.
+ * @param {string} q
+ * @returns {Promise<import('#shared/types.js').Phrase>}
+ */
+export function phrase(q) {
+	return getJSON(`/api/phrase?q=${encodeURIComponent(q)}`);
+}
+
+/**
  * Everything the dictionary knows about `q`.
  * @param {string} q
  * @returns {Promise<import('#shared/types.js').LookupResult>}

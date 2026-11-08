@@ -15,6 +15,11 @@
  * A word with no senses of its own that is a form of another (went → go)
  * shows the root's entry under a line saying so.
  *
+ * A phrase that is not an entry ("king of Denmark", "big house") is read
+ * from its words' entries (/api/phrase): the Myanmar of the whole phrase,
+ * made in Myanmar word order and labelled as made, then each word's sense
+ * that fits, on the same timeline.
+ *
  * Words the dictionary does not have: a sentence is shown one word at a time
  * (&w=index), each fetched only when opened, so a slow connection loads one
  * small result at a time; a single word gets "did you mean", words starting
@@ -26,7 +31,8 @@ import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
-import { lookup, savingData, spelling, suggest } from '../data/api.js';
+import { planPhrase } from '#shared/query/phrase.js';
+import { lookup, phrase, savingData, spelling, suggest } from '../data/api.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -34,6 +40,9 @@ import { classify, understoodHref } from './query.js';
 
 /** Roots shown in full under a form (went → go); more are listed as links. */
 const ROOTS_SHOWN = 2;
+
+/** Kinds of sense shown beside the part of speech in a phrase. */
+const PLACE_KINDS = ['Country', 'Capital city'];
 
 /** Words of a sentence offered one by one. */
 const SENTENCE_WORDS = 30;
@@ -73,6 +82,10 @@ export async function view(ctx) {
 	const data = await lookup(q);
 	const found = await result(data, asked);
 	if (found) return found;
+	if (planPhrase(q)) {
+		const read = await phrase(q);
+		if (read.parts.some((p) => p.sense)) return phraseView(read, asked);
+	}
 	if (words.length > 1) return sentence(q, words, 0);
 	return missing(data.query);
 }
@@ -99,18 +112,20 @@ async function result(data, asked) {
  * @param {string} word
  * @param {string | null | undefined} asked
  * @param {HTMLElement | null} [rel]  The entry's related words, if any.
+ * @param {string[]} [notes]  How words were read ("danmark" read as "Denmark").
  */
-function understood(word, asked, rel) {
-	if (!asked) return null;
+function understood(word, asked, rel, notes = []) {
+	if (!asked && !notes.length) return null;
 	const focus = decodeURIComponent(location.hash.slice(1));
 	const name = Object.entries(FOCUS_ROWS).find(([, id]) => id === focus)?.[0];
 	const absent = name && !rel?.querySelector(`#${focus}`);
 	return h(
 		'p',
 		{ class: 'entry-note understood' },
-		`Showing “${word}” for “${asked}”. `,
+		asked ? `Showing “${word}” for “${asked}”. ` : null,
+		notes.map((n) => `${n} `),
 		absent ? `${NOT_LISTED[focus]} ` : null,
-		h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`),
+		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`) : null,
 	);
 }
 
@@ -383,6 +398,65 @@ function related(data) {
 	const ids = { ...FOCUS_ROWS, ...(data.synonyms.length ? {} : { Similar: 'synonyms' }) };
 	if (!rows.length) return null;
 	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, name), h('dd', null, value)]));
+}
+
+/**
+ * A phrase read from its words: the phrase and its Myanmar, how each word
+ * was found when not as typed, then each word's fitting sense.
+ * @param {import('#shared/types.js').Phrase} read
+ * @param {string | null} asked
+ */
+function phraseView(read, asked) {
+	const words = read.parts.map((p) => p.word);
+	const title = read.pattern === 'of' ? `${words[0]} of ${words.slice(1).join(' ')}` : words.join(' ');
+	const found = read.parts.filter((p) => p.sense).length;
+	const notes = read.parts
+		.filter((p) => p.note)
+		.map((p) => (p.note === 'spelling' ? `“${p.term}” read as “${p.word}”.` : `“${p.term}” is a form of “${p.word}”.`));
+
+	const head = h(
+		'header',
+		{ class: 'entry-head' },
+		h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'),
+		h('div', null,
+			h('h1', { class: 'headword' }, title),
+			read.myanmar ? h('p', { class: 'phrase-my', lang: 'my' }, read.myanmar) : null,
+			h('p', { class: 'phrase-made' }, `Phrase · made from ${found} ${found === 1 ? 'entry' : 'entries'}`)),
+	);
+	const parts = h(
+		'div',
+		{ class: 'timeline' },
+		read.parts.map((p) => {
+			const label = p.sense ? [p.sense.type.toLowerCase(), PLACE_KINDS.includes(p.sense.kind) ? p.sense.kind.toLowerCase() : null].filter(Boolean).join(' · ') : 'no entry';
+			return h(
+				'section',
+				{ class: 'pos phrase-part' },
+				h('h2', { class: 'pos-name' }, h('a', { href: definitionHref(p.word), class: 'phrase-word' }, p.word), ` · ${label}`),
+				p.sense
+					// The place kind is in the heading already.
+					? h('ul', { class: 'senses' }, sense(PLACE_KINDS.includes(p.sense.kind) ? { ...p.sense, kind: 'Active' } : p.sense, 'my', p.word))
+					: h('p', { class: 'notice phrase-none' }, `The dictionary has no entry for “${p.term}”.`),
+				p.senses > 1 ? h('p', { class: 'phrase-more' }, h('a', { href: definitionHref(p.word) }, `All ${p.senses} meanings of “${p.word}” →`)) : null,
+			);
+		}),
+	);
+	const side = h(
+		'aside',
+		{ class: 'entry-aside', 'aria-label': 'About this phrase' },
+		h('section', { class: 'aside-card' },
+			h('h2', null, 'About this phrase'),
+			h('p', { class: 'aside-lead' }, `“${title}” is not an entry of its own. It is read from the entries for ${words.map((w) => `“${w}”`).join(' and ')}.`),
+			read.myanmar ? h('p', { class: 'aside-quiet' }, 'The Myanmar line is put together from those entries in Myanmar word order, so it is a reading, not a checked translation.') : null),
+		h('section', { class: 'aside-card' },
+			h('h2', null, 'Should it be an entry?'),
+			h('div', { class: 'aside-actions' },
+				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggesting needs a sign-in' }, icon(ICONS.suggest, 18), 'Suggest this phrase')),
+			h('p', { class: 'aside-quiet' }, 'Suggesting needs a sign-in, which arrives soon.')),
+	);
+	return withAside(
+		h('article', { class: 'entry phrase', lang: 'en' }, head, understood(title, asked, null, notes), parts),
+		side,
+	);
 }
 
 /**

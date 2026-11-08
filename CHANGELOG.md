@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.8+29
+
+- Phrases that are not entries, such as 'king of Denmark' or 'big house', are read from their words: the Myanmar of the whole phrase, then the sense of each word that fits
+- More questions understood: who is, where is, what does X mean, how do you say X in Myanmar, X in Burmese
+- docs/query.md: how a query is read, and what is shown for each kind
+
 ## 26.11.8+28
 
 - Search reads what was typed first: numbers in Myanmar and English words, sums and percentages, the time and date answered on the device

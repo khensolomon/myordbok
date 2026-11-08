@@ -45,20 +45,29 @@ export function edits1(word) {
 }
 
 /**
+ * Headwords one edit away from `q`, the most used first; none for text that
+ * is not a short English word or phrase.
+ * @param {D1Database} db
+ * @param {string} q
+ * @param {number} [limit]
+ * @returns {Promise<string[]>}
+ */
+export async function closeWords(db, q, limit = SPELLING_LIMIT) {
+	const word = q.toLowerCase();
+	if (detectLang(q) !== 'en' || word.length > MAX_LENGTH || !/^[a-z' -]+$/.test(word)) return [];
+	const { results } = await db.prepare(SQL).bind(JSON.stringify(edits1(word)), limit).all();
+	return results.map((r) => String(r.word));
+}
+
+/**
  * @param {URL} url
  * @param {import('../lib/dict.js').DictEnv} env
  */
 export async function spelling(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
-	const word = q.toLowerCase();
-	if (detectLang(q) !== 'en' || word.length > MAX_LENGTH || !/^[a-z' -]+$/.test(word)) return json({ q, words: [] }, { cache: 3600 });
 	const { dict, db } = await dictionary(env);
-	const { results } = await db
-		.prepare(SQL)
-		.bind(JSON.stringify(edits1(word)), SPELLING_LIMIT)
-		.all()
-		.catch((err) => {
-			throw explainDictError(err, dict, env);
-		});
-	return json({ q, words: results.map((r) => String(r.word)) }, { cache: 3600 });
+	const words = await closeWords(db, q).catch((err) => {
+		throw explainDictError(err, dict, env);
+	});
+	return json({ q, words }, { cache: 3600 });
 }
