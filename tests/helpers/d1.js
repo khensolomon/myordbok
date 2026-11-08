@@ -26,7 +26,14 @@ export function sqlite(sql) {
 export function d1(db) {
 	return {
 		prepare(/** @type {string} */ sql) {
-			const statement = db.prepare(sql);
+			// D1 reports SQL errors when the statement runs, not when it is prepared.
+			/** @type {any} */
+			let prepared;
+			const statement = {
+				get: (/** @type {any[]} */ ...a) => (prepared ??= db.prepare(sql)).get(...a),
+				all: (/** @type {any[]} */ ...a) => (prepared ??= db.prepare(sql)).all(...a),
+				setReturnArrays: (/** @type {boolean} */ v) => (prepared ??= db.prepare(sql)).setReturnArrays(v),
+			};
 			/** @type {any[]} */
 			let args = [];
 			const api = {

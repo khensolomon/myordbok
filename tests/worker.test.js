@@ -58,6 +58,18 @@ test('with no release, the API says so instead of guessing', async () => {
 	assert.equal(lookup.body.error.code, 'unavailable');
 });
 
+test('an empty slot says how to fill it', async () => {
+	const env = localEnv({ DICT_A: d1(sqlite()) });
+	for (const path of ['/api/suggest?q=lo', '/api/lookup?q=love']) {
+		const res = await call(path, env);
+		assert.equal(res.status, 503);
+		assert.match(res.body.error.message, /Dictionary slot a is empty \(no such table: \w+\); locally: make data-sample/);
+	}
+	const health = await call('/api/health', env);
+	assert.equal(health.status, 503);
+	assert.match(health.body.error, /slot a is empty/);
+});
+
 test('lookup: senses, forms, synonyms and opposites', async () => {
 	const { body } = await call('/api/lookup?q=love', localEnv());
 	assert.equal(body.language, 'en');

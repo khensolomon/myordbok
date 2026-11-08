@@ -8,7 +8,7 @@
 import { d1Database, search } from '../../shared/search/search.mjs';
 import statements from '../../shared/search/statements.js';
 import { normalizeQuery } from '../../shared/validate.js';
-import { dictionary } from '../lib/dict.js';
+import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 
 /**
@@ -17,7 +17,9 @@ import { json } from '../lib/http.js';
  */
 export async function lookup(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
-	const { db } = await dictionary(env);
-	const result = await search(d1Database(db), statements, q);
+	const { slot, db } = await dictionary(env);
+	const result = await search(d1Database(db), statements, q).catch((err) => {
+		throw explainDictError(err, slot, env);
+	});
 	return json(result, { cache: 300 });
 }

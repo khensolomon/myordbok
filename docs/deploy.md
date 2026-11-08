@@ -138,7 +138,10 @@ make data-local FILE=../lai/myordbok/build/myordbok.sql   # about 10 seconds
 make data-sample                                          # back to the sample
 ```
 
-The local databases live under `.wrangler/`, which git ignores.
+The local databases live under `.wrangler/`, which git ignores. Wrangler keys
+each local database by its `database_id`, so after `make data-setup` changes
+an id, the local copy starts empty: run `make db-reset` (and `make data-local`
+for the real build) again.
 
 Commit to `dev` and push; beta updates in about a minute. Record each change
 in the changelog:

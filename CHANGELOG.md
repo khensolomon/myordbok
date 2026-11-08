@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+7
+
+- An empty dictionary slot answers 503 with how to fill it (locally make data-sample or make data-local, remotely make data-publish) instead of a raw SQL error
+
 ## 26.11.8+6
 
 - make data-setup creates the dictionary databases (or finds them) and writes their ids into wrangler.toml for every environment; data commands also refuse ids that are not UUIDs

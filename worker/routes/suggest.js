@@ -7,7 +7,7 @@
  * the limit.
  */
 import { detectLang, normalizeQuery } from '../../shared/validate.js';
-import { dictionary } from '../lib/dict.js';
+import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 
 export const SUGGEST_LIMIT = 10;
@@ -30,8 +30,15 @@ const SQL = {
 export async function suggest(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const lang = detectLang(q);
-	const { db } = await dictionary(env);
-	const { results } = await db.prepare(SQL[lang]).bind(q, `${q}￿`, SUGGEST_LIMIT).all();
+	const { slot, db } = await dictionary(env);
+	// \uffff sorts after every character, so the range holds exactly the words starting with q.
+	const { results } = await db
+		.prepare(SQL[lang])
+		.bind(q, `${q}\uffff`, SUGGEST_LIMIT)
+		.all()
+		.catch((err) => {
+			throw explainDictError(err, slot, env);
+		});
 	/** @type {import('../../shared/types.js').Suggestions} */
 	const body = { q, lang, words: results.map((r) => String(r.word)) };
 	return json(body, { cache: 300 });

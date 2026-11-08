@@ -54,6 +54,22 @@ export async function activeSlot(env, now = Date.now()) {
 }
 
 /**
+ * A query error caused by an empty slot (no tables yet) becomes an error that
+ * says so and how to fill it; any other error passes through unchanged.
+ * @param {unknown} err
+ * @param {'a' | 'b'} slot
+ * @param {DictEnv} env
+ */
+export function explainDictError(err, slot, env) {
+	const message = err instanceof Error ? err.message : String(err);
+	if (!/no such table/i.test(message)) return err;
+	const fix = env.DICT_SLOT
+		? 'locally: make data-sample, or make data-local FILE=…/build/myordbok.sql'
+		: 'run make data-publish';
+	return new AppError('unavailable', `Dictionary slot ${slot} is empty (${message.replace(/^.*?(no such table)/i, '$1')}); ${fix}`);
+}
+
+/**
  * @param {DictEnv} env
  * @returns {Promise<{ slot: 'a' | 'b', db: D1Database }>}
  */
