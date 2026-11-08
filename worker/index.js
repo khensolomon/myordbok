@@ -7,7 +7,7 @@
  */
 import pkg from '../package.json' with { type: 'json' };
 import { AppError } from '../shared/errors.js';
-import { dictionary, explainDictError } from './lib/dict.js';
+import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { errorResponse, json } from './lib/http.js';
 import { lookup } from './routes/lookup.js';
 import { suggest } from './routes/suggest.js';
@@ -27,15 +27,15 @@ import { suggest } from './routes/suggest.js';
  */
 async function health(env) {
 	try {
-		const { slot, db } = await dictionary(env);
+		const { dict, db } = await dictionary(env);
 		const { results } = await db
 			.prepare("SELECT key, value FROM meta WHERE key IN ('built', 'source')")
 			.all()
 			.catch((err) => {
-				throw explainDictError(err, slot, env);
+				throw explainDictError(err, dict, env);
 			});
 		const meta = Object.fromEntries(results.map((r) => [String(r.key), String(r.value)]));
-		return json({ ok: true, version: pkg.version, dictionary: { slot, ...meta } });
+		return json({ ok: true, version: pkg.version, dictionary: { database: DATABASE_NAME[dict], ...meta } });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		return json({ ok: false, version: pkg.version, dictionary: null, error: message }, { status: 503 });

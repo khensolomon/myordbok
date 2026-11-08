@@ -1,5 +1,14 @@
 # Changelog
 
+## 26.11.8+9
+
+- Databases renamed, each with one fixed role: myordbok-app (APP: members, reactions, comments, studio edits), myordbok-dataset (DATASET: every new build lands here; beta previews it) and myordbok-dictionary (DICTIONARY: what production readers get). They replace myordbok, myordbok-dict-a and myordbok-dict-b
+- Releases in two steps: make data-publish (build → myordbok-dataset, checked, beta) and make data-promote (the same build → myordbok-dictionary; production reads myordbok-dataset meanwhile, so readers never wait). A promotion that stops part way leaves production on the dataset and blocks new publishes until it is finished
+- make data-setup creates all three databases if missing and writes their ids; make data-switch SITE= TO=dataset|dictionary is kept for repairs; rollback is a release of the previous build, or D1 Time Travel on myordbok-dictionary
+- dict_release records reads (dataset or dictionary) and build per site; the Worker binding DB is now APP, DICT_SLOT is now DICT_DB, and /api/health names the database in use
+- Edits export against myordbok-dictionary and wait while beta previews a build that is not promoted yet
+- Docs updated: deploy guide (databases, dictionary releases, studio edits), architecture, Makefile help, wrangler.toml and migration comments
+
 ## 26.11.8+8
 
 - Fix: a test assumed wrangler.toml still had placeholder dictionary ids

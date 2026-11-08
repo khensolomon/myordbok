@@ -17,9 +17,9 @@ import { json } from '../lib/http.js';
  */
 export async function lookup(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
-	const { slot, db } = await dictionary(env);
+	const { dict, db } = await dictionary(env);
 	const result = await search(d1Database(db), statements, q).catch((err) => {
-		throw explainDictError(err, slot, env);
+		throw explainDictError(err, dict, env);
 	});
 	return json(result, { cache: 300 });
 }

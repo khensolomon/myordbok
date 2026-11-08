@@ -1,14 +1,25 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
-import { resetSlotCache } from '../worker/lib/dict.js';
+import { resetChoiceCache } from '../worker/lib/dict.js';
 import worker from '../worker/index.js';
 import { MIGRATION, SAMPLE, d1, sqlite } from './helpers/d1.js';
 
 const assets = { fetch: async () => new Response('asset') };
 
-/** Local setup: sample in slot A, pinned by DICT_SLOT. */
+/** Local setup: the sample in myordbok-dictionary, pinned by DICT_DB. */
 function localEnv(vars = {}) {
-	return { DB: d1(sqlite(MIGRATION)), DICT_A: d1(sqlite(SAMPLE)), DICT_B: d1(sqlite()), ASSETS: assets, DICT_SLOT: 'a', ...vars };
+	return { APP: d1(sqlite(MIGRATION)), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: assets, DICT_DB: 'dictionary', ...vars };
+}
+
+/**
+ * A site that reads what dict_release says.
+ * @param {'beta' | 'production'} env
+ * @param {string} [reads]  dict_release.reads for that site; none when omitted.
+ */
+function siteEnv(env, reads) {
+	const app = sqlite(MIGRATION);
+	if (reads) app.prepare("INSERT INTO dict_release (env, reads, build, switched_by) VALUES (?, ?, 'sample', 'test')").run(env, reads);
+	return { APP: d1(app), DATASET: d1(sqlite(SAMPLE)), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: env, DICT_DB: '' };
 }
 
 /** @param {string} path @param {any} env @param {RequestInit} [init] */
@@ -21,7 +32,7 @@ async function call(path, env, init) {
 	};
 }
 
-beforeEach(() => resetSlotCache());
+beforeEach(() => resetChoiceCache());
 
 test('beta API responses carry noindex, production ones do not', async () => {
 	assert.equal((await call('/api/health', localEnv({ NOINDEX: '1' }))).robots, 'noindex');
@@ -33,41 +44,43 @@ test('non-API paths are static assets', async () => {
 	assert.equal((await call('/definition?q=love', localEnv())).body, 'asset');
 });
 
-test('health reports the version and the dictionary in use', async () => {
+test('health reports the version and the dictionary database in use', async () => {
 	const res = await call('/api/health', localEnv());
 	assert.equal(res.status, 200);
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
-	assert.deepEqual(res.body.dictionary, { slot: 'a', built: 'sample', source: 'sample' });
+	assert.deepEqual(res.body.dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
 });
 
-test('a site reads the slot its release names', async () => {
-	const app = sqlite(MIGRATION);
-	app.exec("INSERT INTO dict_release (env, slot, source, switched_by) VALUES ('beta', 'b', 'sample', 'test')");
-	const env = { DB: d1(app), DICT_A: d1(sqlite()), DICT_B: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: 'beta', DICT_SLOT: '' };
-	assert.equal((await call('/api/health', env)).body.dictionary.slot, 'b');
-	assert.equal((await call('/api/lookup?q=love', env)).body.entries.length, 4);
+test('each site reads the database dict_release names', async () => {
+	assert.equal((await call('/api/health', siteEnv('beta', 'dataset'))).body.dictionary.database, 'myordbok-dataset');
+	resetChoiceCache();
+	assert.equal((await call('/api/health', siteEnv('production', 'dictionary'))).body.dictionary.database, 'myordbok-dictionary');
+	resetChoiceCache();
+	// During a promotion production reads the dataset, which holds the same build.
+	const promoting = siteEnv('production', 'dataset');
+	assert.equal((await call('/api/health', promoting)).body.dictionary.database, 'myordbok-dataset');
+	assert.equal((await call('/api/lookup?q=love', promoting)).body.entries.length, 4);
 });
 
 test('with no release, the API says so instead of guessing', async () => {
-	const env = { DB: d1(sqlite(MIGRATION)), DICT_A: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: 'production', DICT_SLOT: '' };
-	const health = await call('/api/health', env);
+	const health = await call('/api/health', siteEnv('production'));
 	assert.equal(health.status, 503);
-	assert.match(health.body.error, /No dictionary has been published for production/);
-	const lookup = await call('/api/lookup?q=love', env);
+	assert.match(health.body.error, /No dictionary has been released to production; run make data-promote/);
+	const lookup = await call('/api/lookup?q=love', siteEnv('beta'));
 	assert.equal(lookup.status, 503);
-	assert.equal(lookup.body.error.code, 'unavailable');
+	assert.match(lookup.body.error.message, /run make data-publish/);
 });
 
-test('an empty slot says how to fill it', async () => {
-	const env = localEnv({ DICT_A: d1(sqlite()) });
+test('an empty dictionary database says how to fill it', async () => {
+	const env = localEnv({ DICTIONARY: d1(sqlite()) });
 	for (const path of ['/api/suggest?q=lo', '/api/lookup?q=love']) {
 		const res = await call(path, env);
 		assert.equal(res.status, 503);
-		assert.match(res.body.error.message, /Dictionary slot a is empty \(no such table: \w+\); locally: make data-sample/);
+		assert.match(res.body.error.message, /myordbok-dictionary is empty \(no such table: \w+\); locally: make data-sample/);
 	}
 	const health = await call('/api/health', env);
 	assert.equal(health.status, 503);
-	assert.match(health.body.error, /slot a is empty/);
+	assert.match(health.body.error, /myordbok-dictionary is empty/);
 });
 
 test('lookup: senses, forms, synonyms and opposites', async () => {
@@ -118,6 +131,6 @@ test('errors are JSON with a stable code', async () => {
 	const unknown = await call('/api/entry/en/love', localEnv());
 	assert.equal(unknown.body.error.code, 'not_found');
 
-	const badSlot = await call('/api/lookup?q=love', localEnv({ DICT_SLOT: 'c' }));
-	assert.equal(badSlot.status, 500);
+	const badChoice = await call('/api/lookup?q=love', localEnv({ DICT_DB: 'other' }));
+	assert.equal(badChoice.status, 500);
 });

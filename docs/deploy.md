@@ -1,21 +1,22 @@
 # Deploying to Cloudflare
 
 MyOrdbok runs as a Cloudflare Worker with static assets and three D1
-databases:
+databases, each with one fixed role:
 
 | Database | Binding | Holds | Changed by |
 |---|---|---|---|
-| `myordbok` | `DB` | members, sign-in, reactions, comments, studio edits, which slot each site reads | the app; migrations in `assets/db/migrations` |
-| `myordbok-dict-a` | `DICT_A` | the dictionary, one release | `make data-publish` |
-| `myordbok-dict-b` | `DICT_B` | the dictionary, the other release | `make data-publish` |
+| `myordbok-app` | `APP` | members, sign-in, reactions, comments, studio edits, which dictionary database each site reads | the app; migrations in `assets/db/migrations` |
+| `myordbok-dataset` | `DATASET` | the newest dictionary build; beta previews it | `make data-publish` |
+| `myordbok-dictionary` | `DICTIONARY` | the dictionary production readers get | `make data-promote` |
 
-| Environment | Domain | Deployed from | Dictionary |
+| Environment | Domain | Deployed from | Reads the dictionary from |
 |---|---|---|---|
-| local | localhost | `make api` | local slot A: the public sample, or a build you load |
-| beta | beta.myordbok.com | every push to `dev` | the slot named for beta in `dict_release` |
-| production | myordbok.com | push to `master`, once switched on | the slot named for production |
+| local | localhost | `make api` | the local `myordbok-dictionary`: the public sample, or a build loaded by hand |
+| beta | beta.myordbok.com | every push to `dev` | `myordbok-dataset` |
+| production | myordbok.com | push to `master`, once switched on | `myordbok-dictionary` (`myordbok-dataset` only while a promotion runs) |
 
-All three databases are shared by beta and production.
+Both sites are bound to all three databases; `dict_release` in
+`myordbok-app` records which dictionary database each one reads.
 
 Until cutover, myordbok.com keeps serving the previous Django site and
 `master` keeps its code. Beta stays up permanently as the test site.
@@ -33,16 +34,15 @@ Until cutover, myordbok.com keeps serving the previous Django site and
 
 ### 2. Databases
 
-The app database `myordbok` (`526dfd31-5d80-40ce-82aa-8f9c94e27456`) already
-exists and is set in `wrangler.toml`. Create the two dictionary slots; the
-command reuses databases that already exist and writes their ids into
-`wrangler.toml` for the top level, beta and production:
+One command creates whichever of the three databases are missing (existing
+ones are reused) and writes their ids into `wrangler.toml` for the top level,
+beta and production:
 
 ```bash
 npx wrangler login          # once, in a browser
 make data-setup             # dry run: shows what exists and what would be created
 make data-setup APPLY=1
-git commit -am "Dictionary database ids"   # ids are identifiers, not secrets
+git commit -am "Database ids" && git push   # ids are identifiers, not secrets
 ```
 
 Then the app tables:
@@ -53,28 +53,12 @@ make db-migrate-remote      # dry run: shows what would be applied
 make db-migrate-remote APPLY=1
 ```
 
-If `0001_init.sql` from 26.11.7 was applied to `myordbok` before, its tables
-are still there: `make db-status` shows `0001_init.sql` as applied and
-`0001_app.sql` as pending. That early schema held no real data, so the
-simplest fix is to empty the database and start clean (Cloudflare dashboard →
-D1 → myordbok → Console):
+Finally release the first dictionary: publish it to beta and promote it to
+production (see [Dictionary releases](#dictionary-releases)). Until then the
+API answers lookups with "No dictionary has been released to beta" (or
+production).
 
-```sql
-DROP TABLE IF EXISTS changes; DROP TABLE IF EXISTS suggestions;
-DROP TABLE IF EXISTS comments; DROP TABLE IF EXISTS reactions;
-DROP TABLE IF EXISTS role_grants; DROP TABLE IF EXISTS sessions;
-DROP TABLE IF EXISTS identities; DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS emd_sense; DROP TABLE IF EXISTS med_sense;
-DROP TABLE IF EXISTS eng_word; DROP TABLE IF EXISTS mya_word;
-DROP TABLE IF EXISTS word_type; DELETE FROM d1_migrations;
-```
-
-then `make db-migrate-remote APPLY=1` again.
-
-Finally publish the first dictionary (see [Data releases](#data-releases)).
-Until then beta answers `/api/lookup` with "No dictionary has been published".
-
-Beta and production read the same database, so every migration must keep
+Beta and production share `myordbok-app`, so every migration must keep
 working with the code currently on both. Add columns and tables; remove or
 rename only after both environments run code that no longer needs them.
 
@@ -129,9 +113,10 @@ make api                    # terminal 1: worker + local D1 on :8787
 make dev                    # terminal 2: app on :8000
 ```
 
-Locally the Worker reads slot A (`DICT_SLOT = "a"` in `wrangler.toml`). It
-holds the public sample from `assets/db/seed.dev.sql`, a few made-up entries
-with the real tables. To work with the real dictionary on your machine:
+Locally the Worker reads the local `myordbok-dictionary`
+(`DICT_DB = "dictionary"` in `wrangler.toml`). `make db-reset` fills it with
+the public sample from `assets/db/seed.dev.sql`: a few made-up entries in the
+real tables. For the real dictionary on the local machine:
 
 ```bash
 make data-local FILE=../lai/myordbok/build/myordbok.sql   # about 10 seconds
@@ -170,35 +155,52 @@ committed straight to `master` would break the fast-forward.
 Do not release to `master` before cutover: `master` still represents the
 live Django site until then.
 
-## Data releases
+## Dictionary releases
 
 The dictionary is built from the TSV files of the private dataset
 (`khensolomon/lai`, branch `dataset`, folder `myordbok/`). The TSV files are
 the source of truth; D1 only ever receives a complete build, never a partial
-change. A release goes into the slot no site reads, is checked there, and
-only then does a site switch to it, so a failed import never reaches readers.
+change. A build reaches readers in two steps: beta first, then production.
 
 ```bash
 # In the dataset checkout
 python3 scripts/db_build.py --apply          # build/myordbok.sql, 75 search checks
 
 # Here
-make data-status                             # what each slot holds, what each site reads
+make data-status                                                     # the build in each database, who reads it
 make data-publish FILE=../lai/myordbok/build/myordbok.sql            # dry run
-make data-publish FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # import, check, point beta at it
-# look at beta.myordbok.com
-make data-switch SITE=production APPLY=1     # production follows beta
+make data-publish FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # → myordbok-dataset; beta previews it
+# check beta.myordbok.com
+make data-promote FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # → myordbok-dictionary; production gets it
 ```
 
-`data-publish` imports into the free slot (`--file` replaces every table),
-checks each table against the row counts the build wrote into `meta`, points
-beta at it, and marks studio edits that the build now contains as merged.
-It refuses to start while beta and production read different slots, so
-there is never a third version in play.
+**Publish** imports the build into `myordbok-dataset` (`--file` replaces every
+table), checks each table against the row counts the build wrote into
+`meta`, points beta at it, and marks studio edits the build now contains as
+merged. Production is not touched; a failed import only affects beta.
 
-Rollback: `make data-switch SITE=production SLOT=a APPLY=1` (or `SITE=beta`)
-points a site back at the previous release, which is still intact in the
-other slot. Sites pick up a switch within 30 seconds.
+**Promote** takes the build beta previews to production without a moment
+where readers have nothing to read:
+
+1. Production reads `myordbok-dataset`, which holds the same build, and the
+   command waits 35 seconds until no Worker still reads `myordbok-dictionary`.
+2. The build is imported into `myordbok-dictionary` and checked.
+3. Production reads `myordbok-dictionary` again (within 30 seconds).
+
+The file must be the build beta previews; any other is refused. If a
+promotion stops part way (network, a failed check), production simply keeps
+reading `myordbok-dataset`, and nothing new can be published until the same
+`make data-promote … APPLY=1` is run again and finishes. `make data-status`
+says when that is the case.
+
+**Rollback** is a release of the previous build: build it from the earlier
+dataset commit, publish, check beta, promote. For an emergency on production
+alone, D1 Time Travel restores `myordbok-dictionary` to a moment before the
+promotion (`npx wrangler d1 time-travel restore myordbok-dictionary
+--timestamp=… --env beta`); the dictionary is unavailable while it restores.
+
+`make data-switch SITE=beta|production TO=dataset|dictionary` points one site
+at one database by hand, for repairs only.
 
 When the dataset changes its lookup code (`search/search.mjs`,
 `search/search.sql`), copy it here; the same command checks that the public
@@ -212,7 +214,7 @@ make dataset-sync DATASET=../lai/myordbok APPLY=1    # writes shared/search/
 ## Studio edits
 
 Corrections, additions and deletions made in the studio never touch the
-dictionary tables. Each is a row in `dict_edits` (app database) and moves
+dictionary tables. Each is a row in `dict_edits` (`myordbok-app`) and moves
 through: `pending` → `approved` or `rejected` by an editor → `exported` →
 `merged` (or `conflict`).
 
@@ -231,22 +233,24 @@ to run each one:
 | `med_patch.tsv` | `scripts/med_edit.py` |
 | `med_new.tsv`, `med_more.tsv` | `scripts/med_add.py`, `… --existing` |
 
-Before writing, each edit's old value is compared with the dictionary the
-sites read. One that no longer matches (someone changed the sense since)
+Before writing, each edit's old value is compared with
+`myordbok-dictionary`, what production readers see; the export waits while
+beta previews a build that is not promoted yet. An edit whose old value no
+longer matches (the sense changed since)
 becomes a `conflict` with the reason, instead of a patch line the dataset
 script would reject. Successive edits of one field are joined into one line.
 
-After the dataset scripts apply the files, commit the dataset, build, and
-publish as above; the publish marks the edits `merged`. Readers see an
-approved edit from that release on, not before.
+After the dataset scripts apply the files, commit the dataset, build, publish
+and promote as above; the publish marks the edits `merged`. Beta shows an
+approved edit from that publish on, production from the promotion.
 
 `OUT` must be outside this repository (the default `exports/` is ignored by
 git), because exported files hold dataset text.
 
 ## Cutover
 
-1. Freeze edits on the Django site, then publish a dictionary release built
-   from the final dataset and switch production to it.
+1. Freeze edits on the Django site, then publish and promote a dictionary
+   build made from the final dataset.
 2. In GitHub, set the variable `PRODUCTION_ENABLED` to `true`.
 3. In Cloudflare DNS, delete the `myordbok.com` record that points to the
    Django site (the Worker creates its own).
@@ -275,7 +279,7 @@ separated in reports by hostname. Settings worth checking in the GA property:
   remote databases. A fresh clone has only the public sample.
 - The real dictionary never enters this repository: builds come from the
   private dataset, and exported edits go to a folder outside the repository.
-  The data commands without `LOCAL=1` act on Cloudflare and need your
-  `wrangler login`; CI never runs them.
+  The data commands without `LOCAL=1` act on Cloudflare and need a
+  `wrangler login` to the owning account; CI never runs them.
 - Never commit API tokens; they live only in GitHub environment secrets and
   in `npx wrangler login` on the maintainer's machine.

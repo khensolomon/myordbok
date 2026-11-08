@@ -63,7 +63,7 @@ export function d1(db) {
 
 /**
  * A scripts/data.js Runner over in-memory databases.
- * @param {Record<string, DatabaseSync>} dbs  By binding: DB, DICT_A, DICT_B.
+ * @param {Record<string, DatabaseSync>} dbs  By binding: APP, DATASET, DICTIONARY.
  * @returns {import('../../scripts/data.js').Runner}
  */
 export function runner(dbs) {

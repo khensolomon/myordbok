@@ -1,11 +1,12 @@
--- MyOrdbok app database (binding DB). Cloudflare D1 / SQLite.
+-- MyOrdbok app database: myordbok-app (binding APP). Cloudflare D1 / SQLite.
 --
 -- Holds what the app writes: members, sign-in, reactions, comments and
 -- dictionary edits. The dictionary itself is NOT here: it is built from the
--- dataset TSV files and published into a separate database (bindings DICT_A
--- and DICT_B, see docs/deploy.md). Nothing in this database ever writes to
--- emd_sense or med_sense; edits wait in dict_edits until they are exported to
--- the dataset, merged there, and come back with the next data release.
+-- dataset TSV files and imported whole into myordbok-dataset (beta previews
+-- it) and then myordbok-dictionary (production); see docs/deploy.md. Nothing
+-- in this database ever writes to emd_sense or med_sense; edits wait in
+-- dict_edits until they are exported to the dataset, merged there, and come
+-- back with the next release.
 
 PRAGMA foreign_keys = ON;
 
@@ -128,8 +129,8 @@ CREATE INDEX IF NOT EXISTS dict_edits_status ON dict_edits (status, created_at);
 CREATE INDEX IF NOT EXISTS dict_edits_sense ON dict_edits (dict, sense_id);
 CREATE INDEX IF NOT EXISTS dict_edits_user ON dict_edits (user_id, created_at);
 
--- One row per `make edits-export APPLY=1`: which edits left, and when the
--- dataset release that carries them was published.
+-- One row per `make edits-export APPLY=1`: which edits left, and which build
+-- brought them back (merged_source is that build's meta.built).
 CREATE TABLE IF NOT EXISTS dict_exports (
 	id             INTEGER PRIMARY KEY,
 	created_at     INTEGER NOT NULL DEFAULT (unixepoch()),
@@ -139,13 +140,14 @@ CREATE TABLE IF NOT EXISTS dict_exports (
 	merged_at      INTEGER
 );
 
--- Which dictionary database each site reads. The dictionary lives in two
--- slots (DICT_A, DICT_B); a release is imported into the slot not in use,
--- checked, then switched to. Switching back is the rollback.
+-- Which dictionary database each site reads. Normally beta reads
+-- myordbok-dataset (the preview) and production reads myordbok-dictionary.
+-- Production reads myordbok-dataset only while `make data-promote` imports
+-- the same build into myordbok-dictionary, so readers never wait.
 CREATE TABLE IF NOT EXISTS dict_release (
 	env          TEXT PRIMARY KEY CHECK (env IN ('beta', 'production')),
-	slot         TEXT NOT NULL CHECK (slot IN ('a', 'b')),
-	source       TEXT NOT NULL,                -- meta.built of the slot when switched
+	reads        TEXT NOT NULL CHECK (reads IN ('dataset', 'dictionary')),
+	build        TEXT NOT NULL,                -- meta.built of that database when switched
 	switched_at  INTEGER NOT NULL DEFAULT (unixepoch()),
 	switched_by  TEXT NOT NULL
 );

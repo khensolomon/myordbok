@@ -30,14 +30,14 @@ const SQL = {
 export async function suggest(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const lang = detectLang(q);
-	const { slot, db } = await dictionary(env);
+	const { dict, db } = await dictionary(env);
 	// \uffff sorts after every character, so the range holds exactly the words starting with q.
 	const { results } = await db
 		.prepare(SQL[lang])
 		.bind(q, `${q}\uffff`, SUGGEST_LIMIT)
 		.all()
 		.catch((err) => {
-			throw explainDictError(err, slot, env);
+			throw explainDictError(err, dict, env);
 		});
 	/** @type {import('../../shared/types.js').Suggestions} */
 	const body = { q, lang, words: results.map((r) => String(r.word)) };

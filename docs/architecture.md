@@ -48,10 +48,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   `search.sql`, copied to `shared/search/`) is the one the Worker runs, so
   the dataset's own search tests describe what the site answers. This
   repository holds only a made-up sample in the same tables.
-- **The app never writes to the dictionary.** Two D1 databases take turns
-  holding it (`DICT_A`, `DICT_B`); a release is imported whole into the one
-  not in use, checked, and switched to (`dict_release`). Switching back is
-  the rollback. The app database (`DB`) holds everything the app writes.
+- **Three databases, each with one fixed role.** `myordbok-app` holds
+  everything the app writes. The dictionary is only ever imported whole:
+  every build lands in `myordbok-dataset` first, where beta previews it, and
+  is then promoted into `myordbok-dictionary`, which production reads. While
+  a promotion imports, production reads `myordbok-dataset` (the same build),
+  so readers never wait; `dict_release` records which database each site
+  reads. The names say what each database is at any moment, which is why
+  this was chosen over two interchangeable copies.
 - **Studio edits wait in their own table.** `dict_edits` records each
   correction, addition or deletion with the value it replaces. Approved edits
   are exported as the dataset's patch files, applied there by its scripts,
@@ -72,9 +76,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Analytics only with consent.** Google Analytics loads on the public
   hosts after the visitor allows it (`app/core/consent.js`); the choice
   stays on the device and can be changed on the privacy page.
-- **Deployment.** Beta and production are Wrangler environments sharing the
-  databases; each reads the dictionary slot its release names. See
-  [deploy.md](deploy.md).
+- **Deployment.** Beta and production are Wrangler environments bound to the
+  same three databases. See [deploy.md](deploy.md).
 
 ## Next
 

@@ -1,22 +1,35 @@
 // @ts-check
 /**
- * Dictionary data releases and studio edits. Node standard library only;
- * D1 is reached through wrangler. Dry run unless --apply.
+ * Dictionary releases and studio edits. Node standard library only; D1 is
+ * reached through wrangler. Dry run unless --apply.
+ *
+ * Three D1 databases, each with one fixed role:
+ *
+ *   myordbok-app         APP         what the app writes: members, reactions,
+ *                                    comments, studio edits, which database each
+ *                                    site reads (dict_release)
+ *   myordbok-dataset     DATASET     every new build lands here first; beta
+ *                                    reads it, so beta previews the next release
+ *   myordbok-dictionary  DICTIONARY  what production readers get
  *
  * The dataset (TSV, private repository) is the source of truth. The app never
- * writes to the dictionary: studio edits wait in dict_edits (app database),
- * are exported here as the dataset's own patch files, applied and merged in
- * the dataset, and come back with the next release.
+ * writes to the dictionary: studio edits wait in dict_edits, are exported
+ * here as the dataset's own patch files, applied and merged in the dataset,
+ * and come back with the next release.
  *
- *   setup                           create the dictionary databases, write their ids
- *                                   into wrangler.toml (once)
- *   status                          releases, slots and edits at a glance
- *   export  --out DIR               approved edits → TSV files for the dataset scripts
- *   publish --file build/myordbok.sql
- *                                   import a build into the free slot, check it,
- *                                   point beta at it, mark merged edits
- *   switch  --env production|beta [--slot a|b]
- *                                   point a site at a slot (default: beta's)
+ *   setup                       create the databases that are missing and write
+ *                               their ids into wrangler.toml (once)
+ *   status                      the build in each database, what each site reads,
+ *                               edits by status
+ *   publish --file BUILD.sql    import into myordbok-dataset, check it, beta
+ *                               previews it, mark merged edits
+ *   promote --file BUILD.sql    the build beta previews goes to production:
+ *                               production reads myordbok-dataset while the same
+ *                               build is imported into myordbok-dictionary and
+ *                               checked, then reads myordbok-dictionary again
+ *   export  --out DIR           approved edits → TSV files for the dataset scripts
+ *   switch  --env beta|production --to dataset|dictionary
+ *                               point one site at one database (repairs only)
  *
  * Common options:
  *   --apply   make the change (otherwise only report)
@@ -29,11 +42,11 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 
 const NULL = '\\N';
 const CRLF = '\r\n';
-const SLOTS = /** @type {const} */ (['a', 'b']);
 const ENVS = /** @type {const} */ (['beta', 'production']);
 /** IDs per IN (…) list, to keep each command well under argument limits. */
 const CHUNK = 400;
@@ -41,8 +54,23 @@ const CHUNK = 400;
 const PLACEHOLDER_ID = /^0{8}-0{4}-0{4}-0{4}-0{10}[0-9a-f]{2}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Dictionary slot bindings and the D1 databases behind them. */
-export const SLOT_DATABASES = Object.freeze({ DICT_A: 'myordbok-dict-a', DICT_B: 'myordbok-dict-b' });
+/** Every D1 database, by binding. */
+export const DATABASES = Object.freeze({
+	APP: 'myordbok-app',
+	DATASET: 'myordbok-dataset',
+	DICTIONARY: 'myordbok-dictionary',
+});
+
+/** @typedef {'dataset' | 'dictionary'} Dict  One of the two dictionary databases. */
+
+/** Binding of each dictionary database. */
+const BINDING = /** @type {const} */ ({ dataset: 'DATASET', dictionary: 'DICTIONARY' });
+
+/**
+ * How long a Worker may keep using the database it read before a switch
+ * (worker/lib/dict.js caches it for 30 seconds), plus a margin.
+ */
+export const SWITCH_WAIT_MS = 35_000;
 
 /**
  * The [[…d1_databases]] blocks of wrangler.toml.
@@ -55,7 +83,7 @@ function d1Blocks(toml) {
 /**
  * Bindings whose database_id is a placeholder or not a UUID at all.
  * @param {string} toml
- * @returns {string[]}  e.g. ["DICT_A (myordbok-dict-a): 00000000-…"], once per binding.
+ * @returns {string[]}  e.g. ["DATASET (myordbok-dataset): 00000000-…"], once per binding.
  */
 export function badDatabaseIds(toml) {
 	const found = new Set();
@@ -378,27 +406,42 @@ export function wranglerRunner({ local }) {
 	};
 }
 
-/** @param {'a' | 'b'} slot */
-const binding = (slot) => `DICT_${slot.toUpperCase()}`;
+/** @param {Dict} dict */
+const nameOf = (dict) => DATABASES[BINDING[dict]];
 
 /**
- * meta of a slot, or null when the slot holds no dictionary.
+ * meta of a dictionary database, or null when it holds no build.
  * @param {Runner} db
- * @param {'a' | 'b'} slot
+ * @param {Dict} dict
  * @returns {Record<string, string> | null}
  */
-function slotMeta(db, slot) {
-	const tables = db.query(binding(slot), "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'meta'");
+function metaOf(db, dict) {
+	const tables = db.query(BINDING[dict], "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'meta'");
 	if (!tables.length) return null;
-	return Object.fromEntries(db.query(binding(slot), 'SELECT key, value FROM meta').map((r) => [String(r.key), String(r.value)]));
+	return Object.fromEntries(db.query(BINDING[dict], 'SELECT key, value FROM meta').map((r) => [String(r.key), String(r.value)]));
+}
+
+/**
+ * Which database each site reads.
+ * @param {Runner} db
+ * @returns {Partial<Record<'beta' | 'production', { reads: Dict, build: string, switched_at: number, switched_by: string }>>}
+ */
+function siteReads(db) {
+	return Object.fromEntries(db.query('APP', 'SELECT env, reads, build, switched_at, switched_by FROM dict_release').map((r) => [String(r.env), /** @type {any} */ (r)]));
 }
 
 /**
  * @param {Runner} db
- * @returns {Record<string, { slot: 'a' | 'b', source: string, switched_at: number, switched_by: string }>}
+ * @param {'beta' | 'production'} env
+ * @param {Dict} dict
+ * @param {string} build
  */
-function releases(db) {
-	return Object.fromEntries(db.query('DB', 'SELECT env, slot, source, switched_at, switched_by FROM dict_release').map((r) => [String(r.env), /** @type {any} */ (r)]));
+function point(db, env, dict, build) {
+	db.query(
+		'APP',
+		`INSERT INTO dict_release (env, reads, build, switched_by) VALUES (${sqlValue(env)}, ${sqlValue(dict)}, ${sqlValue(build)}, ${sqlValue(operator())})
+		 ON CONFLICT (env) DO UPDATE SET reads = excluded.reads, build = excluded.build, switched_at = unixepoch(), switched_by = excluded.switched_by`,
+	);
 }
 
 /** Who runs the command, for the records. */
@@ -411,18 +454,49 @@ function operator() {
 }
 
 /**
+ * The build a .sql file carries, read from its meta rows.
+ * @param {string} text
+ * @returns {string | null}
+ */
+export function buildOfFile(text) {
+	return /\('built',\s*'([^']*)'\)/.exec(text)?.[1] ?? null;
+}
+
+/**
+ * Checks a freshly imported database: every table holds the rows its meta
+ * says. Throws with every problem found.
+ * @param {Runner} db
+ * @param {Dict} dict
+ * @returns {Record<string, string>}  Its meta.
+ */
+function checkImport(db, dict) {
+	const meta = metaOf(db, dict);
+	if (!meta) throw new Error(`${nameOf(dict)} has no meta table after the import`);
+	/** @type {Record<string, number>} */
+	const counts = {};
+	for (const key of Object.keys(meta).filter((k) => k.startsWith('rows.'))) {
+		const table = key.slice(5);
+		if (!/^\w+$/.test(table)) throw new Error(`Odd table name in meta: ${table}`);
+		counts[table] = Number(db.query(BINDING[dict], `SELECT count(*) AS n FROM ${table}`)[0]?.n);
+	}
+	const problems = verifyBuild(meta, counts);
+	if (problems.length) throw new Error(`${nameOf(dict)} failed its checks:\n  ${problems.join('\n  ')}`);
+	return meta;
+}
+
+/**
  * Current values of the given senses.
  * @param {Runner} db
- * @param {'a' | 'b'} slot
- * @param {'emd' | 'med'} dict
+ * @param {Dict} dict
+ * @param {'emd' | 'med'} lang
  * @param {number[]} ids
  */
-function currentRows(db, slot, dict, ids) {
+function currentRows(db, dict, lang, ids) {
 	/** @type {Map<number, Record<string, unknown>>} */
 	const out = new Map();
 	const unique = [...new Set(ids)];
 	for (let i = 0; i < unique.length; i += CHUNK) {
-		for (const r of db.query(binding(slot), CURRENT_SQL[dict](idList(unique.slice(i, i + CHUNK))))) out.set(Number(r.id), r);
+		for (const r of db.query(BINDING[dict], CURRENT_SQL[lang](idList(unique.slice(i, i + CHUNK))))) out.set(Number(r.id), r);
 	}
 	return out;
 }
@@ -430,11 +504,11 @@ function currentRows(db, slot, dict, ids) {
 /**
  * Headwords among `words` that already have senses.
  * @param {Runner} db
- * @param {'a' | 'b'} slot
- * @param {'emd' | 'med'} dict
+ * @param {Dict} dict
+ * @param {'emd' | 'med'} lang
  * @param {string[]} words
  */
-function existingWords(db, slot, dict, words) {
+function existingWords(db, dict, lang, words) {
 	const sql = {
 		emd: (/** @type {string} */ list) => `SELECT DISTINCT w.word FROM eng_word w JOIN emd_sense s ON s.wrid = w.id WHERE w.word IN (${list})`,
 		med: (/** @type {string} */ list) => `SELECT DISTINCT w.word FROM mya_word w JOIN med_sense s ON s.wrid = w.id WHERE w.word IN (${list})`,
@@ -443,32 +517,23 @@ function existingWords(db, slot, dict, words) {
 	const unique = [...new Set(words)];
 	for (let i = 0; i < unique.length; i += CHUNK) {
 		const list = unique.slice(i, i + CHUNK).map(sqlValue).join(', ');
-		for (const r of db.query(binding(slot), sql[dict](list))) out.add(String(r.word));
+		for (const r of db.query(BINDING[dict], sql[lang](list))) out.add(String(r.word));
 	}
 	return out;
 }
 
 /**
- * The slot both sites read. Publishing and exporting need the sites to agree,
- * so edits are checked against what readers see.
+ * Refuses to go on while production reads myordbok-dataset, which only
+ * happens when a promotion stopped half way.
  * @param {Runner} db
- * @param {boolean} allowNone  True for the very first publish.
- * @returns {'a' | 'b' | null}
  */
-function liveSlot(db, allowNone) {
-	const rel = releases(db);
-	const slots = new Set(Object.values(rel).map((r) => r.slot));
-	if (!slots.size) {
-		if (allowNone) return null;
-		throw new Error('No dictionary has been published yet; run make data-publish first');
-	}
-	if (slots.size > 1 || (rel.production && !rel.beta)) {
+function requirePromotionFinished(db) {
+	if (siteReads(db).production?.reads === 'dataset') {
 		throw new Error(
-			`Beta reads slot ${rel.beta?.slot ?? '-'}, production slot ${rel.production?.slot ?? '-'}. ` +
-				'Finish the last release first: make data-switch SITE=production (promote) or SITE=beta SLOT=… (roll back)',
+			`Production reads ${DATABASES.DATASET}: a promotion did not finish. ` +
+				'Run make data-promote FILE=… APPLY=1 with the build beta previews to finish it.',
 		);
 	}
-	return /** @type {'a' | 'b'} */ ([...slots][0]);
 }
 
 // ---------------------------------------------------------------- commands
@@ -480,43 +545,52 @@ function liveSlot(db, allowNone) {
  * @param {(line: string) => void} log
  */
 export async function exportEdits(db, out, apply, log) {
-	const slot = /** @type {'a' | 'b'} */ (liveSlot(db, false));
+	requirePromotionFinished(db);
+	const live = metaOf(db, 'dictionary');
+	if (!live?.built) throw new Error(`${DATABASES.DICTIONARY} holds no build yet; publish and promote one first`);
+	const preview = metaOf(db, 'dataset');
+	if (preview?.built && preview.built !== live.built) {
+		throw new Error(
+			`Beta previews build ${preview.built}, production has ${live.built}. ` +
+				'Promote it first (make data-promote), so edits are checked against what readers see.',
+		);
+	}
 	const edits = /** @type {Edit[]} */ (
-		/** @type {unknown} */ (db.query('DB', "SELECT id, dict, action, sense_id, field, old_value, new_value, word, data, created_at FROM dict_edits WHERE status = 'approved' ORDER BY created_at, id"))
+		/** @type {unknown} */ (db.query('APP', "SELECT id, dict, action, sense_id, field, old_value, new_value, word, data, created_at FROM dict_edits WHERE status = 'approved' ORDER BY created_at, id"))
 	);
 	if (!edits.length) {
 		log('No approved edits to export.');
 		return;
 	}
-	/** @param {'emd' | 'med'} dict */
-	const ids = (dict) => edits.filter((e) => e.dict === dict && e.sense_id !== null).map((e) => Number(e.sense_id));
-	/** @param {'emd' | 'med'} dict */
-	const words = (dict) => edits.filter((e) => e.dict === dict && e.action === 'add').map((e) => e.word);
+	/** @param {'emd' | 'med'} lang */
+	const ids = (lang) => edits.filter((e) => e.dict === lang && e.sense_id !== null).map((e) => Number(e.sense_id));
+	/** @param {'emd' | 'med'} lang */
+	const words = (lang) => edits.filter((e) => e.dict === lang && e.action === 'add').map((e) => e.word);
 	const plan = planExport(
 		edits,
-		{ emd: currentRows(db, slot, 'emd', ids('emd')), med: currentRows(db, slot, 'med', ids('med')) },
-		{ emd: existingWords(db, slot, 'emd', words('emd')), med: existingWords(db, slot, 'med', words('med')) },
+		{ emd: currentRows(db, 'dictionary', 'emd', ids('emd')), med: currentRows(db, 'dictionary', 'med', ids('med')) },
+		{ emd: existingWords(db, 'dictionary', 'emd', words('emd')), med: existingWords(db, 'dictionary', 'med', words('med')) },
 	);
 
 	for (const [name, f] of Object.entries(plan.files)) log(`${name}: ${f.rows.length} line(s)`);
 	for (const c of plan.conflicts) log(`conflict: edit ${c.id}: ${c.reason}`);
 	if (!apply) {
-		log(`Dry run against slot ${slot} (${db.where}). Add --apply to write the files and mark the edits.`);
+		log(`Dry run against ${DATABASES.DICTIONARY}, build ${live.built} (${db.where}). Add --apply to write the files and mark the edits.`);
 		return;
 	}
 
 	const counts = Object.fromEntries(Object.entries(plan.files).map(([name, f]) => [name, f.rows.length]));
-	const [created] = db.query('DB', `INSERT INTO dict_exports (created_by, counts) VALUES (${sqlValue(operator())}, ${sqlValue(JSON.stringify(counts))}) RETURNING id`);
+	const [created] = db.query('APP', `INSERT INTO dict_exports (created_by, counts) VALUES (${sqlValue(operator())}, ${sqlValue(JSON.stringify(counts))}) RETURNING id`);
 	const exportId = Number(created.id);
 	const dir = resolve(out, `export-${String(exportId).padStart(4, '0')}`);
 	await mkdir(dir, { recursive: true });
 	for (const [name, f] of Object.entries(plan.files)) await writeFile(join(dir, name), tsv(f.header, f.rows));
 
 	for (let i = 0; i < plan.exported.length; i += CHUNK) {
-		db.query('DB', `UPDATE dict_edits SET status = 'exported', export_id = ${exportId} WHERE id IN (${idList(plan.exported.slice(i, i + CHUNK))})`);
+		db.query('APP', `UPDATE dict_edits SET status = 'exported', export_id = ${exportId} WHERE id IN (${idList(plan.exported.slice(i, i + CHUNK))})`);
 	}
 	for (const c of plan.conflicts) {
-		db.query('DB', `UPDATE dict_edits SET status = 'conflict', review_note = ${sqlValue(c.reason)} WHERE id = ${c.id}`);
+		db.query('APP', `UPDATE dict_edits SET status = 'conflict', review_note = ${sqlValue(c.reason)} WHERE id = ${c.id}`);
 	}
 	log(`Wrote ${dir}. In the dataset, run each file through its script (dry run first):`);
 	const how = {
@@ -532,6 +606,7 @@ export async function exportEdits(db, out, apply, log) {
 }
 
 /**
+ * A build goes into myordbok-dataset and beta previews it.
  * @param {Runner} db
  * @param {string} file
  * @param {boolean} apply
@@ -539,72 +614,112 @@ export async function exportEdits(db, out, apply, log) {
  */
 export function publish(db, file, apply, log) {
 	if (!existsSync(file)) throw new Error(`${file} not found; build the dataset first (scripts/db_build.py --apply)`);
-	const live = liveSlot(db, true);
-	const target = live === 'a' ? 'b' : 'a';
-	log(`Sites read slot ${live ?? '(none yet)'}; the release goes into slot ${target} (${db.where}).`);
+	requirePromotionFinished(db);
+	const built = buildOfFile(readFileSync(file, 'utf8'));
+	if (!built) throw new Error(`${file} has no ('built', …) row in meta; is it a dataset build?`);
+	const before = metaOf(db, 'dataset');
+	log(`${DATABASES.DATASET}: build ${before?.built ?? '(empty)'} → ${built} (${db.where}). Beta will preview it; production is not touched.`);
 	if (!apply) {
-		log('Dry run. Add --apply to import, check, and point beta at it.');
+		log('Dry run. Add --apply to import, check, and show it on beta.');
 		return;
 	}
 
-	log(`Importing ${file} into ${binding(target)} …`);
-	db.file(binding(target), file);
-	const meta = slotMeta(db, target);
-	if (!meta) throw new Error(`Slot ${target} has no meta table after the import`);
-	/** @type {Record<string, number>} */
-	const counts = {};
-	for (const key of Object.keys(meta).filter((k) => k.startsWith('rows.'))) {
-		const table = key.slice(5);
-		if (!/^\w+$/.test(table)) throw new Error(`Odd table name in meta: ${table}`);
-		counts[table] = Number(db.query(binding(target), `SELECT count(*) AS n FROM ${table}`)[0]?.n);
+	log(`Importing ${file} into ${DATABASES.DATASET} …`);
+	db.file(BINDING.dataset, file);
+	const meta = checkImport(db, 'dataset');
+	log(`${DATABASES.DATASET} holds build ${meta.built} (source ${meta.source ?? '?'}); every table matches its count.`);
+	point(db, 'beta', 'dataset', meta.built);
+	log(`Beta previews it (within 30 seconds). Check https://beta.myordbok.com, then: make data-promote FILE=${file} APPLY=1`);
+	markMerged(db, 'dataset', meta.built, log);
+}
+
+/**
+ * The build beta previews goes to production, without a moment where
+ * production has nothing to read.
+ * @param {Runner} db
+ * @param {string} file  The same build that was published.
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ * @param {{ waitMs?: number }} [opts]
+ */
+export async function promote(db, file, apply, log, opts = {}) {
+	const waitMs = opts.waitMs ?? SWITCH_WAIT_MS;
+	if (!existsSync(file)) throw new Error(`${file} not found`);
+	const preview = metaOf(db, 'dataset');
+	if (!preview?.built) throw new Error(`${DATABASES.DATASET} holds no build; run make data-publish first`);
+	const built = buildOfFile(readFileSync(file, 'utf8'));
+	if (built !== preview.built) {
+		throw new Error(`${file} holds build ${built ?? '(none)'}, beta previews ${preview.built}. Promote the build beta previews.`);
 	}
-	const problems = verifyBuild(meta, counts);
-	if (problems.length) throw new Error(`Slot ${target} failed its checks; beta still reads slot ${live ?? '(none)'}:\n  ${problems.join('\n  ')}`);
-	log(`Slot ${target} holds build ${meta.built} (source ${meta.source ?? '?'}); every table matches its count.`);
+	const live = metaOf(db, 'dictionary');
+	const reads = siteReads(db);
+	if (live?.built === built && reads.production?.reads === 'dictionary') {
+		log(`Production already has build ${built}. Nothing to do.`);
+		return;
+	}
+	log(`Production: build ${live?.built ?? '(none)'} → ${built} (${db.where}).`);
+	log(`  1. production reads ${DATABASES.DATASET}, which holds this build`);
+	log(`  2. the build is imported into ${DATABASES.DICTIONARY} and checked`);
+	log(`  3. production reads ${DATABASES.DICTIONARY} again`);
+	if (!apply) {
+		log('Dry run. Add --apply to promote.');
+		return;
+	}
 
-	db.query(
-		'DB',
-		`INSERT INTO dict_release (env, slot, source, switched_by) VALUES ('beta', '${target}', ${sqlValue(meta.built)}, ${sqlValue(operator())})
-		 ON CONFLICT (env) DO UPDATE SET slot = excluded.slot, source = excluded.source, switched_at = unixepoch(), switched_by = excluded.switched_by`,
-	);
-	log(`beta now reads slot ${target} (within 30 seconds). Check https://beta.myordbok.com, then: make data-switch SITE=production APPLY=1`);
+	if (reads.production?.reads !== 'dataset') {
+		point(db, 'production', 'dataset', preview.built);
+		log(`1. Production reads ${DATABASES.DATASET}.`);
+		if (waitMs > 0) {
+			log(`   Waiting ${Math.round(waitMs / 1000)} s until no Worker reads ${DATABASES.DICTIONARY} …`);
+			await sleep(waitMs);
+		}
+	} else {
+		log(`1. Production already reads ${DATABASES.DATASET} (an earlier promotion stopped here).`);
+	}
 
-	markMerged(db, target, meta.built, log);
+	log(`2. Importing ${file} into ${DATABASES.DICTIONARY} …`);
+	db.file(BINDING.dictionary, file);
+	const meta = checkImport(db, 'dictionary');
+	if (meta.built !== preview.built) throw new Error(`${DATABASES.DICTIONARY} holds build ${meta.built} after the import, expected ${preview.built}`);
+	log(`   ${DATABASES.DICTIONARY} holds build ${meta.built}; every table matches its count.`);
+
+	point(db, 'production', 'dictionary', meta.built);
+	log(`3. Production reads ${DATABASES.DICTIONARY} again (within 30 seconds). Done.`);
 }
 
 /**
  * Exported edits that the new build contains become merged.
  * @param {Runner} db
- * @param {'a' | 'b'} slot
+ * @param {Dict} dict
  * @param {string} built
  * @param {(line: string) => void} log
  */
-function markMerged(db, slot, built, log) {
+function markMerged(db, dict, built, log) {
 	const edits = /** @type {Array<Edit & { export_id: number }>} */ (
-		/** @type {unknown} */ (db.query('DB', "SELECT id, dict, action, sense_id, field, old_value, new_value, word, data, created_at, export_id FROM dict_edits WHERE status = 'exported'"))
+		/** @type {unknown} */ (db.query('APP', "SELECT id, dict, action, sense_id, field, old_value, new_value, word, data, created_at, export_id FROM dict_edits WHERE status = 'exported'"))
 	);
 	if (!edits.length) return;
 	/** @type {number[]} */
 	const merged = [];
-	for (const dict of /** @type {const} */ (['emd', 'med'])) {
-		const mine = edits.filter((e) => e.dict === dict);
-		const rows = currentRows(db, slot, dict, mine.filter((e) => e.sense_id !== null).map((e) => Number(e.sense_id)));
-		const senseTable = dict === 'emd' ? 'emd_sense' : 'med_sense';
-		const wordTable = dict === 'emd' ? 'eng_word' : 'mya_word';
+	for (const lang of /** @type {const} */ (['emd', 'med'])) {
+		const mine = edits.filter((e) => e.dict === lang);
+		const rows = currentRows(db, dict, lang, mine.filter((e) => e.sense_id !== null).map((e) => Number(e.sense_id)));
+		const senseTable = lang === 'emd' ? 'emd_sense' : 'med_sense';
+		const wordTable = lang === 'emd' ? 'eng_word' : 'mya_word';
 		for (const e of latestOfChains(mine)) {
 			let added = false;
 			if (e.action === 'add') {
 				const sense = JSON.parse(String(e.data)).sense;
-				added = db.query(binding(slot), `SELECT 1 FROM ${senseTable} s JOIN ${wordTable} w ON w.id = s.wrid WHERE w.word = ${sqlValue(e.word)} AND s.sense = ${sqlValue(sense)} LIMIT 1`).length > 0;
+				added = db.query(BINDING[dict], `SELECT 1 FROM ${senseTable} s JOIN ${wordTable} w ON w.id = s.wrid WHERE w.word = ${sqlValue(e.word)} AND s.sense = ${sqlValue(sense)} LIMIT 1`).length > 0;
 			}
 			if (isMerged(e, rows.get(Number(e.sense_id)), added)) merged.push(...(e.chain ?? [e.id]));
 		}
 	}
 	for (let i = 0; i < merged.length; i += CHUNK) {
-		db.query('DB', `UPDATE dict_edits SET status = 'merged' WHERE id IN (${idList(merged.slice(i, i + CHUNK))})`);
+		db.query('APP', `UPDATE dict_edits SET status = 'merged' WHERE id IN (${idList(merged.slice(i, i + CHUNK))})`);
 	}
 	db.query(
-		'DB',
+		'APP',
 		`UPDATE dict_exports SET merged_source = ${sqlValue(built)}, merged_at = unixepoch()
 		 WHERE merged_at IS NULL AND id IN (SELECT export_id FROM dict_edits WHERE export_id IS NOT NULL)
 		 AND NOT EXISTS (SELECT 1 FROM dict_edits e WHERE e.export_id = dict_exports.id AND e.status = 'exported')`,
@@ -613,20 +728,20 @@ function markMerged(db, slot, built, log) {
 }
 
 /**
+ * Points one site at one database. Repairs only: publish and promote do this
+ * themselves.
  * @param {Runner} db
  * @param {'beta' | 'production'} env
- * @param {'a' | 'b' | undefined} slotArg
+ * @param {Dict} dict
  * @param {boolean} apply
  * @param {(line: string) => void} log
  */
-export function switchSlot(db, env, slotArg, apply, log) {
-	const rel = releases(db);
-	const slot = slotArg ?? rel.beta?.slot;
-	if (!slot) throw new Error('Beta reads no slot yet; give --slot');
-	const meta = slotMeta(db, slot);
-	if (!meta?.built) throw new Error(`Slot ${slot} holds no dictionary`);
-	log(`${env}: slot ${rel[env]?.slot ?? '(none)'} → slot ${slot} (build ${meta.built}, ${db.where}).`);
-	if (rel[env]?.slot === slot) {
+export function switchSite(db, env, dict, apply, log) {
+	const meta = metaOf(db, dict);
+	if (!meta?.built) throw new Error(`${nameOf(dict)} holds no build`);
+	const now = siteReads(db)[env];
+	log(`${env}: ${now ? nameOf(now.reads) : '(nothing)'} → ${nameOf(dict)} (build ${meta.built}, ${db.where}).`);
+	if (now?.reads === dict && now.build === meta.built) {
 		log('Nothing to do.');
 		return;
 	}
@@ -634,12 +749,8 @@ export function switchSlot(db, env, slotArg, apply, log) {
 		log('Dry run. Add --apply to switch.');
 		return;
 	}
-	db.query(
-		'DB',
-		`INSERT INTO dict_release (env, slot, source, switched_by) VALUES (${sqlValue(env)}, '${slot}', ${sqlValue(meta.built)}, ${sqlValue(operator())})
-		 ON CONFLICT (env) DO UPDATE SET slot = excluded.slot, source = excluded.source, switched_at = unixepoch(), switched_by = excluded.switched_by`,
-	);
-	log(`${env} now reads slot ${slot} (within 30 seconds).`);
+	point(db, env, dict, meta.built);
+	log(`${env} reads ${nameOf(dict)} (within 30 seconds).`);
 }
 
 /**
@@ -647,13 +758,21 @@ export function switchSlot(db, env, slotArg, apply, log) {
  * @param {(line: string) => void} log
  */
 export function status(db, log) {
-	const rel = releases(db);
-	for (const slot of SLOTS) {
-		const meta = slotMeta(db, slot);
-		const readers = ENVS.filter((env) => rel[env]?.slot === slot);
-		log(`slot ${slot}: ${meta?.built ? `build ${meta.built}, source ${meta.source ?? '?'}` : 'empty'}${readers.length ? `  ← ${readers.join(', ')}` : ''}`);
+	const reads = siteReads(db);
+	/** @type {Dict[]} */
+	const dicts = ['dictionary', 'dataset'];
+	const width = Math.max(...dicts.map((d) => nameOf(d).length));
+	/** @type {Record<string, string>} */
+	const builds = {};
+	for (const dict of dicts) {
+		const meta = metaOf(db, dict);
+		builds[dict] = meta?.built ?? '';
+		const readers = ENVS.filter((env) => reads[env]?.reads === dict);
+		log(`${nameOf(dict).padEnd(width)}  ${meta?.built ? `build ${meta.built}, source ${meta.source ?? '?'}` : 'empty'}${readers.length ? `  ← ${readers.join(', ')}` : ''}`);
 	}
-	const counts = db.query('DB', 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status ORDER BY status');
+	if (reads.production?.reads === 'dataset') log('A promotion did not finish: run make data-promote FILE=… APPLY=1.');
+	else if (builds.dataset && builds.dataset !== builds.dictionary) log('Beta previews a build production does not have yet: make data-promote FILE=… APPLY=1 when it looks right.');
+	const counts = db.query('APP', 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status ORDER BY status');
 	log(`edits: ${counts.length ? counts.map((r) => `${r.status} ${r.n}`).join(', ') : 'none'}`);
 }
 
@@ -671,8 +790,8 @@ function option(args, name) {
 const WRANGLER_TOML = join(import.meta.dirname, '..', 'wrangler.toml');
 
 /**
- * Creates the dictionary databases that do not exist yet and writes their
- * ids into wrangler.toml. Safe to run again: existing databases are reused.
+ * Creates the databases that do not exist yet and writes their ids into
+ * wrangler.toml. Safe to run again: existing databases are reused.
  * @param {boolean} apply
  * @param {(line: string) => void} log
  */
@@ -682,8 +801,8 @@ function setup(apply, log) {
 	const list = () => /** @type {Array<{ name: string, uuid: string }>} */ (JSON.parse(wrangler(['d1', 'list', '--json'])));
 
 	let databases = list();
-	const missing = Object.values(SLOT_DATABASES).filter((name) => !databases.some((d) => d.name === name));
-	for (const name of Object.values(SLOT_DATABASES)) {
+	const missing = Object.values(DATABASES).filter((name) => !databases.some((d) => d.name === name));
+	for (const name of Object.values(DATABASES)) {
 		log(`${name}: ${missing.includes(name) ? (apply ? 'creating' : 'missing, would be created') : 'exists'}`);
 	}
 	if (!apply) {
@@ -695,7 +814,7 @@ function setup(apply, log) {
 
 	/** @type {Record<string, string>} */
 	const ids = {};
-	for (const [binding, name] of Object.entries(SLOT_DATABASES)) {
+	for (const [binding, name] of Object.entries(DATABASES)) {
 		const found = databases.find((d) => d.name === name);
 		if (!found) throw new Error(`${name} is not in wrangler d1 list after creating it`);
 		ids[binding] = found.uuid;
@@ -718,7 +837,8 @@ async function main() {
 	const command = args[0];
 	const apply = args.includes('--apply');
 	const local = args.includes('--local');
-	if (command === 'setup') return setup(apply, (line) => console.log(line));
+	const log = (/** @type {string} */ line) => console.log(line);
+	if (command === 'setup') return setup(apply, log);
 	if (!local) {
 		const bad = badDatabaseIds(readFileSync(WRANGLER_TOML, 'utf8'));
 		if (bad.length) {
@@ -726,27 +846,32 @@ async function main() {
 		}
 	}
 	const db = wranglerRunner({ local });
-	const log = (/** @type {string} */ line) => console.log(line);
+	/** @param {string} what */
+	const fileArg = (what) => {
+		const file = option(args, '--file');
+		if (!file) throw new Error(`Give --file PATH/build/myordbok.sql, the build to ${what}`);
+		return resolve(file);
+	};
 
 	switch (command) {
 		case 'status':
 			return status(db, log);
 		case 'export':
 			return exportEdits(db, option(args, '--out') ?? 'exports', apply, log);
-		case 'publish': {
-			const file = option(args, '--file');
-			if (!file) throw new Error('Give --file PATH/build/myordbok.sql');
-			return publish(db, resolve(file), apply, log);
-		}
+		case 'publish':
+			return publish(db, fileArg('publish'), apply, log);
+		case 'promote':
+			// Local Workers pin DICT_DB, so nothing reads the local database being replaced.
+			return promote(db, fileArg('promote'), apply, log, local ? { waitMs: 0 } : {});
 		case 'switch': {
 			const env = option(args, '--env');
 			if (env !== 'beta' && env !== 'production') throw new Error('Give --env beta or --env production');
-			const slot = option(args, '--slot');
-			if (slot !== undefined && slot !== 'a' && slot !== 'b') throw new Error('--slot is a or b');
-			return switchSlot(db, env, slot, apply, log);
+			const to = option(args, '--to');
+			if (to !== 'dataset' && to !== 'dictionary') throw new Error('Give --to dataset or --to dictionary');
+			return switchSite(db, env, to, apply, log);
 		}
 		default:
-			throw new Error('Commands: setup, status, export, publish, switch (see the top of scripts/data.js)');
+			throw new Error('Commands: setup, status, publish, promote, export, switch (see the top of scripts/data.js)');
 	}
 }
 
