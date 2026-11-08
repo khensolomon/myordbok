@@ -221,9 +221,9 @@ mo-search { display: block; position: relative; height: 44px; }
 .search-box:hover { background: var(--glass-fill-hover); }
 
 /* Focused: the box grows 4px outward (the field and the text do not move)
-   and its corners ease from a pill to --field-r. The field keeps its own
-   shape inside it; the box's corners are the field's plus the 4px gap, so
-   the two curves run parallel (concentric). */
+   and its corners ease from a pill to --field-r plus that 4px, so the
+   suggestions' highlight runs parallel to the box (concentric). A hairline
+   separates the field from the suggestions. */
 .search-box:focus-within,
 mo-search[data-open] .search-box {
 	--field-r: 16px;
@@ -242,8 +242,6 @@ mo-search[data-open] .search-box {
 	border-radius: var(--field-r);
 	transition: border-radius 0.18s, background-color 0.15s;
 }
-.search-box:focus-within .search,
-mo-search[data-open] .search { background: var(--glass-fill); }
 .search input {
 	flex: 1; min-width: 0;
 	border: none; outline: none; background: none;
@@ -263,7 +261,7 @@ mo-search[data-open] .search { background: var(--glass-fill); }
 .search-go:hover { filter: brightness(1.08); }
 .search-go:active { filter: brightness(0.92); }
 
-.search-list { margin: 0; padding: 6px 0 2px; list-style: none; }
+.search-list { margin: 4px 0 0; padding: 6px 0 2px; list-style: none; border-top: 0.5px solid var(--glass-edge); }
 .search-list a { display: block; padding: 8px 18px; border-radius: var(--field-r); color: var(--ink); }
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
 

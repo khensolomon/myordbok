@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+18
+
+- Open search box: no fill behind the field; a hairline separates the field from the suggestions
+
 ## 26.11.8+17
 
 - Focused search box: a lifting shadow instead of a blue line
