@@ -1,14 +1,17 @@
 /* Layout and components. Mobile first; wider screens add room. */
 
 
-/* Every band shares one column (--page) and one left edge. */
+/* Header and footer span the window. The search bar and the content start
+   at the same left edge and stop at a reading width (--page). */
 .site-header,
-.search-bar-inner,
-main,
 .site-footer {
 	width: 100%;
+	padding-inline: var(--gutter);
+}
+.search-bar-inner,
+main {
+	width: 100%;
 	max-width: var(--page);
-	margin-inline: auto;
 	padding-inline: var(--gutter);
 }
 
@@ -54,16 +57,28 @@ main,
 .bar-logo .logo-mark { display: none; width: 34px; }
 .search-bar mo-search { flex: 1; max-width: 640px; }
 
-/* Home: the bar is the page. It sits lower, does not stick, and has no edge. */
+/* Home: as before, the logo with the language line above the search box,
+   centred, and the bar does not stick. */
+.home-pair { display: none; }
 body[data-route="home"] .search-bar {
 	position: static;
-	padding: 18vh 0 0;
+	padding: 14vh 0 0;
 	background: none;
 	-webkit-backdrop-filter: none;
 	backdrop-filter: none;
 	border: none;
 }
-body[data-route="home"] .bar-logo .logo-full { width: 190px; }
+body[data-route="home"] .search-bar-inner {
+	max-width: calc(680px + 2 * var(--gutter));
+	margin-inline: auto;
+	flex-direction: column;
+	gap: 0;
+}
+body[data-route="home"] .bar-logo .logo-full { display: block; width: min(340px, 70vw); }
+body[data-route="home"] .bar-logo .logo-mark { display: none; }
+body[data-route="home"] .home-pair { display: block; margin: 8px 0 0; font-size: 15px; color: var(--muted); }
+body[data-route="home"] .home-pair [aria-hidden] { color: var(--brand); }
+body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32px; }
 
 /* Dark theme shows the logo in one colour so the grey wordmark stays legible. */
 :root[data-theme="dark"] .bar-logo img { filter: brightness(0) invert(1); }
@@ -75,7 +90,7 @@ body[data-route="home"] .bar-logo .logo-full { width: 190px; }
 	.search-bar-inner { gap: 12px; }
 	.bar-logo .logo-full { display: none; }
 	.bar-logo .logo-mark { display: block; }
-	body[data-route="home"] .search-bar { padding-top: 12vh; }
+	body[data-route="home"] .search-bar { padding-top: 10vh; }
 }
 
 /* ---------------------------------------------------------- search box */
@@ -134,28 +149,15 @@ mo-search[data-open] .search-box {
 main { flex: 1; padding-top: 28px; padding-bottom: 48px; outline: none; }
 
 .site-footer {
-	/* The rule above the footer spans the column, not the gutters. */
-	width: calc(100% - 2 * var(--gutter));
-	max-width: calc(var(--page) - 2 * var(--gutter));
-	padding-inline: 0;
 	display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
 	padding-top: 20px;
 	padding-bottom: max(28px, env(safe-area-inset-bottom));
-	border-top: 0.5px solid var(--line);
 	font-size: 13px; color: var(--muted);
 }
 .site-footer nav { display: flex; gap: 20px; }
 .site-footer a { color: var(--muted); }
 body[data-route="home"] .site-footer { display: none; }
 
-/* ---------------------------------------------------------- home */
-
-/* Lines up with the text in the search field, under the logo's width. */
-.home-pair { margin: 10px 0 0 calc(190px + 20px + 18px); font-size: 14px; color: var(--muted); }
-.home-pair [aria-hidden] { color: var(--brand); }
-@media (max-width: 640px) {
-	.home-pair { margin-left: calc(34px + 12px + 18px); }
-}
 body[data-route="home"] main { padding-top: 0; }
 
 /* ---------------------------------------------------------- entry */

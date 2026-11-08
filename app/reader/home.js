@@ -1,14 +1,10 @@
 // @ts-check
 /**
- * Home: the search bar (from the page shell) is the page; this adds only the
- * line under it saying which way the dictionary works.
+ * Home: the page shell's search bar, with the logo above it, is the whole
+ * page (styled by body[data-route="home"]); the view itself adds nothing.
  */
 import { h } from '../core/dom.js';
 
 export function view() {
-	return h(
-		'section',
-		{ class: 'home' },
-		h('p', { class: 'home-pair' }, 'English ', h('span', { 'aria-hidden': 'true' }, '⇄'), ' ', h('span', { lang: 'my' }, 'မြန်မာ')),
-	);
+	return h('section', { class: 'home', 'aria-label': 'Search the dictionary' });
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.8+11
+
+- Home: the logo and the English ⇄ မြန်မာ line above the search box again, centred
+- Header and footer span the full width; the search bar and the page content start at the left edge with a reading width; no rule above the footer
+- Search box: focusing it shows the suggestions for the word already in it (on a definition page, the word looked up), the same as typing it
+
 ## 26.11.8+10
 
 - Header: plain text navigation (Home, Grammar, Fonts, About) that scrolls away; no logo and no empty space for one on the home page
