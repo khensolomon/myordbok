@@ -45,12 +45,12 @@ migrations_dir = "assets/db/migrations"
 [[d1_databases]]
 binding = "DICT_A"
 database_name = "myordbok-dict-a"
-database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+database_id = "5ad0688d-1af7-4ddd-8190-d7fce7ab57df"
 
 [[d1_databases]]
 binding = "DICT_B"
 database_name = "myordbok-dict-b"
-database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b
+database_id = "120dc193-8332-487a-896e-92b8376043ef"
 
 # Local development reads the sample dictionary from slot A (make data-sample).
 [vars]
@@ -76,12 +76,12 @@ migrations_dir = "assets/db/migrations"
 [[env.beta.d1_databases]]
 binding = "DICT_A"
 database_name = "myordbok-dict-a"
-database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+database_id = "5ad0688d-1af7-4ddd-8190-d7fce7ab57df"
 
 [[env.beta.d1_databases]]
 binding = "DICT_B"
 database_name = "myordbok-dict-b"
-database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b
+database_id = "120dc193-8332-487a-896e-92b8376043ef"
 
 # ---------------------------------------------------------------- production
 # Deploying this takes over the myordbok.com DNS record from the current
@@ -104,9 +104,9 @@ migrations_dir = "assets/db/migrations"
 [[env.production.d1_databases]]
 binding = "DICT_A"
 database_name = "myordbok-dict-a"
-database_id = "00000000-0000-0000-0000-00000000000a"   # replace: wrangler d1 create myordbok-dict-a
+database_id = "5ad0688d-1af7-4ddd-8190-d7fce7ab57df"
 
 [[env.production.d1_databases]]
 binding = "DICT_B"
 database_name = "myordbok-dict-b"
-database_id = "00000000-0000-0000-0000-00000000000b"   # replace: wrangler d1 create myordbok-dict-b
+database_id = "120dc193-8332-487a-896e-92b8376043ef"
