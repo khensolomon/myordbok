@@ -22,7 +22,7 @@ install: ## Install tools (wrangler)
 dev: ## App on :8000 from source, /api proxied to :8787
 	node scripts/serve.js
 
-api: ## Worker + local D1 on :8787
+api: build ## Worker + local D1 on :8787 (builds dist/web first)
 	$(WRANGLER) dev --local --port 8787
 
 db-migrate: ## Create or update the local database

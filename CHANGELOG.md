@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.8+3
+
+- Fix: make api and npm run dev:api build dist/web first, so a fresh clone starts without the missing assets directory error
+
 ## 26.11.8+2
 
 - Cloudflare setup: beta (beta.myordbok.com, noindex) and production Wrangler environments sharing the D1 database; deployment guide in docs/deploy.md
