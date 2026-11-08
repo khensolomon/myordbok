@@ -524,7 +524,18 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .g-head h1 { margin: 0; font-size: clamp(30px, 5vw, 40px); font-weight: 600; line-height: 1.5; }
 .g-lead { margin: 8px 0 0; font-size: 17px; color: var(--ink-2); }
 .g-en { margin: 0; font-size: 15px; font-style: italic; color: var(--faint); }
-.g-crumb { margin: 0 0 4px; font-size: 14px; }
+.g-head-topic { display: flex; align-items: flex-start; gap: 14px; }
+/* Back: a glass circle level with the title. */
+.g-back {
+	flex-shrink: 0;
+	width: 40px; height: 40px; margin-top: 10px;
+	display: flex; align-items: center; justify-content: center;
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-fill); color: var(--ink-2);
+	box-shadow: var(--glass-shine);
+	transition: background-color 0.15s;
+}
+.g-back:hover { background: var(--glass-fill-hover); color: var(--ink); text-decoration: none; }
 .g-q { font-weight: 600; color: var(--ink); }
 
 .g-terms { margin: 24px 0 0; }

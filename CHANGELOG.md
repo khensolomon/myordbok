@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.8+22
+
+- Grammar topics: a back button before the title replaces the Grammar link; opened from the list it returns to the list where it was left, otherwise it opens the list
+- Back and forward put every page back where it was scrolled to
+
 ## 26.11.8+21
 
 - Grammar pages: /grammar lists the nine parts of speech and the other topics with their Myanmar and English names; /grammar/<slug> shows a topic's sections, classifications (linked to their sections), example words, example sentences and tables, with the contents beside the text on wide screens and above it on phones, and previous/next topics

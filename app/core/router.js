@@ -12,6 +12,8 @@ import { match } from './routes.js';
  */
 export function startRouter(outlet, onRoute) {
 	let token = 0;
+	// The router puts each page back where it was left (below), not the browser.
+	history.scrollRestoration = 'manual';
 
 	async function render() {
 		const mine = ++token;
@@ -32,9 +34,12 @@ export function startRouter(outlet, onRoute) {
 			if (mine !== token) return; // a newer navigation won
 			outlet.replaceChildren(node);
 			document.title = mod.title ? `${mod.title(ctx)} · MyOrdbok` : 'MyOrdbok';
-			// A deep link to a place in the page (/grammar/noun#s-2) lands there.
+			// Back or forward to a page: where it was left. A deep link to a place
+			// in the page (/grammar/noun#s-2): that place. Otherwise the top.
+			const saved = history.state?.scroll;
 			const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-			if (target) target.scrollIntoView();
+			if (typeof saved === 'number') window.scrollTo(0, saved);
+			else if (target) target.scrollIntoView();
 			else window.scrollTo(0, 0);
 			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
 		} catch (err) {
@@ -44,10 +49,17 @@ export function startRouter(outlet, onRoute) {
 		}
 	}
 
-	/** @param {string} path */
+	/**
+	 * Each history entry remembers where its page was scrolled to when left,
+	 * and the page it was opened from (history.state.from), so a page can
+	 * offer a back that returns there.
+	 * @param {string} path
+	 */
 	function go(path) {
-		if (path === location.pathname + location.search) return;
-		history.pushState(null, '', path);
+		const here = location.pathname + location.search;
+		if (path === here) return;
+		history.replaceState({ ...history.state, scroll: window.scrollY }, '');
+		history.pushState({ from: here }, '', path);
 		render();
 	}
 

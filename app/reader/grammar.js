@@ -9,7 +9,8 @@
  * Wide screens get the contents beside the text; phones a list to open.
  */
 import { AppError } from '#shared/errors.js';
-import { h } from '../core/dom.js';
+import { h, icon } from '../core/dom.js';
+import { ICONS } from '../core/icons.js';
 import { grammarIndex, grammarTopic } from '../data/grammar.js';
 
 /** @typedef {import('../data/grammar.js').GrammarNode} GrammarNode */
@@ -129,10 +130,9 @@ function topicPage(topic, index) {
 			{ class: 'grammar g-topic' },
 			h(
 				'header',
-				{ class: 'g-head' },
-				h('p', { class: 'g-crumb' }, h('a', { href: '/grammar' }, 'Grammar')),
-				h('h1', { lang: 'my' }, topic.root.name),
-				h('p', { class: 'g-en' }, topic.info.name),
+				{ class: 'g-head g-head-topic' },
+				backButton(),
+				h('div', null, h('h1', { lang: 'my' }, topic.root.name), h('p', { class: 'g-en' }, topic.info.name)),
 			),
 			sections.length > 1 ? contents(sections, ids, false) : null,
 			h('div', { class: 'g-body', lang: 'my' }, node(topic, 0, '', ids)),
@@ -145,6 +145,31 @@ function topicPage(topic, index) {
 			),
 		),
 		sections.length > 1 ? contents(sections, ids, true) : null,
+	);
+}
+
+/**
+ * Back to the list of topics. When this page was opened from that list, it
+ * goes back in history, so the list returns scrolled to where it was left;
+ * otherwise (a link from elsewhere, or opened directly) it opens the list.
+ */
+function backButton() {
+	const fromList = history.state?.from === '/grammar';
+	return h(
+		'a',
+		{
+			class: 'g-back',
+			href: '/grammar',
+			title: 'All grammar topics',
+			'aria-label': 'All grammar topics',
+			onClick: (/** @type {MouseEvent} */ e) => {
+				if (!fromList || e.metaKey || e.ctrlKey || e.shiftKey) return;
+				e.preventDefault();
+				e.stopPropagation();
+				history.back();
+			},
+		},
+		icon(ICONS.back, 22),
 	);
 }
 
