@@ -47,18 +47,18 @@ DICT_DB = "dictionary"
 [[d1_databases]]
 binding = "APP"
 database_name = "myordbok-app"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
 [[d1_databases]]
 binding = "DATASET"
 database_name = "myordbok-dataset"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
 
 [[d1_databases]]
 binding = "DICTIONARY"
 database_name = "myordbok-dictionary"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 
 # ---------------------------------------------------------------- beta
 
@@ -74,18 +74,18 @@ vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "" }
 [[env.beta.d1_databases]]
 binding = "APP"
 database_name = "myordbok-app"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
 [[env.beta.d1_databases]]
 binding = "DATASET"
 database_name = "myordbok-dataset"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
 
 [[env.beta.d1_databases]]
 binding = "DICTIONARY"
 database_name = "myordbok-dictionary"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 
 # ---------------------------------------------------------------- production
 # Deploying this takes over the myordbok.com DNS record from the current
@@ -102,15 +102,15 @@ vars = { ENV_NAME = "production", DICT_DB = "" }
 [[env.production.d1_databases]]
 binding = "APP"
 database_name = "myordbok-app"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
 [[env.production.d1_databases]]
 binding = "DATASET"
 database_name = "myordbok-dataset"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
 
 [[env.production.d1_databases]]
 binding = "DICTIONARY"
 database_name = "myordbok-dictionary"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
