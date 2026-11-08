@@ -1,7 +1,24 @@
 # Cloudflare Worker: serves the built app (dist/web) and the /api routes.
+#
+# Environments (each deploys as its own Worker with its own domain):
+#   (top level)   local development only: `wrangler dev --local`
+#   beta          beta.myordbok.com — deployed from the dev branch
+#   production    myordbok.com      — deployed from master, switched on at cutover
+#
+# Bindings and routes are not inherited by environments, so each one
+# declares its own. Beta and production share one D1 database by choice:
+# migrations must stay backward compatible, because beta can run newer code
+# against the same data that production reads.
+#
+# The database_id is an identifier, not a credential. Remote access needs a
+# Cloudflare API token or login for the owning account; local commands never
+# touch it.
+
 name = "myordbok"
 main = "worker/index.js"
 compatibility_date = "2026-11-01"
+workers_dev = false
+preview_urls = false
 
 [assets]
 directory = "./dist/web"
@@ -13,7 +30,38 @@ run_worker_first = ["/api/*"]
 [[d1_databases]]
 binding = "DB"
 database_name = "myordbok"
-# Create with `npx wrangler d1 create myordbok` and paste the id here.
-# Local development (--local) works without a real id.
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
+migrations_dir = "db/migrations"
+
+# ---------------------------------------------------------------- beta
+
+[env.beta]
+name = "myordbok-beta"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
+# Keeps beta out of search results (static files get the same header from _headers).
+vars = { NOINDEX = "1" }
+
+[[env.beta.d1_databases]]
+binding = "DB"
+database_name = "myordbok"
+database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
+migrations_dir = "db/migrations"
+
+# ---------------------------------------------------------------- production
+# Deploying this takes over the myordbok.com DNS record from the current
+# Django site. CI only deploys it when the repository variable
+# PRODUCTION_ENABLED is "true" (see docs/deploy.md, Cutover).
+
+[env.production]
+name = "myordbok-production"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "myordbok.com", custom_domain = true }]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "myordbok"
+database_id = "526dfd31-5d80-40ce-82aa-8f9c94e27456"
 migrations_dir = "db/migrations"

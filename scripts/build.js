@@ -3,6 +3,7 @@
  * Builds the client into dist/<target> with Node's standard library only.
  *
  *   node scripts/build.js                  web build (PWA, service worker)
+ *   node scripts/build.js --noindex        web build for beta: X-Robots-Tag noindex on every file
  *   node scripts/build.js --target tauri   Tauri build (no service worker)
  *
  * Steps: copy app/ and shared/, add a content hash to every .js and .css file,
@@ -52,8 +53,9 @@ function replaceOnce(text, pattern, replacement, what) {
  * @param {'web' | 'tauri'} options.target
  * @param {string} [options.out]
  * @param {string} [options.root]
+ * @param {boolean} [options.noindex]  Ask search engines not to index (beta).
  */
-export async function build({ target, out, root = ROOT }) {
+export async function build({ target, out, root = ROOT, noindex = false }) {
 	if (!TARGETS.includes(target)) throw new Error(`build: unknown target "${target}" (expected ${TARGETS.join(' or ')})`);
 	const app = join(root, 'app');
 	const shared = join(root, 'shared');
@@ -133,8 +135,14 @@ export async function build({ target, out, root = ROOT }) {
 	html = replaceOnce(html, /src="\/main\.js"/, `src="${main}"`, 'main.js script tag in index.html');
 	await writeFile(join(dist, 'index.html'), html);
 
+	if (noindex) {
+		if (target !== 'web') throw new Error('build: --noindex applies to the web target only');
+		// Read by Cloudflare, never served as a file.
+		await writeFile(join(dist, '_headers'), '/*\n  X-Robots-Tag: noindex\n');
+	}
+
 	if (target === 'web') {
-		const all = await walk(dist);
+		const all = (await walk(dist)).filter((f) => f !== '_headers');
 		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/'));
 		const version = `${pkg.version}-${hash8(Buffer.from(precache.join('\n')))}`;
 		let sw = await readFile(join(app, 'sw.js'), 'utf8');
@@ -150,7 +158,8 @@ export async function build({ target, out, root = ROOT }) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
 	const i = process.argv.indexOf('--target');
 	const target = /** @type {'web' | 'tauri'} */ (i > -1 ? process.argv[i + 1] : 'web');
-	build({ target })
+	const noindex = process.argv.includes('--noindex');
+	build({ target, noindex })
 		.then(({ dist, count, hashed }) => console.log(`build: ${target} → ${relative(ROOT, dist).split(sep).join('/')} (${count} files, ${hashed} hashed)`))
 		.catch((err) => {
 			console.error(err.message);

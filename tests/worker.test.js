@@ -29,11 +29,21 @@ function fakeDB(answers) {
 
 const assets = { fetch: async () => new Response('asset') };
 
-/** @param {string} path @param {unknown} DB @param {RequestInit} [init] */
-async function call(path, DB, init) {
-	const res = await worker.fetch(new Request(`https://myordbok.test${path}`, init), /** @type {any} */ ({ DB, ASSETS: assets }));
-	return { status: res.status, body: res.headers.get('content-type')?.includes('json') ? await res.json() : await res.text() };
+/** @param {string} path @param {unknown} DB @param {RequestInit} [init] @param {Record<string, string>} [vars] */
+async function call(path, DB, init, vars = {}) {
+	const res = await worker.fetch(new Request(`https://myordbok.test${path}`, init), /** @type {any} */ ({ DB, ASSETS: assets, ...vars }));
+	return {
+		status: res.status,
+		robots: res.headers.get('x-robots-tag'),
+		body: res.headers.get('content-type')?.includes('json') ? await res.json() : await res.text(),
+	};
 }
+
+test('beta API responses carry noindex, production ones do not', async () => {
+	assert.equal((await call('/api/health', fakeDB([]), undefined, { NOINDEX: '1' })).robots, 'noindex');
+	assert.equal((await call('/api/nope', fakeDB([]), undefined, { NOINDEX: '1' })).robots, 'noindex');
+	assert.equal((await call('/api/health', fakeDB([]))).robots, null);
+});
 
 test('non-API paths are static assets', async () => {
 	const res = await call('/definition?q=love', fakeDB([]));

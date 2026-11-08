@@ -35,6 +35,15 @@ test('web build leaves other platforms out', async () => {
 	assert.deepEqual(dirs, ['web']);
 });
 
+test('beta build asks search engines not to index, without precaching the rule file', async () => {
+	const beta = join(out, 'beta');
+	await build({ target: 'web', out: beta, noindex: true });
+	assert.equal(await readFile(join(beta, '_headers'), 'utf8'), '/*\n  X-Robots-Tag: noindex\n');
+	const sw = await readFile(join(beta, 'sw.js'), 'utf8');
+	assert.doesNotMatch(sw, /_headers/);
+	await assert.rejects(readFile(join(out, '_headers')), 'production build has no noindex rule');
+});
+
 test('tauri build stops until its adapters exist', async () => {
 	await assert.rejects(build({ target: 'tauri', out: join(out, 'tauri') }), /app\/platform\/tauri\/ is missing/);
 });

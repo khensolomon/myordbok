@@ -15,6 +15,7 @@ import { errorResponse, json } from './lib/http.js';
  * @typedef {object} Env
  * @property {D1Database} DB
  * @property {Fetcher} ASSETS
+ * @property {string} [NOINDEX]  "1" on beta: every API response tells search engines not to index.
  */
 
 /**
@@ -43,10 +44,13 @@ export default {
 	async fetch(request, env) {
 		const { pathname } = new URL(request.url);
 		if (!pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+		let res;
 		try {
-			return await api(request, env);
+			res = await api(request, env);
 		} catch (err) {
-			return errorResponse(err);
+			res = errorResponse(err);
 		}
+		if (env.NOINDEX === '1') res.headers.set('x-robots-tag', 'noindex');
+		return res;
 	},
 };

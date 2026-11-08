@@ -10,7 +10,6 @@ const TITLES = {
 	grammar: 'Grammar',
 	'myanmar-fonts': 'Myanmar fonts',
 	about: 'About',
-	privacy: 'Privacy Policy',
 	terms: 'Terms',
 };
 

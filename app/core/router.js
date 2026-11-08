@@ -33,6 +33,7 @@ export function startRouter(outlet, onRoute) {
 			outlet.replaceChildren(node);
 			document.title = mod.title ? `${mod.title(ctx)} · MyOrdbok` : 'MyOrdbok';
 			window.scrollTo(0, 0);
+			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
 		} catch (err) {
 			if (mine !== token) return;
 			console.error(err);

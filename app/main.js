@@ -4,6 +4,7 @@
  * The page shell (header, footer) lives in index.html; views render into <main>.
  */
 import { boot } from '#platform/boot.js';
+import { initConsent } from './core/consent.js';
 import { startRouter } from './core/router.js';
 
 const outlet = document.getElementById('view');
@@ -19,4 +20,5 @@ startRouter(outlet, (route) => {
 	}
 });
 
+initConsent();
 boot();

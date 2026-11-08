@@ -1,5 +1,13 @@
 # Changelog
 
+## 26.11.8+2
+
+- Cloudflare setup: beta (beta.myordbok.com, noindex) and production Wrangler environments sharing the D1 database; deployment guide in docs/deploy.md
+- GitHub Actions: test every push and pull request; deploy dev to beta; deploy master to production once PRODUCTION_ENABLED is set
+- Makefile with commented commands; remote and release commands are dry runs unless APPLY=1
+- Google Analytics (G-E74XPBN0S9), loaded only after consent and only on myordbok.com and beta
+- Privacy page, including a control to change the analytics choice
+
 ## 26.11.7+1
 
 Rewrite begins: the Django version is replaced by an HTML5 app (PWA) on

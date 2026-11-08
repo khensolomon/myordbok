@@ -53,6 +53,11 @@ tests/                node:test
   served from the service worker cache.
 - **Fail fast.** Errors carry a stable code (`shared/errors.js`) and reach the
   screen or the log; nothing falls back silently.
+- **Analytics only with consent.** Google Analytics loads on the public
+  hosts after the visitor allows it (`app/core/consent.js`); the choice
+  stays on the device and can be changed on the privacy page.
+- **Deployment.** Beta and production are Wrangler environments sharing one
+  D1 database; see [deploy.md](deploy.md).
 
 ## Next
 
