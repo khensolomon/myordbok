@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.8+28
+
+- Search reads what was typed first: numbers in Myanmar and English words, sums and percentages, the time and date answered on the device
+- Questions such as 'what is love' or 'similar word of love' open the word, saying how the question was read
+- No entry: did you mean, words starting the same way, and a way to suggest the word; sentences shown one word at a time
+
 ## 26.11.8+27
 
 - Terms: MyOrdbok is a free, non-commercial service for general information; use is personal, educational and non-commercial, as in the previous terms

@@ -7,8 +7,8 @@
 import { boot } from '#platform/boot.js';
 import { initConsent } from './core/consent.js';
 import { initNav } from './core/nav.js';
-import { definitionHref } from './core/routes.js';
 import { startRouter } from './core/router.js';
+import { hrefFor } from './reader/query.js';
 import './reader/search-box.js';
 
 const outlet = document.getElementById('view');
@@ -37,7 +37,8 @@ const router = startRouter(outlet, (route) => {
 	nav.setCurrent(currentLink);
 });
 
-search.addEventListener('mo-search', (e) => router.go(definitionHref(/** @type {CustomEvent<string>} */ (e).detail)));
+// What was typed is read before it goes anywhere: "what is love" opens love.
+search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 
 // The bars change look once the page scrolls under them (app.css, data-scrolled).
 const markScrolled = () => document.body.toggleAttribute('data-scrolled', window.scrollY > 4);

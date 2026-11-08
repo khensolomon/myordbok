@@ -66,4 +66,10 @@
  * @property {string[]} words  Headwords starting with `q`.
  */
 
+/**
+ * @typedef {object} Spelling
+ * @property {string} q
+ * @property {string[]} words  Headwords one edit away from `q`, the most used first.
+ */
+
 export {};

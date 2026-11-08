@@ -11,6 +11,7 @@
  * @typedef {object} ViewContext
  * @property {URLSearchParams} query
  * @property {(path: string) => void} go
+ * @property {(path: string) => void} replace  Go without a new history entry.
  */
 
 /**

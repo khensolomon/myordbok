@@ -4,11 +4,17 @@
  * opens inside the same box, under the field, over the page.
  * Emits `mo-search` (detail: query) on submit; the shell decides where to go.
  * Suggestions are links, so the router handles them like any other link.
+ *
+ * What is typed is read first (shared/query): a number, a sum, the time or
+ * the date gets its answer as the first row and nothing is fetched; a sum
+ * that reads two ways offers both; a question around a word suggests for the
+ * word ("what is lo" → words starting "lo").
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { suggest } from '../data/api.js';
+import { classify, preview, understoodHref } from './query.js';
 
 const DEBOUNCE_MS = 150;
 let uid = 0;
@@ -80,26 +86,39 @@ export class SearchBox extends HTMLElement {
 		const q = input.value.trim();
 		const mine = ++this.seq;
 		if (!q) return this.show([]);
+		const intent = classify(q);
+		const line = preview(intent);
+		if (line) return this.show([], [row(line.label, line.value, definitionHref(q), q)]);
+		if (intent.kind === 'ask') return this.show([], intent.options.map((o) => row(o.label, '', definitionHref(o.query), o.query)));
+		if (intent.kind !== 'lookup') return this.show([]);
+		const lead = intent.understood ? [row(`Look up “${intent.word}”`, '', understoodHref(intent, q), q)] : [];
 		try {
-			const { words } = await suggest(q);
-			if (mine === this.seq) this.show(words);
+			const { words } = await suggest(intent.word);
+			if (mine === this.seq) this.show(words, lead);
 		} catch (err) {
 			// Suggestions are optional; the search itself still submits and reports errors.
-			if (mine === this.seq) this.show([]);
+			if (mine === this.seq) this.show([], lead);
 			console.warn('Suggestions unavailable:', err);
 		}
 	}
 
-	/** @param {string[]} words */
-	show(words) {
+	/**
+	 * @param {string[]} words
+	 * @param {HTMLElement[]} [lead]  Rows before the words: an answer, or choices.
+	 */
+	show(words, lead = []) {
 		const list = /** @type {HTMLUListElement} */ (this.list);
-		list.replaceChildren(
-			...words.map((w, i) => h('li', { role: 'option', id: `${list.id}-${i}` }, h('a', { href: definitionHref(w), tabindex: '-1' }, w))),
-		);
-		list.hidden = words.length === 0;
-		this.toggleAttribute('data-open', words.length > 0);
-		this.input?.setAttribute('aria-expanded', String(words.length > 0));
-		if (this.status) this.status.textContent = words.length ? `${words.length} suggestions` : '';
+		const items = [...lead, ...words.map((w) => h('li', null, h('a', { href: definitionHref(w), tabindex: '-1' }, w)))];
+		items.forEach((li, i) => {
+			li.setAttribute('role', 'option');
+			li.id = `${list.id}-${i}`;
+		});
+		list.replaceChildren(...items);
+		const open = items.length > 0;
+		list.hidden = !open;
+		this.toggleAttribute('data-open', open);
+		this.input?.setAttribute('aria-expanded', String(open));
+		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? `${items.length} suggestions` : '';
 	}
 
 	/** @param {KeyboardEvent} e */
@@ -116,7 +135,7 @@ export class SearchBox extends HTMLElement {
 		e.preventDefault();
 		list.querySelectorAll('li').forEach((li, i) => li.setAttribute('aria-selected', String(i === next)));
 		this.input?.setAttribute('aria-activedescendant', next >= 0 ? `${list.id}-${next}` : '');
-		if (next >= 0 && this.input) this.input.value = links[next].textContent ?? '';
+		if (next >= 0 && this.input) this.input.value = links[next].dataset.value ?? links[next].textContent ?? '';
 	}
 
 	/** @param {SubmitEvent} e */
@@ -127,6 +146,17 @@ export class SearchBox extends HTMLElement {
 		this.show([]);
 		this.dispatchEvent(new CustomEvent('mo-search', { detail: q, bubbles: true }));
 	}
+}
+
+/**
+ * A row that answers or offers a choice, above any suggested words.
+ * @param {string} label
+ * @param {string} value
+ * @param {string} href
+ * @param {string} typed  Put in the field when the row is chosen by key.
+ */
+function row(label, value, href, typed) {
+	return h('li', { class: 'search-answer' }, h('a', { href, tabindex: '-1', 'data-value': typed }, h('span', { class: 'search-answer-label' }, label), value ? h('span', { class: 'search-answer-value' }, value) : null));
 }
 
 if (!customElements.get('mo-search')) customElements.define('mo-search', SearchBox);

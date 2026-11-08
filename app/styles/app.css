@@ -491,6 +491,56 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.related dd { margin-bottom: 10px; }
 }
 
+/* ---------------------------------------------------------- answers, sentences, no result */
+
+/* Search box: an answer or a choice as the first rows, worked out locally. */
+.search-answer a { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.search-answer-label { color: var(--muted); white-space: nowrap; }
+.search-answer-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--ink); }
+.search-answer-value:lang(my), .search-answer a:lang(my) { font-family: var(--font-my); }
+
+/* A number, a sum, the time: the entry layout without a timeline. */
+.answer .headword { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.answer .lang-badge { font-style: normal; }
+.answer-lead { margin: 18px 0 0 46px; font-size: 20px; color: var(--ink-2); }
+.answer .notice { margin: 10px 0 0 46px; }
+.answer .related { margin-top: 22px; }
+.answer-reading { margin: 0; }
+.answer-reading + .answer-reading { margin-top: 4px; }
+.answer-scale { color: var(--faint); font-size: 0.9em; }
+.answer-options { margin-left: 46px; }
+.answer-escape { margin: 18px 0 0 46px; font-size: 15px; }
+.answer-table { margin: 22px 0 0 46px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.answer-table th, .answer-table td { padding: 6px 28px 6px 0; text-align: right; border-bottom: 1px solid var(--line-soft); }
+.answer-table thead th { font-weight: 400; color: var(--faint); }
+.answer-table tfoot th, .answer-table tfoot td { border-bottom: none; font-weight: 600; }
+@media (max-width: 640px) {
+	.answer-lead, .answer .notice, .answer-options, .answer-escape, .answer-table { margin-left: 0; }
+}
+
+/* "Showing love for what is love". */
+.understood { margin: 10px 0 0 46px; font-size: 15px; }
+@media (max-width: 640px) { .understood { margin-left: 0; } }
+
+/* A sentence, one word at a time. */
+.sentence-head { margin-bottom: 28px; max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
+.sentence-text { margin: 0; font-size: 18px; color: var(--ink-2); }
+.sentence-label { margin-right: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }
+.sentence-words { margin-top: 12px; }
+.sentence-words a[aria-current] { background: var(--ink); color: var(--ground); }
+.sentence-pager {
+	display: flex; align-items: center; justify-content: space-between; gap: 16px;
+	max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w));
+	margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line-soft);
+}
+.sentence-count { font-size: 14px; color: var(--faint); }
+.no-result.inline { padding: 8px 0; }
+
+/* Nothing found. */
+.no-result-part > p { margin: 18px 0 0; color: var(--muted); }
+.no-result-ask { max-width: 560px; margin-top: 32px; border-radius: var(--radius); }
+.no-result-ask .aside-actions a { font-size: 14px; }
+
 /* ---------------------------------------------------------- consent */
 
 .consent {

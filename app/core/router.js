@@ -27,7 +27,7 @@ export function startRouter(outlet, onRoute) {
 			return;
 		}
 
-		const ctx = { query: url.searchParams, go };
+		const ctx = { query: url.searchParams, go, replace };
 		try {
 			const mod = await route.load();
 			const node = await mod.view(ctx);
@@ -63,6 +63,16 @@ export function startRouter(outlet, onRoute) {
 		render();
 	}
 
+	/**
+	 * Swaps the current history entry for `path` without adding one, for a
+	 * page that turns out to live at another address ("what is love" → love).
+	 * @param {string} path
+	 */
+	function replace(path) {
+		history.replaceState({ ...history.state, scroll: undefined }, '', path);
+		render();
+	}
+
 	document.addEventListener('click', (event) => {
 		const a = /** @type {HTMLElement} */ (event.target).closest?.('a');
 		if (!a || a.target || a.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey) return;
@@ -76,7 +86,7 @@ export function startRouter(outlet, onRoute) {
 	window.addEventListener('popstate', render);
 	render();
 
-	return { go };
+	return { go, replace };
 }
 
 /** @param {string} path */

@@ -21,6 +21,7 @@ app/                  client: plain ES modules, JSDoc types, no framework
   sw.js               service worker (web build only)
 worker/               Cloudflare Worker: /api routes, static assets
 shared/               used by app and worker: errors, roles, validation, version, markup
+  query/              reads what was typed: numbers, maths, time, questions
   search/             lookup code copied from the dataset (make dataset-sync)
 assets/db/
   migrations/         app database schema (wrangler migrations)
@@ -66,6 +67,24 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   one JSON file per topic to `/data/grammar/` (`scripts/grammar-data.js`), the
   service worker keeps them for offline use, and the dev server serves the
   same files from the same function. It never goes to D1.
+- **What was typed is read before anything is fetched.** `shared/query`
+  classifies each query in the browser. Numbers (digits in either script, or
+  number words in Myanmar and English) are read in words both ways; sums are
+  worked out by its own parser (never `eval`), with calculator percentages
+  (`10% of 70`, `70 + 10%`); the time and date come from the device clock.
+  None of these reach the dictionary. A sum that reads two ways (`10 % 19`)
+  asks which was meant, and one with no answer says why. A question around a
+  word (`what is love`, `similar word of love`) opens the word's page with
+  the question kept (`asked=`) and the part asked about as the anchor
+  (`#synonyms`); `exact=1` looks up the text as typed. The Myanmar number
+  reading is a rewrite of myanmar-notation with decimals, negatives, exact
+  digits and the reverse direction; `tests/fixtures/numeral-my.json` holds
+  the original library's readings it is tested against.
+- **Nothing found is still an answer.** A word the dictionary lacks gets
+  "did you mean" (`/api/spelling`: headwords one edit away, checked in one
+  query), words that start the same way, and a way to ask for it. A sentence
+  is shown one word at a time (`&w=`), each word fetched only when opened and
+  kept for the session, the next fetched ahead unless the reader saves data.
 - **Ids belong to a build, words do not.** Reactions and comments name the
   headword by spelling, so they survive any rebuild.
 - **Roles are checked on the server on every write**, reading the role from
@@ -93,3 +112,4 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 4. Offline packs: the dataset build as a download, searched with the same
    lookup code in the browser.
 5. Tauri adapters.
+6. Query: Zawgyi detection, Myanmar sentences split into words.

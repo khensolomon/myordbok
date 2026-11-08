@@ -1,25 +1,50 @@
 // @ts-check
 /**
  * Definition page: /definition?q=word
+ *
+ * What was typed is read first, in the browser (shared/query): a number, a
+ * sum, the time or the date is answered here (answer.js) without asking the
+ * dictionary; a question around a word ("what is love") moves to the word's
+ * own address, keeping the question (asked=) to say how it was read.
+ * exact=1 skips the reading and looks up the text as typed.
+ *
  * Senses grouped by part of speech: an open timeline on wide screens and one
  * card per part of speech on phones (CSS decides, the markup is the same).
  * Below the senses: forms, synonyms and other related words.
  *
  * A word with no senses of its own that is a form of another (went → go)
  * shows the root's entry under a line saying so.
+ *
+ * Words the dictionary does not have: a sentence is shown one word at a time
+ * (&w=index), each fetched only when opened, so a slow connection loads one
+ * small result at a time; a single word gets "did you mean", words starting
+ * the same way, and a way to suggest it.
  */
 import { splitExamples } from '#shared/markup.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
+import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
-import { lookup, suggest } from '../data/api.js';
+import { lookup, savingData, spelling, suggest } from '../data/api.js';
+import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
 /** @typedef {import('#shared/types.js').MyanmarResult} MyanmarResult */
 
 /** Roots shown in full under a form (went → go); more are listed as links. */
 const ROOTS_SHOWN = 2;
+
+/** Words of a sentence offered one by one. */
+const SENTENCE_WORDS = 30;
+
+/** Ids of the related-word rows a question can point to (#synonyms). */
+const FOCUS_ROWS = /** @type {Record<string, string>} */ ({ Forms: 'forms', Synonyms: 'synonyms', Opposite: 'opposite' });
+const NOT_LISTED = /** @type {Record<string, string>} */ ({
+	forms: 'No other forms are listed for it yet.',
+	synonyms: 'No similar words are listed for it yet.',
+	opposite: 'No opposites are listed for it yet.',
+});
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export function title(ctx) {
@@ -30,16 +55,63 @@ export function title(ctx) {
 export async function view(ctx) {
 	const q = (ctx.query.get('q') ?? '').trim();
 	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, 'Type a word to look it up.'));
+	const asked = ctx.query.get('asked');
+	const at = ctx.query.get('w');
+
+	if (ctx.query.get('exact') !== '1' && !asked && at === null) {
+		const intent = classify(q);
+		if (intent.kind !== 'lookup') return (await import('./answer.js')).answer(intent, q);
+		if (intent.understood) {
+			ctx.replace(understoodHref(intent, q));
+			return h('div');
+		}
+	}
+
+	const words = sentenceWords(q);
+	if (at !== null && words.length > 1) return sentence(q, words, Number(at) || 0);
 
 	const data = await lookup(q);
+	const found = await result(data, asked);
+	if (found) return found;
+	if (words.length > 1) return sentence(q, words, 0);
+	return missing(data.query);
+}
+
+/**
+ * The entry for a lookup, or null when the dictionary has nothing for it.
+ * @param {import('#shared/types.js').LookupResult} data
+ * @param {string | null} [asked]  The question it was read from.
+ */
+async function result(data, asked) {
 	if (data.language === 'my') {
-		if (!data.entries.length) return missing(data.query);
+		if (!data.entries.length) return null;
 		return withAside(
-			h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query)),
+			h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query)),
 			aside(data.query, lead(data.query, data.entries), data.entries),
 		);
 	}
-	return english(data);
+	return english(data, asked);
+}
+
+/**
+ * "Showing love for what is love", with the way back to the text as typed,
+ * and a word when the part asked about (#synonyms) is not in the entry.
+ * @param {string} word
+ * @param {string | null | undefined} asked
+ * @param {HTMLElement | null} [rel]  The entry's related words, if any.
+ */
+function understood(word, asked, rel) {
+	if (!asked) return null;
+	const focus = decodeURIComponent(location.hash.slice(1));
+	const name = Object.entries(FOCUS_ROWS).find(([, id]) => id === focus)?.[0];
+	const absent = name && !rel?.querySelector(`#${focus}`);
+	return h(
+		'p',
+		{ class: 'entry-note understood' },
+		`Showing “${word}” for “${asked}”. `,
+		absent ? `${NOT_LISTED[focus]} ` : null,
+		h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`),
+	);
 }
 
 /**
@@ -52,13 +124,17 @@ function withAside(article, side) {
 	return h('div', { class: 'definition' }, article, side);
 }
 
-/** @param {EnglishResult} data */
-async function english(data) {
+/**
+ * @param {EnglishResult} data
+ * @param {string | null} [asked]
+ */
+async function english(data, asked) {
 	const roots = [...new Set(data.forms_of.map(([root]) => root))];
-	if (!data.entries.length && !roots.length) return missing(data.query);
+	if (!data.entries.length && !roots.length) return null;
 
 	/** @type {import('../core/dom.js').Child[]} */
-	const body = [];
+	const rel = data.entries.length ? related(data) : null;
+	const body = [understood(data.query, asked, rel)];
 	/** Senses on the page, for the summary beside it. */
 	let shown = data.entries;
 	/** @type {string} */
@@ -69,7 +145,7 @@ async function english(data) {
 	if (roots.length) body.push(formNote(data));
 
 	if (data.entries.length) {
-		body.push(timeline(groupByType(data.entries), 'my', data.query), related(data));
+		body.push(timeline(groupByType(data.entries), 'my', data.query), rel);
 	} else {
 		// Only a form of other words: show the roots that have senses.
 		const withSenses = roots.filter((r) => (data.root_senses[r] ?? 0) > 0).slice(0, ROOTS_SHOWN);
@@ -303,19 +379,105 @@ function related(data) {
 		['Related', data.related],
 	];
 	for (const [name, words] of lists) if (words.length) rows.push([name, wordLinks(words)]);
+	// "similar word of love" points at #synonyms: Similar answers it when there are no synonyms.
+	const ids = { ...FOCUS_ROWS, ...(data.synonyms.length ? {} : { Similar: 'synonyms' }) };
 	if (!rows.length) return null;
-	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', null, name), h('dd', null, value)]));
+	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, name), h('dd', null, value)]));
 }
 
-/** @param {string} q */
-async function missing(q) {
-	const { words } = await suggest(q).catch(() => ({ words: /** @type {string[]} */ ([]) }));
+/**
+ * The words of a sentence, each once, in order: "love is good, love is an
+ * open door" → love, is, good, an, open, door.
+ * @param {string} q
+ */
+export function sentenceWords(q) {
+	const seen = new Set();
+	/** @type {string[]} */
+	const out = [];
+	for (const w of q.normalize('NFC').match(/[\p{L}\p{M}\p{N}]+(?:['’-][\p{L}\p{M}]+)*/gu) ?? []) {
+		const key = w.toLowerCase();
+		if (seen.has(key)) continue;
+		seen.add(key);
+		out.push(w);
+		if (out.length === SENTENCE_WORDS) break;
+	}
+	return out;
+}
+
+/**
+ * A sentence, one word at a time: the words as links, the current word's
+ * entry, and the next and previous words. Only the word shown is fetched; the
+ * next is fetched ahead unless the reader is saving data.
+ * @param {string} q
+ * @param {string[]} words
+ * @param {number} index
+ */
+async function sentence(q, words, index) {
+	const i = Math.min(Math.max(0, Math.trunc(index)), words.length - 1);
+	const word = words[i];
+	const at = (/** @type {number} */ n) => `${definitionHref(q)}&w=${n}`;
+	const next = words[i + 1];
+	if (next && !savingData()) lookup(next).catch(() => {});
+
+	const data = await lookup(word);
+	const entry = (await result(data)) ?? (await missing(word, { inline: true }));
+	const pager = h(
+		'nav',
+		{ class: 'sentence-pager', 'aria-label': 'Words of the sentence' },
+		i > 0 ? h('a', { href: at(i - 1), rel: 'prev' }, `← ${words[i - 1]}`) : h('span'),
+		h('span', { class: 'sentence-count' }, `${i + 1} of ${words.length}`),
+		next ? h('a', { href: at(i + 1), rel: 'next' }, `${next} →`) : h('span'),
+	);
+	return h(
+		'div',
+		{ class: 'sentence' },
+		h(
+			'header',
+			{ class: 'sentence-head' },
+			h('p', { class: 'sentence-text' }, h('span', { class: 'sentence-label' }, 'Sentence'), ' ', q),
+			h('ol', { class: 'chips sentence-words' }, words.map((w, n) => h('li', null, h('a', { href: at(n), 'aria-current': n === i ? 'true' : null }, w)))),
+		),
+		entry,
+		pager,
+	);
+}
+
+/**
+ * Nothing for `q`: "did you mean", words starting the same way, and a way to
+ * ask for it. Inline (a word of a sentence), a shorter version.
+ * @param {string} q
+ * @param {{ inline?: boolean }} [options]
+ */
+async function missing(q, options = {}) {
+	const none = { words: /** @type {string[]} */ ([]) };
+	const [near, starts] = await Promise.all([spelling(q).catch(() => none), options.inline ? none : suggest(q).catch(() => none)]);
+	const close = near.words.filter((w) => w.toLowerCase() !== q.toLowerCase());
+	const prefix = starts.words.filter((w) => !close.includes(w) && w.toLowerCase() !== q.toLowerCase());
+	/** @param {string[]} words */
+	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
+	const issue = `${REPOSITORY}/issues/new?title=${encodeURIComponent(`Add “${q}”`)}&body=${encodeURIComponent(`The dictionary has no entry for “${q}”.\n\nMeaning, example or source:\n`)}`;
+
 	return h(
 		'section',
-		{ class: 'page' },
-		h('h1', { class: 'notice-title' }, `No entry for “${q}”`),
-		words.length
-			? h('div', null, h('p', null, 'Words that start the same way:'), h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w)))))
-			: h('p', null, 'Check the spelling, or try the root form of the word.'),
+		{ class: options.inline ? 'no-result inline' : 'page no-result' },
+		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, `No entry for “${q}”`),
+		close.length ? h('div', { class: 'no-result-part' }, h('p', null, 'Did you mean'), chips(close)) : null,
+		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, `Words that start like “${q}”`), chips(prefix)) : null,
+		!close.length && !prefix.length ? h('p', { class: 'notice' }, 'Check the spelling, or try the root form of the word.') : null,
+		options.inline
+			? null
+			: h(
+					'div',
+					{ class: 'aside-card no-result-ask' },
+					h('h2', null, 'We don’t have it yet'),
+					h('p', { class: 'aside-lead' }, `Would you like to suggest “${q}” for the dictionary?`),
+					h(
+						'div',
+						{ class: 'aside-actions' },
+						h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggesting a word needs a sign-in' }, icon(ICONS.suggest, 18), 'Suggest this word'),
+						h('a', { href: issue, target: '_blank', rel: 'noopener' }, 'Or tell us on GitHub'),
+					),
+					h('p', { class: 'aside-quiet' }, 'Suggesting in the app needs a sign-in, which arrives soon.'),
+				),
 	);
 }

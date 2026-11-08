@@ -137,3 +137,13 @@ test('errors are JSON with a stable code', async () => {
 	const badChoice = await call('/api/lookup?q=love', localEnv({ DICT_DB: 'other' }));
 	assert.equal(badChoice.status, 500);
 });
+
+test('spelling: headwords one edit away, with senses', async () => {
+	const { edits1 } = await import('../worker/routes/spelling.js');
+	assert.ok(edits1('lvoe').includes('love'));
+	assert.ok(!edits1('love').includes('love'));
+	assert.deepEqual((await call('/api/spelling?q=lvoe', localEnv())).body.words, ['love']);
+	assert.deepEqual((await call('/api/spelling?q=Wtaer', localEnv())).body.words, ['water']);
+	assert.deepEqual((await call('/api/spelling?q=gon', localEnv())).body.words, ['go'], 'gone has no senses of its own');
+	assert.deepEqual((await call(`/api/spelling?q=${encodeURIComponent('ချစ')}`, localEnv())).body.words, []);
+});
