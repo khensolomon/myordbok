@@ -171,7 +171,7 @@ test('failures go back to the account page with a reason', async () => {
 		await b.get('/api/auth/google/start');
 		assert.equal((await b.get('/api/auth/google/callback?code=abc&state=forged')).headers.get('location'), '/account?error=expired');
 		assert.equal((await browser(e).get('/api/auth/google/callback?error=access_denied')).headers.get('location'), '/account?error=cancelled');
-		assert.equal((await browser(env({ GITHUB_CLIENT_SECRET: '' })).get('/api/auth/github/start')).headers.get('location'), '/account?error=not_configured');
+		assert.equal((await browser(env({ GITHUB_CLIENT_SECRET: '' })).get('/api/auth/github/start')).headers.get('location'), '/account?error=not_configured&missing=GITHUB_CLIENT_SECRET');
 		globalThis.fetch = async () => new Response(JSON.stringify({ error: 'bad_verification_code' }), { status: 400 });
 		assert.equal((await browser(e).signIn('github')).headers.get('location'), '/account?error=provider');
 		assert.equal((await browser(e).get('/api/auth/twitter/start')).status, 404);

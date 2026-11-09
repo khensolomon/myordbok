@@ -71,10 +71,15 @@ const PROVIDERS = /** @type {const} */ ({
 
 /** A failure the account page explains; `code` goes into the address. */
 class SignInError extends Error {
-	/** @param {string} code @param {string} detail  For the log only. */
-	constructor(code, detail) {
+	/**
+	 * @param {string} code
+	 * @param {string} detail  For the log only.
+	 * @param {string} [missing]  The setting's name (never its value), shown on the page.
+	 */
+	constructor(code, detail, missing) {
 		super(detail);
 		this.code = code;
+		this.missing = missing;
 	}
 }
 
@@ -96,7 +101,8 @@ export async function auth(request, env, parts) {
 	} catch (err) {
 		if (!(err instanceof SignInError)) throw err;
 		console.warn(JSON.stringify({ event: 'signin_failed', provider, code: err.code, detail: err.message }));
-		return redirect(`/account?error=${err.code}`, [setCookie(STATE_COOKIE, '', 0)]);
+		const missing = err.missing ? `&missing=${err.missing}` : '';
+		return redirect(`/account?error=${err.code}${missing}`, [setCookie(STATE_COOKIE, '', 0)]);
 	}
 }
 
@@ -244,7 +250,10 @@ function credentials(env, provider) {
 	const p = PROVIDERS[provider];
 	const clientId = env[p.id];
 	const secret = env[p.secret];
-	if (!clientId || !secret) throw new SignInError('not_configured', `${!clientId ? p.id : p.secret} is not set on this site`);
+	if (!clientId || !secret) {
+		const name = !clientId ? p.id : p.secret;
+		throw new SignInError('not_configured', `${name} is not set on this site`, name);
+	}
 	return { clientId, secret };
 }
 

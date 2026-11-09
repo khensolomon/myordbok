@@ -28,7 +28,10 @@ export function title() {
 export async function view(ctx) {
 	const error = ctx.query.get('error');
 	const me = await member({ fresh: true });
-	const notice = error ? h('p', { class: 'account-error', role: 'alert' }, ERRORS[error] ?? 'The sign-in could not be completed.') : null;
+	const missing = ctx.query.get('missing');
+	const notice = error
+		? h('p', { class: 'account-error', role: 'alert' }, ERRORS[error] ?? 'The sign-in could not be completed.', missing && /^[A-Z_]+$/.test(missing) ? ` (${missing} is not set.)` : null)
+		: null;
 	return me ? signedIn(me, notice, ctx) : signedOut(notice);
 }
 

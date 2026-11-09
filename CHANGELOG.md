@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+39
+
+- A sign-in provider that is not set up names the missing setting on the account page
+
 ## 26.11.9+38
 
 - About explains sign-in: what is kept, why, and a link to Privacy
