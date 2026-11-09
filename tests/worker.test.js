@@ -198,3 +198,48 @@ test('read: one request decides entry, phrase, sentence or nothing', async () =>
 	assert.deepEqual(none.close, ['love']);
 	assert.deepEqual((await read('lo')).starts, ['lovable', 'love', 'love affair']);
 });
+
+test('guard: own pages only, a limit per visitor, open health; off without API_GUARD', async () => {
+	/** A limiter allowing `n` requests per key. */
+	const limiter = (n) => {
+		const seen = new Map();
+		return { limit: async ({ key }) => ({ success: (seen.set(key, (seen.get(key) ?? 0) + 1).get(key)) <= n }) };
+	};
+	const guarded = () => localEnv({ API_GUARD: '1', RATE_LOOKUP: limiter(2), RATE_HEAVY: limiter(1) });
+	const own = { headers: { 'sec-fetch-site': 'same-origin', 'cf-connecting-ip': '192.0.2.1' } };
+	const warn = console.warn;
+	console.warn = () => {};
+	try {
+		let env = guarded();
+		assert.equal((await call('/api/lookup?q=love', env)).body.error?.code, 'forbidden', 'no header: a script');
+		assert.equal((await call('/api/lookup?q=love', env, { headers: { 'sec-fetch-site': 'cross-site' } })).status, 403);
+		assert.equal((await call('/api/lookup?q=love', env, own)).status, 200);
+		assert.equal((await call('/api/health', env, { headers: { 'cf-connecting-ip': '192.0.2.9' } })).status, 200, 'health is open');
+
+		env = guarded();
+		assert.equal((await call('/api/read?q=love', env, own)).status, 200);
+		const over = await call('/api/read?q=love', env, own);
+		assert.equal(over.status, 429);
+		assert.equal(over.body.error.code, 'rate_limited');
+		assert.equal((await call('/api/read?q=love', env, { headers: { ...own.headers, 'cf-connecting-ip': '192.0.2.2' } })).status, 200, 'another visitor');
+		assert.equal((await call('/api/lookup?q=love', env, own)).status, 200, 'lookups count apart');
+
+		const missing = localEnv({ API_GUARD: '1' });
+		assert.match((await call('/api/lookup?q=love', missing, own)).body.error.message, /RATE_LOOKUP is missing/);
+
+		assert.equal((await call('/api/lookup?q=love', localEnv())).status, 200, 'local development: off');
+	} finally {
+		console.warn = warn;
+	}
+});
+
+test('wrangler.toml: beta and production turn the guard on with their own limits', async () => {
+	const { readFile } = await import('node:fs/promises');
+	const toml = await readFile(new URL('../wrangler.toml', import.meta.url), 'utf8');
+	for (const env of ['beta', 'production']) {
+		assert.match(toml, new RegExp(`\\[env\\.${env}\\][^]*?API_GUARD = "1"`), `${env} guard`);
+		for (const name of ['RATE_LOOKUP', 'RATE_HEAVY']) assert.match(toml, new RegExp(`\\[\\[env\\.${env}\\.ratelimits\\]\\]\\nname = "${name}"`), `${env} ${name}`);
+	}
+	const ids = [...toml.matchAll(/namespace_id = "(\d+)"/g)].map((m) => m[1]);
+	assert.equal(new Set(ids).size, ids.length, 'each environment counts on its own');
+});

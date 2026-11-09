@@ -283,3 +283,39 @@ separated in reports by hostname. Settings worth checking in the GA property:
   `wrangler login` to the owning account; CI never runs them.
 - Never commit API tokens; they live only in GitHub environment secrets and
   in `npx wrangler login` on the maintainer's machine.
+
+### The API
+
+The API serves the app, not the public. On beta and production
+(`API_GUARD = "1"` in `wrangler.toml`; `worker/lib/guard.js`):
+
+- **Own pages only.** A request must carry `Sec-Fetch-Site: same-origin`,
+  which browsers set and web pages cannot. Other websites and scripts that
+  leave the header out get 403. A script can forge the header, so this keeps
+  the API to the app in browsers; the limits below are what slow a script.
+  Browsers older than about 2023 do not send the header and cannot search.
+- **Rate limits per visitor (IP address)**, counted by Cloudflare at each
+  location: 120 a minute for lookups and suggestions (`RATE_LOOKUP`), 40 a
+  minute for `read`, `phrase` and `spelling` (`RATE_HEAVY`), which read many
+  rows each. Over the limit: 429, and the app says to wait a minute. Change
+  the numbers in `wrangler.toml`; each environment has its own counters.
+- **Edge cache.** Dictionary answers are kept at the Cloudflare location for
+  as long as their Cache-Control allows (5 minutes; spelling 1 hour), so a
+  word asked again does not reach D1. After a dictionary release, answers can
+  be that old for that long. Cached answers still count towards the limits.
+- **Logs.** Refused and rate-limited requests are logged as
+  `api_refused` and `rate_limited`, with the route, the country and, for the
+  limit, a 12-digit hash of the address (never the address). Watch them with
+  `make logs-beta`.
+- `/api/health` holds no dictionary data and is open to monitoring, within
+  the lookup limit.
+- Local development runs without the guard. To try it:
+  `npx wrangler dev --local --var API_GUARD:1`.
+
+In the Cloudflare dashboard, **Security → Bots → Block AI bots** keeps AI
+crawlers off the site. Leave Bot Fight Mode off: it can challenge the app's
+own requests.
+
+Still to come with sign-in: every route that writes requires the session
+cookie (HttpOnly, Secure, SameSite=Lax) and a matching `Origin` header. A
+native app (Tauri) will need its own way in, as it is not a same-origin page.

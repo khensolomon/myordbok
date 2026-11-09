@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11.9+32
+
+- The API answers the app's own pages only: other websites and scripts are refused on beta and production
+- Rate limits per visitor, stricter for the routes that read many rows; repeated lookups come from the edge cache
+
 ## 26.11.8+31
 
 - One request decides what a query is: an entry, a phrase, a sentence or nothing found, so a slow connection waits once

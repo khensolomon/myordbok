@@ -85,6 +85,10 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   comes from one request, `/api/read`; Myanmar text, written without spaces,
   is split into the dictionary's headwords. The full map is in
   [query.md](query.md).
+- **The API serves the app only.** On beta and production the Worker
+  refuses requests that are not from its own pages (`Sec-Fetch-Site`),
+  limits each visitor per minute, and answers repeated lookups from the edge
+  cache (`worker/lib/guard.js`; docs/deploy.md, The API).
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

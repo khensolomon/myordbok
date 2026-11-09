@@ -41,8 +41,23 @@ not_found_handling = "single-page-application"
 run_worker_first = ["/api/*"]
 
 # Local development reads the local myordbok-dictionary (make data-sample).
+# API_GUARD is off here; beta and production turn it on (worker/lib/guard.js).
 [vars]
 DICT_DB = "dictionary"
+
+# Rate limits per visitor, counted at each Cloudflare location. Lookups and
+# suggestions get the generous one, read/phrase/spelling (many rows each) the
+# strict one. namespace_id is unique in the account, so each environment
+# counts on its own. Period is 10 or 60 seconds.
+[[ratelimits]]
+name = "RATE_LOOKUP"
+namespace_id = "1001"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "RATE_HEAVY"
+namespace_id = "1002"
+simple = { limit = 40, period = 60 }
 
 [[d1_databases]]
 binding = "APP"
@@ -69,7 +84,17 @@ preview_urls = false
 routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
 # NOINDEX keeps beta out of search results (static files get the same header
 # from _headers). DICT_DB empty: the database comes from dict_release.
-vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "" }
+vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1" }
+
+[[env.beta.ratelimits]]
+name = "RATE_LOOKUP"
+namespace_id = "1101"
+simple = { limit = 120, period = 60 }
+
+[[env.beta.ratelimits]]
+name = "RATE_HEAVY"
+namespace_id = "1102"
+simple = { limit = 40, period = 60 }
 
 [[env.beta.d1_databases]]
 binding = "APP"
@@ -97,7 +122,17 @@ name = "myordbok-production"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
-vars = { ENV_NAME = "production", DICT_DB = "" }
+vars = { ENV_NAME = "production", DICT_DB = "", API_GUARD = "1" }
+
+[[env.production.ratelimits]]
+name = "RATE_LOOKUP"
+namespace_id = "1201"
+simple = { limit = 120, period = 60 }
+
+[[env.production.ratelimits]]
+name = "RATE_HEAVY"
+namespace_id = "1202"
+simple = { limit = 40, period = 60 }
 
 [[env.production.d1_databases]]
 binding = "APP"

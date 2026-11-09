@@ -8,6 +8,7 @@
 import pkg from '../package.json' with { type: 'json' };
 import { AppError } from '../shared/errors.js';
 import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
+import { cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { lookup } from './routes/lookup.js';
 import { phrase } from './routes/phrase.js';
@@ -16,11 +17,13 @@ import { spelling } from './routes/spelling.js';
 import { suggest } from './routes/suggest.js';
 
 /**
- * @typedef {import('./lib/dict.js').DictEnv & {
+ * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & {
  *   ASSETS: Fetcher,
  *   NOINDEX?: string,
  * }} Env
  * NOINDEX is "1" on beta: every API response tells search engines not to index.
+ * API_GUARD is "1" on beta and production: own pages only, rate limits, edge
+ * cache (worker/lib/guard.js).
  */
 
 /**
@@ -53,11 +56,23 @@ async function health(env) {
 /**
  * @param {Request} request
  * @param {Env} env
+ * @param {ExecutionContext} [ctx]
  */
-async function api(request, env) {
+async function api(request, env, ctx) {
 	const url = new URL(request.url);
 	const parts = url.pathname.split('/').filter(Boolean).slice(1); // drop "api"
+	const route = parts[0] ?? '';
+	await guard(request, env, route);
+	return cached(request, route, ctx, () => answer(request, env, url, parts));
+}
 
+/**
+ * @param {Request} request
+ * @param {Env} env
+ * @param {URL} url
+ * @param {string[]} parts
+ */
+async function answer(request, env, url, parts) {
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);
 	}
@@ -76,13 +91,14 @@ export default {
 	/**
 	 * @param {Request} request
 	 * @param {Env} env
+	 * @param {ExecutionContext} [ctx]
 	 */
-	async fetch(request, env) {
+	async fetch(request, env, ctx) {
 		const { pathname } = new URL(request.url);
 		if (!pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 		let res;
 		try {
-			res = await api(request, env);
+			res = await api(request, env, ctx);
 		} catch (err) {
 			res = errorResponse(err);
 		}
