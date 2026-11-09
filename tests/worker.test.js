@@ -243,3 +243,11 @@ test('wrangler.toml: beta and production turn the guard on with their own limits
 	const ids = [...toml.matchAll(/namespace_id = "(\d+)"/g)].map((m) => m[1]);
 	assert.equal(new Set(ids).size, ids.length, 'each environment counts on its own');
 });
+
+test('wrangler.toml: production is the Worker named myordbok; the local top level is not', async () => {
+	const { readFile } = await import('node:fs/promises');
+	const toml = await readFile(new URL('../wrangler.toml', import.meta.url), 'utf8');
+	assert.match(toml, /^name = "myordbok-local"$/m);
+	assert.match(toml, /\[env\.beta\]\nname = "myordbok-beta"/);
+	assert.match(toml, /\[env\.production\]\nname = "myordbok"\n/);
+});

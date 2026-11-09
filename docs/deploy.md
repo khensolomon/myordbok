@@ -258,7 +258,7 @@ git), because exported files hold dataset text.
    deploys to myordbok.com.
 5. Keep the Django site running read-only for a few weeks as a fallback.
 
-Rollback: **Workers & Pages → myordbok-production → Deployments** lists every
+Rollback: **Workers & Pages → myordbok → Deployments** lists every
 version; any earlier one can be promoted again from there.
 
 ## Analytics

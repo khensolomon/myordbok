@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+33
+
+- The production Worker is named myordbok; the local-only configuration is myordbok-local, so a deploy without --env can never overwrite production
+
 ## 26.11.9+32
 
 - The API answers the app's own pages only: other websites and scripts are refused on beta and production

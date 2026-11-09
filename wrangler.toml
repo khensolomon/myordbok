@@ -1,6 +1,7 @@
 # Cloudflare Worker: serves the built app (dist/web) and the /api routes.
 #
 # Environments (each deploys as its own Worker with its own domain):
+#   Worker names: myordbok-local (never deployed), myordbok-beta, myordbok
 #   (top level)   local development only: `wrangler dev --local`
 #   beta          beta.myordbok.com — deployed from the dev branch
 #   production    myordbok.com      — deployed from master, switched on at cutover
@@ -27,7 +28,10 @@
 # Cloudflare API token or login for the owning account; local commands never
 # touch them. `make data-setup APPLY=1` creates the databases and fills them in.
 
-name = "myordbok"
+# The top level is never deployed. Its name differs from production's, so a
+# deploy without --env makes a separate, domain-less Worker instead of
+# overwriting myordbok.com with local settings.
+name = "myordbok-local"
 main = "worker/index.js"
 compatibility_date = "2026-11-01"
 workers_dev = false
@@ -118,7 +122,7 @@ database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 # PRODUCTION_ENABLED is "true" (see docs/deploy.md, Cutover).
 
 [env.production]
-name = "myordbok-production"
+name = "myordbok"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
