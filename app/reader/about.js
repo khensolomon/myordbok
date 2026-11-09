@@ -110,7 +110,9 @@ export async function view() {
 			h(
 				'p',
 				null,
-				'Signing in with Google or GitHub, coming soon, will let you like an entry, comment, and suggest a correction or a new meaning right beside it. Until then, mistakes and suggestions are welcome as an ',
+				'Reading and searching need no account. Signing in with Google or GitHub lets you like an entry, comment, and suggest a correction or a new meaning right beside it. MyOrdbok then keeps the name, picture and verified email address the provider gives, only to recognise you and to credit your contributions; it never uses them for advertising and never shares them. The ',
+				h('a', { href: '/privacy' }, 'Privacy'),
+				' page explains what is stored and how to have it deleted. Mistakes and suggestions are also welcome as an ',
 				h('a', { href: `${REPO}/issues`, rel: 'noopener' }, 'issue on GitHub'),
 				'.',
 			),

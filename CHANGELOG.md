@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+38
+
+- About explains sign-in: what is kept, why, and a link to Privacy
+
 ## 26.11.9+37
 
 - Local sign-in works from the dev server on :8000: the callback is always localhost:8787
