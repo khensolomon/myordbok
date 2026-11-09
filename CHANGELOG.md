@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.9+40
+
+- Signed-in members like or dislike an entry and suggest changes to its meanings, a new meaning, or removing one, from the entry page
+- A member's suggestion waits for review; an editor's own is approved and reaches the dictionary with the next release
+- After signing in from an entry, the reader comes back to that entry
+
 ## 26.11.9+39
 
 - A sign-in provider that is not set up names the missing setting on the account page

@@ -6,7 +6,7 @@
  * Lookups are kept for the session (the last LOOKUPS_KEPT), so going back
  * and forth between the words of a sentence fetches each word once.
  */
-import { getJSON } from '#platform/http.js';
+import { getJSON, postJSON } from '#platform/http.js';
 
 const LOOKUPS_KEPT = 50;
 /** @type {Map<string, Promise<any>>} */
@@ -83,4 +83,71 @@ export function lookup(q) {
 export function savingData() {
 	const connection = /** @type {{ connection?: { saveData?: boolean } }} */ (navigator).connection;
 	return connection?.saveData === true;
+}
+
+/**
+ * @typedef {{ lang: 'en' | 'my', word: string, likes: number, dislikes: number, mine: -1 | 0 | 1, signedIn: boolean }} Reactions
+ */
+
+/**
+ * Likes and dislikes of an entry, and the member's own. Never kept: it
+ * changes as members react.
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @returns {Promise<Reactions>}
+ */
+export function reactions(lang, word) {
+	return getJSON(`/api/reactions?${new URLSearchParams({ lang, word })}`);
+}
+
+/**
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @param {-1 | 0 | 1} value  0 takes the reaction back.
+ * @returns {Promise<Reactions>}
+ */
+export function react(lang, word, value) {
+	return postJSON('/api/reactions', { lang, word, value });
+}
+
+/**
+ * @typedef {object} EditableSense
+ * @property {number} id
+ * @property {string} word
+ * @property {number} wrte
+ * @property {string} type
+ * @property {string} sense
+ * @property {string | null} exam
+ */
+
+/**
+ * @typedef {object} OwnEdit
+ * @property {number} id
+ * @property {'edit' | 'delete' | 'add'} action
+ * @property {number | null} sense_id
+ * @property {string | null} field
+ * @property {string | null} old_value
+ * @property {string | null} new_value
+ * @property {string | null} data
+ * @property {string} status
+ * @property {string | null} review_note
+ */
+
+/**
+ * The senses of a headword with their ids, to suggest changes against
+ * (signed in only).
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @returns {Promise<{ senses: EditableSense[], types: Array<{ id: number, name: string }>, mine: OwnEdit[], role: string }>}
+ */
+export function editableSenses(lang, word) {
+	return getJSON(`/api/senses?${new URLSearchParams({ lang, word })}`);
+}
+
+/**
+ * @param {Record<string, unknown>} suggestion  See worker/routes/contribute.js.
+ * @returns {Promise<{ edit: { id: number, status: string } }>}
+ */
+export function suggestEdit(suggestion) {
+	return postJSON('/api/edits', suggestion);
 }

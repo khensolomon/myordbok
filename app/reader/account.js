@@ -27,16 +27,33 @@ export function title() {
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
 	const error = ctx.query.get('error');
+	const back = safeBack(ctx.query.get('return'));
 	const me = await member({ fresh: true });
 	const missing = ctx.query.get('missing');
 	const notice = error
 		? h('p', { class: 'account-error', role: 'alert' }, ERRORS[error] ?? 'The sign-in could not be completed.', missing && /^[A-Z_]+$/.test(missing) ? ` (${missing} is not set.)` : null)
 		: null;
-	return me ? signedIn(me, notice, ctx) : signedOut(notice);
+	if (me && back !== '/account') {
+		// Signed in already, or just now: straight back to where it started.
+		ctx.replace(back);
+		return h('div');
+	}
+	return me ? signedIn(me, notice, ctx) : signedOut(notice, back);
 }
 
-/** @param {HTMLElement | null} notice */
-function signedOut(notice) {
+/**
+ * A path on this site to come back to, never another site.
+ * @param {string | null} value
+ */
+function safeBack(value) {
+	return value && /^\/(?!\/)[^\\\s]*$/.test(value) && !value.startsWith('/api/') ? value : '/account';
+}
+
+/**
+ * @param {HTMLElement | null} notice
+ * @param {string} back
+ */
+function signedOut(notice, back) {
 	return h(
 		'article',
 		{ class: 'page account' },
@@ -46,7 +63,7 @@ function signedOut(notice) {
 		h(
 			'div',
 			{ class: 'account-providers' },
-			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'account-provider', href: signInHref(p) }, `Continue with ${LABEL[p]}`)),
+			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'account-provider', href: signInHref(p, back) }, `Continue with ${LABEL[p]}`)),
 		),
 		h(
 			'p',

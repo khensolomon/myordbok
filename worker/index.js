@@ -11,6 +11,7 @@ import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
+import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
@@ -75,6 +76,12 @@ async function api(request, env, ctx) {
  */
 async function answer(request, env, url, parts) {
 	if (parts[0] === 'auth') return auth(request, env, parts);
+	if (request.method === 'POST') {
+		// Writes come only from this site's own pages (sign-out checks the same itself).
+		if (request.headers.get('origin') !== url.origin) throw new AppError('forbidden', 'Access denied.');
+		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
+		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
+	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);
 	}
@@ -86,6 +93,8 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'phrase') return phrase(url, env);
 		if (parts[0] === 'read') return read(url, env);
 		if (parts[0] === 'me') return me(request, env);
+		if (parts[0] === 'reactions') return reactions(request, env);
+		if (parts[0] === 'senses') return senses(request, env);
 	}
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }

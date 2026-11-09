@@ -94,6 +94,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   account or, when the provider has verified it, the email, so likes and
   suggestions stay with one person whichever provider is used. Sessions are
   random tokens kept only as hashes (docs/deploy.md, Sign-in).
+- **Members contribute on the entry itself.** Signed in, a member likes or
+  dislikes an entry and suggests changes from a panel listing its meanings
+  (`/api/reactions`, `/api/senses`, `/api/edits`; `worker/routes/contribute.js`).
+  The value a change replaces is read by the Worker from the dictionary, not
+  taken from the browser. A member's suggestion waits for an editor; an
+  editor's own is approved and reaches readers with the next dictionary
+  release. Every write needs a session and an Origin header from the site.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

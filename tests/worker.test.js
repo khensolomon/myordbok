@@ -128,7 +128,9 @@ test('errors are JSON with a stable code', async () => {
 	assert.equal(empty.status, 400);
 	assert.equal(empty.body.error.code, 'bad_request');
 
-	const write = await call('/api/lookup?q=love', localEnv(), { method: 'POST' });
+	const foreign = await call('/api/lookup?q=love', localEnv(), { method: 'POST' });
+	assert.equal(foreign.status, 403, 'a write from anywhere but this site');
+	const write = await call('/api/lookup?q=love', localEnv(), { method: 'POST', headers: { origin: 'https://myordbok.test' } });
 	assert.equal(write.status, 501);
 
 	const unknown = await call('/api/entry/en/love', localEnv());

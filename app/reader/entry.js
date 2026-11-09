@@ -35,6 +35,7 @@ import { renderMarkup } from '../core/markup.js';
 import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
+import { feedbackCard } from './contribute.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -98,7 +99,7 @@ async function result(data, asked) {
 		if (!data.entries.length) return null;
 		return withAside(
 			h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query)),
-			aside(data.query, lead(data.query, data.entries), data.entries),
+			aside('my', data.query, lead(data.query, data.entries), data.entries),
 		);
 	}
 	return english(data, asked);
@@ -173,7 +174,7 @@ async function english(data, asked) {
 		});
 	}
 	const word = data.entries[0]?.word ?? data.query;
-	return withAside(h('article', { class: 'entry', lang: 'en' }, notes, blocks), aside(word, summary, shown));
+	return withAside(h('article', { class: 'entry', lang: 'en' }, notes, blocks), aside('en', word, summary, shown));
 }
 
 /**
@@ -230,11 +231,12 @@ function lead(word, senses) {
 }
 
 /**
+ * @param {'en' | 'my'} lang
  * @param {string} word
  * @param {string} summary
  * @param {Array<{ type: string, kind?: string }>} senses
  */
-function aside(word, summary, senses) {
+function aside(lang, word, summary, senses) {
 	const kinds = senses.map((s) => s.kind ?? 'Active');
 	const drafts = kinds.filter((k) => k === 'Draft').length;
 	const awaiting = kinds.filter((k) => /awaiting/i.test(k)).length;
@@ -257,29 +259,10 @@ function aside(word, summary, senses) {
 					)
 				: h('p', { class: 'aside-quiet' }, 'Every meaning here has been reviewed.'),
 		),
-		h(
-			'section',
-			{ class: 'aside-card' },
-			h('h2', null, 'Is this helpful?'),
-			h(
-				'div',
-				{ class: 'aside-actions' },
-				iconButton(ICONS.like, `Like “${word}”`),
-				iconButton(ICONS.dislike, `Dislike “${word}”`),
-				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggest a correction or a new meaning' }, icon(ICONS.suggest, 18), 'Suggest a correction'),
-			),
-			h('p', { class: 'aside-quiet' }, 'Liking, commenting and suggesting need a sign-in, which arrives soon.'),
-		),
+		feedbackCard(lang, word),
 	);
 }
 
-/**
- * @param {string} paths  Icon from ICONS.
- * @param {string} label  Shown as the hint and read by screen readers.
- */
-function iconButton(paths, label) {
-	return h('button', { type: 'button', class: 'aside-icon', 'aria-label': label, title: label, disabled: true }, icon(paths, 20));
-}
 
 /** @param {MyanmarResult} data */
 function myanmarHead(data) {
