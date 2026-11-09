@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+42
+
+- A rating that cannot load says so instead of sending a signed-in reader to the sign-in page and back
+
 ## 26.11.9+41
 
 - Each meaning has its own thumbs up and down and a suggest button that edits only that meaning, right under it

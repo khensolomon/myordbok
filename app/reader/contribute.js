@@ -109,7 +109,12 @@ export function entryFeedback(lang, word) {
 	 */
 	const press = async (target, value, control) => {
 		await loaded;
-		if (!state?.signedIn) return signIn();
+		// Ratings that did not load say so (in the card); only a known signed-out reader is sent to sign in.
+		if (!state) {
+			note.textContent = 'Ratings could not be loaded, so nothing was changed. Reload the page to try again.';
+			return;
+		}
+		if (!state.signedIn) return signIn();
 		const current = target.sense_id === undefined ? state.mine : (state.senses[String(target.sense_id)]?.mine ?? 0);
 		control.busy(true);
 		try {
