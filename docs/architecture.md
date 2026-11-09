@@ -106,12 +106,15 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   suggestion waits for an editor; an editor's own is approved and reaches
   readers with the next dictionary release. Every write needs a session and
   an Origin header from the site.
-- **The workspace (`/workspace`) follows the role.** Editors and admins review
-  waiting suggestions, each shown against the sense as the dictionary has it
-  now, with a warning when it changed since; every member sees and can
-  withdraw their own waiting suggestions (`/api/workspace/*`;
-  `worker/routes/workspace.js`). A suggestion is reviewed once; approved ones
-  leave with `make edits-export`. Its code loads only when opened.
+- **The workspace (`/workspace`) is one place for every member, laid out
+  like a studio**: a rail of sections, a list, the work area, an inspector
+  and a status bar; on phones the rail becomes a bottom bar and the list and
+  the item take turns. The rail follows the role: members see Contributions
+  and Account; editors and admins also Suggestions. A suggestion opens as a
+  diff inside its entry as it is now; editors approve or decline (A, D; J and
+  K move through the list), authors withdraw while it waits
+  (`/api/workspace/*`; `worker/routes/workspace.js`). Its code loads only
+  when opened.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

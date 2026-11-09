@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.9+45
+
+- Workspace in studio form: rail, list, work area, inspector and status bar; on phones a bottom bar with list and item in turn
+- A suggestion opens as a diff inside its entry as it is now; J and K move through the list, A and D approve or decline
+- Contributions grouped by where each stands, with a progress track; Account inside the workspace; no 'My' labels
+
 ## 26.11.9+44
 
 - The studio is now the workspace, at /workspace, shared by every member; its API moves to /api/workspace
