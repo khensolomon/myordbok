@@ -50,7 +50,11 @@ function resolveFile(pathname) {
  */
 function proxy(req, res) {
 	const upstream = httpRequest(
-		{ hostname: API.hostname, port: API.port, path: req.url, method: req.method, headers: { ...req.headers, host: API.host } },
+		// The Worker builds sign-in callbacks from Host. The registered callbacks
+		// are on localhost:8787, so that is the host it is told, whichever
+		// address the connection itself uses; cookies on localhost are shared by
+		// every port, so a sign-in started here finishes on :8787.
+		{ hostname: API.hostname, port: API.port, path: req.url, method: req.method, headers: { ...req.headers, host: `localhost:${API.port}` } },
 		(up) => {
 			res.writeHead(up.statusCode ?? 502, up.headers);
 			up.pipe(res);

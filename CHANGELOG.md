@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+37
+
+- Local sign-in works from the dev server on :8000: the callback is always localhost:8787
+
 ## 26.11.9+36
 
 - Local GitHub sign-in uses the same GitHub app as beta and production

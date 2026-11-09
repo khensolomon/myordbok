@@ -129,9 +129,11 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET --env beta
 # the same with --env production at cutover
 ```
 
-Locally, copy `.dev.vars.example` to `.dev.vars` and fill in the local apps'
-values; sign in at `http://localhost:8787` (`make api`), not through the dev
-server on :8000.
+Locally: `make db-migrate` (the local app database needs 0002 too), copy
+`.dev.vars.example` to `.dev.vars` and fill in the secrets, then `make api`.
+Sign in from `http://localhost:8787` or from the dev server on :8000; either
+way the sign-in ends on :8787, the registered callback. Use `localhost`, not
+`127.0.0.1`: cookies and the registered callbacks are on `localhost`.
 
 The app database needs migration 0002 (members' email) before sign-in works:
 `make db-migrate-remote APPLY=1`.
