@@ -46,7 +46,7 @@ export async function guard(request, env, route) {
 	const site = request.headers.get('sec-fetch-site');
 	if (!OPEN.has(route) && site !== 'same-origin') {
 		console.warn(JSON.stringify({ event: 'api_refused', route, site: site ?? 'none', country: country(request) }));
-		throw new AppError('forbidden', 'The MyOrdbok API answers the MyOrdbok app only.');
+		throw new AppError('forbidden', 'Access denied.');
 	}
 	const name = HEAVY.has(route) ? 'RATE_HEAVY' : 'RATE_LOOKUP';
 	const limiter = env[name];

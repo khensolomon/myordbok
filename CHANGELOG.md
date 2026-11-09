@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+34
+
+- Refused API requests get the standard message 'Access denied.'
+
 ## 26.11.9+33
 
 - The production Worker is named myordbok; the local-only configuration is myordbok-local, so a deploy without --env can never overwrite production
