@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.9+43
+
+- Studio: editors review waiting suggestions against the dictionary as it is now, approving or declining with a note
+- Studio: every member sees their own suggestions with status and reviewer's note, and can withdraw one while it waits
+- The account page links to the studio
+
 ## 26.11.9+42
 
 - A rating that cannot load says so instead of sending a signed-in reader to the sign-in page and back

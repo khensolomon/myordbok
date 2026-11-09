@@ -154,3 +154,57 @@ export function editableSenses(lang, word) {
 export function suggestEdit(suggestion) {
 	return postJSON('/api/edits', suggestion);
 }
+
+// ---------------------------------------------------------------- studio
+
+/**
+ * @typedef {object} StudioEdit
+ * @property {number} id
+ * @property {'emd' | 'med'} dict
+ * @property {'edit' | 'delete' | 'add'} action
+ * @property {number | null} sense_id
+ * @property {string | null} field
+ * @property {string | null} old_value
+ * @property {string | null} new_value
+ * @property {string} word
+ * @property {{ wrte: number, sense: string, exam: string | null } | null} data
+ * @property {string} status
+ * @property {string | null} note
+ * @property {string | null} review_note
+ * @property {number} created_at
+ * @property {number | null} reviewed_at
+ * @property {string} author
+ * @property {string | null} reviewer
+ * @property {boolean} own
+ * @property {{ word: string, type: string, sense: string | null, exam: string | null } | null} current
+ */
+
+/** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null }>} */
+export function studioSummary() {
+	return getJSON('/api/studio/summary');
+}
+
+/**
+ * @param {{ status?: string, mine?: boolean, before?: number }} options
+ * @returns {Promise<{ edits: StudioEdit[], more: boolean, role: string }>}
+ */
+export function studioEdits(options) {
+	const q = new URLSearchParams({ status: options.status ?? 'pending' });
+	if (options.mine) q.set('mine', '1');
+	if (options.before) q.set('before', String(options.before));
+	return getJSON(`/api/studio/edits?${q}`);
+}
+
+/**
+ * @param {number} id
+ * @param {'approve' | 'reject'} decision
+ * @param {string} note
+ */
+export function reviewEdit(id, decision, note) {
+	return postJSON(`/api/studio/edits/${id}/review`, { decision, note });
+}
+
+/** @param {number} id */
+export function withdrawEdit(id) {
+	return postJSON(`/api/studio/edits/${id}/withdraw`);
+}

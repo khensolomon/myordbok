@@ -13,6 +13,7 @@ import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
+import { studio } from './routes/studio.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
@@ -79,6 +80,7 @@ async function answer(request, env, url, parts) {
 	if (request.method === 'POST') {
 		// Writes come only from this site's own pages (sign-out checks the same itself).
 		if (request.headers.get('origin') !== url.origin) throw new AppError('forbidden', 'Access denied.');
+		if (parts[0] === 'studio') return studio(request, env, parts);
 		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
 	}
@@ -96,6 +98,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);
 	}
+	if (parts[0] === 'studio') return studio(request, env, parts);
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }
 
