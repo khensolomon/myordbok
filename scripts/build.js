@@ -10,7 +10,7 @@
  * to /data/grammar/, add a content hash to every .js and .css file,
  * write an import map from the original paths to the hashed ones (so source
  * imports never change), add modulepreload links, and for the web target fill
- * the service worker's precache list. Studio code is never precached.
+ * the service worker's precache list. Workspace code is never precached.
  */
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -122,7 +122,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		if (from.startsWith('/shared/')) imports[`#shared/${from.slice('/shared/'.length)}`] = to;
 	}
 
-	// Modules the reader needs on first paint; the studio stays out.
+	// Modules the reader needs on first paint; the workspace stays out.
 	const preload = [...hashed]
 		.filter(([from]) => from.endsWith('.js') && !from.startsWith('/workspace/') && !from.endsWith('/types.js'))
 		.map(([, to]) => `\t<link rel="modulepreload" href="${to}">`)

@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Studio: suggestions to the dictionary, by role. Loaded only when /studio
+ * Workspace: suggestions to the dictionary, by role. Loaded only when /workspace
  * is opened, and kept out of the offline precache, so readers never
  * download it.
  *
@@ -12,9 +12,9 @@
  */
 import { h } from '../core/dom.js';
 import { member } from '../core/member.js';
-import { reviewEdit, studioEdits, studioSummary, withdrawEdit } from '../data/api.js';
+import { reviewEdit, workspaceEdits, workspaceSummary, withdrawEdit } from '../data/api.js';
 
-/** @typedef {import('../data/api.js').StudioEdit} StudioEdit */
+/** @typedef {import('../data/api.js').WorkspaceEdit} WorkspaceEdit */
 
 const FILTERS = /** @type {const} */ ([
 	['pending', 'Waiting'],
@@ -34,7 +34,7 @@ const STATUS = {
 };
 
 export function title() {
-	return 'Studio';
+	return 'Workspace';
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
@@ -43,29 +43,29 @@ export async function view(ctx) {
 	if (!me) {
 		return h(
 			'section',
-			{ class: 'page studio' },
-			h('h1', null, 'Studio'),
-			h('p', null, 'The studio is where suggestions to the dictionary are made and reviewed. ', h('a', { href: '/account?return=%2Fstudio' }, 'Sign in'), ' to open it.'),
+			{ class: 'page workspace' },
+			h('h1', null, 'Workspace'),
+			h('p', null, 'The workspace is where suggestions to the dictionary are made and reviewed. ', h('a', { href: '/account?return=%2Fworkspace' }, 'Sign in'), ' to open it.'),
 		);
 	}
 	const editor = me.role === 'editor' || me.role === 'admin';
 	const tab = editor && ctx.query.get('tab') !== 'mine' ? 'review' : 'mine';
 	const status = FILTERS.some(([s]) => s === ctx.query.get('status')) ? /** @type {string} */ (ctx.query.get('status')) : tab === 'review' ? 'pending' : 'all';
-	const counts = await studioSummary();
+	const counts = await workspaceSummary();
 
 	/** @param {string} name @param {string} label @param {number | null} [n] */
 	const tabLink = (name, label, n) =>
-		h('a', { href: `/studio?tab=${name}`, 'aria-current': tab === name ? 'page' : null }, label, n ? h('span', { class: 'studio-count' }, String(n)) : null);
+		h('a', { href: `/workspace?tab=${name}`, 'aria-current': tab === name ? 'page' : null }, label, n ? h('span', { class: 'workspace-count' }, String(n)) : null);
 	const mineTotal = Object.values(counts.mine).reduce((a, b) => a + b, 0);
 
-	const list = h('ol', { class: 'studio-list' });
-	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'studio-more', hidden: true }, 'Show more'));
+	const list = h('ol', { class: 'workspace-list' });
+	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'workspace-more', hidden: true }, 'Show more'));
 	const empty = h('p', { class: 'notice', hidden: true }, tab === 'review' ? 'Nothing here. Suggestions waiting for review appear in this list.' : 'No suggestions yet. Use ✎ beside a meaning on any entry to suggest a change.');
 	/** @type {number | undefined} */
 	let before;
 	const load = async () => {
 		more.disabled = true;
-		const page = await studioEdits({ status, mine: tab === 'mine', before });
+		const page = await workspaceEdits({ status, mine: tab === 'mine', before });
 		list.append(...page.edits.map((e) => item(e, tab, editor)));
 		before = page.edits.at(-1)?.id;
 		more.hidden = !page.more;
@@ -77,13 +77,13 @@ export async function view(ctx) {
 
 	return h(
 		'section',
-		{ class: 'page studio' },
-		h('header', { class: 'studio-head' }, h('h1', null, 'Studio'), h('p', { class: 'aside-quiet' }, `Signed in as ${me.name} · ${me.role === 'admin' ? 'administrator' : me.role}`)),
-		h('nav', { class: 'studio-tabs', 'aria-label': 'Studio' }, editor ? tabLink('review', 'Review', counts.waiting) : null, tabLink('mine', 'My suggestions', tab === 'mine' ? null : mineTotal || null)),
+		{ class: 'page workspace' },
+		h('header', { class: 'workspace-head' }, h('h1', null, 'Workspace'), h('p', { class: 'aside-quiet' }, `Signed in as ${me.name} · ${me.role === 'admin' ? 'administrator' : me.role}`)),
+		h('nav', { class: 'workspace-tabs', 'aria-label': 'Workspace' }, editor ? tabLink('review', 'Review', counts.waiting) : null, tabLink('mine', 'My suggestions', tab === 'mine' ? null : mineTotal || null)),
 		h(
 			'nav',
-			{ class: 'chips studio-filters', 'aria-label': 'Show' },
-			FILTERS.map(([s, label]) => h('a', { href: `/studio?tab=${tab}&status=${s}`, 'aria-current': s === status ? 'true' : null }, label)),
+			{ class: 'chips workspace-filters', 'aria-label': 'Show' },
+			FILTERS.map(([s, label]) => h('a', { href: `/workspace?tab=${tab}&status=${s}`, 'aria-current': s === status ? 'true' : null }, label)),
 		),
 		list,
 		empty,
@@ -94,7 +94,7 @@ export async function view(ctx) {
 /**
  * One suggestion: what it changes, on which entry, by whom, and what can be
  * done with it here.
- * @param {StudioEdit} e
+ * @param {WorkspaceEdit} e
  * @param {'review' | 'mine'} tab
  * @param {boolean} editor
  */
@@ -110,33 +110,33 @@ function item(e, tab, editor) {
 	const body = [];
 	if (e.action === 'edit') {
 		const now = e.current ? (e.field === 'exam' ? e.current.exam : e.current.sense) : null;
-		body.push(h('p', { class: 'studio-old' }, h('del', { lang: valueLang }, e.old_value ?? '(none)')), h('p', { class: 'studio-new' }, h('ins', { lang: valueLang }, e.new_value ?? '(none)')));
+		body.push(h('p', { class: 'workspace-old' }, h('del', { lang: valueLang }, e.old_value ?? '(none)')), h('p', { class: 'workspace-new' }, h('ins', { lang: valueLang }, e.new_value ?? '(none)')));
 		if (e.status === 'pending' && (now ?? null) !== (e.old_value ?? null)) {
-			body.push(h('p', { class: 'studio-warn' }, 'The dictionary has changed since: it now reads ', h('span', { lang: valueLang }, now ?? '(none)'), '.'));
+			body.push(h('p', { class: 'workspace-warn' }, 'The dictionary has changed since: it now reads ', h('span', { lang: valueLang }, now ?? '(none)'), '.'));
 		}
-		if (e.field === 'exam' && e.current?.sense) body.push(h('p', { class: 'studio-context' }, 'Meaning: ', h('span', { lang: meaningLang }, e.current.sense)));
+		if (e.field === 'exam' && e.current?.sense) body.push(h('p', { class: 'workspace-context' }, 'Meaning: ', h('span', { lang: meaningLang }, e.current.sense)));
 	} else if (e.action === 'delete') {
-		body.push(e.current ? h('p', { class: 'studio-old' }, h('del', { lang: meaningLang }, e.current.sense ?? '')) : h('p', { class: 'studio-warn' }, 'This meaning is no longer in the dictionary.'));
+		body.push(e.current ? h('p', { class: 'workspace-old' }, h('del', { lang: meaningLang }, e.current.sense ?? '')) : h('p', { class: 'workspace-warn' }, 'This meaning is no longer in the dictionary.'));
 	} else if (e.data) {
-		body.push(h('p', { class: 'studio-new' }, h('ins', { lang: meaningLang }, e.data.sense)));
-		if (e.data.exam) body.push(h('p', { class: 'studio-context' }, 'Example: ', h('span', { lang: exampleLang }, e.data.exam)));
+		body.push(h('p', { class: 'workspace-new' }, h('ins', { lang: meaningLang }, e.data.sense)));
+		if (e.data.exam) body.push(h('p', { class: 'workspace-context' }, 'Example: ', h('span', { lang: exampleLang }, e.data.exam)));
 	}
-	if (e.current && e.action !== 'add') body.push(h('p', { class: 'studio-context' }, `${e.current.type} · sense #${e.sense_id}`));
+	if (e.current && e.action !== 'add') body.push(h('p', { class: 'workspace-context' }, `${e.current.type} · sense #${e.sense_id}`));
 
 	const meta = h(
 		'p',
-		{ class: 'studio-meta' },
+		{ class: 'workspace-meta' },
 		e.own ? 'You' : e.author,
 		` · ${ago(e.created_at)}`,
-		e.note ? h('span', { class: 'studio-note' }, ` · “${e.note}”`) : null,
+		e.note ? h('span', { class: 'workspace-note' }, ` · “${e.note}”`) : null,
 	);
-	const reviewed = e.reviewer ? h('p', { class: 'studio-meta' }, `${e.status === 'rejected' ? 'Not accepted' : 'Approved'} by ${e.reviewer}`, e.reviewed_at ? ` · ${ago(e.reviewed_at)}` : '', e.review_note ? h('span', { class: 'studio-note' }, ` · “${e.review_note}”`) : null) : null;
+	const reviewed = e.reviewer ? h('p', { class: 'workspace-meta' }, `${e.status === 'rejected' ? 'Not accepted' : 'Approved'} by ${e.reviewer}`, e.reviewed_at ? ` · ${ago(e.reviewed_at)}` : '', e.review_note ? h('span', { class: 'workspace-note' }, ` · “${e.review_note}”`) : null) : null;
 
 	const status = h('span', { class: `suggest-status status-${e.status}` }, STATUS[e.status] ?? e.status);
 	const node = h(
 		'li',
-		{ class: 'studio-item' },
-		h('header', { class: 'studio-item-head' }, h('a', { href: `/definition?q=${encodeURIComponent(e.word)}`, lang, class: 'studio-word' }, e.word), h('span', { class: 'studio-what' }, what), status),
+		{ class: 'workspace-item' },
+		h('header', { class: 'workspace-item-head' }, h('a', { href: `/definition?q=${encodeURIComponent(e.word)}`, lang, class: 'workspace-word' }, e.word), h('span', { class: 'workspace-what' }, what), status),
 		body,
 		meta,
 		reviewed,
@@ -145,7 +145,7 @@ function item(e, tab, editor) {
 
 	const out = h('p', { class: 'suggest-result', role: 'status' });
 	if (tab === 'review' && editor && !e.own) {
-		const note = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: 'A note for the author (optional)', class: 'studio-note-input' }));
+		const note = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: 'A note for the author (optional)', class: 'workspace-note-input' }));
 		const approve = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send' }, 'Approve'));
 		const reject = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, 'Not accepted'));
 		/** @param {'approve' | 'reject'} decision */
@@ -165,7 +165,7 @@ function item(e, tab, editor) {
 		};
 		approve.addEventListener('click', () => decide('approve'));
 		reject.addEventListener('click', () => decide('reject'));
-		const actions = h('div', { class: 'studio-actions' }, note, h('div', { class: 'suggest-buttons' }, approve, reject));
+		const actions = h('div', { class: 'workspace-actions' }, note, h('div', { class: 'suggest-buttons' }, approve, reject));
 		node.append(actions, out);
 	} else if (e.own) {
 		const withdraw = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, 'Withdraw'));

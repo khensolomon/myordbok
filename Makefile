@@ -94,7 +94,7 @@ data-promote: ## The build beta previews → myordbok-dictionary for production:
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql (the build beta previews)'; exit 1; }
 	$(DATA) promote --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-edits-export: ## Approved studio edits → dataset patch files in OUT=… [APPLY=1]
+edits-export: ## Approved workspace edits → dataset patch files in OUT=… [APPLY=1]
 	$(DATA) export --out "$(OUT)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|admin [APPLY=1]

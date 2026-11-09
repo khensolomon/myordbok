@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+44
+
+- The studio is now the workspace, at /workspace, shared by every member; its API moves to /api/workspace
+
 ## 26.11.9+43
 
 - Studio: editors review waiting suggestions against the dictionary as it is now, approving or declining with a note

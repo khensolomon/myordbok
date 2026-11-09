@@ -5,7 +5,7 @@ databases, each with one fixed role:
 
 | Database | Binding | Holds | Changed by |
 |---|---|---|---|
-| `myordbok-app` | `APP` | members, sign-in, reactions, comments, studio edits, which dictionary database each site reads | the app; migrations in `assets/db/migrations` |
+| `myordbok-app` | `APP` | members, sign-in, reactions, comments, workspace edits, which dictionary database each site reads | the app; migrations in `assets/db/migrations` |
 | `myordbok-dataset` | `DATASET` | the newest dictionary build; beta previews it | `make data-publish` |
 | `myordbok-dictionary` | `DICTIONARY` | the dictionary production readers get | `make data-promote` |
 
@@ -227,7 +227,7 @@ make data-promote FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # → myord
 
 **Publish** imports the build into `myordbok-dataset` (`--file` replaces every
 table), checks each table against the row counts the build wrote into
-`meta`, points beta at it, and marks studio edits the build now contains as
+`meta`, points beta at it, and marks workspace edits the build now contains as
 merged. Production is not touched; a failed import only affects beta.
 
 **Promote** takes the build beta previews to production without a moment
@@ -262,9 +262,9 @@ make dataset-sync DATASET=../lai/myordbok            # dry run
 make dataset-sync DATASET=../lai/myordbok APPLY=1    # writes shared/search/
 ```
 
-## Studio edits
+## Workspace edits
 
-Corrections, additions and deletions made in the studio never touch the
+Corrections, additions and deletions made in the workspace never touch the
 dictionary tables. Each is a row in `dict_edits` (`myordbok-app`) and moves
 through: `pending` → `approved` or `rejected` by an editor → `exported` →
 `merged` (or `conflict`).

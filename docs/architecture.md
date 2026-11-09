@@ -12,7 +12,7 @@ app/                  client: plain ES modules, JSDoc types, no framework
   main.js             start-up and router
   core/               dom helper, router, routes, store, icons, link markup
   reader/             home, definition, info pages, <mo-search>
-  workspace/          studio for editors and admins (lazy, never precached)
+  workspace/          workspace for editors and admins (lazy, never precached)
   data/               dictionary access; offline packs plug in here
   platform/web/       browser adapters: boot, http, storage
   platform/tauri/     reserved: same exports, native implementations
@@ -57,7 +57,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   so readers never wait; `dict_release` records which database each site
   reads. The names say what each database is at any moment, which is why
   this was chosen over two interchangeable copies.
-- **Studio edits wait in their own table.** `dict_edits` records each
+- **Workspace edits wait in their own table.** `dict_edits` records each
   correction, addition or deletion with the value it replaces. Approved edits
   are exported as the dataset's patch files, applied there by its scripts,
   and reach readers with the next release, which marks them merged. Stale
@@ -106,11 +106,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   suggestion waits for an editor; an editor's own is approved and reaches
   readers with the next dictionary release. Every write needs a session and
   an Origin header from the site.
-- **The studio (`/studio`) follows the role.** Editors and admins review
+- **The workspace (`/workspace`) follows the role.** Editors and admins review
   waiting suggestions, each shown against the sense as the dictionary has it
   now, with a warning when it changed since; every member sees and can
-  withdraw their own waiting suggestions (`/api/studio/*`;
-  `worker/routes/studio.js`). A suggestion is reviewed once; approved ones
+  withdraw their own waiting suggestions (`/api/workspace/*`;
+  `worker/routes/workspace.js`). A suggestion is reviewed once; approved ones
   leave with `make edits-export`. Its code loads only when opened.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
@@ -139,8 +139,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 
 1. Google and GitHub sign-in (OAuth with PKCE in the Worker, server-side
    sessions), the You menu, member roles.
-2. Reactions, comments and suggestions; studio review queue.
-3. Studio: edit and review screens over `dict_edits`.
+2. Reactions, comments and suggestions; workspace review queue.
+3. Workspace: edit and review screens over `dict_edits`.
 4. Offline packs: the dataset build as a download, searched with the same
    lookup code in the browser.
 5. Tauri adapters.

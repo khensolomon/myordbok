@@ -155,10 +155,10 @@ export function suggestEdit(suggestion) {
 	return postJSON('/api/edits', suggestion);
 }
 
-// ---------------------------------------------------------------- studio
+// ---------------------------------------------------------------- workspace
 
 /**
- * @typedef {object} StudioEdit
+ * @typedef {object} WorkspaceEdit
  * @property {number} id
  * @property {'emd' | 'med'} dict
  * @property {'edit' | 'delete' | 'add'} action
@@ -180,19 +180,19 @@ export function suggestEdit(suggestion) {
  */
 
 /** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null }>} */
-export function studioSummary() {
-	return getJSON('/api/studio/summary');
+export function workspaceSummary() {
+	return getJSON('/api/workspace/summary');
 }
 
 /**
  * @param {{ status?: string, mine?: boolean, before?: number }} options
- * @returns {Promise<{ edits: StudioEdit[], more: boolean, role: string }>}
+ * @returns {Promise<{ edits: WorkspaceEdit[], more: boolean, role: string }>}
  */
-export function studioEdits(options) {
+export function workspaceEdits(options) {
 	const q = new URLSearchParams({ status: options.status ?? 'pending' });
 	if (options.mine) q.set('mine', '1');
 	if (options.before) q.set('before', String(options.before));
-	return getJSON(`/api/studio/edits?${q}`);
+	return getJSON(`/api/workspace/edits?${q}`);
 }
 
 /**
@@ -201,10 +201,10 @@ export function studioEdits(options) {
  * @param {string} note
  */
 export function reviewEdit(id, decision, note) {
-	return postJSON(`/api/studio/edits/${id}/review`, { decision, note });
+	return postJSON(`/api/workspace/edits/${id}/review`, { decision, note });
 }
 
 /** @param {number} id */
 export function withdrawEdit(id) {
-	return postJSON(`/api/studio/edits/${id}/withdraw`);
+	return postJSON(`/api/workspace/edits/${id}/withdraw`);
 }

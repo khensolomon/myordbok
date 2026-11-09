@@ -1,19 +1,19 @@
 // @ts-check
 /**
- * Dictionary releases and studio edits. Node standard library only; D1 is
+ * Dictionary releases and workspace edits. Node standard library only; D1 is
  * reached through wrangler. Dry run unless --apply.
  *
  * Three D1 databases, each with one fixed role:
  *
  *   myordbok-app         APP         what the app writes: members, reactions,
- *                                    comments, studio edits, which database each
+ *                                    comments, workspace edits, which database each
  *                                    site reads (dict_release)
  *   myordbok-dataset     DATASET     every new build lands here first; beta
  *                                    reads it, so beta previews the next release
  *   myordbok-dictionary  DICTIONARY  what production readers get
  *
  * The dataset (TSV, private repository) is the source of truth. The app never
- * writes to the dictionary: studio edits wait in dict_edits, are exported
+ * writes to the dictionary: workspace edits wait in dict_edits, are exported
  * here as the dataset's own patch files, applied and merged in the dataset,
  * and come back with the next release.
  *

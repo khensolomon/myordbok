@@ -1,14 +1,14 @@
 // @ts-check
 /**
- * The studio's API. Roles are read from the database on every request
+ * The workspace's API. Roles are read from the database on every request
  * (worker/lib/session.js); a member sees only their own suggestions.
  *
- *   GET  /api/studio/summary                  suggestion counts by status, and the role
- *   GET  /api/studio/edits?status=&mine=1&before=
+ *   GET  /api/workspace/summary                  suggestion counts by status, and the role
+ *   GET  /api/workspace/edits?status=&mine=1&before=
  *                                             suggestions, newest first, 30 at a time;
  *                                             each with the sense as the dictionary has it now
- *   POST /api/studio/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
- *   POST /api/studio/edits/{id}/withdraw      the author, while it waits for review
+ *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
+ *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
  *
  * Only a waiting suggestion can be reviewed or withdrawn; what happens after
  * approval (export, merge) is make edits-export and the next release.
@@ -43,9 +43,9 @@ const isEditor = (m) => m.role === 'editor' || m.role === 'admin';
  * @param {Env} env
  * @param {string[]} parts  Path parts after /api/.
  */
-export async function studio(request, env, parts) {
+export async function workspace(request, env, parts) {
 	const member = await currentMember(request, env);
-	if (!member) throw new AppError('unauthorized', 'Sign in to open the studio.');
+	if (!member) throw new AppError('unauthorized', 'Sign in to open the workspace.');
 	const [, what, id, action] = parts;
 	if (request.method === 'GET' && what === 'summary' && parts.length === 2) return summary(env, member);
 	if (request.method === 'GET' && what === 'edits' && parts.length === 2) return list(request, env, member);

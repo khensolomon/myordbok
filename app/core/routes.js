@@ -4,7 +4,7 @@
  * so existing links and search results stay valid; confirm any change here
  * against the live site before release.
  *
- * Views load lazily, so the studio's code is never downloaded by readers.
+ * Views load lazily, so the workspace's code is never downloaded by readers.
  */
 
 /**
@@ -38,7 +38,7 @@ export const ROUTES = Object.freeze([
 	{ name: 'privacy', path: '/privacy', load: () => import('../reader/privacy.js'), offline: true },
 	{ name: 'terms', path: '/terms', load: () => import('../reader/terms.js'), offline: true },
 	{ name: 'account', path: '/account', load: () => import('../reader/account.js') },
-	{ name: 'studio', path: '/studio', load: () => import('../workspace/index.js') },
+	{ name: 'workspace', path: '/workspace', load: () => import('../workspace/index.js') },
 ]);
 
 /**

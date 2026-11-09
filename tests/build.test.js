@@ -18,10 +18,10 @@ test('web build hashes modules and maps them in the import map', async () => {
 	assert.match(map.imports['#shared/errors.js'], /^\/shared\/errors\.[0-9a-f]{8}\.js$/);
 	assert.match(html, /<script type="module" src="\/main\.[0-9a-f]{8}\.js">/);
 	assert.match(html, /<meta name="mo-sw"/);
-	assert.doesNotMatch(html, /modulepreload" href="\/workspace\//, 'studio code is not preloaded');
+	assert.doesNotMatch(html, /modulepreload" href="\/workspace\//, 'workspace code is not preloaded');
 });
 
-test('web build precaches the shell but not the studio', async () => {
+test('web build precaches the shell but not the workspace', async () => {
 	const sw = await readFile(join(out, 'sw.js'), 'utf8');
 	const precache = JSON.parse(/const PRECACHE = (\[.*?\]);/.exec(sw)?.[1] ?? '[]');
 	assert.ok(precache.some((u) => /^\/main\.[0-9a-f]{8}\.js$/.test(u)));

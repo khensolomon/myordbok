@@ -113,7 +113,7 @@ function signedIn(me, notice, ctx) {
 			h('dt', null, 'Role'),
 			h('dd', null, me.role === 'admin' ? 'Administrator' : me.role === 'editor' ? 'Editor' : 'Member'),
 		),
-		h('p', null, h('a', { href: '/studio' }, me.role === 'member' ? 'Your suggestions in the studio →' : 'Open the studio →')),
+		h('p', null, h('a', { href: '/workspace' }, me.role === 'member' ? 'Your suggestions in the workspace →' : 'Open the workspace →')),
 		missing.length
 			? h('p', { class: 'account-quiet' }, 'Also sign in with ', missing.flatMap((p, i) => [i ? ' or ' : '', h('a', { href: signInHref(p) }, LABEL[p])]), ': it is linked to this account.')
 			: null,
