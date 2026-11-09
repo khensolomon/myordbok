@@ -459,12 +459,34 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	box-shadow: var(--glass-shine), var(--glass-lift);
 	cursor: pointer;
 }
-.aside-icon { min-width: 38px; padding: 0 9px; }
-.aside-count:empty { display: none; }
-.aside-count { font-size: 14px; font-variant-numeric: tabular-nums; }
-.aside-icon[aria-pressed="true"] { color: var(--brand); border-color: var(--guide); }
-.aside-icon[aria-pressed="true"] svg { fill: currentColor; fill-opacity: 0.18; }
-.aside-icon:disabled, .aside-suggest:disabled { cursor: default; opacity: 0.6; }
+.aside-icon { width: 38px; }
+.aside-suggest:disabled { cursor: default; opacity: 0.6; }
+
+/* Thumbs: the entry's in the side card, each sense's beside its meaning. */
+.thumb {
+	display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+	font: inherit; color: var(--ink-2); cursor: pointer;
+}
+.thumb.large {
+	height: 38px; min-width: 38px; padding: 0 10px;
+	border: 0.5px solid var(--glass-edge); border-radius: 999px;
+	background: var(--glass-lens); box-shadow: var(--glass-shine), var(--glass-lift);
+}
+.thumb.small { height: 26px; min-width: 26px; padding: 0 5px; border: none; border-radius: 999px; background: none; color: var(--faint); }
+.thumb.small:hover, .thumb.small:focus-visible { background: var(--surface); color: var(--ink-2); }
+.thumb[aria-pressed="true"], .sense-edit[aria-expanded="true"] { color: var(--brand); }
+.thumb[aria-pressed="true"] svg { fill: currentColor; fill-opacity: 0.2; }
+.thumb:disabled { cursor: default; opacity: 0.6; }
+.thumb-count { font-size: 13px; font-variant-numeric: tabular-nums; }
+.thumb-count:empty { display: none; }
+
+/* A sense's own actions: quiet until the row is pointed at; always there to touch. */
+.sense-tools { display: inline-flex; gap: 1px; margin-left: 8px; vertical-align: middle; font-family: var(--font, inherit); opacity: 0.45; transition: opacity 0.15s; }
+.sense:hover .sense-tools, .sense:focus-within .sense-tools, .sense-tools:has([aria-pressed="true"], [aria-expanded="true"]) { opacity: 1; }
+@media (hover: none) { .sense-tools { opacity: 0.8; } }
+.sense-editor { margin: 10px 0 12px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--surface); max-width: 560px; }
+.sense-editor label:first-child { margin-top: 0; }
+.sense-editor textarea, .sense-editor input { background: var(--ground); }
 .aside-suggest { padding: 0 14px 0 12px; font-size: 14px; font-weight: 500; }
 
 /* Forms, synonyms and related words */
@@ -579,14 +601,16 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .suggest-close { width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--surface); color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .suggest-body { padding: 6px 18px 20px; }
 .suggest-intro { margin: 10px 0 14px; }
-.suggest label { display: grid; gap: 4px; margin-top: 10px; font-size: 13px; color: var(--muted); }
-.suggest textarea, .suggest input, .suggest select {
+.suggest label, .sense-editor label { display: grid; gap: 4px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.suggest textarea, .suggest input, .suggest select,
+.sense-editor textarea, .sense-editor input {
 	width: 100%; box-sizing: border-box; padding: 8px 10px;
 	font: inherit; font-size: 15px; color: var(--ink);
 	background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
 }
-.suggest textarea:lang(my) { font-family: var(--font-my); line-height: 1.7; }
-.suggest textarea:focus, .suggest input:focus, .suggest select:focus { outline: 2px solid var(--guide); outline-offset: 0; border-color: transparent; }
+.suggest textarea:lang(my), .sense-editor textarea:lang(my), .sense-editor input:lang(my) { font-family: var(--font-my); line-height: 1.7; }
+.suggest textarea:focus, .suggest input:focus, .suggest select:focus,
+.sense-editor textarea:focus, .sense-editor input:focus { outline: 2px solid var(--guide); outline-offset: 0; border-color: transparent; }
 .suggest-sense { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
 .suggest-label { margin: 0; font-size: 13px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: 0.02em; }
 .suggest-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }

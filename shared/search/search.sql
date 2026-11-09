@@ -5,7 +5,7 @@
 
 -- name: my_entries
 -- Myanmar headword: its senses in order. ?1 = the headword.
-SELECT t.name AS type, s.sense, s.exam, s.etymology
+SELECT t.name AS type, s.sense, s.exam, s.etymology, s.id
 FROM mya_word w JOIN med_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte
 WHERE w.word = ?1 ORDER BY s.wseq;
 
@@ -25,7 +25,7 @@ WHERE v.variant = ?1 COLLATE NOCASE ORDER BY w.word;
 
 -- name: entries
 -- Senses of the headwords. ?1 = JSON array of word ids.
-SELECT w.word, t.name AS type, k.name AS kind, s.sense, s.exam, s.synset
+SELECT w.word, t.name AS type, k.name AS kind, s.sense, s.exam, s.synset, s.id
 FROM emd_sense s JOIN eng_word w ON w.id = s.wrid
 JOIN type_word t ON t.id = s.wrte JOIN type_sense k ON k.id = s.wrkd
 WHERE s.wrid IN (SELECT value FROM json_each(?1)) ORDER BY s.wseq;

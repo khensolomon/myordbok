@@ -118,7 +118,7 @@ export async function search(db, statements, query) {
     return {
       query: text, language: "my",
       pronunciation: word.length ? [word[0][0], word[0][1]] : null,
-      entries: senses.map(([type, sense, example, etymology]) => ({ type, sense, example, etymology })),
+      entries: senses.map(([type, sense, example, etymology, id]) => ({ id, type, sense, example, etymology })),
     };
   }
 
@@ -152,7 +152,7 @@ export async function search(db, statements, query) {
   ]);
   return {
     query: text, language: "en",
-    entries: entries.map(([word, type, kind, sense, example]) => ({ word, type, kind, sense, example })),
+    entries: entries.map(([word, type, kind, sense, example, , id]) => ({ id, word, type, kind, sense, example })),
     variant_of: variantOf.map((r) => r[1]),
     forms_of: formsOf.map(([root, pos, type]) => [root, POS[pos], FORM[type]]),
     root_senses: Object.fromEntries(rootRows.map(([word, senses]) => [word, senses])),

@@ -86,7 +86,9 @@ export function savingData() {
 }
 
 /**
- * @typedef {{ lang: 'en' | 'my', word: string, likes: number, dislikes: number, mine: -1 | 0 | 1, signedIn: boolean }} Reactions
+ * @typedef {{ likes: number, dislikes: number, mine: -1 | 0 | 1 }} Counts
+ * @typedef {{ lang: 'en' | 'my', word: string, likes: number, dislikes: number, mine: -1 | 0 | 1, senses: Record<string, Counts>, signedIn: boolean }} Reactions
+ *   senses: counts per sense id, for the meaning each has now.
  */
 
 /**
@@ -104,10 +106,11 @@ export function reactions(lang, word) {
  * @param {'en' | 'my'} lang
  * @param {string} word
  * @param {-1 | 0 | 1} value  0 takes the reaction back.
+ * @param {number} [senseId]  One sense of the entry instead of the entry.
  * @returns {Promise<Reactions>}
  */
-export function react(lang, word, value) {
-	return postJSON('/api/reactions', { lang, word, value });
+export function react(lang, word, value, senseId) {
+	return postJSON('/api/reactions', senseId === undefined ? { lang, word, value } : { lang, word, value, sense_id: senseId });
 }
 
 /**

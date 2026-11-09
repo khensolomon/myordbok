@@ -1,5 +1,12 @@
 # Changelog
 
+## 26.11.9+41
+
+- Each meaning has its own thumbs up and down and a suggest button that edits only that meaning, right under it
+- The side card rates the entry as a whole and adds a missing meaning; thumbs replace the heart icons
+- A meaning's ratings start afresh when the meaning is corrected
+- Lookups carry each sense's id (dataset search code synced)
+
 ## 26.11.9+40
 
 - Signed-in members like or dislike an entry and suggest changes to its meanings, a new meaning, or removing one, from the entry page

@@ -35,7 +35,7 @@ import { renderMarkup } from '../core/markup.js';
 import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
-import { feedbackCard } from './contribute.js';
+import { entryFeedback } from './contribute.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -97,10 +97,10 @@ export async function view(ctx) {
 async function result(data, asked) {
 	if (data.language === 'my') {
 		if (!data.entries.length) return null;
-		return withAside(
-			h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query)),
-			aside('my', data.query, lead(data.query, data.entries), data.entries),
-		);
+		const feedback = entryFeedback('my', data.query);
+		const article = h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query));
+		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
+		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries));
 	}
 	return english(data, asked);
 }
@@ -173,8 +173,12 @@ async function english(data, asked) {
 			blocks.push(related(root));
 		});
 	}
-	const word = data.entries[0]?.word ?? data.query;
-	return withAside(h('article', { class: 'entry', lang: 'en' }, notes, blocks), aside('en', word, summary, shown));
+	// A form shows its root's senses, so feedback is about the root (went → go).
+	const word = shown[0]?.word ?? data.query;
+	const feedback = entryFeedback('en', word);
+	const article = h('article', { class: 'entry', lang: 'en' }, notes, blocks);
+	feedback.wire(article, shown, 'my');
+	return withAside(article, aside(feedback, summary, shown));
 }
 
 /**
@@ -231,12 +235,11 @@ function lead(word, senses) {
 }
 
 /**
- * @param {'en' | 'my'} lang
- * @param {string} word
+ * @param {ReturnType<typeof entryFeedback>} feedback
  * @param {string} summary
  * @param {Array<{ type: string, kind?: string }>} senses
  */
-function aside(lang, word, summary, senses) {
+function aside(feedback, summary, senses) {
 	const kinds = senses.map((s) => s.kind ?? 'Active');
 	const drafts = kinds.filter((k) => k === 'Draft').length;
 	const awaiting = kinds.filter((k) => /awaiting/i.test(k)).length;
@@ -259,7 +262,7 @@ function aside(lang, word, summary, senses) {
 					)
 				: h('p', { class: 'aside-quiet' }, 'Every meaning here has been reviewed.'),
 		),
-		feedbackCard(lang, word),
+		feedback.card(),
 	);
 }
 
@@ -351,7 +354,7 @@ function sense(s, glossLang, headword, fitLabel = '') {
 	const etymology = 'etymology' in s && s.etymology ? h('p', { class: 'etymology' }, renderMarkup(s.etymology)) : null;
 	return h(
 		'li',
-		{ class: fitLabel ? 'sense sense-fit' : 'sense' },
+		{ class: fitLabel ? 'sense sense-fit' : 'sense', 'data-sense-id': 'id' in s && s.id !== undefined ? String(s.id) : null },
 		h('p', { class: 'gloss', lang: glossLang }, fits, kind, renderMarkup(s.sense ?? '', { headword })),
 		s.example
 			? splitExamples(s.example).map((ex) => h('p', { class: 'example', lang: glossLang === 'my' ? 'en' : 'my' }, renderMarkup(ex, { headword })))

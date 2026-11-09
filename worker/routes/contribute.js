@@ -3,8 +3,14 @@
  * Members' contributions on an entry: likes and dislikes, and suggested
  * changes to its senses.
  *
- *   GET  /api/reactions?lang=en&word=love   counts, and the member's own
- *   POST /api/reactions                     { lang, word, value: 1 | -1 | 0 }
+ *   GET  /api/reactions?lang=en&word=love   counts and the member's own, for the
+ *                                           entry and for each of its senses
+ *   POST /api/reactions                     { lang, word, value: 1 | -1 | 0 }, and
+ *                                           sense_id for one sense
+ *
+ * A sense's reactions count only while its meaning is the one they were
+ * given for (sense_reactions.text_hash), so a corrected meaning starts with
+ * none.
  *   GET  /api/senses?lang=en&word=love      senses with ids, part-of-speech
  *                                           list and the member's open
  *                                           suggestions (signed in only)
@@ -88,6 +94,16 @@ async function body(request) {
 	return /** @type {Record<string, unknown>} */ (data);
 }
 
+/** @param {string} text */
+async function textHash(text) {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.normalize('NFC')));
+	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * @typedef {{ likes: number, dislikes: number, mine: number }} Counts
+ */
+
 /**
  * @param {Request} request
  * @param {Env} env
@@ -98,16 +114,50 @@ export async function reactions(request, env) {
 	const lang = language(url.searchParams.get('lang'));
 	const word = headword(url.searchParams.get('word'));
 	const member = await currentMember(request, env);
+	return json(await countsFor(env, lang, word, member?.id ?? null), NO_STORE);
+}
+
+/**
+ * The entry's counts and each sense's, for its current meaning.
+ * @param {Env} env
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @param {number | null} memberId
+ */
+async function countsFor(env, lang, word, memberId) {
 	const row = /** @type {{ likes: number, dislikes: number, mine: number | null }} */ (
 		await env.APP.prepare(
 			`SELECT coalesce(sum(value = 1), 0) AS likes, coalesce(sum(value = -1), 0) AS dislikes,
 			        max(CASE WHEN user_id = ?3 THEN value END) AS mine
 			 FROM reactions WHERE lang = ?1 AND word = ?2`,
 		)
-			.bind(lang, word, member?.id ?? 0)
+			.bind(lang, word, memberId ?? 0)
 			.first()
 	);
-	return json({ lang, word, likes: Number(row.likes), dislikes: Number(row.dislikes), mine: Number(row.mine ?? 0), signedIn: !!member }, NO_STORE);
+	const { dict, db } = await dictionary(env);
+	const { results: list } = await db
+		.prepare(SENSES[lang])
+		.bind(word)
+		.all()
+		.catch((err) => {
+			throw explainDictError(err, dict, env);
+		});
+	const pairs = await Promise.all(list.map(async (s) => [Number(s.id), await textHash(String(s.sense ?? ''))]));
+	/** @type {Record<string, Counts>} */
+	const senses = {};
+	if (pairs.length) {
+		const { results } = await env.APP.prepare(
+			`SELECT r.sense_id, coalesce(sum(r.value = 1), 0) AS likes, coalesce(sum(r.value = -1), 0) AS dislikes,
+			        max(CASE WHEN r.user_id = ?3 THEN r.value END) AS mine
+			 FROM sense_reactions r JOIN json_each(?2) j
+			   ON r.sense_id = json_extract(j.value, '$[0]') AND r.text_hash = json_extract(j.value, '$[1]')
+			 WHERE r.dict = ?1 GROUP BY r.sense_id`,
+		)
+			.bind(lang === 'en' ? 'emd' : 'med', JSON.stringify(pairs), memberId ?? 0)
+			.all();
+		for (const r of results) senses[String(r.sense_id)] = { likes: Number(r.likes), dislikes: Number(r.dislikes), mine: Number(r.mine ?? 0) };
+	}
+	return { lang, word, likes: Number(row.likes), dislikes: Number(row.dislikes), mine: Number(row.mine ?? 0), senses, signedIn: memberId !== null };
 }
 
 /**
@@ -121,7 +171,33 @@ async function react(request, env) {
 	const word = headword(data.word);
 	const value = data.value;
 	if (value !== 1 && value !== -1 && value !== 0) throw new AppError('bad_request', 'value must be 1 (like), -1 (dislike) or 0 (neither)');
-	if (value === 0) {
+	const dictName = lang === 'en' ? 'emd' : 'med';
+
+	if (data.sense_id !== undefined) {
+		const senseId = Number(data.sense_id);
+		if (!Number.isInteger(senseId)) throw new AppError('bad_request', 'sense_id must be a sense id');
+		const { dict, db } = await dictionary(env);
+		const row = /** @type {{ word: string, sense: string | null } | null} */ (
+			await db
+				.prepare(ONE_SENSE[lang])
+				.bind(senseId)
+				.first()
+				.catch((err) => {
+					throw explainDictError(err, dict, env);
+				})
+		);
+		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
+		if (value === 0) {
+			await env.APP.prepare('DELETE FROM sense_reactions WHERE user_id = ?1 AND dict = ?2 AND sense_id = ?3').bind(member.id, dictName, senseId).run();
+		} else {
+			await env.APP.prepare(
+				`INSERT INTO sense_reactions (user_id, dict, sense_id, text_hash, value) VALUES (?1, ?2, ?3, ?4, ?5)
+				 ON CONFLICT (user_id, dict, sense_id) DO UPDATE SET text_hash = excluded.text_hash, value = excluded.value, created_at = unixepoch()`,
+			)
+				.bind(member.id, dictName, senseId, await textHash(String(row.sense ?? '')), value)
+				.run();
+		}
+	} else if (value === 0) {
 		await env.APP.prepare('DELETE FROM reactions WHERE user_id = ?1 AND lang = ?2 AND word = ?3').bind(member.id, lang, word).run();
 	} else {
 		await env.APP.prepare(
@@ -131,9 +207,18 @@ async function react(request, env) {
 			.bind(member.id, lang, word, value)
 			.run();
 	}
-	const url = new URL(request.url);
-	url.search = new URLSearchParams({ lang, word }).toString();
-	return reactions(new Request(url, { headers: request.headers }), env);
+	return json(await countsFor(env, lang, word, member.id), NO_STORE);
+}
+
+/**
+ * Whether a sense's headword is the word asked about: any spelling for
+ * English (God, god), exact for Myanmar.
+ * @param {'en' | 'my'} lang
+ * @param {string} found
+ * @param {string} asked
+ */
+function sameWord(lang, found, asked) {
+	return lang === 'en' ? found.toLowerCase() === asked.toLowerCase() : found === asked;
 }
 
 /** Senses of a headword with their ids, per dictionary. */
@@ -225,8 +310,7 @@ export async function suggestEdit(request, env) {
 		const senseId = Number(data.sense_id);
 		if (!Number.isInteger(senseId)) throw new AppError('bad_request', 'sense_id must be a sense id');
 		const row = /** @type {{ id: number, word: string, sense: string | null, exam: string | null } | null} */ (await read(ONE_SENSE[lang], senseId));
-		const same = row && (lang === 'en' ? row.word.toLowerCase() === word.toLowerCase() : row.word === word);
-		if (!row || !same) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
+		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
 		if (action === 'delete') {
 			change = { senseId, field: 'delete', oldValue: row.word, newValue: null, data: null, word: row.word };
 		} else {

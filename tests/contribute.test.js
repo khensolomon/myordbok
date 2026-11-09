@@ -11,7 +11,8 @@ function env() {
 	const hash = (t) => createHash('sha256').update(t).digest('hex');
 	app.exec(`INSERT INTO users (id, name, email, role) VALUES (1, 'Member', 'm@example.com', 'member'), (2, 'Editor', 'e@example.com', 'editor');
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('member-token')}', 1, unixepoch() + 3600), ('${hash('editor-token')}', 2, unixepoch() + 3600);`);
-	return { raw: app, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary' };
+	const dict = sqlite(SAMPLE);
+	return { raw: app, rawDict: dict, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(dict), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary' };
 }
 
 /**
@@ -30,12 +31,12 @@ async function call(e, path, o = {}) {
 test('reactions: counts for anyone; like, change, take back when signed in', async () => {
 	const e = env();
 	const get = () => call(e, '/api/reactions?lang=en&word=love', { who: 'member' });
-	assert.deepEqual((await call(e, '/api/reactions?lang=en&word=love')).body, { lang: 'en', word: 'love', likes: 0, dislikes: 0, mine: 0, signedIn: false });
+	assert.deepEqual((await call(e, '/api/reactions?lang=en&word=love')).body, { lang: 'en', word: 'love', likes: 0, dislikes: 0, mine: 0, senses: {}, signedIn: false });
 	assert.equal((await call(e, '/api/reactions', { body: { lang: 'en', word: 'love', value: 1 } })).status, 401, 'signed out');
 	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 1 } })).body.likes, 1);
 	await call(e, '/api/reactions', { who: 'editor', body: { lang: 'en', word: 'love', value: 1 } });
 	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: -1 } });
-	assert.deepEqual((await get()).body, { lang: 'en', word: 'love', likes: 1, dislikes: 1, mine: -1, signedIn: true });
+	assert.deepEqual((await get()).body, { lang: 'en', word: 'love', likes: 1, dislikes: 1, mine: -1, senses: {}, signedIn: true });
 	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 0 } });
 	assert.equal((await get()).body.mine, 0);
 	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'xx', word: 'love', value: 1 } })).status, 400);
@@ -90,4 +91,28 @@ test('suggestions: checked before they are kept', async () => {
 
 	e.raw.exec("INSERT INTO dict_edits (user_id, dict, action, word, data, status) SELECT 1, 'emd', 'add', 'love', '{}', 'pending' FROM (WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 50) SELECT i FROM n)");
 	assert.equal(await bad({ action: 'delete', sense_id: first.id }), 429, 'too many waiting');
+});
+
+test('sense reactions: per sense, and they start afresh when the meaning changes', async () => {
+	const e = env();
+	const [first, second] = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
+	const react = (who, body) => call(e, '/api/reactions', { who, body: { lang: 'en', word: 'love', ...body } });
+	await react('member', { sense_id: first.id, value: -1 });
+	const both = await react('editor', { sense_id: first.id, value: -1 });
+	assert.deepEqual(both.body.senses[String(first.id)], { likes: 0, dislikes: 2, mine: -1 });
+	assert.equal(both.body.dislikes, 0, 'the entry’s own counts are apart');
+	await react('member', { sense_id: second.id, value: 1 });
+	const mine = (await call(e, '/api/reactions?lang=en&word=love', { who: 'member' })).body.senses;
+	assert.deepEqual(mine[String(second.id)], { likes: 1, dislikes: 0, mine: 1 });
+	assert.equal((await react('member', { sense_id: 99999, value: 1 })).status, 404);
+	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'water', sense_id: first.id, value: 1 } })).status, 404, 'a sense of another word');
+
+	// The meaning is corrected in a new build: its old feedback no longer counts.
+	const dictDb = e.rawDict;
+	dictDb.prepare('UPDATE emd_sense SET sense = ? WHERE id = ?').run('ချစ်ခင်မှု (corrected)', first.id);
+	const after = (await call(e, '/api/reactions?lang=en&word=love')).body.senses;
+	assert.equal(after[String(first.id)], undefined);
+	assert.deepEqual(after[String(second.id)], { likes: 1, dislikes: 0, mine: 0 });
+	await react('member', { sense_id: first.id, value: 0 });
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM sense_reactions WHERE user_id = 1 AND sense_id = ?').get(first.id).n, 0, 'taken back');
 });
