@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11.9+35
+
+- Sign in with Google or GitHub: the account page, the account button in the header, sign out
+- The same verified email through either provider is the same member; unverified emails are neither stored nor matched
+- make grant gives a member a role by their sign-in email
+
 ## 26.11.9+34
 
 - Refused API requests get the standard message 'Access denied.'

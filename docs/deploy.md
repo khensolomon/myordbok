@@ -105,6 +105,52 @@ make deploy-beta            # dry run: builds and validates the upload
 make deploy-beta APPLY=1    # real deploy from this machine
 ```
 
+## Sign-in
+
+Google and GitHub sign-in (`worker/routes/auth.js`). One GitHub OAuth App and
+one Google OAuth client serve beta and production; separate ones serve local
+development, so the real secrets never sit on a development machine.
+
+| Provider | Callback URLs registered |
+|---|---|
+| GitHub app "MyOrdbok" | `https://beta.myordbok.com/api/auth/github/callback`, `https://myordbok.com/api/auth/github/callback` (wildcard matching off) |
+| Google client (web) | `https://beta.myordbok.com/api/auth/google/callback`, `https://myordbok.com/api/auth/google/callback` |
+| Local apps | `http://localhost:8787/api/auth/{github,google}/callback` |
+
+Client ids are public and live in `wrangler.toml` (`GITHUB_CLIENT_ID`,
+`GOOGLE_CLIENT_ID`). Secrets never enter the repository:
+
+```bash
+npx wrangler secret put GITHUB_CLIENT_SECRET --env beta
+npx wrangler secret put GOOGLE_CLIENT_SECRET --env beta
+# the same with --env production at cutover
+```
+
+Locally, copy `.dev.vars.example` to `.dev.vars` and fill in the local apps'
+values; sign in at `http://localhost:8787` (`make api`), not through the dev
+server on :8000.
+
+The app database needs migration 0002 (members' email) before sign-in works:
+`make db-migrate-remote APPLY=1`.
+
+After signing in once, give the owner the admin role:
+
+```bash
+make grant EMAIL=you@example.com ROLE=admin            # dry run
+make grant EMAIL=you@example.com ROLE=admin APPLY=1
+```
+
+How members are recognised: a provider account seen before is its member; a
+second provider used while signed in is linked to that member; otherwise a
+verified email that a member already has links the new provider account to
+that member, so one person keeps one account. Unverified emails are neither
+stored nor matched. A suspended member cannot sign in, and their sessions
+stop working at once. Sessions last 30 days and are stored only as hashes.
+
+Google keeps the consent screen in **Testing** until it is published: only
+the test users listed there can sign in. Google deletes OAuth clients unused
+for six months.
+
 ## Daily work
 
 ```bash

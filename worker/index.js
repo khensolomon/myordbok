@@ -10,6 +10,7 @@ import { AppError } from '../shared/errors.js';
 import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
+import { auth, me } from './routes/auth.js';
 import { lookup } from './routes/lookup.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
@@ -17,7 +18,7 @@ import { spelling } from './routes/spelling.js';
 import { suggest } from './routes/suggest.js';
 
 /**
- * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & {
+ * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & import('./routes/auth.js').AuthEnv & {
  *   ASSETS: Fetcher,
  *   NOINDEX?: string,
  * }} Env
@@ -73,6 +74,7 @@ async function api(request, env, ctx) {
  * @param {string[]} parts
  */
 async function answer(request, env, url, parts) {
+	if (parts[0] === 'auth') return auth(request, env, parts);
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);
 	}
@@ -83,6 +85,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'spelling') return spelling(url, env);
 		if (parts[0] === 'phrase') return phrase(url, env);
 		if (parts[0] === 'read') return read(url, env);
+		if (parts[0] === 'me') return me(request, env);
 	}
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }

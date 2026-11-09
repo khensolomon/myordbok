@@ -89,6 +89,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   refuses requests that are not from its own pages (`Sec-Fetch-Site`),
   limits each visitor per minute, and answers repeated lookups from the edge
   cache (`worker/lib/guard.js`; docs/deploy.md, The API).
+- **Sign-in is Google or GitHub, one member per person.** The Worker runs
+  the OAuth code flow with PKCE; members are recognised by the provider
+  account or, when the provider has verified it, the email, so likes and
+  suggestions stay with one person whichever provider is used. Sessions are
+  random tokens kept only as hashes (docs/deploy.md, Sign-in).
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

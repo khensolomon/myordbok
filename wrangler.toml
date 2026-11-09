@@ -46,8 +46,15 @@ run_worker_first = ["/api/*"]
 
 # Local development reads the local myordbok-dictionary (make data-sample).
 # API_GUARD is off here; beta and production turn it on (worker/lib/guard.js).
+#
+# Sign-in (worker/routes/auth.js): client ids are public and live here; the
+# secrets do not. Beta and production: `npx wrangler secret put
+# GITHUB_CLIENT_SECRET --env beta` (and GOOGLE_CLIENT_SECRET, and --env
+# production). Local: .dev.vars (see .dev.vars.example), which overrides these.
 [vars]
 DICT_DB = "dictionary"
+GITHUB_CLIENT_ID = ""
+GOOGLE_CLIENT_ID = "75095486220-gknegpg2ba3jnkjtat8a54i3gpkor15m.apps.googleusercontent.com"
 
 # Rate limits per visitor, counted at each Cloudflare location. Lookups and
 # suggestions get the generous one, read/phrase/spelling (many rows each) the
@@ -88,7 +95,7 @@ preview_urls = false
 routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
 # NOINDEX keeps beta out of search results (static files get the same header
 # from _headers). DICT_DB empty: the database comes from dict_release.
-vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1" }
+vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
 
 [[env.beta.ratelimits]]
 name = "RATE_LOOKUP"
@@ -126,7 +133,7 @@ name = "myordbok"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
-vars = { ENV_NAME = "production", DICT_DB = "", API_GUARD = "1" }
+vars = { ENV_NAME = "production", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
 
 [[env.production.ratelimits]]
 name = "RATE_LOOKUP"

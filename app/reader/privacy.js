@@ -7,7 +7,7 @@ import { CONTACT } from '../core/config.js';
 import { analyticsAvailable, getChoice, setChoice } from '../core/consent.js';
 import { h } from '../core/dom.js';
 
-const UPDATED = '8 November 2026';
+const UPDATED = '9 November 2026';
 
 export function title() {
 	return 'Privacy Policy';
@@ -110,8 +110,8 @@ export function view() {
 				'Signing in with Google or GitHub is optional and only needed to like or dislike entries, comment, or suggest edits. MyOrdbok then stores:',
 			),
 			list(
-				'The name, profile picture and account ID that Google or GitHub provides. No email address is requested.',
-				'A sign-in session, kept in a cookie that is required for signing in and used for nothing else.',
+				'The name, profile picture, account ID and email address that Google or GitHub provides. The email is kept only when the provider has verified it, and is used only to recognise the same person signing in with either provider. It is never used for advertising or newsletters, and never shared.',
+				'A sign-in session, kept in a cookie (__Host-mo_session) for up to 30 days, and during sign-in a short-lived cookie (__Host-mo_oauth) that protects the sign-in itself. Both are required for signing in and used for nothing else.',
 				'Likes, dislikes, comments and suggestions, linked to the account. Comments and accepted suggestions show the account name.',
 			),
 			h(

@@ -18,7 +18,9 @@
  *    does not reach D1. Requests still count towards the limits.
  *
  * /api/health holds no dictionary data and stays open to monitoring, within
- * the lookup limit.
+ * the lookup limit. /api/auth/* are page navigations, the callback coming
+ * from Google or GitHub, so they are exempt from the same-origin rule; they
+ * check their own state, and signing out checks Origin.
  */
 import { AppError } from '../../shared/errors.js';
 
@@ -28,7 +30,7 @@ import { AppError } from '../../shared/errors.js';
  */
 
 /** Routes open to any caller. */
-const OPEN = new Set(['health']);
+const OPEN = new Set(['health', 'auth']);
 /** Routes that read many rows per request. */
 const HEAVY = new Set(['read', 'phrase', 'spelling']);
 /** Routes whose answers depend only on the URL and the dictionary. */

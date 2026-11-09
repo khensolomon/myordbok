@@ -30,6 +30,10 @@
  *   export  --out DIR           approved edits → TSV files for the dataset scripts
  *   switch  --env beta|production --to dataset|dictionary
  *                               point one site at one database (repairs only)
+ *   grant   --email ADDRESS --role member|editor|admin
+ *                               give a member a role, by the email they signed
+ *                               in with (the first admin; later, admins do it
+ *                               in the app)
  *
  * Common options:
  *   --apply   make the change (otherwise only report)
@@ -832,6 +836,30 @@ function setup(apply, log) {
 	log('Wrote the ids into wrangler.toml (top level, beta, production). Commit it: ids are not secrets.');
 }
 
+/**
+ * Gives the member signed in with `email` a role, recorded in role_grants
+ * with no granting member (the command line).
+ * @param {Runner} db
+ * @param {string} email
+ * @param {string} role
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ */
+export function grant(db, email, role, apply, log) {
+	const address = email.trim().toLowerCase();
+	// Checked before it goes into SQL: wrangler's --command takes no parameters.
+	if (!/^[^\s'"\\@]+@[^\s'"\\@]+\.[^\s'"\\@]+$/.test(address)) throw new Error('Give --email the address the member signed in with');
+	if (!['member', 'editor', 'admin'].includes(role)) throw new Error('Give --role member, editor or admin');
+	const [row] = db.query('APP', `SELECT id, name, role, status FROM users WHERE email = '${address}'`);
+	if (!row) throw new Error(`No member has the email ${address} (${db.where}). Sign in once with it first.`);
+	log(`${row.name} (#${row.id}, ${address}): ${row.role} → ${role}${row.status === 'active' ? '' : ` (account ${row.status})`}`);
+	if (row.role === role) return log('Nothing to change.');
+	if (!apply) return log('Dry run. Add APPLY=1 to give the role.');
+	db.query('APP', `UPDATE users SET role = '${role}' WHERE id = ${Number(row.id)}`);
+	db.query('APP', `INSERT INTO role_grants (user_id, role, granted_by) VALUES (${Number(row.id)}, '${role}', NULL)`);
+	log('Done. It applies from the next page load; no new sign-in is needed.');
+}
+
 async function main() {
 	const args = process.argv.slice(2);
 	const command = args[0];
@@ -870,8 +898,10 @@ async function main() {
 			if (to !== 'dataset' && to !== 'dictionary') throw new Error('Give --to dataset or --to dictionary');
 			return switchSite(db, env, to, apply, log);
 		}
+		case 'grant':
+			return grant(db, option(args, '--email') ?? '', option(args, '--role') ?? '', apply, log);
 		default:
-			throw new Error('Commands: setup, status, publish, promote, export, switch (see the top of scripts/data.js)');
+			throw new Error('Commands: setup, status, publish, promote, export, switch, grant (see the top of scripts/data.js)');
 	}
 }
 

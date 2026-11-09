@@ -13,7 +13,7 @@ OUT      ?= exports
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-promote edits-export data-switch \
-        deploy-beta deploy-production logs-beta release clean
+        grant deploy-beta deploy-production logs-beta release clean
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -96,6 +96,10 @@ data-promote: ## The build beta previews → myordbok-dictionary for production:
 
 edits-export: ## Approved studio edits → dataset patch files in OUT=… [APPLY=1]
 	$(DATA) export --out "$(OUT)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|admin [APPLY=1]
+	@test -n "$(EMAIL)" -a -n "$(ROLE)" || { echo 'Give EMAIL=address ROLE=member|editor|admin'; exit 1; }
+	$(DATA) grant --email "$(EMAIL)" --role $(ROLE) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 data-switch: ## Repairs only: point SITE=beta|production at TO=dataset|dictionary [APPLY=1]
 	@test -n "$(SITE)" -a -n "$(TO)" || { echo 'Give SITE=beta|production TO=dataset|dictionary'; exit 1; }

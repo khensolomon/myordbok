@@ -6,6 +6,7 @@
  */
 import { boot } from '#platform/boot.js';
 import { initConsent } from './core/consent.js';
+import { member } from './core/member.js';
 import { initNav } from './core/nav.js';
 import { startRouter } from './core/router.js';
 import { hrefFor } from './reader/query.js';
@@ -48,3 +49,22 @@ markScrolled();
 
 initConsent();
 boot();
+
+// The account button shows the member's picture once signed in.
+const you = document.querySelector('.you');
+if (!(you instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="you">');
+const blankFace = you.innerHTML;
+document.addEventListener('mo:member', (e) => {
+	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
+	you.setAttribute('aria-label', m ? `Account: ${m.name}` : 'Account: sign in');
+	you.title = m ? m.name : 'Account';
+	if (m?.avatar_url) {
+		const img = document.createElement('img');
+		img.src = m.avatar_url;
+		img.alt = '';
+		img.referrerPolicy = 'no-referrer';
+		you.replaceChildren(img);
+	} else you.innerHTML = blankFace;
+});
+// Whether someone is signed in; a failure leaves the button as it is.
+member().catch((err) => console.warn('Account check failed:', err));
