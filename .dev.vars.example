@@ -1,7 +1,6 @@
-# Local sign-in. Copy to .dev.vars (git ignores it) and fill in the values of
-# the apps made for local development, whose callback is
-# http://localhost:8787/api/auth/{github,google}/callback.
+# Local sign-in. Copy to .dev.vars (git ignores it) and fill in the secrets.
+# Callbacks: http://localhost:8787/api/auth/{github,google}/callback.
 # Values here override [vars] in wrangler.toml for `wrangler dev` only.
-GITHUB_CLIENT_ID=
+# GitHub: the same app as beta and production, so the same secret.
 GITHUB_CLIENT_SECRET=
 GOOGLE_CLIENT_SECRET=

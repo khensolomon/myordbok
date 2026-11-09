@@ -107,15 +107,18 @@ make deploy-beta APPLY=1    # real deploy from this machine
 
 ## Sign-in
 
-Google and GitHub sign-in (`worker/routes/auth.js`). One GitHub OAuth App and
-one Google OAuth client serve beta and production; separate ones serve local
-development, so the real secrets never sit on a development machine.
+Google and GitHub sign-in (`worker/routes/auth.js`). One GitHub OAuth App
+serves beta, production and local development (localhost is one of its
+callbacks), so its secret is also in the maintainer's `.dev.vars`. One Google
+OAuth client serves beta and production, and a separate one local
+development.
 
 | Provider | Callback URLs registered |
 |---|---|
-| GitHub app "MyOrdbok" | `https://beta.myordbok.com/api/auth/github/callback`, `https://myordbok.com/api/auth/github/callback` (wildcard matching off) |
+| GitHub app "MyOrdbok" | `https://beta.myordbok.com/api/auth/github/callback`, `https://myordbok.com/api/auth/github/callback` (wildcard matching off, device flow off) |
 | Google client (web) | `https://beta.myordbok.com/api/auth/google/callback`, `https://myordbok.com/api/auth/google/callback` |
-| Local apps | `http://localhost:8787/api/auth/{github,google}/callback` |
+| GitHub app, also | `http://localhost:8787/api/auth/github/callback` |
+| Google local client | `http://localhost:8787/api/auth/google/callback` |
 
 Client ids are public and live in `wrangler.toml` (`GITHUB_CLIENT_ID`,
 `GOOGLE_CLIENT_ID`). Secrets never enter the repository:

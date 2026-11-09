@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.9+36
+
+- Local GitHub sign-in uses the same GitHub app as beta and production
+
 ## 26.11.9+35
 
 - Sign in with Google or GitHub: the account page, the account button in the header, sign out
