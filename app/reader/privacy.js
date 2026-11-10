@@ -8,7 +8,7 @@ import { englishOnly, t } from '../i18n/index.js';
 import { analyticsAvailable, getChoice, setChoice } from '../core/consent.js';
 import { h } from '../core/dom.js';
 
-const UPDATED = '9 November 2026';
+const UPDATED = '10 November 2026';
 
 export function title() {
 	return t('Privacy Policy');
@@ -61,6 +61,17 @@ export function view() {
 			'p',
 			null,
 			'MyOrdbok is a free English–Myanmar dictionary. Reading, searching and offline use need no account. This page explains what data the app handles, why, and the choices available.',
+		),
+
+		part(
+			'Messages',
+			h(
+				'p',
+				null,
+				'A message sent through ',
+				h('a', { href: CONTACT }, 'the contact form'),
+				' is kept with the kind of message, the page it was about, the interface language and, when signed in, the account that sent it. An email address left for a reply is used only to answer that message. Messages are read by the site’s administrators and deleted with the account that sent them, or on request.',
+			),
 		),
 
 		part(
@@ -152,7 +163,7 @@ export function view() {
 
 		part(
 			'Contact',
-			h('p', null, `Questions, data requests and reports: ${CONTACT}`),
+			h('p', null, 'Questions, data requests and reports: ', h('a', { href: CONTACT }, 'the contact form'), '.'),
 			h('p', null, 'This policy may change as the app develops; the date at the top shows the latest update.'),
 		),
 	);

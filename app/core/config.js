@@ -10,10 +10,10 @@ export const ANALYTICS = Object.freeze({
 });
 
 /**
- * Where questions, data requests and reports go; shown on the Privacy and
- * Terms pages. Placeholder until the address is decided.
+ * Where questions, data requests and reports go: the site's own contact
+ * form (MyOrdbok has no email address of its own).
  */
-export const CONTACT = '[contact email]';
+export const CONTACT = '/contact';
 
 /** The open-source repository: code, issues. */
 export const REPOSITORY = 'https://github.com/khensolomon/myordbok';

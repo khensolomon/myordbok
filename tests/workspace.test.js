@@ -174,3 +174,34 @@ test('deleting an account: confirmed by email; reviewed work stays as a former m
 	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
 	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'editor', body: { confirm: 'e@example.com' } })).status, 409, 'the only admin stays');
 });
+
+test('contact form: anyone may send; the hidden field drops a message; admins read the Inbox', async () => {
+	const e = env();
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'question', body: '  Where are the fonts? ', reply_to: 'reader@example.org', page: '/about', lang: 'my' } })).status, 200);
+	assert.equal((await call(e, '/api/messages', { who: 'member', body: { kind: 'word', body: 'Please add selfie.' } })).status, 200);
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'feedback', body: 'buy now', website: 'http://spam.example' } })).status, 200);
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'other', body: 'x' } })).status, 400);
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'feedback', body: '   ' } })).status, 400);
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'feedback', body: 'x', reply_to: 'not an address' } })).status, 400);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM messages').get().n, 2);
+
+	assert.equal((await call(e, '/api/workspace/messages', { who: 'editor' })).status, 403);
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
+	const box = (await call(e, '/api/workspace/messages', { who: 'editor' })).body;
+	assert.equal(box.unread, 2);
+	assert.deepEqual(
+		box.messages.map((m) => [m.kind, m.body, m.reply_to, m.member, m.lang]),
+		[
+			['word', 'Please add selfie.', null, 'Mya', 'en'],
+			['question', 'Where are the fonts?', 'reader@example.org', null, 'my'],
+		],
+	);
+	assert.equal((await call(e, `/api/workspace/messages/${box.messages[0].id}`, { who: 'editor', body: { status: 'done' } })).status, 200);
+	assert.equal((await call(e, '/api/workspace/overview', { who: 'editor' })).body.unread, 1);
+	assert.equal((await call(e, '/api/workspace/messages?status=done', { who: 'editor' })).body.messages.length, 1);
+	assert.equal((await call(e, '/api/workspace/messages/999', { who: 'editor', body: { status: 'done' } })).status, 404);
+
+	// A deleted account takes its messages with it.
+	await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'm@example.com' } });
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM messages WHERE user_id = 1').get().n, 0);
+});

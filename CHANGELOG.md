@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+49
+
+- Contact form (/contact) with an admin Inbox in the workspace, replacing the contact email; missing words link to it
+
 ## 26.11.10+48
 
 - Myanmar interface: every interface text in Myanmar (app/i18n), language button in the header, the device's language by default, Myanmar digits and dates, parts of speech by their Myanmar names

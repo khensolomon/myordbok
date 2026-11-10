@@ -80,6 +80,7 @@ function site(data, health) {
 			tile(t('Last {n} days', { n: days }), searches.month, searches.month ? t('{pct} not found', { pct: percent(missed, searches.month) }) : ''),
 			tile(t('Waiting'), sug.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions'),
 			tile(t('Members'), members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : t('none joined this week')),
+			data.unread === undefined ? null : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox'),
 		),
 		h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Searches, last {n} days', { n: days })), chart(searches.daily, days)),
 		h('div', { class: 'ws-cards' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.')), disliked(data.disliked ?? [])),

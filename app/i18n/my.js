@@ -154,7 +154,7 @@ export const MY = {
 	'Would you like to suggest “{word}” for the dictionary?': '“{word}” ကို အဘိဓာန်တွင် ထည့်ရန် အကြံပြုလိုပါသလား။',
 	'Suggesting a new word comes in a later change': 'စကားလုံးအသစ် အကြံပြုခြင်းကို နောက်ပိုင်းတွင် ထည့်ပါမည်',
 	'Suggest this word': 'ဤစကားလုံးကို အကြံပြုရန်',
-	'Or tell us on GitHub': 'သို့မဟုတ် GitHub တွင် ပြောပြပါ',
+	'Tell us about it': 'ကျွန်ုပ်တို့ကို ပြောပြပါ',
 	'Suggesting a new word in the app comes in a later change.': 'အက်ပ်ထဲတွင် စကားလုံးအသစ် အကြံပြုခြင်းကို နောက်ပိုင်းတွင် ထည့်ပါမည်။',
 
 	// Rating and suggesting
@@ -219,6 +219,24 @@ export const MY = {
 	'This page moves over from the previous site in a later change.': 'ဤစာမျက်နှာကို ယခင်ဝက်ဘ်ဆိုက်မှ နောက်ပိုင်းတွင် ပြောင်းရွှေ့ပါမည်။',
 	'Privacy Policy': 'ကိုယ်ရေးအချက်အလက် မူဝါဒ',
 	'Terms of Use': 'အသုံးပြုမှု စည်းကမ်းချက်များ',
+
+	// Contact
+	Contact: 'ဆက်သွယ်ရန်',
+	Feedback: 'အကြံပြုချက်',
+	'A question': 'မေးခွန်း',
+	'A problem with the site': 'ဆိုက်ပြဿနာ',
+	'A word to add': 'ထည့်စေလိုသော စကားလုံး',
+	'Please add “{word}”.': '“{word}” ကို ထည့်ပေးပါ။',
+	Send: 'ပို့ရန်',
+	'What is it about?': 'ဘာအကြောင်းလဲ။',
+	Message: 'စာ',
+	'Your email, for a reply (optional)': 'ပြန်စာအတွက် သင့်အီးမေးလ် (မထည့်လည်းရ)',
+	'Only to answer this message; never for anything else.': 'ဤစာကို ပြန်ဖြေရန်သာ အသုံးပြုမည်၊ အခြားမည်သည့်ကိစ္စအတွက်မျှ မသုံးပါ။',
+	'Write a message first.': 'ဦးစွာ စာရေးပါ။',
+	'Thank you. The message has been sent.': 'ကျေးဇူးတင်ပါသည်။ စာကို ပို့ပြီးပါပြီ။',
+	'A reply, if one is needed, goes to {email}.': 'ပြန်စာ လိုအပ်ပါက {email} သို့ ပို့ပါမည်။',
+	'Feedback, a question, a problem or a word the dictionary lacks: write it here. Messages are read by the people who run MyOrdbok.': 'အကြံပြုချက်၊ မေးခွန်း၊ ပြဿနာ သို့မဟုတ် အဘိဓာန်တွင် မပါသေးသော စကားလုံး − ဤနေရာတွင် ရေးပါ။ MyOrdbok ကို လုပ်ကိုင်သူများက ဖတ်ပါသည်။',
+	'About the page {page}': '{page} စာမျက်နှာအကြောင်း',
 
 	// Workspace
 	Workspace: 'လုပ်ငန်းခွင်',
@@ -321,6 +339,26 @@ export const MY = {
 	'{n} min ago': '{n} မိနစ်က',
 	'{n} h ago': '{n} နာရီက',
 	yesterday: 'မနေ့က',
+
+	// Inbox
+	Inbox: 'ဝင်စာ',
+	New: 'အသစ်',
+	Done: 'ပြီးပြီ',
+	'Choose a message from the list.': 'စာရင်းမှ စာတစ်စောင်ကို ရွေးပါ။',
+	'No new messages.': 'စာအသစ် မရှိပါ။',
+	'Mark as done': 'ပြီးပြီဟု မှတ်ရန်',
+	'Mark as new': 'အသစ်ဟု မှတ်ရန်',
+	From: 'ပို့သူ',
+	'A visitor, not signed in': 'အကောင့်မဝင်ထားသော ဧည့်သည်',
+	'No address for a reply.': 'ပြန်စာအတွက် လိပ်စာ မပါပါ။',
+	'Sent from the Myanmar interface.': 'မြန်မာ မျက်နှာပြင်မှ ပို့ထားသည်။',
+	'Sent from the English interface.': 'အင်္ဂလိပ် မျက်နှာပြင်မှ ပို့ထားသည်။',
+	'About the page': 'စာမျက်နှာ',
+	'A mark · J K next, previous': 'A မှတ်ရန် · J K နောက်၊ ယခင်',
+	'{n} new': 'အသစ် {n}',
+	'{label}, {n} new': '{label}၊ အသစ် {n}',
+	'Showing the latest {n}.': 'နောက်ဆုံး {n} စောင်ကို ပြထားသည်။',
+	'new messages': 'စာအသစ်',
 
 	// Overview
 	sent: 'ပို့ထားသည်',

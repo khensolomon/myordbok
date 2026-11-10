@@ -133,6 +133,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   parts of speech their Myanmar names. Dictionary content is never
   translated. About, Privacy and Terms stay in English for now, with a
   notice; server messages are translated by error code for the generic ones.
+- **Contact goes through the site, not email.** MyOrdbok has no address of
+  its own: `/contact` sends feedback, questions, problems and words to add to
+  the `messages` table (`POST /api/messages`), read by admins in the
+  workspace's Inbox, where a sender's address (if left) opens a reply in the
+  admin's own mail. Spam: a field people never see drops the message when
+  filled, plus the same-origin rule and the stricter rate limit.
 - **Searches are counted, not logged.** Each search page (`/api/read`)
   adds one to `search_counts` (day, language, word, found), after the answer
   is sent and including answers from the edge cache

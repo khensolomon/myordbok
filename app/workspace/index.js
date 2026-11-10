@@ -7,6 +7,7 @@
  *   ?s=overview      everyone, the default: figures for the role (overview.js)
  *   ?s=suggestions   editors and admins: suggestions by status
  *   ?s=contributions everyone: the member's own suggestions
+ *   ?s=inbox         admins: messages from the contact form (inbox.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
  *                    ?return=… goes there once signed in; ?error=… comes back
@@ -26,17 +27,19 @@ import { list, mark, num, posName, shortDate, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
+import { inboxPanes } from './inbox.js';
 import { overviewPane } from './overview.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'contributions' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'contributions' | 'inbox' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
-	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false },
-	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true },
-	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false },
+	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false },
+	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
+	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
+	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: true, admin: true },
 ]);
 
 const FILTERS = /** @type {const} */ ([
@@ -96,7 +99,7 @@ export async function view(ctx) {
 	const editor = me.role === 'editor' || me.role === 'admin';
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' ? asked : asked === 'suggestions' && editor ? 'suggestions' : 'overview';
+	const section = asked === 'account' || asked === 'contributions' ? asked : asked === 'suggestions' && editor ? 'suggestions' : asked === 'inbox' && me.role === 'admin' ? 'inbox' : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -108,6 +111,19 @@ export async function view(ctx) {
 	}
 	if (section === 'overview') {
 		root.append(rail, await overviewPane(me, health), status.node);
+		return root;
+	}
+	if (section === 'inbox') {
+		let unread = summary.unread ?? 0;
+		const panes = await inboxPanes(ctx, root, ago, (by) => {
+			unread = Math.max(0, unread + by);
+			const badge = rail.querySelector('[data-section-badge="inbox"]');
+			if (badge) {
+				badge.textContent = num(unread);
+				badge.toggleAttribute('hidden', unread === 0);
+			}
+		});
+		root.append(rail, ...panes, status.node);
 		return root;
 	}
 
@@ -437,16 +453,17 @@ function progress(status) {
  * @param {Member} me
  * @param {boolean} editor
  * @param {Section} section
- * @param {{ waiting: number | null }} summary
+ * @param {{ waiting: number | null, unread?: number }} summary
  */
 function railFor(me, editor, section, summary) {
-	const items = SECTIONS.filter((s) => editor || !s.editor).map((s) => {
+	const items = SECTIONS.filter((s) => (s.admin ? me.role === 'admin' : editor || !s.editor)).map((s) => {
 		const label = t(s.label);
+		const count = s.id === 'suggestions' ? (summary.waiting ?? 0) : s.id === 'inbox' ? (summary.unread ?? 0) : 0;
 		return h(
 			'a',
-			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: label, 'aria-label': s.id === 'suggestions' && summary.waiting ? t('{label}, {n} waiting', { label, n: summary.waiting }) : label },
+			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: label, 'aria-label': count ? (s.id === 'inbox' ? t('{label}, {n} new', { label, n: count }) : t('{label}, {n} waiting', { label, n: count })) : label },
 			icon(s.icon, 20),
-			s.id === 'suggestions' && summary.waiting ? h('span', { class: 'ws-badge' }, num(summary.waiting)) : null,
+			s.id === 'suggestions' || s.id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': s.id, hidden: count ? null : true }, num(count)) : null,
 		);
 	});
 	const face = me.avatar_url ? h('img', { src: me.avatar_url, alt: '', referrerpolicy: 'no-referrer' }) : me.name.slice(0, 1).toUpperCase();
@@ -565,7 +582,7 @@ function statusBar(health, summary, editor) {
 			waiting = Math.max(0, waiting + by);
 			if (!editor) return;
 			waitingText.textContent = t('{n} waiting', { n: waiting });
-			const badge = node.parentElement?.querySelector('.ws-badge');
+			const badge = node.parentElement?.querySelector('[data-section-badge="suggestions"]');
 			if (badge) {
 				badge.textContent = num(waiting);
 				badge.toggleAttribute('hidden', waiting === 0);

@@ -33,7 +33,6 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
-import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { entryFeedback } from './contribute.js';
@@ -525,7 +524,6 @@ async function missing(q, found, options = {}) {
 	const prefix = near.starts;
 	/** @param {string[]} words */
 	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
-	const issue = `${REPOSITORY}/issues/new?title=${encodeURIComponent(`Add “${q}”`)}&body=${encodeURIComponent(`The dictionary has no entry for “${q}”.\n\nMeaning, example or source:\n`)}`;
 
 	return h(
 		'section',
@@ -545,7 +543,7 @@ async function missing(q, found, options = {}) {
 						'div',
 						{ class: 'aside-actions' },
 						h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: t('Suggesting a new word comes in a later change') }, icon(ICONS.suggest, 18), t('Suggest this word')),
-						h('a', { href: issue, target: '_blank', rel: 'noopener' }, t('Or tell us on GitHub')),
+						h('a', { href: `/contact?kind=word&word=${encodeURIComponent(q)}&from=${encodeURIComponent(location.pathname + location.search)}` }, t('Tell us about it')),
 					),
 					h('p', { class: 'aside-quiet' }, t('Suggesting a new word in the app comes in a later change.')),
 				),

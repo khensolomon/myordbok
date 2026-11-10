@@ -80,7 +80,7 @@ export function initPrefs(you) {
 		h(
 			'button',
 			{ type: 'button', class: 'pref pref-lang', lang: other, 'aria-label': other === 'my' ? 'မြန်မာဘာသာဖြင့် ကြည့်ရန်' : 'Show in English', title: other === 'my' ? 'မြန်မာ' : 'English' },
-			other === 'my' ? 'မြ' : 'EN',
+			other === 'my' ? 'မြန်မာ' : 'EN',
 		)
 	);
 	language.addEventListener('click', () => setLang(other));

@@ -180,7 +180,7 @@ export function suggestEdit(suggestion) {
  * @property {{ word: string, type: string, sense: string | null, exam: string | null } | null} current
  */
 
-/** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null }>} */
+/** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null, unread?: number }>} */
 export function workspaceSummary() {
 	return getJSON('/api/workspace/summary');
 }
@@ -219,6 +219,7 @@ export function withdrawEdit(id) {
  * @property {Record<string, number>} [suggestions]
  * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]
  * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]
+ * @property {number} [unread]  New messages in the Inbox; admins only.
  */
 
 /** @returns {Promise<Overview>} The home board; editors and admins get the site's figures. */
@@ -232,4 +233,42 @@ export function workspaceOverview() {
  */
 export function deleteAccount(confirm) {
 	return postJSON('/api/workspace/account/delete', { confirm });
+}
+
+/**
+ * A message through the contact form.
+ * @param {{ kind: 'feedback' | 'question' | 'problem' | 'word', body: string, reply_to?: string, page?: string, lang: string, website?: string }} message
+ */
+export function sendMessage(message) {
+	return postJSON('/api/messages', message);
+}
+
+/**
+ * @typedef {object} InboxMessage
+ * @property {number} id
+ * @property {number} created_at
+ * @property {'feedback' | 'question' | 'problem' | 'word'} kind
+ * @property {string} body
+ * @property {string | null} reply_to
+ * @property {string | null} page
+ * @property {'en' | 'my'} lang
+ * @property {'new' | 'done'} status
+ * @property {string | null} member
+ */
+
+/**
+ * The Inbox, for admins.
+ * @param {{ status: 'new' | 'done' | 'all', before?: number }} options
+ * @returns {Promise<{ messages: InboxMessage[], more: boolean, unread: number }>}
+ */
+export function inboxMessages({ status, before }) {
+	return getJSON(`/api/workspace/messages?status=${status}${before ? `&before=${before}` : ''}`);
+}
+
+/**
+ * @param {number} id
+ * @param {'new' | 'done'} status
+ */
+export function markMessage(id, status) {
+	return postJSON(`/api/workspace/messages/${id}`, { status });
 }

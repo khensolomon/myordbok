@@ -14,6 +14,7 @@ import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
+import { sendMessage } from './routes/messages.js';
 import { workspace } from './routes/workspace.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
@@ -89,6 +90,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'workspace') return workspace(request, env, parts);
 		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
+		if (parts.length === 1 && parts[0] === 'messages') return sendMessage(request, env);
 	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);

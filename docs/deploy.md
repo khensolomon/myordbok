@@ -142,7 +142,8 @@ Every new file in `assets/db/migrations/` is applied the same way, on each
 site's database and locally: `make db-migrate-remote APPLY=1` and
 `make db-migrate`. 0003 adds ratings per meaning; 0004 adds search counts
 (the workspace overview) and user 0, "Former member", which deleted
-accounts' reviewed suggestions are moved to.
+accounts' reviewed suggestions are moved to; 0005 adds the contact form's
+messages (the Inbox) and site settings.
 
 After signing in once, give the owner the admin role:
 

@@ -151,7 +151,7 @@ export function view() {
 				'Mistakes in the dictionary can be reported as an ',
 				h('a', { href: `${REPOSITORY}/issues`, rel: 'noopener' }, 'issue on GitHub'),
 				'. Content believed to infringe someone’s rights, and anything else about these terms: ',
-				CONTACT,
+				h('a', { href: CONTACT }, 'the contact form'),
 				'.',
 			),
 		),

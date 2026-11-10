@@ -3,7 +3,8 @@
  * The workspace's API. Roles are read from the database on every request
  * (worker/lib/session.js); a member sees only their own suggestions.
  *
- *   GET  /api/workspace/summary                  suggestion counts by status, and the role
+ *   GET  /api/workspace/summary                  suggestion counts by status, the role, and
+ *                                             for admins the Inbox's unread count
  *   GET  /api/workspace/edits?status=&mine=1&before=
  *                                             suggestions, newest first, 30 at a time;
  *                                             each with the sense as the dictionary has it now
@@ -14,6 +15,8 @@
  *                                             own for members
  *   POST /api/workspace/account/delete           { confirm }: the member's email (or
  *                                             DELETE without one); see deleteAccount
+ *   GET  /api/workspace/messages, POST /api/workspace/messages/{id}
+ *                                             the Inbox, admins (routes/messages.js)
  *
  * Only a waiting suggestion can be reviewed or withdrawn; what happens after
  * approval (export, merge) is make edits-export and the next release.
@@ -22,6 +25,7 @@ import { AppError } from '../../shared/errors.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember, endSession } from '../lib/session.js';
+import { inbox } from './messages.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -55,6 +59,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'GET' && what === 'summary' && parts.length === 2) return summary(env, member);
 	if (request.method === 'GET' && what === 'edits' && parts.length === 2) return list(request, env, member);
 	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
+	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
 		if (action === 'review') return review(request, env, member, Number(id));
@@ -72,8 +77,9 @@ async function summary(env, member) {
 	const waiting = isEditor(member)
 		? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM dict_edits WHERE status = 'pending'").first()).n
 		: null;
+	const unread = member.role === 'admin' ? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n : null;
 	return json(
-		{ role: member.role, mine: Object.fromEntries(own.results.map((r) => [String(r.status), Number(r.n)])), waiting: waiting === null ? null : Number(waiting) },
+		{ role: member.role, mine: Object.fromEntries(own.results.map((r) => [String(r.status), Number(r.n)])), waiting: waiting === null ? null : Number(waiting), ...(unread === null ? {} : { unread: Number(unread) }) },
 		NO_STORE,
 	);
 }
@@ -251,11 +257,14 @@ async function overview(env, member) {
 	}
 
 	const sumHits = (/** @type {number} */ days) => daily.filter((d) => String(d.day) >= dayKey(days - 1)).reduce((a, d) => a + Number(d.hits), 0);
+	// Unread messages: admins only, as the Inbox is theirs.
+	const unread = member.role === 'admin' ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
 	return json(
 		{
 			role: member.role,
 			own,
 			days: OVERVIEW_DAYS,
+			...(unread === null ? {} : { unread }),
 			searches: {
 				today: sumHits(1),
 				week: sumHits(7),
@@ -308,6 +317,8 @@ async function deleteAccount(request, env, member) {
 		db.prepare('DELETE FROM reactions WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM sense_reactions WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM comments WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM messages WHERE user_id = ?1').bind(id),
+		db.prepare('UPDATE settings SET updated_by = 0 WHERE updated_by = ?1').bind(id),
 		db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM identities WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM users WHERE id = ?1').bind(id),

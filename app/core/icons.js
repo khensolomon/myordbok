@@ -20,6 +20,7 @@ export const ICONS = Object.freeze({
 	contrast: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/>',
 	chart: '<path d="M5 19.5h14"/><path d="M7.5 16v-4M12 16V8M16.5 16v-6"/>',
 	overview: '<rect x="4.5" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="4.5" y="13" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="13" width="6.5" height="6.5" rx="1.5"/>',
+	inbox: '<path d="M4 13.5 6.6 5.6A1.6 1.6 0 0 1 8.1 4.5h7.8a1.6 1.6 0 0 1 1.5 1.1L20 13.5"/><path d="M4 13.5V18a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 18v-4.5h-4.5a3.5 3.5 0 0 1-7 0z"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 });
