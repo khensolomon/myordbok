@@ -250,3 +250,13 @@ test('grant: a role by sign-in email, dry run first, recorded', async () => {
 	assert.throws(() => grant(db, 'nobody@example.com', 'admin', true, log), /No member has the email/);
 	assert.throws(() => grant(db, 'khen@example.com', 'super', true, log), /Give --role/);
 });
+
+test('grant: a level the database does not know yet says which migrations to apply', async () => {
+	const { grant } = await import('../scripts/data.js');
+	const dir = join(import.meta.dirname, '..', 'assets', 'db', 'migrations');
+	const before = readdirSync(dir).filter((f) => f.endsWith('.sql') && f < '0007').sort().map((f) => readFileSync(join(dir, f), 'utf8')).join('\n');
+	const app = sqlite(before);
+	app.exec("INSERT INTO users (id, name, email) VALUES (1, 'K', 'k@example.com')");
+	const db = runner({ APP: app, DATASET: sqlite(), DICTIONARY: sqlite() });
+	assert.throws(() => grant(db, 'k@example.com', 'owner', true, () => {}), /does not know the level "owner" yet\. Apply the migrations first: make db-migrate/);
+});

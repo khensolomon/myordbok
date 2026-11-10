@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+57
+
+- make grant: says which migrations to apply when the database does not know the level yet; wrangler's own reason shown when a D1 command fails
+
 ## 26.11.10+56
 
 - Owner level above admin: owners give and take every level, admins make members editors; Members section in the workspace with search, levels, suspending and the history of each level

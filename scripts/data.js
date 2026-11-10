@@ -396,12 +396,20 @@ export function verifyBuild(meta, counts) {
 export function wranglerRunner({ local }) {
 	const target = local ? ['--local'] : ['--remote', '--env', 'beta'];
 	/** @param {string[]} args */
-	const run = (args) =>
-		execFileSync('npx', ['wrangler', 'd1', 'execute', ...args, ...target], {
-			encoding: 'utf8',
-			maxBuffer: 256 * 1024 * 1024,
-			stdio: ['ignore', 'pipe', 'inherit'],
-		});
+	const run = (args) => {
+		try {
+			return execFileSync('npx', ['wrangler', 'd1', 'execute', ...args, ...target], {
+				encoding: 'utf8',
+				maxBuffer: 256 * 1024 * 1024,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			});
+		} catch (err) {
+			// wrangler's own reason (with --json it is on stdout), not only "Command failed".
+			const e = /** @type {{ stdout?: string, stderr?: string }} */ (err);
+			const said = `${e.stdout ?? ''}\n${e.stderr ?? ''}`.match(/"text":\s*"([^"]+)"|✘ \[ERROR\] (.+)|(SQLITE_[A-Z]+[^\n]*)/);
+			throw new Error(`wrangler d1 execute ${args[0]} failed (${local ? 'local' : 'remote'}): ${said ? (said[1] ?? said[2] ?? said[3]).trim() : String(e.stderr ?? err).trim()}`);
+		}
+	};
 	return {
 		where: local ? 'local' : 'remote',
 		query(binding, sql) {
@@ -880,6 +888,12 @@ export function grant(db, email, role, apply, log) {
 	// Checked before it goes into SQL: wrangler's --command takes no parameters.
 	if (!/^[^\s'"\\@]+@[^\s'"\\@]+\.[^\s'"\\@]+$/.test(address)) throw new Error('Give --email the address the member signed in with');
 	if (!['member', 'editor', 'admin', 'owner'].includes(role)) throw new Error('Give --role member, editor, admin or owner');
+	// The level must be one the database knows: owner comes with migration 0007.
+	const [table] = db.query('APP', "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'");
+	if (!table) throw new Error(`myordbok-app has no users table (${db.where}). Apply the migrations first: ${db.where === 'local' ? 'make db-migrate' : 'make db-migrate-remote APPLY=1'}`);
+	if (!String(table.sql).includes(`'${role}'`)) {
+		throw new Error(`myordbok-app (${db.where}) does not know the level "${role}" yet. Apply the migrations first: ${db.where === 'local' ? 'make db-migrate' : 'make db-migrate-remote APPLY=1'}`);
+	}
 	const [row] = db.query('APP', `SELECT id, name, role, status FROM users WHERE email = '${address}'`);
 	if (!row) throw new Error(`No member has the email ${address} (${db.where}). Sign in once with it first.`);
 	log(`${row.name} (#${row.id}, ${address}): ${row.role} → ${role}${row.status === 'active' ? '' : ` (account ${row.status})`}`);
