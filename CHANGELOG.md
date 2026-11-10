@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+52
+
+- make data-packs: its own PACKS_OUT, not the OUT of edits-export
+
 ## 26.11.10+51
 
 - Offline: word lists kept on the device by themselves; definitions and related words downloaded on the Offline page (members, or everyone by an admin setting); one word's answer and suggestions work without a connection. Packs are made per build (make data-packs) into R2, never read from D1

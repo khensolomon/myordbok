@@ -90,9 +90,9 @@ data-publish: ## A build → myordbok-dataset, checked; beta previews it: FILE=�
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
 	$(DATA) publish --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-packs: ## Offline packs of a build → R2 myordbok-packs: FILE=… [APPLY=1] [LOCAL=1]
+data-packs: ## Offline packs of a build → R2 myordbok-packs: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
-	node --no-warnings scripts/packs.js --file "$(FILE)" $(if $(OUT),--out "$(OUT)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+	node --no-warnings scripts/packs.js --file "$(FILE)" $(if $(PACKS_OUT),--out "$(PACKS_OUT)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 data-promote: ## The build beta previews → myordbok-dictionary for production: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql (the build beta previews)'; exit 1; }
