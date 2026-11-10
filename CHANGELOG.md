@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+58
+
+- Migration 0007 fixed: it failed with FOREIGN KEY constraint failed on any database with members; users and role_grants are now rebuilt from copies under their own names, which keeps every reference
+
 ## 26.11.10+57
 
 - make grant: says which migrations to apply when the database does not know the level yet; wrangler's own reason shown when a D1 command fails
