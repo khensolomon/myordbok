@@ -32,7 +32,7 @@
  *   export  --out DIR           approved edits → TSV files for the dataset scripts
  *   switch  --env beta|production --to dataset|dictionary
  *                               point one site at one database (repairs only)
- *   grant   --email ADDRESS --role member|editor|admin
+ *   grant   --email ADDRESS --role member|editor|admin|owner
  *                               give a member a role, by the email they signed
  *                               in with (the first admin; later, admins do it
  *                               in the app)
@@ -879,7 +879,7 @@ export function grant(db, email, role, apply, log) {
 	const address = email.trim().toLowerCase();
 	// Checked before it goes into SQL: wrangler's --command takes no parameters.
 	if (!/^[^\s'"\\@]+@[^\s'"\\@]+\.[^\s'"\\@]+$/.test(address)) throw new Error('Give --email the address the member signed in with');
-	if (!['member', 'editor', 'admin'].includes(role)) throw new Error('Give --role member, editor or admin');
+	if (!['member', 'editor', 'admin', 'owner'].includes(role)) throw new Error('Give --role member, editor, admin or owner');
 	const [row] = db.query('APP', `SELECT id, name, role, status FROM users WHERE email = '${address}'`);
 	if (!row) throw new Error(`No member has the email ${address} (${db.where}). Sign in once with it first.`);
 	log(`${row.name} (#${row.id}, ${address}): ${row.role} → ${role}${row.status === 'active' ? '' : ` (account ${row.status})`}`);

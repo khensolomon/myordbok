@@ -29,6 +29,7 @@
  * Origin; worker/lib/guard.js checks Sec-Fetch-Site).
  */
 import { AppError } from '../../shared/errors.js';
+import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
@@ -281,7 +282,7 @@ export async function suggestEdit(request, env) {
 	const action = data.action;
 	if (action !== 'edit' && action !== 'delete' && action !== 'add') throw new AppError('bad_request', 'action must be edit, delete or add');
 
-	const editor = member.role === 'editor' || member.role === 'admin';
+	const editor = atLeast(member.role, 'editor');
 	if (!editor) {
 		const waiting = /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM dict_edits WHERE user_id = ?1 AND status = 'pending'").bind(member.id).first());
 		if (Number(waiting.n) >= MAX_PENDING) throw new AppError('rate_limited', `You have ${MAX_PENDING} suggestions waiting for review. New ones can be made once some are reviewed.`);

@@ -123,6 +123,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   K move through the list), authors withdraw while it waits
   (`/api/workspace/*`; `worker/routes/workspace.js`). Its code loads only
   when opened.
+- **Four levels, each including the ones below** (`shared/roles.js`):
+  member, editor, admin, owner. Owners give and take every level, admins move
+  members and editors between those two; nobody changes their own level and
+  the site always keeps an active owner. Changes are made in the workspace's
+  Members section, each kept in `role_grants` with who made it; suspending
+  signs the member out everywhere.
 - **One person menu holds everything personal** (`app/core/menu.js`). The
   header keeps the navigation and the person button; the button opens a
   panel pointed at it: sign-in (or the account and the workspace, with what

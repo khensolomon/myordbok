@@ -161,6 +161,9 @@ messages (the Inbox) and site settings (offline access). 0006 gives messages
 their states (unread, read, replied, done) and notes, and adds the build
 statistics the workspace shows: `make data-publish` keeps them for each new
 build; for the build already published, once: `make data-stats FILE=…/build/myordbok.db APPLY=1`.
+0007 adds the owner level above admin; the first admin (the one who set the
+site up) becomes owner. Owners give and take every level in the workspace
+(Members); `make grant EMAIL=… ROLE=owner APPLY=1` remains for emergencies.
 
 After signing in once, give the owner the admin role:
 

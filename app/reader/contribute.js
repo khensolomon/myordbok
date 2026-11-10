@@ -14,6 +14,7 @@
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
+import { atLeast } from '#shared/roles.js';
 import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
@@ -298,7 +299,7 @@ async function openAddMeaning(lang, word) {
 			}
 		});
 		body.replaceChildren(
-			h('p', { class: 'aside-quiet suggest-intro' }, data.role === 'editor' || data.role === 'admin' ? t('As an editor, your addition is approved at once and reaches the dictionary with the next release.') : t('An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.')),
+			h('p', { class: 'aside-quiet suggest-intro' }, atLeast(data.role, 'editor') ? t('As an editor, your addition is approved at once and reaches the dictionary with the next release.') : t('An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.')),
 			h('label', null, t('Part of speech'), type),
 			h('label', null, t('Meaning'), meaning),
 			h('label', null, t('Example'), example),

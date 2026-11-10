@@ -17,6 +17,8 @@
  *                                             DELETE without one); see deleteAccount
  *   GET  /api/workspace/ratings?scope=mine|site  the member's own ratings; editors also the
  *                                             site's most liked and disliked
+ *   GET  /api/workspace/members[?q=&role=&status=], GET|POST /api/workspace/members/{id}
+ *                                             admins and owners (routes/members.js)
  *   GET  /api/workspace/settings, POST /api/workspace/settings  { key, value }   admins
  *   GET  /api/workspace/messages, POST /api/workspace/messages/{id}
  *                                             the Inbox, admins (routes/messages.js)
@@ -25,10 +27,12 @@
  * approval (export, merge) is make edits-export and the next release.
  */
 import { AppError } from '../../shared/errors.js';
+import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember, endSession } from '../lib/session.js';
 import { inbox } from './messages.js';
+import { members } from './members.js';
 import { allSettings, setSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
@@ -49,7 +53,7 @@ const CURRENT = {
 };
 
 /** @param {Member} m */
-const isEditor = (m) => m.role === 'editor' || m.role === 'admin';
+const isEditor = (m) => atLeast(m.role, 'editor');
 
 /**
  * @param {Request} request
@@ -65,6 +69,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
 	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
 	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
+	if (what === 'members' && parts.length <= 3) return members(request, env, member, id);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
@@ -83,7 +88,7 @@ async function summary(env, member) {
 	const waiting = isEditor(member)
 		? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM dict_edits WHERE status = 'pending'").first()).n
 		: null;
-	const unread = member.role === 'admin' ? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n : null;
+	const unread = atLeast(member.role, 'admin') ? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n : null;
 	return json(
 		{ role: member.role, mine: Object.fromEntries(own.results.map((r) => [String(r.status), Number(r.n)])), waiting: waiting === null ? null : Number(waiting), ...(unread === null ? {} : { unread: Number(unread) }) },
 		NO_STORE,
@@ -238,7 +243,7 @@ async function overview(env, member) {
 	]);
 	const worst = await currentSenses(env, disliked);
 	// Unread messages: admins only, as the Inbox is theirs.
-	const unread = member.role === 'admin' ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
+	const unread = atLeast(member.role, 'admin') ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
 	return json(
 		{
 			...base,
@@ -360,7 +365,7 @@ async function textHash(text) {
  * Deletes the signed-in member's account. Their sign-ins, sessions, ratings,
  * comments, role history and waiting suggestions go; their reviewed
  * suggestions stay in the dataset's history under "Former member" (user 0).
- * The only active administrator cannot be deleted.
+ * The only active owner cannot be deleted.
  * @param {Request} request
  * @param {Env} env
  * @param {Member} member
@@ -371,9 +376,9 @@ async function deleteAccount(request, env, member) {
 	if (typeof data?.confirm !== 'string' || data.confirm.trim().toLowerCase() !== expected.toLowerCase()) {
 		throw new AppError('bad_request', member.email ? 'Type the email address of the account to confirm.' : 'Type DELETE to confirm.');
 	}
-	if (member.role === 'admin') {
-		const admins = /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM users WHERE role = 'admin' AND status = 'active' AND id > 0").first());
-		if (Number(admins.n) <= 1) throw new AppError('conflict', 'The only administrator cannot be deleted. Make another member an administrator first.');
+	if (member.role === 'owner') {
+		const owners = /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM users WHERE role = 'owner' AND status = 'active' AND id > 0").first());
+		if (Number(owners.n) <= 1) throw new AppError('conflict', 'The only owner cannot be deleted. Make another member owner first.');
 	}
 	const db = env.APP;
 	const id = member.id;
@@ -404,7 +409,7 @@ async function deleteAccount(request, env, member) {
  * @param {Member} member
  */
 async function settings(request, env, member) {
-	if (member.role !== 'admin') throw new AppError('forbidden', 'Only admins change site settings.');
+	if (!atLeast(member.role, 'admin')) throw new AppError('forbidden', 'Only admins change site settings.');
 	if (request.method === 'POST') {
 		const data = /** @type {{ key?: unknown, value?: unknown } | null} */ (await request.json().catch(() => null));
 		if (!data || typeof data.key !== 'string') throw new AppError('bad_request', 'Send { key, value }');

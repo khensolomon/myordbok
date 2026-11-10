@@ -15,6 +15,7 @@
 import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { workspaceOverview } from '../data/api.js';
+import { atLeast } from '#shared/roles.js';
 import { num, posName, shortDate, t } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').Overview} Overview */
@@ -34,7 +35,7 @@ export async function overviewPane(me, health) {
 		main.append(h('div', { class: 'ws-work' }, h('p', { class: 'ws-result', role: 'alert' }, err instanceof Error ? err.message : String(err))));
 		return main;
 	}
-	const editor = data.role === 'editor' || data.role === 'admin';
+	const editor = atLeast(data.role, 'editor');
 	const head = h('header', { class: 'ws-ov-head' }, h('h1', null, t('Overview')), h('span', null, me.name));
 	main.append(
 		h(
@@ -45,7 +46,7 @@ export async function overviewPane(me, health) {
 				'div',
 				{ class: 'ws-ov' },
 				yours(data, editor),
-				dictionary(data, health, me.role === 'admin'),
+				dictionary(data, health, atLeast(me.role, 'admin')),
 				searches(data),
 				community(data),
 				editor ? review(data) : '',

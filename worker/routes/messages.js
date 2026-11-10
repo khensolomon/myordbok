@@ -14,6 +14,7 @@
  * rule and the stricter rate limit apply (worker/lib/guard.js).
  */
 import { AppError } from '../../shared/errors.js';
+import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
 
@@ -64,7 +65,7 @@ export async function sendMessage(request, env) {
  * @param {string | undefined} id
  */
 export async function inbox(request, env, member, id) {
-	if (member.role !== 'admin') throw new AppError('forbidden', 'Only admins read the Inbox.');
+	if (!atLeast(member.role, 'admin')) throw new AppError('forbidden', 'Only admins read the Inbox.');
 	if (request.method === 'GET' && id === undefined) return list(request, env);
 	if (request.method === 'POST' && id && /^\d+$/.test(id)) return mark(request, env, Number(id), member);
 	throw new AppError('not_found', `No API route for ${request.method} ${new URL(request.url).pathname}`);

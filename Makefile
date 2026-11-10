@@ -105,8 +105,8 @@ data-promote: ## The build beta previews → myordbok-dictionary for production:
 edits-export: ## Approved workspace edits → dataset patch files in OUT=… [APPLY=1]
 	$(DATA) export --out "$(OUT)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|admin [APPLY=1]
-	@test -n "$(EMAIL)" -a -n "$(ROLE)" || { echo 'Give EMAIL=address ROLE=member|editor|admin'; exit 1; }
+grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|admin|owner [APPLY=1]
+	@test -n "$(EMAIL)" -a -n "$(ROLE)" || { echo 'Give EMAIL=address ROLE=member|editor|admin|owner'; exit 1; }
 	$(DATA) grant --email "$(EMAIL)" --role $(ROLE) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 data-switch: ## Repairs only: point SITE=beta|production at TO=dataset|dictionary [APPLY=1]

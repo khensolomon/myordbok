@@ -12,7 +12,7 @@ import { getJSON, postJSON } from '#platform/http.js';
  * @property {string} name
  * @property {string | null} email
  * @property {string | null} avatar_url
- * @property {'member' | 'editor' | 'admin'} role
+ * @property {import('#shared/roles.js').Role} role
  * @property {Array<'google' | 'github'>} providers
  */
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { AppError } from '../shared/errors.js';
-import { assertCan, can, isRole } from '../shared/roles.js';
+import { assertCan, assignable, atLeast, can, isRole } from '../shared/roles.js';
 import { detectLang, normalizeQuery, parseLang, parseReaction, wordKey } from '../shared/validate.js';
 import { nextVersion, parseVersion } from '../shared/version.js';
 
@@ -12,12 +12,24 @@ test('roles: each level includes the ones below it', () => {
 	assert.equal(can('editor', 'edit'), true);
 	assert.equal(can('editor', 'manage_members'), false);
 	assert.equal(can('admin', 'manage_members'), true);
-	assert.equal(isRole('owner'), false);
+	assert.equal(can('admin', 'manage_admins'), false);
+	assert.equal(can('owner', 'manage_admins'), true);
+	assert.equal(atLeast('owner', 'editor'), true);
+	assert.equal(isRole('super'), false);
+});
+
+test('roles: an owner gives any level, an admin only member and editor, nobody their own', () => {
+	assert.deepEqual(assignable('owner', 'admin', false), ['member', 'editor', 'admin', 'owner']);
+	assert.deepEqual(assignable('admin', 'member', false), ['member', 'editor']);
+	assert.deepEqual(assignable('admin', 'admin', false), []);
+	assert.deepEqual(assignable('admin', 'owner', false), []);
+	assert.deepEqual(assignable('editor', 'member', false), []);
+	assert.deepEqual(assignable('owner', 'owner', true), []);
 });
 
 test('roles: forbidden actions and unknown roles fail loudly', () => {
 	assert.throws(() => assertCan('member', 'edit'), (e) => e instanceof AppError && e.code === 'forbidden');
-	assert.throws(() => can(/** @type {any} */ ('owner'), 'react'), (e) => e instanceof AppError && e.code === 'internal');
+	assert.throws(() => can(/** @type {any} */ ('super'), 'react'), (e) => e instanceof AppError && e.code === 'internal');
 });
 
 test('validate: queries are normalised, empty or long ones rejected', () => {

@@ -10,6 +10,7 @@
  *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
  *   ?s=inbox         admins: messages from the contact form (inbox.js)
+ *   ?s=members       admins and owners: levels and suspending (members.js)
  *   ?s=settings      admins: site settings (settings.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
@@ -26,6 +27,7 @@ import { getJSON } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
+import { atLeast } from '#shared/roles.js';
 import { list, mark, num, posName, shortDate, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
@@ -35,10 +37,11 @@ import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
 import { offlinePane } from './offline.js';
+import { membersPanes } from './members.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'settings' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
@@ -48,6 +51,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
 	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: true, admin: true },
+	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
 ]);
 
@@ -105,10 +109,11 @@ export async function view(ctx) {
 		ctx.replace(back);
 		return h('div');
 	}
-	const editor = me.role === 'editor' || me.role === 'admin';
+	const editor = atLeast(me.role, 'editor');
+	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings') && me.role === 'admin' ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings' || asked === 'members') && admin ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -128,6 +133,10 @@ export async function view(ctx) {
 	}
 	if (section === 'ratings') {
 		root.append(rail, await ratingsPane(ctx, editor, ago), status.node);
+		return root;
+	}
+	if (section === 'members') {
+		root.append(rail, ...(await membersPanes(ctx, root, ago)), status.node);
 		return root;
 	}
 	if (section === 'settings') {
@@ -475,7 +484,7 @@ function progress(status) {
  * @param {{ waiting: number | null, unread?: number }} summary
  */
 function railFor(me, editor, section, summary) {
-	const items = SECTIONS.filter((s) => (s.admin ? me.role === 'admin' : editor || !s.editor)).map((s) => {
+	const items = SECTIONS.filter((s) => (s.admin ? atLeast(me.role, 'admin') : editor || !s.editor)).map((s) => {
 		const label = t(s.label);
 		const count = s.id === 'suggestions' ? (summary.waiting ?? 0) : s.id === 'inbox' ? (summary.unread ?? 0) : 0;
 		return h(
@@ -657,7 +666,7 @@ function notice(query) {
 
 /** @param {string} role */
 function roleName(role) {
-	return role === 'admin' ? t('Administrator') : role === 'editor' ? t('Editor') : t('Member');
+	return role === 'owner' ? t('Owner') : role === 'admin' ? t('Administrator') : role === 'editor' ? t('Editor') : t('Member');
 }
 
 /** @param {unknown} err */

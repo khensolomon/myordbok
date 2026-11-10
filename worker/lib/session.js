@@ -19,7 +19,7 @@ export const SESSION_DAYS = 30;
  * @property {string} name
  * @property {string | null} email
  * @property {string | null} avatar_url
- * @property {'member' | 'editor' | 'admin'} role
+ * @property {import('../../shared/roles.js').Role} role
  */
 
 /** @param {number} [bytes] */

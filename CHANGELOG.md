@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+56
+
+- Owner level above admin: owners give and take every level, admins make members editors; Members section in the workspace with search, levels, suspending and the history of each level
+
 ## 26.11.10+55
 
 - Header: one person menu with sign-in or the account, language, theme, usage statistics, the offline copy and Contact; footer slimmer. Workspace: Offline section (word lists keep themselves; definitions on request, removing asks twice); /offline moves there

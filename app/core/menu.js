@@ -21,6 +21,7 @@
 import { analyticsAvailable, getChoice, setChoice } from './consent.js';
 import { h, icon } from './dom.js';
 import { ICONS } from './icons.js';
+import { atLeast } from '#shared/roles.js';
 import { member, signInHref, signOut } from './member.js';
 import { getTheme, setTheme } from './prefs.js';
 import { workspaceSummary } from '../data/api.js';
@@ -131,7 +132,7 @@ function signIn(here) {
  */
 function account(me, done) {
 	const badge = h('span', { class: 'you-badge', hidden: true });
-	const editor = me.role === 'editor' || me.role === 'admin';
+	const editor = atLeast(me.role, 'editor');
 	if (editor) {
 		workspaceSummary()
 			.then((s) => {
@@ -149,7 +150,7 @@ function account(me, done) {
 			'div',
 			{ class: 'you-who' },
 			me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 40, height: 40, referrerpolicy: 'no-referrer' }) : h('span', { class: 'you-face' }, me.name.slice(0, 1).toUpperCase()),
-			h('div', null, h('strong', null, me.name), h('span', null, me.role === 'admin' ? t('Administrator') : me.role === 'editor' ? t('Editor') : t('Member'))),
+			h('div', null, h('strong', null, me.name), h('span', null, me.role === 'owner' ? t('Owner') : me.role === 'admin' ? t('Administrator') : me.role === 'editor' ? t('Editor') : t('Member'))),
 		),
 		h('a', { class: 'you-workspace', href: '/workspace', onClick: done }, icon(ICONS.overview, 18), t('Open the workspace'), badge),
 	);

@@ -177,8 +177,8 @@ test('deleting an account: confirmed by email; reviewed work stays as a former m
 	assert.equal(e.raw.prepare('SELECT user_id FROM dict_edits WHERE id = ?').get(reviewed.id).user_id, 0);
 	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).status, 401);
 
-	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
-	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'editor', body: { confirm: 'e@example.com' } })).status, 409, 'the only admin stays');
+	e.raw.exec("UPDATE users SET role = 'owner' WHERE id = 2");
+	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'editor', body: { confirm: 'e@example.com' } })).status, 409, 'the only owner stays');
 });
 
 test('contact form: anyone may send; the hidden field drops a message; admins read the Inbox', async () => {
@@ -242,4 +242,34 @@ test('ratings: a member sees their own, a changed meaning says so; editors see t
 	assert.deepEqual(site.entries.liked, [{ lang: 'en', word: 'love', up: 1, down: 0 }]);
 	assert.deepEqual(site.senses.disliked.map((s) => [s.sense_id, s.down]), [[senses[0].id, 1]]);
 	assert.equal(site.senses.liked.length, 0, 'the changed meaning’s rating no longer counts');
+});
+
+test('members: an owner gives any level, an admin only member and editor; the site keeps an owner', async () => {
+	const e = env();
+	// Mya (1) member, Ed (2) owner, Other (3) member; Ed makes Other an admin.
+	e.raw.exec("UPDATE users SET role = 'owner' WHERE id = 2");
+	assert.equal((await call(e, '/api/workspace/members', { who: 'member' })).status, 403);
+	const list = (await call(e, '/api/workspace/members?q=MYA', { who: 'editor' })).body;
+	assert.deepEqual(list.members.map((m) => [m.name, m.role, m.may.roles.length]), [['Mya', 'member', 4]]);
+
+	const made = (await call(e, '/api/workspace/members/3', { who: 'editor', body: { role: 'admin' } })).body.member;
+	assert.equal(made.role, 'admin');
+	assert.deepEqual(made.history.map((h) => [h.role, h.by]), [['admin', 'Ed']]);
+
+	// The admin (Other) may make Mya an editor, not an admin, and cannot touch the owner or themselves.
+	assert.equal((await call(e, '/api/workspace/members/1', { who: 'other', body: { role: 'editor' } })).body.member.role, 'editor');
+	assert.equal((await call(e, '/api/workspace/members/1', { who: 'other', body: { role: 'admin' } })).status, 403);
+	assert.equal((await call(e, '/api/workspace/members/2', { who: 'other', body: { role: 'member' } })).status, 403);
+	assert.equal((await call(e, '/api/workspace/members/3', { who: 'other', body: { role: 'owner' } })).status, 403);
+	assert.deepEqual((await call(e, '/api/workspace/members/2', { who: 'other' })).body.member.may, { roles: [], suspend: false });
+
+	// Suspending signs the member out everywhere.
+	assert.equal((await call(e, '/api/workspace/members/1', { who: 'other', body: { status: 'suspended' } })).body.member.status, 'suspended');
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).status, 401);
+
+	// The last owner stays: Ed cannot hand it away by being demoted, nor demote himself.
+	assert.equal((await call(e, '/api/workspace/members/2', { who: 'editor', body: { role: 'admin' } })).status, 403);
+	assert.equal((await call(e, '/api/workspace/members/3', { who: 'editor', body: { role: 'owner' } })).body.member.role, 'owner');
+	assert.equal((await call(e, '/api/workspace/members/2', { who: 'other', body: { role: 'admin' } })).body.member.role, 'admin', 'with two owners, one may step another down');
+	assert.equal((await call(e, '/api/workspace/members/3', { who: 'editor', body: { role: 'member' } })).status, 403, 'an admin cannot touch an owner');
 });

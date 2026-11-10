@@ -360,3 +360,47 @@ export function updateSetting(key, value) {
 export function workspaceRatings(scope) {
 	return getJSON(`/api/workspace/ratings?scope=${scope}`);
 }
+
+/**
+ * @typedef {object} MemberRow
+ * @property {number} id
+ * @property {string} name
+ * @property {string | null} email
+ * @property {string | null} avatar_url
+ * @property {import('#shared/roles.js').Role} role
+ * @property {'active' | 'suspended'} status
+ * @property {number} created_at
+ * @property {number | null} seen_at
+ * @property {Array<'google' | 'github'>} providers
+ * @property {number} suggestions
+ * @property {boolean} self
+ * @property {{ roles: Array<import('#shared/roles.js').Role>, suspend: boolean }} may  What the one asking may change.
+ */
+
+/**
+ * @typedef {MemberRow & { edits: Record<string, number>, ratings: number, sessions: number, history: Array<{ role: string, at: number, by: string | null }> }} MemberDetail
+ */
+
+/**
+ * Members, for admins and owners.
+ * @param {{ q?: string, role?: string, status?: string }} filter
+ * @returns {Promise<{ members: MemberRow[], more: boolean, counts: Array<{ role: string, status: string, n: number }> }>}
+ */
+export function workspaceMembers(filter) {
+	const p = new URLSearchParams(Object.entries(filter).filter(([, v]) => v));
+	return getJSON(`/api/workspace/members${p.size ? `?${p}` : ''}`);
+}
+
+/** @param {number} id @returns {Promise<{ member: MemberDetail }>} */
+export function workspaceMember(id) {
+	return getJSON(`/api/workspace/members/${id}`);
+}
+
+/**
+ * @param {number} id
+ * @param {{ role?: import('#shared/roles.js').Role, status?: 'active' | 'suspended' }} change
+ * @returns {Promise<{ member: MemberDetail }>}
+ */
+export function changeMember(id, change) {
+	return postJSON(`/api/workspace/members/${id}`, change);
+}
