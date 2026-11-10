@@ -1,5 +1,18 @@
 # Todo
 
+## PWA rewrite
+
+- [ ] Myanmar interface language
+- [ ] Feedback and contact form (own, replacing the Google Form and the contact email)
+- [ ] Offline data: word lists for everyone; definitions and related words as separate opt-in packs
+- [ ] Comments
+- [ ] Backups of the app database (myordbok-app)
+- [ ] Fonts page (/myanmar-fonts)
+- [ ] CI secrets
+- [ ] LICENSE: copyright holder's name
+
+## Django (earlier)
+
 - Hot reload
   - [x] .js
   - [x] .css
