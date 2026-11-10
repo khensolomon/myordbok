@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+53
+
+- Search: / or Ctrl+K (⌘K) focuses the search field; Contact page points ideas, feature requests and bugs to GitHub issues
+
 ## 26.11.10+52
 
 - make data-packs: its own PACKS_OUT, not the OUT of edits-export

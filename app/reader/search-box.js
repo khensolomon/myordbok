@@ -9,6 +9,10 @@
  * the date gets its answer as the first row and nothing is fetched; a sum
  * that reads two ways offers both; a question around a word suggests for the
  * word ("what is lo" → words starting "lo").
+ *
+ * Keyboard: "/" or Ctrl+K (⌘K) from anywhere on the page puts the cursor in
+ * the search field, its text selected; a small "/" in the box says so on
+ * devices with a keyboard and pointer.
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
@@ -19,6 +23,25 @@ import { classify, preview, understoodHref } from './query.js';
 
 const DEBOUNCE_MS = 150;
 let uid = 0;
+
+/**
+ * "/" and Ctrl+K (⌘K) put the cursor in the page's search field; "/" not while
+ * typing elsewhere, Ctrl+K anywhere.
+ * @param {KeyboardEvent} e
+ */
+function shortcut(e) {
+	const combo = (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k';
+	const slash = e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey;
+	if (!combo && !slash) return;
+	const target = /** @type {HTMLElement | null} */ (e.target);
+	if (slash && target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+	const field = /** @type {HTMLInputElement | null} */ ([...document.querySelectorAll('mo-search input[type="search"]')].find((el) => /** @type {HTMLElement} */ (el).offsetParent !== null) ?? null);
+	if (!field) return;
+	e.preventDefault();
+	field.focus();
+	field.select();
+}
+document.addEventListener('keydown', shortcut);
 
 export class SearchBox extends HTMLElement {
 	connectedCallback() {
@@ -38,6 +61,7 @@ export class SearchBox extends HTMLElement {
 			'aria-expanded': 'false',
 			'aria-controls': `${id}-list`,
 			'aria-autocomplete': 'list',
+			'aria-keyshortcuts': '/ Control+K Meta+K',
 			onInput: () => this.schedule(),
 			// Focus shows suggestions only for text already in the field.
 			onFocus: () => {
@@ -53,6 +77,7 @@ export class SearchBox extends HTMLElement {
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
 			h('label', { for: id, class: 'visually-hidden' }, t('Search a word')),
 			this.input,
+			h('kbd', { class: 'search-key', 'aria-hidden': 'true', title: t('Press / to search') }, '/'),
 			h('button', { type: 'submit', class: 'search-go', 'aria-label': t('Search'), title: t('Search') }, icon(ICONS.search, 18)),
 		);
 		this.box = h('div', { class: 'search-box' }, form, this.list);

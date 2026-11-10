@@ -14,6 +14,7 @@ import { h } from '../core/dom.js';
 import { member } from '../core/member.js';
 import { sendMessage } from '../data/api.js';
 import { getLang, mark, t } from '../i18n/index.js';
+import { REPOSITORY } from '../core/config.js';
 
 const KINDS = /** @type {const} */ ([
 	['feedback', mark('Feedback')],
@@ -96,5 +97,13 @@ export function view(ctx) {
 		h('p', { class: 'contact-lead' }, t('Feedback, a question, a problem or a word the dictionary lacks: write it here. Messages are read by the people who run MyOrdbok.')),
 		page ? h('p', { class: 'notice' }, t('About the page {page}', { page })) : null,
 		form,
+		h(
+			'aside',
+			{ class: 'contact-github' },
+			h('h2', null, t('Ideas, feature requests and bugs')),
+			h('p', null, t('MyOrdbok is developed in the open. A feature request, an idea or a bug report is best opened as an issue on GitHub, where anyone can follow it, add to it and see what becomes of it.')),
+			h('p', null, h('a', { href: `${REPOSITORY}/issues`, target: '_blank', rel: 'noopener' }, t('Open the issues on GitHub ↗'))),
+			h('p', { class: 'contact-small' }, t('The form above is for anything else, and for what should not be public.')),
+		),
 	);
 }

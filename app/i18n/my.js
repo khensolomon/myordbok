@@ -49,6 +49,7 @@ export const MY = {
 	// Search
 	'Search the dictionary': 'အဘိဓာန်တွင် ရှာရန်',
 	'Search a word': 'စကားလုံး ရှာရန်',
+	'Press / to search': 'ရှာရန် / ကို နှိပ်ပါ',
 	'Type a word in English or မြန်မာ': 'အင်္ဂလိပ် သို့မဟုတ် မြန်မာ စကားလုံး ရိုက်ထည့်ပါ',
 	Search: 'ရှာရန်',
 	'Look up “{word}”': '“{word}” ကို ရှာရန်',
@@ -266,6 +267,10 @@ export const MY = {
 	'A reply, if one is needed, goes to {email}.': 'ပြန်စာ လိုအပ်ပါက {email} သို့ ပို့ပါမည်။',
 	'Feedback, a question, a problem or a word the dictionary lacks: write it here. Messages are read by the people who run MyOrdbok.': 'အကြံပြုချက်၊ မေးခွန်း၊ ပြဿနာ သို့မဟုတ် အဘိဓာန်တွင် မပါသေးသော စကားလုံး − ဤနေရာတွင် ရေးပါ။ MyOrdbok ကို လုပ်ကိုင်သူများက ဖတ်ပါသည်။',
 	'About the page {page}': '{page} စာမျက်နှာအကြောင်း',
+	'Ideas, feature requests and bugs': 'အကြံဉာဏ်၊ လုပ်ဆောင်ချက်အသစ် တောင်းဆိုမှုနှင့် ချို့ယွင်းချက်များ',
+	'MyOrdbok is developed in the open. A feature request, an idea or a bug report is best opened as an issue on GitHub, where anyone can follow it, add to it and see what becomes of it.': 'MyOrdbok ကို လူတိုင်းမြင်နိုင်အောင် ပွင့်လင်းစွာ ဖန်တီးနေပါသည်။ လုပ်ဆောင်ချက်အသစ် တောင်းဆိုမှု၊ အကြံဉာဏ် သို့မဟုတ် ချို့ယွင်းချက် အစီရင်ခံစာကို GitHub တွင် issue အဖြစ် ဖွင့်ပေးပါ။ ထိုနေရာတွင် မည်သူမဆို လိုက်ကြည့်၊ ထပ်ဖြည့်ပြီး ရလဒ်ကို သိနိုင်ပါသည်။',
+	'Open the issues on GitHub ↗': 'GitHub ရှိ issue များကို ဖွင့်ရန် ↗',
+	'The form above is for anything else, and for what should not be public.': 'အထက်ပါ ပုံစံမှာ အခြားကိစ္စများနှင့် လူသိရှင်ကြား မဖြစ်သင့်သည့် ကိစ္စများအတွက် ဖြစ်ပါသည်။',
 
 	// Workspace
 	Workspace: 'လုပ်ငန်းခွင်',
