@@ -40,7 +40,7 @@ export function member(options = {}) {
  * @param {'google' | 'github'} provider
  * @param {string} [back]
  */
-export function signInHref(provider, back = '/account') {
+export function signInHref(provider, back = '/workspace') {
 	return `/api/auth/${provider}/start?return=${encodeURIComponent(back)}`;
 }
 

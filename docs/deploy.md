@@ -138,6 +138,12 @@ way the sign-in ends on :8787, the registered callback. Use `localhost`, not
 The app database needs migration 0002 (members' email) before sign-in works:
 `make db-migrate-remote APPLY=1`.
 
+Every new file in `assets/db/migrations/` is applied the same way, on each
+site's database and locally: `make db-migrate-remote APPLY=1` and
+`make db-migrate`. 0003 adds ratings per meaning; 0004 adds search counts
+(the workspace overview) and user 0, "Former member", which deleted
+accounts' reviewed suggestions are moved to.
+
 After signing in once, give the owner the admin role:
 
 ```bash

@@ -8,7 +8,7 @@
  *                meaning it is missing (the side card)
  *
  * One request (/api/reactions) brings the counts for both. Signed out, every
- * button leads to the account page and back. A member's suggestion waits for
+ * button leads to signing in (in the workspace) and back. A member's suggestion waits for
  * an editor; an editor's own is approved and reaches the dictionary with
  * the next release.
  */
@@ -41,9 +41,9 @@ function open(path) {
 	a.remove();
 }
 
-/** To the account page, and back to this page after signing in. */
+/** To signing in, and back to this page afterwards. */
 function signIn() {
-	open(`/account?return=${encodeURIComponent(location.pathname + location.search)}`);
+	open(`/workspace?s=account&return=${encodeURIComponent(location.pathname + location.search)}`);
 }
 
 /** @param {unknown} err */

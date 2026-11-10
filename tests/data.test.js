@@ -237,9 +237,9 @@ test('grant: a role by sign-in email, dry run first, recorded', async () => {
 	const lines = [];
 	const log = (l) => lines.push(l);
 	grant(db, 'Khen@Example.com', 'admin', false, log);
-	assert.equal(dbs.APP.prepare('SELECT role FROM users').get().role, 'member', 'dry run');
+	assert.equal(dbs.APP.prepare('SELECT role FROM users WHERE id > 0').get().role, 'member', 'dry run');
 	grant(db, 'khen@example.com', 'admin', true, log);
-	assert.equal(dbs.APP.prepare('SELECT role FROM users').get().role, 'admin');
+	assert.equal(dbs.APP.prepare('SELECT role FROM users WHERE id > 0').get().role, 'admin');
 	assert.deepEqual({ ...dbs.APP.prepare('SELECT role, granted_by FROM role_grants').get() }, { role: 'admin', granted_by: null });
 	assert.throws(() => grant(db, "x' OR 1=1 --@a.b", 'admin', true, log), /Give --email/);
 	assert.throws(() => grant(db, 'nobody@example.com', 'admin', true, log), /No member has the email/);

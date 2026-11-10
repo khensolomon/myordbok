@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+47
+
+- Workspace: Overview board as the home (search counts per word and day, top and missing words, suggestions, members, meanings rated down); signing in and the account moved into the workspace, with account deletion; /account redirects
+
 ## 26.11.10+46
 
 - Browsers without Sec-Fetch-Site (Safari before iOS 16.4) can search again: a Referer on the site counts instead

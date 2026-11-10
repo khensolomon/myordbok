@@ -9,6 +9,11 @@
  *                                             each with the sense as the dictionary has it now
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
+ *   GET  /api/workspace/overview                 figures for the home board: the whole
+ *                                             site for editors and admins, the member's
+ *                                             own for members
+ *   POST /api/workspace/account/delete           { confirm }: the member's email (or
+ *                                             DELETE without one); see deleteAccount
  *
  * Only a waiting suggestion can be reviewed or withdrawn; what happens after
  * approval (export, merge) is make edits-export and the next release.
@@ -16,7 +21,7 @@
 import { AppError } from '../../shared/errors.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
-import { currentMember } from '../lib/session.js';
+import { currentMember, endSession } from '../lib/session.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -49,6 +54,8 @@ export async function workspace(request, env, parts) {
 	const [, what, id, action] = parts;
 	if (request.method === 'GET' && what === 'summary' && parts.length === 2) return summary(env, member);
 	if (request.method === 'GET' && what === 'edits' && parts.length === 2) return list(request, env, member);
+	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
+	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
 		if (action === 'review') return review(request, env, member, Number(id));
 		if (action === 'withdraw') return withdraw(env, member, Number(id));
@@ -175,4 +182,136 @@ async function notWaiting(env, id) {
 	const row = /** @type {{ status: string } | null} */ (await env.APP.prepare('SELECT status FROM dict_edits WHERE id = ?1').bind(id).first());
 	if (!row) throw new AppError('not_found', `There is no suggestion ${id}.`);
 	throw new AppError('conflict', `Suggestion ${id} is already ${row.status}.`);
+}
+
+/** Days the overview looks back over. */
+export const OVERVIEW_DAYS = 30;
+
+/** @param {number} daysAgo */
+function dayKey(daysAgo) {
+	return new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * @param {D1Database} db
+ * @param {string} sql
+ * @param {unknown[]} args
+ */
+async function rows(db, sql, ...args) {
+	return (await db.prepare(sql).bind(...args).all()).results;
+}
+
+/**
+ * The home board's figures.
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function overview(env, member) {
+	const db = env.APP;
+	const mine = await rows(db, 'SELECT status, count(*) AS n FROM dict_edits WHERE user_id = ?1 GROUP BY status', member.id);
+	const rated = /** @type {{ n: number }} */ (
+		await db.prepare('SELECT (SELECT count(*) FROM reactions WHERE user_id = ?1) + (SELECT count(*) FROM sense_reactions WHERE user_id = ?1) AS n').bind(member.id).first()
+	);
+	const own = { suggestions: Object.fromEntries(mine.map((r) => [String(r.status), Number(r.n)])), ratings: Number(rated.n) };
+	if (!isEditor(member)) return json({ role: member.role, own }, NO_STORE);
+
+	const since = dayKey(OVERVIEW_DAYS - 1);
+	const [daily, top, wanted, edits, members, joined, disliked] = await Promise.all([
+		rows(db, 'SELECT day, sum(hits) AS hits, sum(found = 0) AS missed FROM search_counts WHERE day >= ?1 GROUP BY day ORDER BY day', since),
+		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 1 ORDER BY hits DESC, term LIMIT 10', since),
+		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 0 ORDER BY hits DESC, term LIMIT 10', since),
+		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
+		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
+		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
+		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
+	]);
+
+	// Dislikes count only for the meaning as it reads now (sense_reactions.text_hash).
+	/** @type {Array<Record<string, unknown>>} */
+	const worst = [];
+	if (disliked.length) {
+		const { dict, db: dictDb } = await dictionary(env);
+		for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
+			const ids = disliked.filter((r) => r.dict === name).map((r) => Number(r.sense_id));
+			if (!ids.length) continue;
+			const now = await dictDb
+				.prepare(CURRENT[name])
+				.bind(JSON.stringify(ids))
+				.all()
+				.catch((err) => {
+					throw explainDictError(err, dict, env);
+				});
+			for (const s of now.results) {
+				const hash = await textHash(String(s.sense ?? ''));
+				const r = disliked.find((d) => d.dict === name && Number(d.sense_id) === Number(s.id) && d.text_hash === hash);
+				if (r) worst.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up) });
+			}
+		}
+		worst.sort((a, b) => Number(b.down) - Number(a.down) || Number(a.up) - Number(b.up));
+	}
+
+	const sumHits = (/** @type {number} */ days) => daily.filter((d) => String(d.day) >= dayKey(days - 1)).reduce((a, d) => a + Number(d.hits), 0);
+	return json(
+		{
+			role: member.role,
+			own,
+			days: OVERVIEW_DAYS,
+			searches: {
+				today: sumHits(1),
+				week: sumHits(7),
+				month: sumHits(OVERVIEW_DAYS),
+				daily: daily.map((d) => ({ day: d.day, hits: Number(d.hits), missed: Number(d.missed) })),
+				top: top.map((r) => ({ lang: r.lang, term: r.term, hits: Number(r.hits) })),
+				wanted: wanted.map((r) => ({ lang: r.lang, term: r.term, hits: Number(r.hits) })),
+			},
+			suggestions: Object.fromEntries(edits.map((r) => [String(r.status), Number(r.n)])),
+			members: { roles: Object.fromEntries(members.map((r) => [String(r.role), Number(r.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
+			disliked: worst.slice(0, 5),
+		},
+		NO_STORE,
+	);
+}
+
+/** @param {string} text */
+async function textHash(text) {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.normalize('NFC')));
+	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Deletes the signed-in member's account. Their sign-ins, sessions, ratings,
+ * comments, role history and waiting suggestions go; their reviewed
+ * suggestions stay in the dataset's history under "Former member" (user 0).
+ * The only active administrator cannot be deleted.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function deleteAccount(request, env, member) {
+	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
+	const expected = member.email ?? 'DELETE';
+	if (typeof data?.confirm !== 'string' || data.confirm.trim().toLowerCase() !== expected.toLowerCase()) {
+		throw new AppError('bad_request', member.email ? 'Type the email address of the account to confirm.' : 'Type DELETE to confirm.');
+	}
+	if (member.role === 'admin') {
+		const admins = /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM users WHERE role = 'admin' AND status = 'active' AND id > 0").first());
+		if (Number(admins.n) <= 1) throw new AppError('conflict', 'The only administrator cannot be deleted. Make another member an administrator first.');
+	}
+	const db = env.APP;
+	const id = member.id;
+	await db.batch([
+		db.prepare("DELETE FROM dict_edits WHERE user_id = ?1 AND status = 'pending'").bind(id),
+		db.prepare('UPDATE dict_edits SET user_id = 0 WHERE user_id = ?1').bind(id),
+		db.prepare('UPDATE dict_edits SET reviewed_by = 0 WHERE reviewed_by = ?1').bind(id),
+		db.prepare('UPDATE role_grants SET granted_by = 0 WHERE granted_by = ?1').bind(id),
+		db.prepare('DELETE FROM role_grants WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM reactions WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM sense_reactions WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM comments WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM identities WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM users WHERE id = ?1').bind(id),
+	]);
+	const cookie = await endSession(request, env);
+	return json({ ok: true }, { headers: { 'set-cookie': cookie, 'cache-control': 'no-store' } });
 }

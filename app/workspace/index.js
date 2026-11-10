@@ -4,9 +4,13 @@
  * out like a studio. A rail of sections, a list, the work area, an
  * inspector and a status bar; the sections in the rail follow the role.
  *
- *   ?s=suggestions   editors and admins: suggestions by status (default for them)
- *   ?s=contributions everyone: the member's own suggestions (default for members)
- *   ?s=account       everyone: who is signed in, and signing out
+ *   ?s=overview      everyone, the default: figures for the role (overview.js)
+ *   ?s=suggestions   editors and admins: suggestions by status
+ *   ?s=contributions everyone: the member's own suggestions
+ *   ?s=account       everyone: who is signed in, linking a provider, signing
+ *                    out, deleting the account; signed out, signing in.
+ *                    ?return=… goes there once signed in; ?error=… comes back
+ *                    from a failed sign-in.
  *   &status=…        the list's filter;  &id=…  the item open in the work area
  *
  * Choosing an item updates the work area and the address in place; the list
@@ -18,16 +22,18 @@ import { getJSON } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
-import { member, signOut } from '../core/member.js';
+import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
-import { lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
+import { deleteAccount, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
+import { overviewPane } from './overview.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'suggestions' | 'contributions' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'contributions' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
+	{ id: 'overview', label: 'Overview', icon: ICONS.overview, editor: false },
 	{ id: 'suggestions', label: 'Suggestions', icon: ICONS.suggest, editor: true },
 	{ id: 'contributions', label: 'Contributions', icon: ICONS.document, editor: false },
 ]);
@@ -49,6 +55,20 @@ const STATUS = {
 	conflict: 'conflict',
 };
 
+/** Why a sign-in came back (worker/routes/auth.js). */
+/** @type {Record<string, string>} */
+const ERRORS = {
+	cancelled: 'Sign-in was cancelled.',
+	expired: 'The sign-in took too long or was started in another tab. Please try again.',
+	provider: 'The sign-in could not be completed. Please try again.',
+	not_configured: 'Signing in with this provider is not available on this site yet.',
+	suspended: 'This account is suspended.',
+	linked_elsewhere: 'That account is already linked to another MyOrdbok account.',
+};
+
+/** @type {Record<'google' | 'github', string>} */
+const PROVIDERS = { google: 'Google', github: 'GitHub' };
+
 /** Contributions, grouped in this order. */
 const GROUPS = /** @type {const} */ ([
 	['Waiting', ['pending']],
@@ -65,18 +85,28 @@ export function title() {
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
 	const me = await member({ fresh: true });
-	if (!me) return signedOut();
+	const back = safeReturn(ctx.query.get('return'));
+	if (!me) return signedOut(back, notice(ctx.query));
+	if (back) {
+		// Signed in already, or just now: straight back to where it started.
+		ctx.replace(back);
+		return h('div');
+	}
 	const editor = me.role === 'editor' || me.role === 'admin';
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' ? 'account' : asked === 'contributions' || !editor ? 'contributions' : 'suggestions';
+	const section = asked === 'account' || asked === 'contributions' ? asked : asked === 'suggestions' && editor ? 'suggestions' : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
 	const status = statusBar(health, summary, editor);
 	const rail = railFor(me, editor, section, summary);
 	if (section === 'account') {
-		root.append(rail, accountPane(me, ctx), status.node);
+		root.append(rail, accountPane(me, ctx, notice(ctx.query)), status.node);
+		return root;
+	}
+	if (section === 'overview') {
+		root.append(rail, await overviewPane(me, health), status.node);
 		return root;
 	}
 
@@ -431,8 +461,9 @@ function railFor(me, editor, section, summary) {
 /**
  * @param {Member} me
  * @param {import('../core/routes.js').ViewContext} ctx
+ * @param {HTMLElement | null} alert
  */
-function accountPane(me, ctx) {
+function accountPane(me, ctx, alert) {
 	const out = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, 'Sign out'));
 	const note = h('p', { class: 'ws-result', role: 'status' });
 	out.addEventListener('click', async () => {
@@ -445,7 +476,7 @@ function accountPane(me, ctx) {
 			note.textContent = err instanceof Error ? err.message : String(err);
 		}
 	});
-	const providers = { google: 'Google', github: 'GitHub' };
+	const others = (/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).filter((p) => !me.providers.includes(p));
 	return h(
 		'main',
 		{ class: 'ws-main ws-account', 'aria-label': 'Account' },
@@ -453,12 +484,51 @@ function accountPane(me, ctx) {
 			'div',
 			{ class: 'ws-work' },
 			h('header', { class: 'ws-account-head' }, me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 56, height: 56, referrerpolicy: 'no-referrer' }) : null, h('div', null, h('h1', null, me.name), me.email ? h('p', { class: 'ws-quiet' }, me.email) : null)),
-			h('dl', { class: 'ws-facts' }, h('dt', null, 'Role'), h('dd', null, roleName(me.role)), h('dt', null, 'Signs in with'), h('dd', null, me.providers.map((p) => providers[p]).join(' and ') || '—')),
-			h('p', null, h('a', { href: '/account' }, 'Link another provider'), ' · ', h('a', { href: '/privacy' }, 'What is stored')),
+			alert,
+			h('dl', { class: 'ws-facts' }, h('dt', null, 'Role'), h('dd', null, roleName(me.role)), h('dt', null, 'Signs in with'), h('dd', null, me.providers.map((p) => PROVIDERS[p]).join(' and ') || '—')),
+			others.length
+				? h('p', null, 'Also sign in with ', others.flatMap((p, i) => [i ? ' or ' : '', h('a', { href: signInHref(p, '/workspace?s=account') }, PROVIDERS[p])]), ': it is linked to this account.')
+				: null,
+			h('p', null, h('a', { href: '/privacy' }, 'What is stored'), ' · ', h('a', { href: '/terms' }, 'Terms of Use')),
 			out,
 			note,
+			deletion(me, ctx),
 		),
 	);
+}
+
+/**
+ * Deleting the account, behind a typed confirmation.
+ * @param {Member} me
+ * @param {import('../core/routes.js').ViewContext} ctx
+ */
+function deletion(me, ctx) {
+	const expected = me.email ?? 'DELETE';
+	const field = /** @type {HTMLInputElement} */ (h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', 'aria-describedby': 'ws-delete-help' }));
+	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'ws-danger', disabled: true }, 'Delete the account'));
+	const result = h('p', { class: 'ws-result', role: 'alert' });
+	field.addEventListener('input', () => (go.disabled = field.value.trim().toLowerCase() !== expected.toLowerCase()));
+	const form = h(
+		'form',
+		{ class: 'ws-delete' },
+		h('p', { id: 'ws-delete-help' }, 'Removes the sign-ins, ratings, comments and suggestions still waiting. Suggestions already reviewed stay in the dictionary’s history as “Former member”. This cannot be undone.'),
+		h('label', { class: 'ws-field' }, me.email ? `Type ${me.email} to confirm` : 'Type DELETE to confirm', field),
+		go,
+		result,
+	);
+	form.addEventListener('submit', async (ev) => {
+		ev.preventDefault();
+		go.disabled = true;
+		try {
+			await deleteAccount(field.value.trim());
+			await member({ fresh: true });
+			ctx.go('/');
+		} catch (err) {
+			go.disabled = false;
+			result.textContent = err instanceof Error ? err.message : String(err);
+		}
+	});
+	return h('details', { class: 'ws-danger-zone' }, h('summary', null, 'Delete the account'), form);
 }
 
 /**
@@ -502,16 +572,49 @@ function statusBar(health, summary, editor) {
 	};
 }
 
-function signedOut() {
+/**
+ * Signing in, for the workspace and every "sign in" link on the site.
+ * @param {string | null} back  Where to go once signed in.
+ * @param {HTMLElement | null} alert
+ */
+function signedOut(back, alert) {
+	const to = back ?? '/workspace';
 	return h(
 		'div',
 		{ class: 'ws-signin' },
-		h('img', { src: '/static/icon.svg', alt: '', width: 48, height: 48 }),
-		h('h1', null, 'Workspace'),
-		h('p', null, 'Suggestions, ratings and the account live here. Sign in to open it.'),
-		h('a', { href: '/account?return=%2Fworkspace', class: 'ws-primary' }, 'Sign in'),
+		h('a', { href: '/', 'aria-label': 'MyOrdbok, the dictionary' }, h('img', { src: '/static/icon.svg', alt: '', width: 48, height: 48 })),
+		h('h1', null, 'Sign in'),
+		h('p', null, 'To rate meanings and suggest corrections or new ones. Reading and searching never need an account.'),
+		alert,
+		h(
+			'div',
+			{ class: 'ws-providers' },
+			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'ws-provider', href: signInHref(p, to) }, `Continue with ${PROVIDERS[p]}`)),
+		),
+		h('p', { class: 'ws-quiet' }, 'The same verified email through either provider is the same account. ', h('a', { href: '/privacy' }, 'Privacy'), ' · ', h('a', { href: '/terms' }, 'Terms of Use')),
 		h('a', { href: '/' }, 'Back to the dictionary'),
 	);
+}
+
+/**
+ * A path on this site to come back to after signing in, never another site,
+ * nor the workspace itself.
+ * @param {string | null} value
+ */
+function safeReturn(value) {
+	if (!value || !/^\/(?!\/)[^\\\s]*$/.test(value) || value.startsWith('/api/')) return null;
+	return value.startsWith('/workspace') || value.startsWith('/account') ? null : value;
+}
+
+/**
+ * The notice for ?error=… (and ?missing=… naming the setting).
+ * @param {URLSearchParams} query
+ */
+function notice(query) {
+	const error = query.get('error');
+	if (!error) return null;
+	const missing = query.get('missing');
+	return h('p', { class: 'ws-alert', role: 'alert' }, ERRORS[error] ?? 'The sign-in could not be completed.', missing && /^[A-Z_]+$/.test(missing) ? ` (${missing} is not set.)` : null);
 }
 
 /** @param {string} role */

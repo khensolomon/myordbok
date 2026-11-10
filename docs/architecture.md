@@ -109,12 +109,25 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **The workspace (`/workspace`) is one place for every member, laid out
   like a studio**: a rail of sections, a list, the work area, an inspector
   and a status bar; on phones the rail becomes a bottom bar and the list and
-  the item take turns. The rail follows the role: members see Contributions
-  and Account; editors and admins also Suggestions. A suggestion opens as a
+  the item take turns. The rail follows the role: members see Overview,
+  Contributions and Account; editors and admins also Suggestions. Overview
+  is the home: a member's own figures, or for editors and admins searches
+  per day, the words searched most and searched but missing, suggestions,
+  members and the meanings rated down most (`/api/workspace/overview`).
+  Account is also where signing in happens (`/account` and every sign-in
+  link lead there, `?return=` going back afterwards) and where a member
+  deletes the account: waiting suggestions, ratings, comments and sign-ins
+  go; reviewed suggestions stay under user 0, "Former member".
+  A suggestion opens as a
   diff inside its entry as it is now; editors approve or decline (A, D; J and
   K move through the list), authors withdraw while it waits
   (`/api/workspace/*`; `worker/routes/workspace.js`). Its code loads only
   when opened.
+- **Searches are counted, not logged.** Each search page (`/api/read`)
+  adds one to `search_counts` (day, language, word, found), after the answer
+  is sent and including answers from the edge cache
+  (`worker/lib/counts.js`). No identity, no time of day; terms over 60
+  characters, typing suggestions, numbers and sums are not counted.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

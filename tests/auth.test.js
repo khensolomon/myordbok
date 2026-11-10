@@ -121,7 +121,7 @@ test('the same verified email through the other provider is the same member', as
 	const b = await second.me();
 	assert.equal(a.id, b.id);
 	assert.deepEqual(b.providers, ['google', 'github']);
-	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM users').get().n, 1);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM users WHERE id > 0').get().n, 1);
 });
 
 test('an unverified email is neither matched nor stored', async () => {
@@ -154,11 +154,11 @@ test('a provider account of another member cannot be linked; suspended members c
 	await browser(e).signIn('github');
 	const b = browser(e);
 	await b.signIn('google');
-	assert.equal((await b.signIn('github')).headers.get('location'), '/account?error=linked_elsewhere');
+	assert.equal((await b.signIn('github')).headers.get('location'), '/workspace?s=account&error=linked_elsewhere');
 
 	e.raw.prepare("UPDATE users SET status = 'suspended'").run();
 	assert.equal(await b.me(), null, 'the session stops working');
-	assert.equal((await browser(e).signIn('google')).headers.get('location'), '/account?error=suspended');
+	assert.equal((await browser(e).signIn('google')).headers.get('location'), '/workspace?s=account&error=suspended');
 });
 
 test('failures go back to the account page with a reason', async () => {
@@ -169,11 +169,11 @@ test('failures go back to the account page with a reason', async () => {
 		const e = env();
 		const b = browser(e);
 		await b.get('/api/auth/google/start');
-		assert.equal((await b.get('/api/auth/google/callback?code=abc&state=forged')).headers.get('location'), '/account?error=expired');
-		assert.equal((await browser(e).get('/api/auth/google/callback?error=access_denied')).headers.get('location'), '/account?error=cancelled');
-		assert.equal((await browser(env({ GITHUB_CLIENT_SECRET: '' })).get('/api/auth/github/start')).headers.get('location'), '/account?error=not_configured&missing=GITHUB_CLIENT_SECRET');
+		assert.equal((await b.get('/api/auth/google/callback?code=abc&state=forged')).headers.get('location'), '/workspace?s=account&error=expired');
+		assert.equal((await browser(e).get('/api/auth/google/callback?error=access_denied')).headers.get('location'), '/workspace?s=account&error=cancelled');
+		assert.equal((await browser(env({ GITHUB_CLIENT_SECRET: '' })).get('/api/auth/github/start')).headers.get('location'), '/workspace?s=account&error=not_configured&missing=GITHUB_CLIENT_SECRET');
 		globalThis.fetch = async () => new Response(JSON.stringify({ error: 'bad_verification_code' }), { status: 400 });
-		assert.equal((await browser(e).signIn('github')).headers.get('location'), '/account?error=provider');
+		assert.equal((await browser(e).signIn('github')).headers.get('location'), '/workspace?s=account&error=provider');
 		assert.equal((await browser(e).get('/api/auth/twitter/start')).status, 404);
 	} finally {
 		console.warn = warn;
@@ -182,5 +182,5 @@ test('failures go back to the account page with a reason', async () => {
 
 test('return path: this site only', () => {
 	assert.equal(safeReturn('/definition?q=love'), '/definition?q=love');
-	for (const bad of [null, '', 'https://evil.test', '//evil.test', '/\\evil.test', '/api/me', 'account']) assert.equal(safeReturn(bad), '/account', String(bad));
+	for (const bad of [null, '', 'https://evil.test', '//evil.test', '/\\evil.test', '/api/me', 'account']) assert.equal(safeReturn(bad), '/workspace', String(bad));
 });

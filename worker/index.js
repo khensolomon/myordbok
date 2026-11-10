@@ -8,6 +8,7 @@
 import pkg from '../package.json' with { type: 'json' };
 import { AppError } from '../shared/errors.js';
 import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
+import { countSearch } from './lib/counts.js';
 import { cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
@@ -66,7 +67,12 @@ async function api(request, env, ctx) {
 	const parts = url.pathname.split('/').filter(Boolean).slice(1); // drop "api"
 	const route = parts[0] ?? '';
 	await guard(request, env, route);
-	return cached(request, route, ctx, () => answer(request, env, url, parts));
+	const res = await cached(request, route, ctx, () => answer(request, env, url, parts));
+	// A search page is counted after it is answered (worker/lib/counts.js).
+	if (route === 'read' && ctx) {
+		ctx.waitUntil(countSearch(env, res.clone()).catch((err) => console.error(JSON.stringify({ event: 'count_failed', error: String(err) }))));
+	}
+	return res;
 }
 
 /**

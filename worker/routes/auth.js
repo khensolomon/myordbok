@@ -10,7 +10,8 @@
  * Start keeps a random state and PKCE verifier in a short-lived cookie; the
  * callback must bring the same state back, so a sign-in cannot be started by
  * another site. Start and callback are page navigations: their failures go
- * back to /account?error=… for the app to explain, never to a JSON page.
+ * back to /workspace?s=account&error=… for the app to explain, never to a
+ * JSON page.
  *
  * Who the member is:
  *   1. the provider account was seen before: its member;
@@ -102,7 +103,7 @@ export async function auth(request, env, parts) {
 		if (!(err instanceof SignInError)) throw err;
 		console.warn(JSON.stringify({ event: 'signin_failed', provider, code: err.code, detail: err.message }));
 		const missing = err.missing ? `&missing=${err.missing}` : '';
-		return redirect(`/account?error=${err.code}${missing}`, [setCookie(STATE_COOKIE, '', 0)]);
+		return redirect(`/workspace?s=account&error=${err.code}${missing}`, [setCookie(STATE_COOKIE, '', 0)]);
 	}
 }
 
@@ -323,7 +324,7 @@ function callbackUrl(url, provider) {
  * @param {string | null} value
  */
 export function safeReturn(value) {
-	if (!value || !/^\/(?!\/)[^\\\s]*$/.test(value) || value.startsWith('/api/')) return '/account';
+	if (!value || !/^\/(?!\/)[^\\\s]*$/.test(value) || value.startsWith('/api/')) return '/workspace';
 	return value;
 }
 

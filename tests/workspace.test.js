@@ -89,3 +89,88 @@ test('workspace: pages of 30, newest first', async () => {
 	assert.equal(two.more, false);
 	assert.ok(one.edits[0].id > one.edits[1].id);
 });
+
+/** A ctx that keeps the waitUntil promises so a test can wait for them. */
+function context() {
+	const waiting = [];
+	return { ctx: { waitUntil: (p) => waiting.push(p), passThroughOnException() {} }, settle: () => Promise.all(waiting) };
+}
+
+async function search(e, q) {
+	const { ctx, settle } = context();
+	const res = await worker.fetch(new Request(`${SITE}/api/read?q=${encodeURIComponent(q)}`), e, ctx);
+	await settle();
+	return res.status;
+}
+
+test('searches are counted per word and day, found or not, with nothing about who searched', async () => {
+	const e = env();
+	assert.equal(await search(e, 'love'), 200);
+	await search(e, 'Love');
+	await search(e, 'qwxzk');
+	await search(e, 'x'.repeat(61));
+	const counted = e.raw.prepare('SELECT lang, term, found, hits FROM search_counts ORDER BY term').all().map((r) => ({ ...r }));
+	assert.deepEqual(counted, [
+		{ lang: 'en', term: 'love', found: 1, hits: 2 },
+		{ lang: 'en', term: 'qwxzk', found: 0, hits: 1 },
+	]);
+	assert.deepEqual(
+		e.raw.prepare("SELECT name FROM pragma_table_info('search_counts')").all().map((r) => r.name),
+		['day', 'lang', 'term', 'found', 'hits'],
+	);
+});
+
+test('overview: a member sees their own figures; an editor sees the board', async () => {
+	const e = env();
+	await search(e, 'love');
+	await search(e, 'qwxzk');
+	const [first] = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
+	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', sense_id: first.id, value: -1 } });
+	await suggest(e, 'member', { action: 'delete', sense_id: first.id });
+
+	assert.equal((await call(e, '/api/workspace/overview')).status, 401);
+	const member = (await call(e, '/api/workspace/overview', { who: 'member' })).body;
+	assert.deepEqual(member, { role: 'member', own: { suggestions: { pending: 1 }, ratings: 1 } });
+
+	const board = (await call(e, '/api/workspace/overview', { who: 'editor' })).body;
+	assert.equal(board.searches.today, 2);
+	assert.deepEqual(board.searches.top, [{ lang: 'en', term: 'love', hits: 1 }]);
+	assert.deepEqual(board.searches.wanted, [{ lang: 'en', term: 'qwxzk', hits: 1 }]);
+	assert.equal(board.searches.daily.length, 1);
+	assert.equal(board.searches.daily[0].missed, 1);
+	assert.deepEqual(board.suggestions, { pending: 1 });
+	assert.deepEqual(board.members, { roles: { member: 2, editor: 1 }, joinedWeek: 3 });
+	assert.equal(board.disliked.length, 1);
+	assert.equal(board.disliked[0].sense, first.sense);
+	assert.equal(board.disliked[0].down, 1);
+});
+
+test('deleting an account: confirmed by email; reviewed work stays as a former member', async () => {
+	const e = env();
+	const [first] = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
+	const waiting = await suggest(e, 'member', { action: 'delete', sense_id: first.id });
+	const reviewed = await suggest(e, 'member', { action: 'add', wrte: 0, sense: 'ချစ်ခင်' });
+	await call(e, `/api/workspace/edits/${reviewed.id}/review`, { who: 'editor', body: { decision: 'approve' } });
+	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', sense_id: first.id, value: 1 } });
+
+	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'wrong@example.com' } })).status, 400);
+	const gone = await worker.fetch(
+		new Request(`${SITE}/api/workspace/account/delete`, {
+			method: 'POST',
+			headers: { origin: SITE, 'content-type': 'application/json', cookie: '__Host-mo_session=member' },
+			body: JSON.stringify({ confirm: 'M@Example.com' }),
+		}),
+		e,
+	);
+	assert.equal(gone.status, 200);
+	assert.match(gone.headers.get('set-cookie') ?? '', /__Host-mo_session=;/);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM users WHERE id = 1').get().n, 0);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM sense_reactions').get().n, 0);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM sessions WHERE user_id = 1').get().n, 0);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM dict_edits WHERE id = ?').get(waiting.id).n, 0);
+	assert.equal(e.raw.prepare('SELECT user_id FROM dict_edits WHERE id = ?').get(reviewed.id).user_id, 0);
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).status, 401);
+
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
+	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'editor', body: { confirm: 'e@example.com' } })).status, 409, 'the only admin stays');
+});

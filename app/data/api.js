@@ -175,6 +175,7 @@ export function suggestEdit(suggestion) {
  * @property {number | null} reviewed_at
  * @property {string} author
  * @property {string | null} reviewer
+ * @property {string | null} [source]  The dictionary build it was made against.
  * @property {boolean} own
  * @property {{ word: string, type: string, sense: string | null, exam: string | null } | null} current
  */
@@ -207,4 +208,28 @@ export function reviewEdit(id, decision, note) {
 /** @param {number} id */
 export function withdrawEdit(id) {
 	return postJSON(`/api/workspace/edits/${id}/withdraw`);
+}
+
+/**
+ * @typedef {object} Overview
+ * @property {string} role
+ * @property {{ suggestions: Record<string, number>, ratings: number }} own
+ * @property {number} [days]
+ * @property {{ today: number, week: number, month: number, daily: Array<{ day: string, hits: number, missed: number }>, top: Array<{ lang: string, term: string, hits: number }>, wanted: Array<{ lang: string, term: string, hits: number }> }} [searches]
+ * @property {Record<string, number>} [suggestions]
+ * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]
+ * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]
+ */
+
+/** @returns {Promise<Overview>} The home board; editors and admins get the site's figures. */
+export function workspaceOverview() {
+	return getJSON('/api/workspace/overview');
+}
+
+/**
+ * Deletes the signed-in account.
+ * @param {string} confirm  The account's email, or DELETE when it has none.
+ */
+export function deleteAccount(confirm) {
+	return postJSON('/api/workspace/account/delete', { confirm });
 }

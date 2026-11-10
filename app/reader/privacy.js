@@ -66,7 +66,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'Searches are sent to the MyOrdbok server only to find matching words. They are not stored with any identity, and no search history is kept on the server.',
+				'Searches are sent to the MyOrdbok server only to find matching words. For each search page the server adds one to a count of that word for that day, noting whether the dictionary had it, so missing words can be added. Nothing about who searched is kept with it, and no search history is kept on the server. Suggestions while typing, numbers and sums are not counted.',
 			),
 			h(
 				'p',
@@ -117,7 +117,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'Accounts can be deleted on request. Deleting an account removes its sign-in details, sessions and likes; comments and accepted edits stay in the dictionary without the name attached.',
+				'An account can be deleted at any time under Account in the workspace. Deleting it removes its sign-in details, sessions, ratings, comments and suggestions still waiting for review; suggestions already reviewed stay in the dictionary’s history as “Former member”, without the name attached.',
 			),
 		),
 
