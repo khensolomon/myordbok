@@ -112,7 +112,7 @@ async function result(data, asked) {
 function offlineNote(result) {
 	const data = /** @type {{ offline?: boolean, build?: string }} */ (result);
 	if (!data.offline) return null;
-	return h('p', { class: 'entry-note offline-note', role: 'status' }, t('No connection: this is the copy on this device (build {build}).', { build: data.build ?? '?' }), ' ', h('a', { href: '/offline' }, t('Offline copy')));
+	return h('p', { class: 'entry-note offline-note', role: 'status' }, t('No connection: this is the copy on this device (build {build}).', { build: data.build ?? '?' }), ' ', h('a', { href: '/workspace?s=offline' }, t('Offline copy')));
 }
 
 /**

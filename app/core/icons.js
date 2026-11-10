@@ -22,6 +22,7 @@ export const ICONS = Object.freeze({
 	overview: '<rect x="4.5" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="4.5" y="13" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="13" width="6.5" height="6.5" rx="1.5"/>',
 	inbox: '<path d="M4 13.5 6.6 5.6A1.6 1.6 0 0 1 8.1 4.5h7.8a1.6 1.6 0 0 1 1.5 1.1L20 13.5"/><path d="M4 13.5V18a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 18v-4.5h-4.5a3.5 3.5 0 0 1-7 0z"/>',
 	settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/>',
+	download: '<path d="M12 4.5v10"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 19.5h14"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 });

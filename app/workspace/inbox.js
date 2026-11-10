@@ -143,8 +143,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 			),
 			m.page ? h('section', { class: 'ws-box' }, h('h2', null, t('About the page')), h('p', null, h('a', { href: m.page }, m.page))) : '',
 			h('section', { class: 'ws-box' }, h('h2', null, t('State')), h('div', { class: 'ws-states', role: 'group', 'aria-label': t('State') }, stateButtons), who),
-			h('section', { class: 'ws-box' }, h('h2', null, t('Note')), note, keep, out),
-			h('p', { class: 'ws-quiet ws-keys' }, t('1–4 state · J K next, previous')),
+			h('section', { class: 'ws-box' }, h('h2', null, t('Note')), note, keep, out, h('p', { class: 'ws-quiet ws-keys' }, t('1–4 state · J K next, previous'))),
 		);
 	};
 	let current = -1;

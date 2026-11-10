@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+55
+
+- Header: one person menu with sign-in or the account, language, theme, usage statistics, the offline copy and Contact; footer slimmer. Workspace: Offline section (word lists keep themselves; definitions on request, removing asks twice); /offline moves there
+
 ## 26.11.10+54
 
 - Workspace: Overview for every member (dictionary statistics per build, review progress, parts of speech, labels, searches, community); Ratings section (own ratings, take back; editors: the site's most liked and disliked); Inbox states unread, read, replied, done with admin notes; make data-stats

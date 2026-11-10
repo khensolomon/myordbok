@@ -7,6 +7,7 @@
  *   ?s=overview      everyone, the default: figures for the role (overview.js)
  *   ?s=suggestions   editors and admins: suggestions by status
  *   ?s=contributions everyone: the member's own suggestions
+ *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
  *   ?s=inbox         admins: messages from the contact form (inbox.js)
  *   ?s=settings      admins: site settings (settings.js)
@@ -33,10 +34,11 @@ import { inboxPanes } from './inbox.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
+import { offlinePane } from './offline.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'inbox' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'settings' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
@@ -44,6 +46,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
+	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
 	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: true, admin: true },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
 ]);
@@ -105,7 +108,7 @@ export async function view(ctx) {
 	const editor = me.role === 'editor' || me.role === 'admin';
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings') && me.role === 'admin' ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings') && me.role === 'admin' ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -117,6 +120,10 @@ export async function view(ctx) {
 	}
 	if (section === 'overview') {
 		root.append(rail, await overviewPane(me, health), status.node);
+		return root;
+	}
+	if (section === 'offline') {
+		root.append(rail, await offlinePane(), status.node);
 		return root;
 	}
 	if (section === 'ratings') {

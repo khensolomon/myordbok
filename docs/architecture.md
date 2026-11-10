@@ -123,6 +123,17 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   K move through the list), authors withdraw while it waits
   (`/api/workspace/*`; `worker/routes/workspace.js`). Its code loads only
   when opened.
+- **One person menu holds everything personal** (`app/core/menu.js`). The
+  header keeps the navigation and the person button; the button opens a
+  panel pointed at it: sign-in (or the account and the workspace, with what
+  waits there), language, theme, usage statistics, the offline copy and
+  Contact. The footer keeps About, Privacy and Terms. The button stays a
+  link to the workspace when scripts do not run. Members manage the offline
+  copy in the workspace (Offline); visitors see what the device keeps and,
+  while definitions are for members, a sign-in that leads there.
+- **Keyboard:** `/` or Ctrl+K (⌘K) puts the cursor in the search field;
+  the workspace has J/K to move, A/D to approve or decline, 1–4 for a
+  message's state.
 - **The interface speaks English or Myanmar** (`app/i18n/`). Interface
   text is written in English inside `t()`, and `my.js` gives the Myanmar
   for each; a text with no Myanmar is an error, and `tests/i18n.test.js`

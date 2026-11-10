@@ -99,18 +99,67 @@ body::before {
 	.nav-lens, .nav-hover { transition: none; }
 }
 
-.header-tools { margin-left: auto; display: flex; align-items: center; gap: 4px; }
-.header-tools .you { margin-left: 4px; }
-.pref {
-	width: 40px; height: 40px; padding: 0;
-	display: flex; align-items: center; justify-content: center;
-	border: none; border-radius: 999px; background: none;
-	color: var(--muted); cursor: pointer;
+/* The person menu (app/core/menu.js): a panel under the person button,
+   pointed at it by a small arrow. */
+.you-menu {
+	position: fixed; z-index: 1000;
+	display: grid; gap: 0;
+	padding: 6px 0;
+	border: 1px solid var(--line); border-radius: 16px;
+	background: var(--ground); color: var(--ink);
+	box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
+	font-size: 14px;
+	overflow: visible;
 }
-.pref:hover { color: var(--ink); background: var(--glass-fill); }
-.pref[hidden] { display: none; }
-.pref-lang { width: auto; min-width: 40px; padding: 0 10px; font: 600 13px/1 var(--font-ui); letter-spacing: 0.02em; }
-.pref-lang:lang(my) { font-family: var(--font-my); font-size: 14px; font-weight: 400; letter-spacing: 0; line-height: 1; }
+.you-menu[hidden] { display: none; }
+.you-menu::before {
+	content: ""; position: absolute; top: -7px; right: var(--arrow-right, 18px);
+	width: 12px; height: 12px; transform: rotate(45deg);
+	background: var(--ground); border-left: 1px solid var(--line); border-top: 1px solid var(--line);
+	border-top-left-radius: 3px;
+}
+.you-menu > * { padding: 12px 16px; }
+.you-menu > * + * { border-top: 1px solid var(--line-soft); }
+.you-loading { margin: 0; color: var(--muted); }
+.you-head strong { font-size: 16px; }
+.you-head p { margin: 4px 0 12px; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.you-providers { display: grid; gap: 8px; }
+.you-provider { display: block; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--surface); }
+.you-provider:hover { border-color: var(--ink-2); }
+.you-who { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.you-who img, .you-face { width: 40px; height: 40px; border-radius: 50%; flex: none; }
+.you-face { display: inline-flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font-weight: 700; }
+.you-who div { display: grid; }
+.you-who span { font-size: 12px; color: var(--muted); }
+.you-workspace { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--ink); color: var(--ground); font-weight: 600; text-decoration: none; }
+.you-workspace:hover { color: var(--ground); opacity: 0.92; }
+.you-badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
+.you-badge[hidden] { display: none; }
+.you-group { display: grid; gap: 10px; }
+.you-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.you-label { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); white-space: nowrap; }
+.you-hint { font-size: 12px; margin-left: 4px; }
+.you-choices { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--line-soft); }
+.you-choice { min-width: 34px; height: 28px; padding: 0 10px; border: none; border-radius: 8px; background: none; color: var(--ink-2); font: 500 13px var(--font-ui); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.you-choice:lang(my) { font-family: var(--font-my); font-weight: 400; }
+.you-choice[aria-pressed="true"] { background: var(--ground); color: var(--ink); box-shadow: 0 1px 3px rgb(16 24 40 / 0.14); }
+.you-switch { position: relative; width: 38px; height: 22px; border: none; border-radius: 999px; background: var(--line); cursor: pointer; flex: none; transition: background 0.15s; }
+.you-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 0.15s; }
+.you-switch[aria-checked="true"] { background: var(--brand); }
+.you-switch[aria-checked="true"]::after { transform: translateX(16px); }
+.you-status { font-size: 12px; color: var(--muted); text-align: right; }
+.you-note { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.you-action { display: block; width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--ink); font: 600 13px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; }
+.you-action:hover { border-color: var(--ink-2); color: var(--ink); }
+.you-invite { border: none; background: linear-gradient(135deg, var(--brand), #5aa9e6); color: #fff; }
+.you-invite:hover { color: #fff; filter: brightness(1.05); }
+.you-offline progress { width: 100%; height: 6px; accent-color: var(--brand); }
+.you-links { display: flex; align-items: center; justify-content: space-between; }
+.you-links a { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); text-decoration: none; }
+.you-links a:hover { color: var(--ink); }
+.you-links button { border: none; background: none; padding: 0; color: var(--ink-2); font: inherit; cursor: pointer; }
+.you-links button:hover { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .you-switch, .you-switch::after { transition: none; } }
 .english-only { margin-bottom: 20px; }
 .you {
 	margin-left: auto;
@@ -122,7 +171,7 @@ body::before {
 	color: var(--muted); overflow: hidden;
 }
 .you img { width: 100%; height: 100%; object-fit: cover; }
-.you[aria-current="page"], body[data-route="account"] .you { color: var(--brand); border-color: var(--guide); }
+.you[aria-current="page"], body[data-route="account"] .you, .you[aria-expanded="true"] { color: var(--brand); border-color: var(--guide); }
 
 /* Phones: the links become icons in a glass capsule, the page you are on
    under a raised lens, as in iOS tab bars. */
@@ -666,7 +715,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 	font-size: 14px;
 	background: var(--ground);
 }
-.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"] { grid-template-columns: 52px minmax(0, 1fr); }
+.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"] { grid-template-columns: 52px minmax(0, 1fr); }
 .ws-status { grid-column: 1 / -1; }
 
 /* Rail: icons only, the current one marked by a line and colour. */
@@ -683,7 +732,8 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-message { margin: 0; max-width: 680px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
 .ws-more-note { padding: 8px 12px; font-size: 12px; }
 .ws-segments-wrap { flex-wrap: wrap; row-gap: 6px; }
-.ws-count { margin-left: 5px; padding: 0 6px; border-radius: 999px; background: var(--line-soft); font-size: 11px; font-variant-numeric: tabular-nums; }
+.ws-segments-wrap a { padding-inline: 9px; }
+.ws-count { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--line); color: var(--ink); font-size: 11px; line-height: 16px; font-variant-numeric: tabular-nums; }
 .ws-row-state { display: block; margin-top: 2px; font-size: 11px; color: var(--muted); }
 .ws-states { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
 .ws-state { height: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; }
@@ -820,6 +870,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 
 /* Account */
 .ws-account .ws-work { max-width: 560px; }
+.ws-offline .ws-work { max-width: 720px; }
 .ws-account-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .ws-account-head img { border-radius: 50%; object-fit: cover; }
 .ws-account-head h1 { margin: 0; font-size: 22px; }
@@ -966,7 +1017,7 @@ a.ws-tile:hover { border-color: var(--line); }
 
 /* Phones: the rail becomes a bar at the bottom; the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
 	.ws-rail {
 		position: fixed; z-index: 5; left: 12px; right: 12px; bottom: 14px;
 		flex-direction: row; justify-content: space-around; padding: 4px;

@@ -34,11 +34,6 @@ export const MY = {
 	'Sign in first.': 'ဦးစွာ အကောင့်ဝင်ပါ။',
 
 	// Header tools
-	'Theme: as the device (choose for light)': 'အရောင်ပုံစံ − စက်အတိုင်း (အလင်းအတွက် နှိပ်ပါ)',
-	'Theme: light (choose for dark)': 'အရောင်ပုံစံ − အလင်း (အမှောင်အတွက် နှိပ်ပါ)',
-	'Theme: dark (choose to follow the device)': 'အရောင်ပုံစံ − အမှောင် (စက်အတိုင်းအတွက် နှိပ်ပါ)',
-	'Usage statistics are off. Choose to allow them.': 'အသုံးပြုမှု စာရင်းဇယားကို ပိတ်ထားသည်။ ခွင့်ပြုရန် နှိပ်ပါ။',
-	'Usage statistics are off · choose to allow': 'အသုံးပြုမှု စာရင်းဇယား ပိတ်ထားသည် · ခွင့်ပြုရန် နှိပ်ပါ',
 
 	// Analytics choice
 	'Analytics choice': 'စာရင်းဇယား ရွေးချယ်မှု',
@@ -221,6 +216,30 @@ export const MY = {
 	'Privacy Policy': 'ကိုယ်ရေးအချက်အလက် မူဝါဒ',
 	'Terms of Use': 'အသုံးပြုမှု စည်းကမ်းချက်များ',
 
+	// Person menu
+	"Account and settings": "အကောင့်နှင့် ဆက်တင်များ",
+	"More": "နောက်ထပ်",
+	"To rate meanings, suggest corrections and keep the definitions offline. Reading never needs an account.": "အဓိပ္ပာယ်များ အဆင့်သတ်မှတ်ရန်၊ ပြင်ဆင်ချက် အကြံပြုရန်နှင့် အဓိပ္ပာယ်များကို အော့ဖ်လိုင်း သိမ်းထားရန် ဖြစ်ပါသည်။ ဖတ်ရန်အတွက် အကောင့် မလိုပါ။",
+	"Open the workspace": "လုပ်ငန်းခွင်ကို ဖွင့်ရန်",
+	"Language": "ဘာသာစကား",
+	"Theme": "အရောင်ပုံစံ",
+	"As the device": "စက်အတိုင်း",
+	"Light": "အလင်း",
+	"Dark": "အမှောင်",
+	"Usage statistics": "အသုံးပြုမှု စာရင်းဇယား",
+	"What is sent": "ပို့သည့်အရာ",
+	"Definitions kept on this device": "အဓိပ္ပာယ်များ ဤစက်ထဲတွင် ရှိသည်",
+	"Word lists kept on this device": "စကားလုံးစာရင်းများ ဤစက်ထဲတွင် ရှိသည်",
+	"Nothing kept on this device yet": "ဤစက်ထဲတွင် ဘာမျှ မသိမ်းရသေးပါ",
+	"Manage the offline copy": "စက်ထဲရှိ မိတ္တူကို စီမံရန်",
+	"Keep the definitions offline": "အဓိပ္ပာယ်များကို အော့ဖ်လိုင်း သိမ်းရန်",
+	"Members can keep every definition on the device, {size}, and look words up without a connection.": "အဖွဲ့ဝင်များသည် အဓိပ္ပာယ်အားလုံး ({size}) ကို စက်ထဲတွင် သိမ်းပြီး ချိတ်ဆက်မှုမရှိဘဲ ရှာနိုင်ပါသည်။",
+	"Remove the definitions": "အဓိပ္ပာယ်များကို ဖယ်ရှားရန်",
+	"Keep the definitions offline ({size})": "အဓိပ္ပာယ်များကို အော့ဖ်လိုင်း သိမ်းရန် ({size})",
+	"Choose again to remove": "ဖယ်ရှားရန် ထပ်နှိပ်ပါ",
+	"Removed.": "ဖယ်ရှားပြီးပါပြီ။",
+	"Kept on this device.": "ဤစက်ထဲတွင် သိမ်းပြီးပါပြီ။",
+
 	// Offline
 	Offline: 'အော့ဖ်လိုင်း',
 	'Offline copy': 'စက်ထဲရှိ မိတ္တူ',
@@ -243,7 +262,6 @@ export const MY = {
 	'On this device, an older build ({build})': 'ဤစက်ထဲတွင် ရှိသည်၊ တည်ဆောက်မှုအဟောင်း ({build})',
 	'Sign in to download': 'ဒေါင်းလုဒ်လုပ်ရန် အကောင့်ဝင်ပါ',
 	Download: 'ဒေါင်းလုဒ်',
-	'Download again': 'ထပ်ဒေါင်းလုဒ်',
 	Update: 'အသစ်ယူရန်',
 	'Downloading…': 'ဒေါင်းလုဒ်လုပ်နေသည်…',
 	'{n} KB': '{n} KB',
