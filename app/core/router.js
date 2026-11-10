@@ -5,6 +5,7 @@
  */
 import { h } from './dom.js';
 import { match } from './routes.js';
+import { t } from '../i18n/index.js';
 
 /**
  * @param {HTMLElement} outlet  Element the current view renders into.
@@ -23,7 +24,7 @@ export function startRouter(outlet, onRoute) {
 
 		if (!route) {
 			outlet.replaceChildren(notFound(url.pathname));
-			document.title = 'Not found · MyOrdbok';
+			document.title = `${t('Page not found')} · MyOrdbok`;
 			return;
 		}
 
@@ -91,11 +92,11 @@ export function startRouter(outlet, onRoute) {
 
 /** @param {string} path */
 function notFound(path) {
-	return h('section', { class: 'page notice' }, h('h1', null, 'Page not found'), h('p', null, `Nothing lives at ${path}.`), h('a', { href: '/' }, 'Go to the dictionary'));
+	return h('section', { class: 'page notice' }, h('h1', null, t('Page not found')), h('p', null, t('Nothing lives at {path}.', { path })), h('a', { href: '/' }, t('Go to the dictionary')));
 }
 
 /** @param {unknown} err */
 function failure(err) {
 	const message = err instanceof Error ? err.message : String(err);
-	return h('section', { class: 'page notice', role: 'alert' }, h('h1', null, 'Something went wrong'), h('p', null, message));
+	return h('section', { class: 'page notice', role: 'alert' }, h('h1', null, t('Something went wrong')), h('p', null, message));
 }

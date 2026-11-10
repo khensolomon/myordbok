@@ -11,6 +11,7 @@
 import { AppError } from '#shared/errors.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
+import { getLang, t, tx } from '../i18n/index.js';
 import { grammarIndex, grammarTopic } from '../data/grammar.js';
 
 /** @typedef {import('../data/grammar.js').GrammarNode} GrammarNode */
@@ -20,7 +21,7 @@ import { grammarIndex, grammarTopic } from '../data/grammar.js';
 /** Width from which the contents sit beside the text (matches app.css). */
 const WIDE = '(min-width: 1100px)';
 
-let currentTitle = 'Grammar';
+let currentTitle = '';
 
 export function title() {
 	return currentTitle;
@@ -30,21 +31,21 @@ export async function view() {
 	const slug = location.pathname.replace(/\/+$/, '').split('/')[2];
 	const index = await grammarIndex();
 	if (!slug) {
-		currentTitle = 'Grammar';
+		currentTitle = t('Grammar');
 		return indexPage(index);
 	}
 	try {
 		const topic = await grammarTopic(decodeURIComponent(slug));
-		currentTitle = `${topic.root.name} · ${topic.info.name} · Grammar`;
+		currentTitle = `${topic.root.name} · ${topic.info.name} · ${t('Grammar')}`;
 		return topicPage(topic, index);
 	} catch (err) {
 		if (!(err instanceof AppError && err.code === 'not_found')) throw err;
-		currentTitle = 'Grammar';
+		currentTitle = t('Grammar');
 		return h(
 			'section',
 			{ class: 'page' },
-			h('h1', { class: 'notice-title' }, 'No such grammar topic'),
-			h('p', null, h('a', { href: '/grammar' }, 'See all grammar topics')),
+			h('h1', { class: 'notice-title' }, t('No such grammar topic')),
+			h('p', null, h('a', { href: '/grammar' }, t('See all grammar topics'))),
 		);
 	}
 }
@@ -63,14 +64,12 @@ function indexPage(index) {
 		context.kind.length
 			? h('dl', { class: 'g-terms', lang: 'my' }, context.kind.flatMap((k) => [h('dt', null, k.name), h('dd', null, quoted(k.desc))]))
 			: null,
-		topicGroup('Parts of speech', 'ဝါစင်္ဂ', topics('pos')),
-		topicGroup('More grammar', null, topics('other')),
+		topicGroup(t('Parts of speech'), getLang() === 'my' ? null : 'ဝါစင်္ဂ', topics('pos')),
+		topicGroup(t('More grammar'), null, topics('other')),
 		h(
 			'p',
 			{ class: 'g-source' },
-			'From ',
-			h('span', { lang: 'my' }, 'မြန်မာသဒ္ဒါ'),
-			', volumes 1 and 2.',
+			tx('From {book}, volumes 1 and 2.', { book: h('span', { lang: 'my' }, 'မြန်မာသဒ္ဒါ') }),
 		),
 	);
 }
@@ -139,9 +138,9 @@ function topicPage(topic, index) {
 			topic.english?.length ? english(topic.english) : null,
 			h(
 				'nav',
-				{ class: 'g-pager', 'aria-label': 'Grammar topics' },
-				prev ? h('a', { class: 'g-prev', href: `/grammar/${prev.slug}` }, h('small', null, 'Previous'), h('span', { lang: 'my' }, prev.my), h('em', null, prev.name)) : h('span'),
-				next ? h('a', { class: 'g-next', href: `/grammar/${next.slug}` }, h('small', null, 'Next'), h('span', { lang: 'my' }, next.my), h('em', null, next.name)) : h('span'),
+				{ class: 'g-pager', 'aria-label': t('Grammar topics') },
+				prev ? h('a', { class: 'g-prev', href: `/grammar/${prev.slug}` }, h('small', null, t('Previous')), h('span', { lang: 'my' }, prev.my), h('em', null, prev.name)) : h('span'),
+				next ? h('a', { class: 'g-next', href: `/grammar/${next.slug}` }, h('small', null, t('Next')), h('span', { lang: 'my' }, next.my), h('em', null, next.name)) : h('span'),
 			),
 		),
 		sections.length > 1 ? contents(sections, ids, true) : null,
@@ -160,8 +159,8 @@ function backButton() {
 		{
 			class: 'g-back',
 			href: '/grammar',
-			title: 'All grammar topics',
-			'aria-label': 'All grammar topics',
+			title: t('All grammar topics'),
+			'aria-label': t('All grammar topics'),
 			onClick: (/** @type {MouseEvent} */ e) => {
 				if (!fromList || e.metaKey || e.ctrlKey || e.shiftKey) return;
 				e.preventDefault();
@@ -182,11 +181,11 @@ function backButton() {
 function contents(sections, ids, side) {
 	return h(
 		'nav',
-		{ class: side ? 'g-toc g-toc-side' : 'g-toc g-toc-top', 'aria-label': 'On this page' },
+		{ class: side ? 'g-toc g-toc-side' : 'g-toc g-toc-top', 'aria-label': t('On this page') },
 		h(
 			'details',
 			{ open: side || matchMedia(WIDE).matches },
-			h('summary', null, 'On this page'),
+			h('summary', null, t('On this page')),
 			h('ol', { lang: 'my' }, sections.map((s) => h('li', null, h('a', { href: `#${ids.get(s.root.name)}` }, s.root.name)))),
 		),
 	);

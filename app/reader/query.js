@@ -10,6 +10,7 @@ import { formatGrouped, parseDecimal } from '#shared/query/digits.js';
 import { formatNumber } from '#shared/query/math.js';
 import { toMyanmarWords } from '#shared/query/numeral-my.js';
 import { definitionHref } from '../core/routes.js';
+import { getLang, t } from '../i18n/index.js';
 
 /** @typedef {import('#shared/query/classify.js').Intent} Intent */
 
@@ -66,13 +67,13 @@ export function preview(intent) {
 		case 'math':
 			return { label: `${intent.expression} =`, value: showValue(intent.value, intent.percent) };
 		case 'shares':
-			return { label: `Shares of ${formatNumber(intent.total)}`, value: intent.shares.map((s) => showValue(s, true)).join(', ') };
+			return { label: t('Shares of {total}', { total: formatNumber(intent.total) }), value: intent.shares.map((s) => showValue(s, true)).join(', ') };
 		case 'problem':
-			return { label: 'No answer', value: intent.message };
+			return { label: t('No answer'), value: intent.message };
 		case 'time':
-			return { label: 'The time', value: timeWords(new Date()).en };
+			return { label: t('The time'), value: getLang() === 'my' ? timeWords(new Date()).my : timeWords(new Date()).en };
 		case 'date':
-			return { label: 'Today', value: dateWords(new Date()).en };
+			return { label: t('Today'), value: getLang() === 'my' ? dateWords(new Date()).my : dateWords(new Date()).en };
 		default:
 			return null;
 	}

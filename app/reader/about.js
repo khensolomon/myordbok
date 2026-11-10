@@ -10,12 +10,13 @@ import { parseVersion } from '#shared/version.js';
 import { REPOSITORY as REPO } from '../core/config.js';
 import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
+import { englishOnly, t } from '../i18n/index.js';
 
 const PAYPAL = 'https://www.paypal.com/donate/?hosted_button_id=C9PDG3T47WJ26';
 const SPONSORS = 'https://github.com/sponsors/khensolomon';
 
 export function title() {
-	return 'About';
+	return t('About');
 }
 
 /**
@@ -33,7 +34,8 @@ export async function view() {
 
 	return h(
 		'article',
-		{ class: 'page prose about' },
+		{ class: 'page prose about', lang: 'en' },
+		englishOnly(),
 		h('h1', null, 'A comprehensive online Myanmar dictionary'),
 		h('p', { class: 'about-lead' }, 'Look up a word in English or in Myanmar and read its meaning in the other language.'),
 

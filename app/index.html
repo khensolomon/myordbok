@@ -8,7 +8,8 @@
 	<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 	<meta name="theme-color" content="#0d1116" media="(prefers-color-scheme: dark)">
 	<!-- A theme chosen on this device applies before the first paint (app/core/prefs.js). -->
-	<script>try{var t=localStorage.getItem('mo:theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+	<!-- So is the interface language: chosen here, else the device's (app/i18n/index.js). -->
+	<script>try{var t=localStorage.getItem('mo:theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}try{var l=localStorage.getItem('mo:lang');if(l!=='en'&&l!=='my'){l=(navigator.languages||[navigator.language]).filter(function(x){return /^(my|en)\b/i.test(x)})[0]||'en';l=/^my/i.test(l)?'my':'en'}document.documentElement.lang=l}catch(e){}</script>
 	<link rel="manifest" href="/manifest.webmanifest">
 	<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
@@ -29,14 +30,14 @@
 	<!--/importmap-->
 </head>
 <body>
-	<a class="skip" href="#view">Skip to content</a>
+	<a class="skip" href="#view" data-t>Skip to content</a>
 	<header class="site-header">
 		<!-- Text on wide screens; icons in a glass capsule on phones. -->
-		<nav class="site-nav" aria-label="Main">
-			<a href="/" title="Home"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 11 12 4.6 20 11"/><path d="M6.5 12.5v7h11v-7"/><path d="M10.5 17.5v-2a1.5 1.5 0 0 1 3 0v2"/></svg><span class="nav-label">Home</span></a>
-			<a href="/grammar" title="Grammar"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6.5 4H17a1.5 1.5 0 0 1 1.5 1.5V20H7a2 2 0 0 1-2-2V5.5A1.5 1.5 0 0 1 6.5 4z"/><path d="M5 17.5a2 2 0 0 1 2-2h11.5"/><path d="M9.5 4v5.5l1.75-1.2L13 9.5V4"/></svg><span class="nav-label">Grammar</span></a>
-			<a href="/myanmar-fonts" title="Fonts"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.5 18.5 8 6.5l4.5 12"/><path d="M5.3 14h5.4"/><circle cx="17" cy="15.5" r="3"/><path d="M20.5 12.5v6"/></svg><span class="nav-label">Fonts</span></a>
-			<a href="/about" title="About"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><path d="M12 8.1v.1"/></svg><span class="nav-label">About</span></a>
+		<nav class="site-nav" aria-label="Main" data-t-label="Main">
+			<a href="/" title="Home" data-t-label="Home"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 11 12 4.6 20 11"/><path d="M6.5 12.5v7h11v-7"/><path d="M10.5 17.5v-2a1.5 1.5 0 0 1 3 0v2"/></svg><span class="nav-label" data-t>Home</span></a>
+			<a href="/grammar" title="Grammar" data-t-label="Grammar"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6.5 4H17a1.5 1.5 0 0 1 1.5 1.5V20H7a2 2 0 0 1-2-2V5.5A1.5 1.5 0 0 1 6.5 4z"/><path d="M5 17.5a2 2 0 0 1 2-2h11.5"/><path d="M9.5 4v5.5l1.75-1.2L13 9.5V4"/></svg><span class="nav-label" data-t>Grammar</span></a>
+			<a href="/myanmar-fonts" title="Fonts" data-t-label="Fonts"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.5 18.5 8 6.5l4.5 12"/><path d="M5.3 14h5.4"/><circle cx="17" cy="15.5" r="3"/><path d="M20.5 12.5v6"/></svg><span class="nav-label" data-t>Fonts</span></a>
+			<a href="/about" title="About" data-t-label="About"><svg class="icon nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><path d="M12 8.1v.1"/></svg><span class="nav-label" data-t>About</span></a>
 		</nav>
 		<a class="you" href="/workspace" aria-label="Account: sign in" title="Account">
 			<svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg>
@@ -46,7 +47,7 @@
 	<!-- The search bar, shown on the home and definition pages; it stays in view while the page scrolls. -->
 	<div class="search-bar">
 		<div class="search-bar-inner">
-			<a class="bar-logo" href="/" aria-label="MyOrdbok home">
+			<a class="bar-logo" href="/" aria-label="MyOrdbok home" data-t-label="MyOrdbok home">
 				<img class="logo-full" src="/static/logo.svg" alt="" width="168" height="28">
 				<img class="logo-mark" src="/static/icon.svg" alt="" width="34" height="34">
 			</a>
@@ -59,10 +60,10 @@
 
 	<footer class="site-footer">
 		<span>© MyOrdbok</span>
-		<nav aria-label="Legal">
-			<a href="/about">About</a>
-			<a href="/privacy">Privacy</a>
-			<a href="/terms">Terms</a>
+		<nav aria-label="Legal" data-t-label="Legal">
+			<a href="/about" data-t>About</a>
+			<a href="/privacy" data-t>Privacy</a>
+			<a href="/terms" data-t>Terms</a>
 		</nav>
 	</footer>
 

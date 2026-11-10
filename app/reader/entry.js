@@ -32,6 +32,7 @@ import { splitExamples } from '#shared/markup.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
+import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { REPOSITORY } from '../core/config.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
@@ -47,20 +48,20 @@ const ROOTS_SHOWN = 2;
 /** Ids of the related-word rows a question can point to (#synonyms). */
 const FOCUS_ROWS = /** @type {Record<string, string>} */ ({ Forms: 'forms', Synonyms: 'synonyms', Opposite: 'opposite' });
 const NOT_LISTED = /** @type {Record<string, string>} */ ({
-	forms: 'No other forms are listed for it yet.',
-	synonyms: 'No similar words are listed for it yet.',
-	opposite: 'No opposites are listed for it yet.',
+	forms: mark('No other forms are listed for it yet.'),
+	synonyms: mark('No similar words are listed for it yet.'),
+	opposite: mark('No opposites are listed for it yet.'),
 });
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export function title(ctx) {
-	return ctx.query.get('q') ?? 'Definition';
+	return ctx.query.get('q') ?? t('Definition');
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
 	const q = (ctx.query.get('q') ?? '').trim();
-	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, 'Type a word to look it up.'));
+	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, t('Type a word to look it up.')));
 	const asked = ctx.query.get('asked');
 	const at = ctx.query.get('w');
 
@@ -121,10 +122,10 @@ function understood(word, asked, rel, notes = []) {
 	return h(
 		'p',
 		{ class: 'entry-note understood' },
-		asked ? `Showing “${word}” for “${asked}”. ` : null,
+		asked ? `${t('Showing “{word}” for “{asked}”.', { word, asked })} ` : null,
 		notes.map((n) => `${n} `),
-		absent ? `${NOT_LISTED[focus]} ` : null,
-		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`) : null,
+		absent ? `${t(NOT_LISTED[focus])} ` : null,
+		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, t('Search for “{asked}” as typed', { asked })) : null,
 	);
 }
 
@@ -149,7 +150,7 @@ async function english(data, asked) {
 	const rel = data.entries.length ? related(data) : null;
 	/** @type {import('../core/dom.js').Child[]} */
 	const notes = [understood(data.query, asked, rel)];
-	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, 'A spelling of ', wordLinks(data.variant_of), '.'));
+	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */
 	let shown = data.entries;
@@ -166,7 +167,7 @@ async function english(data, asked) {
 		const found = results.filter((r) => r.language === 'en' && r.entries.length);
 		shown = found.flatMap((r) => (r.language === 'en' ? r.entries : []));
 		const [rootWord, pos, form] = data.forms_of[0];
-		summary = `“${data.query}” is the ${form}${pos ? ` (${pos})` : ''} of “${rootWord}”.${found.length === 1 ? ` ${lead(found[0].query, shown)}` : ''}`;
+		summary = `${t('“{word}” is the {form} of “{root}”.', { word: data.query, form: `${form}${pos ? ` (${pos})` : ''}`, root: rootWord })}${found.length === 1 ? ` ${lead(found[0].query, shown)}` : ''}`;
 		found.forEach((root, n) => {
 			if (root.language !== 'en') return;
 			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true })));
@@ -216,7 +217,7 @@ function wordBlock(word, senses, options = {}) {
 		'section',
 		{ class: 'entry-block' },
 		h('header', { class: 'entry-head' },
-			h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'),
+			h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'),
 			h(first ? 'h1' : 'h2', { class: 'headword' }, name)),
 		timeline(groupByType(ordered), 'my', word, fit, fitLabel),
 	);
@@ -228,10 +229,10 @@ function wordBlock(word, senses, options = {}) {
  * @param {Array<{ type: string }>} senses
  */
 function lead(word, senses) {
-	const types = [...new Set(senses.map((s) => s.type.toLowerCase()))].map((t) => `${/^[aeiou]/.test(t) ? 'an' : 'a'} ${t}`);
-	const list = types.length > 1 ? `${types.slice(0, -1).join(', ')} and ${types.at(-1)}` : types[0];
-	const n = senses.length;
-	return `“${word}” has ${n} meaning${n === 1 ? '' : 's'} as ${list}.`;
+	const names = [...new Set(senses.map((s) => posName(s.type)))];
+	// English says "a noun and a verb"; Myanmar names the parts alone.
+	const types = getLang() === 'en' ? names.map((n) => `${/^[aeiou]/.test(n) ? 'an' : 'a'} ${n}`) : names;
+	return tn('“{word}” has {n} meaning as {types}.', '“{word}” has {n} meanings as {types}.', senses.length, { word, types: list(types) });
 }
 
 /**
@@ -243,24 +244,22 @@ function aside(feedback, summary, senses) {
 	const kinds = senses.map((s) => s.kind ?? 'Active');
 	const drafts = kinds.filter((k) => k === 'Draft').length;
 	const awaiting = kinds.filter((k) => /awaiting/i.test(k)).length;
-	/** @param {number} n @param {string} one @param {string} many */
-	const count = (n, one, many) => `${n} meaning${n === 1 ? ` ${one}` : `s ${many}`}.`;
 	return h(
 		'aside',
-		{ class: 'entry-aside', 'aria-label': 'About this result' },
+		{ class: 'entry-aside', 'aria-label': t('About this result') },
 		h(
 			'section',
 			{ class: 'aside-card' },
-			h('h2', null, 'About this entry'),
+			h('h2', null, t('About this entry')),
 			h('p', { class: 'aside-lead' }, summary),
 			awaiting || drafts
 				? h(
 						'ul',
 						{ class: 'aside-facts' },
-						awaiting ? h('li', null, kindBadge('Checked: awaiting native review'), ' ', count(awaiting, 'is checked and waits for a native speaker’s review', 'are checked and wait for a native speaker’s review')) : null,
-						drafts ? h('li', null, kindBadge('Draft'), ' ', count(drafts, 'is a draft, not yet checked', 'are drafts, not yet checked')) : null,
+						awaiting ? h('li', null, kindBadge('Checked: awaiting native review'), ' ', tn('{n} meaning is checked and waits for a native speaker’s review.', '{n} meanings are checked and wait for a native speaker’s review.', awaiting)) : null,
+						drafts ? h('li', null, kindBadge('Draft'), ' ', tn('{n} meaning is a draft, not yet checked.', '{n} meanings are drafts, not yet checked.', drafts)) : null,
 					)
-				: h('p', { class: 'aside-quiet' }, 'Every meaning here has been reviewed.'),
+				: h('p', { class: 'aside-quiet' }, t('Every meaning here has been reviewed.')),
 		),
 		feedback.card(),
 	);
@@ -273,13 +272,13 @@ function myanmarHead(data) {
 	return h(
 		'header',
 		{ class: 'entry-head' },
-		h('span', { class: 'lang-badge', 'aria-label': 'Myanmar' }, 'my'),
+		h('span', { class: 'lang-badge', 'aria-label': t('Myanmar') }, 'my'),
 		h('div', null,
 			h('h1', { class: 'headword' }, data.query),
 			ipa || mlc
 				? h('p', { class: 'pron', lang: 'en' },
 					ipa ? h('span', { title: 'IPA' }, `/${ipa}/`) : null,
-					mlc ? h('span', { title: 'MLC transcription' }, mlc) : null)
+					mlc ? h('span', { title: t('MLC transcription') }, mlc) : null)
 				: null),
 	);
 }
@@ -300,7 +299,7 @@ function formNote(data) {
 		'ul',
 		{ class: 'entry-note form-of' },
 		[...byRoot].map(([root, forms]) =>
-			h('li', null, `${forms.join(', ')} of `, h('a', { href: definitionHref(root) }, root))),
+			h('li', null, tx('{forms} of {root}', { forms: forms.join(', '), root: h('a', { href: definitionHref(root) }, root) }))),
 	);
 }
 
@@ -335,7 +334,7 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '') {
 			h(
 				'section',
 				{ class: 'pos' },
-				h('h2', { class: 'pos-name' }, type.toLowerCase()),
+				h('h2', { class: 'pos-name' }, posName(type)),
 				h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 			),
 		),
@@ -374,7 +373,7 @@ function kindBadge(kind) {
 	return h(
 		'span',
 		{ class: `kind kind-${kind === 'Draft' ? 'draft' : awaiting ? 'review' : 'label'}`, title: kind },
-		awaiting ? 'awaiting review' : kind.toLowerCase(),
+		awaiting ? t('awaiting review') : kind === 'Draft' ? t('draft') : kind.toLowerCase(),
 	);
 }
 
@@ -398,21 +397,21 @@ function related(data) {
 			if (!list.includes(word)) list.push(word);
 			byPos.set(pos, list);
 		}
-		rows.push(['Forms', [...byPos].map(([pos, words]) => h('span', { class: 'forms' }, h('em', null, pos), ' ', wordLinks(words)))]);
+		rows.push([mark('Forms'), [...byPos].map(([pos, words]) => h('span', { class: 'forms' }, h('em', null, posName(pos)), ' ', wordLinks(words)))]);
 	}
 	/** @type {Array<[string, string[]]>} */
 	const lists = [
-		['Synonyms', data.synonyms],
-		['Similar', data.similar],
-		['Broader', data.broader],
-		['Opposite', data.opposite],
-		['Related', data.related],
+		[mark('Synonyms'), data.synonyms],
+		[mark('Similar'), data.similar],
+		[mark('Broader'), data.broader],
+		[mark('Opposite'), data.opposite],
+		[mark('Related'), data.related],
 	];
 	for (const [name, words] of lists) if (words.length) rows.push([name, wordLinks(words)]);
 	// "similar word of love" points at #synonyms: Similar answers it when there are no synonyms.
 	const ids = { ...FOCUS_ROWS, ...(data.synonyms.length ? {} : { Similar: 'synonyms' }) };
 	if (!rows.length) return null;
-	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, name), h('dd', null, value)]));
+	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, t(name)), h('dd', null, value)]));
 }
 
 /**
@@ -427,21 +426,21 @@ function phraseView(read, asked) {
 	const title = read.pattern === 'of' ? `${words[0]} of ${words.slice(1).join(' ')}` : words.join(' ');
 	const notes = read.parts
 		.filter((p) => p.note)
-		.map((p) => (p.note === 'spelling' ? `“${p.term}” read as “${p.word}”.` : `“${p.term}” is a form of “${p.word}”.`));
+		.map((p) => (p.note === 'spelling' ? t('“{term}” read as “{word}”.', { term: p.term, word: p.word }) : t('“{term}” is a form of “{word}”.', { term: p.term, word: p.word })));
 	const intro = h(
 		'p',
 		{ class: 'entry-note understood' },
-		`“${title}” is not an entry of its own; here are its words. `,
-		asked ? `Read from “${asked}”. ` : null,
+		`${t('“{phrase}” is not an entry of its own; here are its words.', { phrase: title })} `,
+		asked ? `${t('Read from “{asked}”.', { asked })} ` : null,
 		notes.map((n) => `${n} `),
-		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, `Search for “${asked}” as typed`) : null,
+		asked ? h('a', { href: `${definitionHref(asked)}&exact=1` }, t('Search for “{asked}” as typed', { asked })) : null,
 	);
 	let first = true;
 	const blocks = read.parts.flatMap((p) => {
 		if (!p.entries.length) {
 			return h('section', { class: 'entry-block' },
-				h('header', { class: 'entry-head' }, h('span', { class: 'lang-badge', 'aria-label': 'English' }, 'en'), h('h2', { class: 'headword headword-none' }, p.term)),
-				h('p', { class: 'notice phrase-none' }, `The dictionary has no entry for “${p.term}”.`));
+				h('header', { class: 'entry-head' }, h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'), h('h2', { class: 'headword headword-none' }, p.term)),
+				h('p', { class: 'notice phrase-none' }, t('The dictionary has no entry for “{term}”.', { term: p.term })));
 		}
 		const fit = p.fit >= 0 ? p.entries[p.fit] : null;
 		return bySpelling(p.entries).map(([word, senses]) => {
@@ -453,19 +452,19 @@ function phraseView(read, asked) {
 	});
 	const side = h(
 		'aside',
-		{ class: 'entry-aside', 'aria-label': 'About this phrase' },
+		{ class: 'entry-aside', 'aria-label': t('About this phrase') },
 		h('section', { class: 'aside-card' },
-			h('h2', null, 'The phrase'),
+			h('h2', null, t('The phrase')),
 			h('p', { class: 'aside-phrase' }, title),
 			read.myanmar ? h('p', { class: 'aside-phrase-my', lang: 'my' }, read.myanmar) : null,
 			h('p', { class: 'aside-quiet' }, read.myanmar
-				? `Put together from the marked meanings of ${words.map((w) => `“${w}”`).join(' and ')}, in Myanmar word order: a reading, not a checked translation.`
-				: `Read from the entries for ${words.map((w) => `“${w}”`).join(' and ')}.`)),
+				? t('Put together from the marked meanings of {words}, in Myanmar word order: a reading, not a checked translation.', { words: list(words.map((w) => `“${w}”`)) })
+				: t('Read from the entries for {words}.', { words: list(words.map((w) => `“${w}”`)) }))),
 		h('section', { class: 'aside-card' },
-			h('h2', null, 'Should it be an entry?'),
+			h('h2', null, t('Should it be an entry?')),
 			h('div', { class: 'aside-actions' },
-				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggesting needs a sign-in' }, icon(ICONS.suggest, 18), 'Suggest this phrase')),
-			h('p', { class: 'aside-quiet' }, 'Suggesting needs a sign-in, which arrives soon.')),
+				h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: t('Suggesting a phrase comes in a later change') }, icon(ICONS.suggest, 18), t('Suggest this phrase'))),
+			h('p', { class: 'aside-quiet' }, t('Suggesting a whole phrase comes in a later change.'))),
 	);
 	return withAside(h('article', { class: 'entry phrase', lang: 'en' }, intro, blocks), side);
 }
@@ -489,13 +488,13 @@ async function sentence(q, list, index) {
 	if (next && list[i + 1].known !== false && !savingData()) lookup(next).catch(() => {});
 
 	const entry = list[i].known === false
-		? h('p', { class: 'notice no-result inline' }, `“${word}” is not a word in the dictionary.`)
+		? h('p', { class: 'notice no-result inline' }, t('“{word}” is not a word in the dictionary.', { word }))
 		: ((await result(await lookup(word))) ?? (await missing(word, null, { inline: true })));
 	const pager = h(
 		'nav',
-		{ class: 'sentence-pager', 'aria-label': 'Words of the sentence' },
+		{ class: 'sentence-pager', 'aria-label': t('Words of the sentence') },
 		i > 0 ? h('a', { href: at(i - 1), rel: 'prev' }, `← ${words[i - 1]}`) : h('span'),
-		h('span', { class: 'sentence-count' }, `${i + 1} of ${words.length}`),
+		h('span', { class: 'sentence-count' }, t('{i} of {n}', { i: i + 1, n: words.length })),
 		next ? h('a', { href: at(i + 1), rel: 'next' }, `${next} →`) : h('span'),
 	);
 	return h(
@@ -504,7 +503,7 @@ async function sentence(q, list, index) {
 		h(
 			'header',
 			{ class: 'sentence-head' },
-			h('p', { class: 'sentence-text' }, h('span', { class: 'sentence-label' }, 'Sentence'), ' ', q),
+			h('p', { class: 'sentence-text' }, h('span', { class: 'sentence-label' }, t('Sentence')), ' ', q),
 			h('ol', { class: 'chips sentence-words' }, list.map((w, n) => h('li', null, h('a', { href: at(n), 'aria-current': n === i ? 'true' : null, class: w.known === false ? 'unknown' : null, lang: /[\u1000-\u109f]/.test(w.text) ? 'my' : null }, w.text)))),
 		),
 		entry,
@@ -531,24 +530,24 @@ async function missing(q, found, options = {}) {
 	return h(
 		'section',
 		{ class: options.inline ? 'no-result inline' : 'page no-result' },
-		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, `No entry for “${q}”`),
-		close.length ? h('div', { class: 'no-result-part' }, h('p', null, 'Did you mean'), chips(close)) : null,
-		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, `Words that start like “${q}”`), chips(prefix)) : null,
-		!close.length && !prefix.length ? h('p', { class: 'notice' }, 'Check the spelling, or try the root form of the word.') : null,
+		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
+		close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
+		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
+		!close.length && !prefix.length ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
 		options.inline
 			? null
 			: h(
 					'div',
 					{ class: 'aside-card no-result-ask' },
-					h('h2', null, 'We don’t have it yet'),
-					h('p', { class: 'aside-lead' }, `Would you like to suggest “${q}” for the dictionary?`),
+					h('h2', null, t('We don’t have it yet')),
+					h('p', { class: 'aside-lead' }, t('Would you like to suggest “{word}” for the dictionary?', { word: q })),
 					h(
 						'div',
 						{ class: 'aside-actions' },
-						h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: 'Suggesting a word needs a sign-in' }, icon(ICONS.suggest, 18), 'Suggest this word'),
-						h('a', { href: issue, target: '_blank', rel: 'noopener' }, 'Or tell us on GitHub'),
+						h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: t('Suggesting a new word comes in a later change') }, icon(ICONS.suggest, 18), t('Suggest this word')),
+						h('a', { href: issue, target: '_blank', rel: 'noopener' }, t('Or tell us on GitHub')),
 					),
-					h('p', { class: 'aside-quiet' }, 'Suggesting in the app needs a sign-in, which arrives soon.'),
+					h('p', { class: 'aside-quiet' }, t('Suggesting a new word in the app comes in a later change.')),
 				),
 	);
 }

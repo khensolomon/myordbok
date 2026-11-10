@@ -123,6 +123,16 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   K move through the list), authors withdraw while it waits
   (`/api/workspace/*`; `worker/routes/workspace.js`). Its code loads only
   when opened.
+- **The interface speaks English or Myanmar** (`app/i18n/`). Interface
+  text is written in English inside `t()`, and `my.js` gives the Myanmar
+  for each; a text with no Myanmar is an error, and `tests/i18n.test.js`
+  checks every `t()` against `my.js` (missing, unused, placeholders). The
+  device's language decides until the header's language button is used
+  (`mo:lang`); `<html lang>` is set before the first paint and the page
+  reloads on a change. In Myanmar, numbers and dates use Myanmar digits and
+  parts of speech their Myanmar names. Dictionary content is never
+  translated. About, Privacy and Terms stay in English for now, with a
+  notice; server messages are translated by error code for the generic ones.
 - **Searches are counted, not logged.** Each search page (`/api/read`)
   adds one to `search_counts` (day, language, word, found), after the answer
   is sent and including answers from the edge cache

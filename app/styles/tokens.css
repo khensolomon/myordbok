@@ -23,7 +23,8 @@
 
 :root {
 	--font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif, "MyOrdbok Myanmar";
-	--font-my: "MyOrdbok Myanmar", "Noto Sans Myanmar", "Myanmar Text", sans-serif;
+	/* Myanmar first; Latin in Myanmar text (and in the Myanmar interface) stays in the interface face. */
+	--font-my: "MyOrdbok Myanmar", "Inter", system-ui, "Noto Sans Myanmar", "Myanmar Text", sans-serif;
 
 	--brand: #318ed7;
 	--ground: #ffffff;

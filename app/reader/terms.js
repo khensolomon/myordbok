@@ -4,12 +4,13 @@
  * downloads, sign-in, suggestions); a change there updates this page too.
  */
 import { CONTACT, REPOSITORY } from '../core/config.js';
+import { englishOnly, t } from '../i18n/index.js';
 import { h } from '../core/dom.js';
 
 const UPDATED = '8 November 2026';
 
 export function title() {
-	return 'Terms of Use';
+	return t('Terms of Use');
 }
 
 /**
@@ -26,7 +27,8 @@ const list = (...items) => h('ul', null, items.map((i) => h('li', null, i)));
 export function view() {
 	return h(
 		'article',
-		{ class: 'page prose' },
+		{ class: 'page prose', lang: 'en' },
+		englishOnly(),
 		h('h1', null, 'Terms of Use'),
 		h('p', { class: 'notice' }, `Updated ${UPDATED}`),
 		h(

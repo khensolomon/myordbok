@@ -109,6 +109,9 @@ body::before {
 }
 .pref:hover { color: var(--ink); background: var(--glass-fill); }
 .pref[hidden] { display: none; }
+.pref-lang { font: 600 13px/1 var(--font-ui); letter-spacing: 0.02em; }
+.pref-lang:lang(my) { font-family: var(--font-my); font-size: 15px; line-height: 1; }
+.english-only { margin-bottom: 20px; }
 .you {
 	margin-left: auto;
 	width: 40px; height: 40px;
@@ -791,6 +794,7 @@ a.ws-tile:hover { border-color: var(--line); }
 .ws-words { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: w; }
 .ws-words li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; counter-increment: w; font-variant-numeric: tabular-nums; }
 .ws-words li::before { content: counter(w); width: 18px; flex: none; color: var(--faint); font-size: 12px; }
+.ws-words li:lang(my)::before { content: counter(w, myanmar); }
 .ws-words li > :first-child { flex: 1; min-width: 0; }
 .ws-words li > :last-child { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .ws-words :lang(my) { font-family: var(--font-my); }

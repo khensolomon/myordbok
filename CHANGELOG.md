@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+48
+
+- Myanmar interface: every interface text in Myanmar (app/i18n), language button in the header, the device's language by default, Myanmar digits and dates, parts of speech by their Myanmar names
+
 ## 26.11.10+47
 
 - Workspace: Overview board as the home (search counts per word and day, top and missing words, suggestions, members, meanings rated down); signing in and the account moved into the workspace, with account deletion; /account redirects

@@ -12,6 +12,7 @@
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
+import { t, tn } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { suggest } from '../data/api.js';
 import { classify, preview, understoodHref } from './query.js';
@@ -32,7 +33,7 @@ export class SearchBox extends HTMLElement {
 			value,
 			autocomplete: 'off',
 			spellcheck: 'false',
-			placeholder: 'Type a word in English or မြန်မာ',
+			placeholder: t('Type a word in English or မြန်မာ'),
 			role: 'combobox',
 			'aria-expanded': 'false',
 			'aria-controls': `${id}-list`,
@@ -50,9 +51,9 @@ export class SearchBox extends HTMLElement {
 		const form = h(
 			'form',
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
-			h('label', { for: id, class: 'visually-hidden' }, 'Search a word'),
+			h('label', { for: id, class: 'visually-hidden' }, t('Search a word')),
 			this.input,
-			h('button', { type: 'submit', class: 'search-go', 'aria-label': 'Search', title: 'Search' }, icon(ICONS.search, 18)),
+			h('button', { type: 'submit', class: 'search-go', 'aria-label': t('Search'), title: t('Search') }, icon(ICONS.search, 18)),
 		);
 		this.box = h('div', { class: 'search-box' }, form, this.list);
 		this.append(this.box, this.status);
@@ -93,7 +94,7 @@ export class SearchBox extends HTMLElement {
 		if (line) return this.show([], [row(line.label, line.value, definitionHref(q), q)]);
 		if (intent.kind === 'ask') return this.show([], intent.options.map((o) => row(o.label, '', definitionHref(o.query), o.query)));
 		if (intent.kind !== 'lookup') return this.show([]);
-		const lead = intent.understood ? [row(`Look up “${intent.word}”`, '', understoodHref(intent, q), q)] : [];
+		const lead = intent.understood ? [row(t('Look up “{word}”', { word: intent.word }), '', understoodHref(intent, q), q)] : [];
 		try {
 			const { words } = await suggest(intent.word);
 			if (mine === this.seq) this.show(words, lead);
@@ -120,7 +121,7 @@ export class SearchBox extends HTMLElement {
 		list.hidden = !open;
 		this.toggleAttribute('data-open', open);
 		this.input?.setAttribute('aria-expanded', String(open));
-		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? `${items.length} suggestions` : '';
+		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? tn('{n} suggestion', '{n} suggestions', items.length) : '';
 	}
 
 	/** @param {KeyboardEvent} e */

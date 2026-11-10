@@ -6,6 +6,7 @@
  */
 import { ANALYTICS } from './config.js';
 import { h } from './dom.js';
+import { t } from '../i18n/index.js';
 
 const KEY = 'mo:analytics';
 
@@ -101,13 +102,13 @@ export function initConsent() {
 function ask() {
 	const card = h(
 		'aside',
-		{ class: 'consent', role: 'region', 'aria-label': 'Analytics choice' },
-		h('p', null, 'Allow anonymous usage statistics (Google Analytics) to help improve MyOrdbok? ', h('a', { href: '/privacy' }, 'Privacy')),
+		{ class: 'consent', role: 'region', 'aria-label': t('Analytics choice') },
+		h('p', null, t('Allow anonymous usage statistics (Google Analytics) to help improve MyOrdbok?'), ' ', h('a', { href: '/privacy' }, t('Privacy'))),
 		h(
 			'div',
 			{ class: 'consent-actions' },
-			h('button', { type: 'button', class: 'consent-no', onClick: () => setChoice('denied') }, 'No thanks'),
-			h('button', { type: 'button', class: 'consent-yes', onClick: () => setChoice('granted') }, 'Allow'),
+			h('button', { type: 'button', class: 'consent-no', onClick: () => setChoice('denied') }, t('No thanks')),
+			h('button', { type: 'button', class: 'consent-yes', onClick: () => setChoice('granted') }, t('Allow')),
 		),
 	);
 	document.body.append(card);

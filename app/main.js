@@ -6,12 +6,16 @@
  */
 import { boot } from '#platform/boot.js';
 import { initConsent } from './core/consent.js';
+import { initLang, t } from './i18n/index.js';
 import { member } from './core/member.js';
 import { initPrefs } from './core/prefs.js';
 import { initNav } from './core/nav.js';
 import { startRouter } from './core/router.js';
 import { hrefFor } from './reader/query.js';
 import './reader/search-box.js';
+
+// The interface language's text loads before anything is built.
+await initLang();
 
 const outlet = document.getElementById('view');
 if (!outlet) throw new Error('index.html is missing <main id="view">');
@@ -58,8 +62,8 @@ const blankFace = you.innerHTML;
 initPrefs(you);
 document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
-	you.setAttribute('aria-label', m ? `Account: ${m.name}` : 'Account: sign in');
-	you.title = m ? m.name : 'Account';
+	you.setAttribute('aria-label', m ? t('Account: {name}', { name: m.name }) : t('Account: sign in'));
+	you.title = m ? m.name : t('Account');
 	if (m?.avatar_url) {
 		const img = document.createElement('img');
 		img.src = m.avatar_url;

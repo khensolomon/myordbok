@@ -2,7 +2,9 @@
 
 ## PWA rewrite
 
-- [ ] Myanmar interface language
+- [x] Myanmar interface language
+- [ ] Myanmar text of About, Privacy and Terms (drafted for review)
+- [ ] Myanmar text of the sums' messages (shared/query)
 - [ ] Feedback and contact form (own, replacing the Google Form and the contact email)
 - [ ] Offline data: word lists for everyone; definitions and related words as separate opt-in packs
 - [ ] Comments

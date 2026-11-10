@@ -5,6 +5,7 @@
  * AppError; a failed connection becomes `unavailable`.
  */
 import { AppError } from '#shared/errors.js';
+import { errorText } from '../../i18n/index.js';
 
 /**
  * @param {string} path  Same-origin API path, e.g. "/api/lookup?q=love".
@@ -15,12 +16,12 @@ export async function getJSON(path) {
 	try {
 		res = await fetch(path, { headers: { accept: 'application/json' }, credentials: 'same-origin' });
 	} catch {
-		throw new AppError('unavailable', 'Could not reach MyOrdbok. Check the connection.');
+		throw new AppError('unavailable', errorText('unavailable', 'Could not reach MyOrdbok. Check the connection.'));
 	}
 	const body = await res.json().catch(() => null);
 	if (!res.ok) {
 		const err = body?.error;
-		if (err?.code && err?.message) throw new AppError(err.code, err.message);
+		if (err?.code && err?.message) throw new AppError(err.code, errorText(err.code, err.message));
 		throw new AppError('internal', `Request to ${path} failed with status ${res.status}`);
 	}
 	if (body === null) throw new AppError('internal', `Response from ${path} was not JSON`);
@@ -43,12 +44,12 @@ export async function postJSON(path, data) {
 			credentials: 'same-origin',
 		});
 	} catch {
-		throw new AppError('unavailable', 'Could not reach MyOrdbok. Check the connection.');
+		throw new AppError('unavailable', errorText('unavailable', 'Could not reach MyOrdbok. Check the connection.'));
 	}
 	const body = await res.json().catch(() => null);
 	if (!res.ok) {
 		const err = body?.error;
-		if (err?.code && err?.message) throw new AppError(err.code, err.message);
+		if (err?.code && err?.message) throw new AppError(err.code, errorText(err.code, err.message));
 		throw new AppError('internal', `Request to ${path} failed with status ${res.status}`);
 	}
 	return body;

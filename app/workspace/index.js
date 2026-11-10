@@ -22,6 +22,7 @@ import { getJSON } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
+import { list, mark, num, posName, shortDate, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
@@ -33,37 +34,37 @@ import { overviewPane } from './overview.js';
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
-	{ id: 'overview', label: 'Overview', icon: ICONS.overview, editor: false },
-	{ id: 'suggestions', label: 'Suggestions', icon: ICONS.suggest, editor: true },
-	{ id: 'contributions', label: 'Contributions', icon: ICONS.document, editor: false },
+	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false },
+	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true },
+	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false },
 ]);
 
 const FILTERS = /** @type {const} */ ([
-	['pending', 'Waiting'],
-	['approved', 'Approved'],
-	['rejected', 'Declined'],
-	['all', 'All'],
+	['pending', mark('Waiting')],
+	['approved', mark('Approved')],
+	['rejected', mark('Declined')],
+	['all', mark('All')],
 ]);
 
 /** @type {Record<string, string>} */
 const STATUS = {
-	pending: 'waiting',
-	approved: 'approved',
-	exported: 'approved',
-	rejected: 'declined',
-	merged: 'in the dictionary',
-	conflict: 'conflict',
+	pending: mark('waiting'),
+	approved: mark('approved'),
+	exported: mark('approved'),
+	rejected: mark('declined'),
+	merged: mark('in the dictionary'),
+	conflict: mark('conflict'),
 };
 
 /** Why a sign-in came back (worker/routes/auth.js). */
 /** @type {Record<string, string>} */
 const ERRORS = {
-	cancelled: 'Sign-in was cancelled.',
-	expired: 'The sign-in took too long or was started in another tab. Please try again.',
-	provider: 'The sign-in could not be completed. Please try again.',
-	not_configured: 'Signing in with this provider is not available on this site yet.',
-	suspended: 'This account is suspended.',
-	linked_elsewhere: 'That account is already linked to another MyOrdbok account.',
+	cancelled: mark('Sign-in was cancelled.'),
+	expired: mark('The sign-in took too long or was started in another tab. Please try again.'),
+	provider: mark('The sign-in could not be completed. Please try again.'),
+	not_configured: mark('Signing in with this provider is not available on this site yet.'),
+	suspended: mark('This account is suspended.'),
+	linked_elsewhere: mark('That account is already linked to another MyOrdbok account.'),
 };
 
 /** @type {Record<'google' | 'github', string>} */
@@ -71,15 +72,15 @@ const PROVIDERS = { google: 'Google', github: 'GitHub' };
 
 /** Contributions, grouped in this order. */
 const GROUPS = /** @type {const} */ ([
-	['Waiting', ['pending']],
-	['Approved', ['approved', 'exported']],
-	['In the dictionary', ['merged']],
-	['Declined', ['rejected']],
-	['Needs a look', ['conflict']],
+	[mark('Waiting'), ['pending']],
+	[mark('Approved'), ['approved', 'exported']],
+	[mark('In the dictionary'), ['merged']],
+	[mark('Declined'), ['rejected']],
+	[mark('Needs a look'), ['conflict']],
 ]);
 
 export function title() {
-	return 'Workspace';
+	return t('Workspace');
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
@@ -111,9 +112,9 @@ export async function view(ctx) {
 	}
 
 	const filter = FILTERS.some(([s]) => s === ctx.query.get('status')) ? /** @type {string} */ (ctx.query.get('status')) : section === 'suggestions' ? 'pending' : 'all';
-	const work = h('main', { class: 'ws-main', 'aria-label': 'Work area' }, h('p', { class: 'ws-empty' }, 'Choose an item from the list.'));
-	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': 'Details' });
-	const listPane = h('section', { class: 'ws-list', 'aria-label': section === 'suggestions' ? 'Suggestions' : 'Contributions' });
+	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose an item from the list.')));
+	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
+	const listPane = h('section', { class: 'ws-list', 'aria-label': section === 'suggestions' ? t('Suggestions') : t('Contributions') });
 	root.append(rail, listPane, work, inspector, status.node);
 
 	/** @type {Edit[]} */
@@ -122,8 +123,8 @@ export async function view(ctx) {
 	let rows = [];
 	let current = -1;
 	const ol = h('ol', { class: 'ws-rows' });
-	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, 'Show more'));
-	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: 'Filter by word or member', 'aria-label': 'Filter the list' }));
+	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Filter by word or member'), 'aria-label': t('Filter the list') }));
 
 	/** @param {number} i */
 	const open = (i) => {
@@ -155,7 +156,7 @@ export async function view(ctx) {
 			status.waiting(-1);
 			if (items.length) open(Math.min(i, items.length - 1));
 			else {
-				work.replaceChildren(h('p', { class: 'ws-empty' }, 'Nothing is waiting. Well done.'));
+				work.replaceChildren(h('p', { class: 'ws-empty' }, t('Nothing is waiting. Well done.')));
 				inspector.replaceChildren();
 			}
 		} else {
@@ -187,7 +188,7 @@ export async function view(ctx) {
 			});
 			items = order.flatMap((g) => g.group);
 			for (const g of order) {
-				ol.append(h('li', { class: 'ws-group' }, `${g.label} · ${g.group.length}`));
+				ol.append(h('li', { class: 'ws-group' }, `${t(g.label)} · ${num(g.group.length)}`));
 				for (const e of g.group) {
 					const i = rows.length;
 					const b = rowButton(e, section, () => open(i));
@@ -202,7 +203,7 @@ export async function view(ctx) {
 				ol.append(h('li', null, b));
 			}
 		}
-		if (!items.length) ol.replaceChildren(h('li', { class: 'ws-none' }, section === 'suggestions' ? 'Nothing here.' : 'No suggestions yet. Use ✎ beside a meaning on any entry to suggest a change.'));
+		if (!items.length) ol.replaceChildren(h('li', { class: 'ws-none' }, section === 'suggestions' ? t('Nothing here.') : t('No suggestions yet. Use ✎ beside a meaning on any entry to suggest a change.')));
 	};
 	more.addEventListener('click', () => load().catch((err) => more.replaceWith(errorNote(err))));
 	search.addEventListener('input', () => {
@@ -214,11 +215,11 @@ export async function view(ctx) {
 	});
 
 	await load();
-	const count = section === 'suggestions' ? `${summary.waiting ?? 0} waiting` : `${Object.values(summary.mine).reduce((a, b) => a + b, 0)}`;
+	const count = section === 'suggestions' ? t('{n} waiting', { n: summary.waiting ?? 0 }) : num(Object.values(summary.mine).reduce((a, b) => a + b, 0));
 	listPane.replaceChildren(
-		h('header', { class: 'ws-list-head' }, h('h1', null, section === 'suggestions' ? 'Suggestions' : 'Contributions'), h('span', null, count)),
+		h('header', { class: 'ws-list-head' }, h('h1', null, section === 'suggestions' ? t('Suggestions') : t('Contributions')), h('span', null, count)),
 		section === 'suggestions'
-			? h('nav', { class: 'ws-segments', 'aria-label': 'Show' }, FILTERS.map(([s, label]) => h('a', { href: `/workspace?s=${section}&status=${s}`, 'aria-current': s === filter ? 'true' : null }, label)))
+			? h('nav', { class: 'ws-segments', 'aria-label': t('Show') }, FILTERS.map(([s, label]) => h('a', { href: `/workspace?s=${section}&status=${s}`, 'aria-current': s === filter ? 'true' : null }, t(label))))
 			: '',
 		h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
 		ol,
@@ -234,8 +235,8 @@ export async function view(ctx) {
 	/** @param {KeyboardEvent} ev */
 	const keys = (ev) => {
 		if (!root.isConnected) return document.removeEventListener('keydown', keys);
-		const t = /** @type {HTMLElement} */ (ev.target);
-		if (ev.metaKey || ev.ctrlKey || ev.altKey || t.closest('input, textarea, select, [contenteditable]')) return;
+		const target = /** @type {HTMLElement} */ (ev.target);
+		if (ev.metaKey || ev.ctrlKey || ev.altKey || target.closest('input, textarea, select, [contenteditable]')) return;
 		const k = ev.key.toLowerCase();
 		if (k === 'j') open(current + 1);
 		else if (k === 'k') open(current - 1);
@@ -253,8 +254,8 @@ export async function view(ctx) {
  * @param {() => void} onOpen
  */
 function rowButton(e, section, onOpen) {
-	const what = e.action === 'add' ? 'New meaning' : e.action === 'delete' ? 'Remove' : e.field === 'exam' ? 'Example' : 'Meaning';
-	const by = section === 'suggestions' ? (e.own ? 'you' : e.author) : STATUS[e.status] ?? e.status;
+	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove') : e.field === 'exam' ? t('Example') : t('Meaning');
+	const by = section === 'suggestions' ? (e.own ? t('you') : e.author) : STATUS[e.status] ? t(STATUS[e.status]) : e.status;
 	const b = /** @type {HTMLButtonElement} */ (
 		h(
 			'button',
@@ -276,10 +277,10 @@ function renderItem(e, o) {
 	const lang = e.dict === 'emd' ? 'en' : 'my';
 	const meaningLang = lang === 'en' ? 'my' : 'en';
 	const exampleLang = lang;
-	const what = e.action === 'add' ? 'New meaning' : e.action === 'delete' ? 'Remove a meaning' : e.field === 'exam' ? 'Change an example' : 'Change a meaning';
+	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove a meaning') : e.field === 'exam' ? t('Change an example') : t('Change a meaning');
 
-	const entry = h('div', { class: 'ws-entry' }, h('p', { class: 'ws-quiet' }, 'Loading the entry…'));
-	const backButton = h('button', { type: 'button', class: 'ws-back', 'aria-label': 'Back to the list' }, icon(ICONS.back, 20));
+	const entry = h('div', { class: 'ws-entry' }, h('p', { class: 'ws-quiet' }, t('Loading the entry…')));
+	const backButton = h('button', { type: 'button', class: 'ws-back', 'aria-label': t('Back to the list') }, icon(ICONS.back, 20));
 	backButton.addEventListener('click', o.back);
 	o.work.replaceChildren(
 		h(
@@ -289,15 +290,15 @@ function renderItem(e, o) {
 			h('span', { class: 'ws-crumb-word', lang }, e.word),
 			h('span', { 'aria-hidden': 'true' }, '›'),
 			h('span', null, what),
-			h('a', { href: definitionHref(e.word), class: 'ws-out' }, 'Open on the site ↗'),
+			h('a', { href: definitionHref(e.word), class: 'ws-out' }, t('Open on the site ↗')),
 		),
-		h('div', { class: 'ws-work' }, h('p', { class: 'ws-quiet' }, 'The entry as it is now, with the suggested change in place. Changed lines show the text as stored.'), entry),
+		h('div', { class: 'ws-work' }, h('p', { class: 'ws-quiet' }, t('The entry as it is now, with the suggested change in place. Changed lines show the text as stored.')), entry),
 	);
 
 	// The change, as lines of a diff.
 	/** @param {'del' | 'add'} kind @param {string | null} text @param {string} textLang */
 	const line = (kind, text, textLang) =>
-		h('div', { class: `ws-line ws-${kind}` }, h('span', { class: 'ws-sign', 'aria-label': kind === 'del' ? 'removed' : 'added' }, kind === 'del' ? '−' : '+'), h('span', { lang: textLang }, text ?? '(none)'));
+		h('div', { class: `ws-line ws-${kind}` }, h('span', { class: 'ws-sign', 'aria-label': kind === 'del' ? t('removed') : t('added') }, kind === 'del' ? '−' : '+'), h('span', { lang: textLang }, text ?? t('(none)')));
 	/** @type {HTMLElement[]} */
 	const change = [];
 	if (e.action === 'edit') {
@@ -324,16 +325,16 @@ function renderItem(e, o) {
 			for (const s of senses) {
 				if (s.type !== type) {
 					type = s.type;
-					out.push(h('div', { class: 'ws-line ws-type' }, type.toLowerCase()));
+					out.push(h('div', { class: 'ws-line ws-type' }, posName(type)));
 				}
 				n++;
 				if (s.id === e.sense_id && e.action === 'edit' && e.field === 'exam') {
-					out.push(h('div', { class: 'ws-line ws-ctx' }, h('span', { class: 'ws-sign ws-n' }, String(n)), h('span', { lang: meaningLang }, renderMarkup(s.sense, { headword: e.word }))), ...change);
+					out.push(h('div', { class: 'ws-line ws-ctx' }, h('span', { class: 'ws-sign ws-n' }, num(n)), h('span', { lang: meaningLang }, renderMarkup(s.sense, { headword: e.word }))), ...change);
 				} else if (s.id === e.sense_id) {
 					out.push(...change);
 					if (s.example && e.action === 'edit') out.push(h('div', { class: 'ws-line ws-ctx' }, h('span', { class: 'ws-sign' }), h('span', { lang: exampleLang }, renderMarkup(s.example, { headword: e.word }))));
 				} else {
-					out.push(h('div', { class: 'ws-line ws-dim' }, h('span', { class: 'ws-sign ws-n' }, String(n)), h('span', { lang: meaningLang }, renderMarkup(s.sense, { headword: e.word }))));
+					out.push(h('div', { class: 'ws-line ws-dim' }, h('span', { class: 'ws-sign ws-n' }, num(n)), h('span', { lang: meaningLang }, renderMarkup(s.sense, { headword: e.word }))));
 				}
 			}
 			if (e.action === 'add') out.push(...change);
@@ -347,10 +348,10 @@ function renderItem(e, o) {
 		h(
 			'section',
 			{ class: 'ws-box' },
-			h('h2', null, 'Suggested by'),
-			h('p', { class: 'ws-who' }, h('span', { class: 'ws-avatar' }, (e.own ? 'You' : e.author).slice(0, 1).toUpperCase()), h('strong', null, e.own ? 'You' : e.author)),
+			h('h2', null, t('Suggested by')),
+			h('p', { class: 'ws-who' }, h('span', { class: 'ws-avatar' }, (e.own ? t('You') : e.author).slice(0, 1).toUpperCase()), h('strong', null, e.own ? t('You') : e.author)),
 			e.note ? h('p', null, `“${e.note}”`) : null,
-			h('p', { class: 'ws-quiet' }, `${ago(e.created_at)}${e.source ? `, against build ${e.source}` : ''}`),
+			h('p', { class: 'ws-quiet' }, e.source ? t('{when}, against build {build}', { when: ago(e.created_at), build: e.source }) : ago(e.created_at)),
 		),
 	];
 	if (e.sense_id !== null) {
@@ -358,19 +359,19 @@ function renderItem(e, o) {
 		reactions(lang, e.word)
 			.then((r) => {
 				const c = r.senses[String(e.sense_id)];
-				rated.textContent = c ? `${c.likes} up · ${c.dislikes} down` : 'not rated';
+				rated.textContent = c ? t('{up} up · {down} down', { up: c.likes, down: c.dislikes }) : t('not rated');
 			})
-			.catch(() => (rated.textContent = 'unavailable'));
-		parts.push(h('section', { class: 'ws-box' }, h('h2', null, 'This meaning'), h('p', { class: 'ws-pair' }, h('span', null, 'Rated'), rated)));
+			.catch(() => (rated.textContent = t('unavailable')));
+		parts.push(h('section', { class: 'ws-box' }, h('h2', null, t('This meaning')), h('p', { class: 'ws-pair' }, h('span', null, t('Rated')), rated)));
 	}
-	if (e.reviewer) parts.push(h('section', { class: 'ws-box' }, h('h2', null, e.status === 'rejected' ? 'Declined' : 'Approved'), h('p', null, `by ${e.reviewer}${e.reviewed_at ? `, ${ago(e.reviewed_at)}` : ''}`), e.review_note ? h('p', null, `“${e.review_note}”`) : null));
+	if (e.reviewer) parts.push(h('section', { class: 'ws-box' }, h('h2', null, e.status === 'rejected' ? t('Declined') : t('Approved')), h('p', null, e.reviewed_at ? t('by {who}, {when}', { who: e.reviewer === 'you' ? t('you') : e.reviewer, when: ago(e.reviewed_at) }) : t('by {who}', { who: e.reviewer === 'you' ? t('you') : e.reviewer })), e.review_note ? h('p', null, `“${e.review_note}”`) : null));
 	if (o.section === 'contributions') parts.push(progress(e.status));
 
 	const out = h('p', { class: 'ws-result', role: 'status' });
 	if (e.status === 'pending' && o.editor && !e.own && o.section === 'suggestions') {
-		const note = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, maxlength: 600, placeholder: `Shown to ${e.author} with the decision` }));
-		const approve = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary', 'data-key': 'a' }, 'Approve'));
-		const decline = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary', 'data-key': 'd' }, 'Decline'));
+		const note = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, maxlength: 600, placeholder: t('Shown to {who} with the decision', { who: e.author }) }));
+		const approve = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary', 'data-key': 'a' }, t('Approve')));
+		const decline = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary', 'data-key': 'd' }, t('Decline')));
 		/** @param {'approve' | 'reject'} decision */
 		const decide = async (decision) => {
 			approve.disabled = decline.disabled = true;
@@ -388,27 +389,27 @@ function renderItem(e, o) {
 			h(
 				'section',
 				{ class: 'ws-box' },
-				h('h2', null, 'Decision'),
-				h('label', { class: 'ws-field' }, `Note for ${e.author} (optional)`, note),
+				h('h2', null, t('Decision')),
+				h('label', { class: 'ws-field' }, t('Note for {who} (optional)', { who: e.author }), note),
 				h('div', { class: 'ws-buttons' }, approve, decline),
 				out,
-				h('p', { class: 'ws-quiet ws-keys' }, 'A approve · D decline · J K next, previous'),
+				h('p', { class: 'ws-quiet ws-keys' }, t('A approve · D decline · J K next, previous')),
 			),
 		);
 	} else if (e.status === 'pending' && e.own) {
-		const withdraw = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, 'Withdraw'));
+		const withdraw = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, t('Withdraw')));
 		withdraw.addEventListener('click', async () => {
 			withdraw.disabled = true;
 			try {
 				await withdrawEdit(e.id);
 				o.done({ ...e, status: 'withdrawn' });
-				out.textContent = 'Withdrawn.';
+				out.textContent = t('Withdrawn.');
 			} catch (err) {
 				withdraw.disabled = false;
 				out.textContent = err instanceof Error ? err.message : String(err);
 			}
 		});
-		parts.push(h('section', { class: 'ws-box' }, withdraw, h('p', { class: 'ws-quiet' }, 'Possible while it waits for review.'), out));
+		parts.push(h('section', { class: 'ws-box' }, withdraw, h('p', { class: 'ws-quiet' }, t('Possible while it waits for review.')), out));
 	}
 	o.inspector.replaceChildren(...parts);
 }
@@ -418,16 +419,16 @@ function renderItem(e, o) {
  * @param {string} status
  */
 function progress(status) {
-	const steps = ['Suggested', 'Reviewed', 'In the next release', 'In the dictionary'];
+	const steps = [t('Suggested'), t('Reviewed'), t('In the next release'), t('In the dictionary')];
 	const reached = status === 'merged' ? 4 : status === 'approved' || status === 'exported' ? 3 : status === 'rejected' ? 2 : 1;
 	return h(
 		'section',
 		{ class: 'ws-box' },
-		h('h2', null, 'Progress'),
+		h('h2', null, t('Progress')),
 		h(
 			'ol',
 			{ class: 'ws-track' },
-			steps.map((s, i) => h('li', { 'data-done': i < reached ? 'true' : null }, i === 1 && status === 'rejected' ? 'Declined' : s)),
+			steps.map((s, i) => h('li', { 'data-done': i < reached ? 'true' : null }, i === 1 && status === 'rejected' ? t('Declined') : s)),
 		),
 	);
 }
@@ -439,22 +440,23 @@ function progress(status) {
  * @param {{ waiting: number | null }} summary
  */
 function railFor(me, editor, section, summary) {
-	const items = SECTIONS.filter((s) => editor || !s.editor).map((s) =>
-		h(
+	const items = SECTIONS.filter((s) => editor || !s.editor).map((s) => {
+		const label = t(s.label);
+		return h(
 			'a',
-			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: s.label, 'aria-label': s.id === 'suggestions' && summary.waiting ? `${s.label}, ${summary.waiting} waiting` : s.label },
+			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: label, 'aria-label': s.id === 'suggestions' && summary.waiting ? t('{label}, {n} waiting', { label, n: summary.waiting }) : label },
 			icon(s.icon, 20),
-			s.id === 'suggestions' && summary.waiting ? h('span', { class: 'ws-badge' }, String(summary.waiting)) : null,
-		),
-	);
+			s.id === 'suggestions' && summary.waiting ? h('span', { class: 'ws-badge' }, num(summary.waiting)) : null,
+		);
+	});
 	const face = me.avatar_url ? h('img', { src: me.avatar_url, alt: '', referrerpolicy: 'no-referrer' }) : me.name.slice(0, 1).toUpperCase();
 	return h(
 		'nav',
-		{ class: 'ws-rail', 'aria-label': 'Workspace' },
-		h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': 'MyOrdbok, the public site' }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })),
+		{ class: 'ws-rail', 'aria-label': t('Workspace') },
+		h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })),
 		items,
 		h('span', { class: 'ws-rail-gap' }),
-		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': `Account: ${me.name}` }, face),
+		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face),
 	);
 }
 
@@ -464,7 +466,7 @@ function railFor(me, editor, section, summary) {
  * @param {HTMLElement | null} alert
  */
 function accountPane(me, ctx, alert) {
-	const out = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, 'Sign out'));
+	const out = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, t('Sign out')));
 	const note = h('p', { class: 'ws-result', role: 'status' });
 	out.addEventListener('click', async () => {
 		out.disabled = true;
@@ -479,17 +481,17 @@ function accountPane(me, ctx, alert) {
 	const others = (/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).filter((p) => !me.providers.includes(p));
 	return h(
 		'main',
-		{ class: 'ws-main ws-account', 'aria-label': 'Account' },
+		{ class: 'ws-main ws-account', 'aria-label': t('Account') },
 		h(
 			'div',
 			{ class: 'ws-work' },
 			h('header', { class: 'ws-account-head' }, me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 56, height: 56, referrerpolicy: 'no-referrer' }) : null, h('div', null, h('h1', null, me.name), me.email ? h('p', { class: 'ws-quiet' }, me.email) : null)),
 			alert,
-			h('dl', { class: 'ws-facts' }, h('dt', null, 'Role'), h('dd', null, roleName(me.role)), h('dt', null, 'Signs in with'), h('dd', null, me.providers.map((p) => PROVIDERS[p]).join(' and ') || '—')),
+			h('dl', { class: 'ws-facts' }, h('dt', null, t('Role')), h('dd', null, roleName(me.role)), h('dt', null, t('Signs in with')), h('dd', null, list(me.providers.map((p) => PROVIDERS[p])) || '—')),
 			others.length
-				? h('p', null, 'Also sign in with ', others.flatMap((p, i) => [i ? ' or ' : '', h('a', { href: signInHref(p, '/workspace?s=account') }, PROVIDERS[p])]), ': it is linked to this account.')
+				? h('p', null, tx('Also sign in with {providers}: it is linked to this account.', { providers: h('span', null, others.flatMap((p, i) => [i ? ` ${t('or')} ` : '', h('a', { href: signInHref(p, '/workspace?s=account') }, PROVIDERS[p])])) }))
 				: null,
-			h('p', null, h('a', { href: '/privacy' }, 'What is stored'), ' · ', h('a', { href: '/terms' }, 'Terms of Use')),
+			h('p', null, h('a', { href: '/privacy' }, t('What is stored')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
 			out,
 			note,
 			deletion(me, ctx),
@@ -505,14 +507,14 @@ function accountPane(me, ctx, alert) {
 function deletion(me, ctx) {
 	const expected = me.email ?? 'DELETE';
 	const field = /** @type {HTMLInputElement} */ (h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', 'aria-describedby': 'ws-delete-help' }));
-	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'ws-danger', disabled: true }, 'Delete the account'));
+	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'ws-danger', disabled: true }, t('Delete the account')));
 	const result = h('p', { class: 'ws-result', role: 'alert' });
 	field.addEventListener('input', () => (go.disabled = field.value.trim().toLowerCase() !== expected.toLowerCase()));
 	const form = h(
 		'form',
 		{ class: 'ws-delete' },
-		h('p', { id: 'ws-delete-help' }, 'Removes the sign-ins, ratings, comments and suggestions still waiting. Suggestions already reviewed stay in the dictionary’s history as “Former member”. This cannot be undone.'),
-		h('label', { class: 'ws-field' }, me.email ? `Type ${me.email} to confirm` : 'Type DELETE to confirm', field),
+		h('p', { id: 'ws-delete-help' }, t('Removes the sign-ins, ratings, comments and suggestions still waiting. Suggestions already reviewed stay in the dictionary’s history as “Former member”. This cannot be undone.')),
+		h('label', { class: 'ws-field' }, t('Type {text} to confirm', { text: expected }), field),
 		go,
 		result,
 	);
@@ -528,7 +530,7 @@ function deletion(me, ctx) {
 			result.textContent = err instanceof Error ? err.message : String(err);
 		}
 	});
-	return h('details', { class: 'ws-danger-zone' }, h('summary', null, 'Delete the account'), form);
+	return h('details', { class: 'ws-danger-zone' }, h('summary', null, t('Delete the account')), form);
 }
 
 /**
@@ -538,19 +540,19 @@ function deletion(me, ctx) {
  */
 function statusBar(health, summary, editor) {
 	let waiting = summary.waiting ?? 0;
-	const waitingText = h('span', null, editor ? `${waiting} waiting` : '');
-	const definition = /** @type {HTMLAnchorElement} */ (h('a', { href: '/definition' }, 'Definition'));
+	const waitingText = h('span', null, editor ? t('{n} waiting', { n: waiting }) : '');
+	const definition = /** @type {HTMLAnchorElement} */ (h('a', { href: '/definition' }, t('Definition')));
 	const db = health?.dictionary;
 	const node = h(
 		'footer',
 		{ class: 'ws-status' },
-		h('span', { class: 'ws-live' }, db ? `${db.database ?? 'dictionary'}${db.built ? ` · build ${db.built}` : ''}` : 'dictionary unavailable'),
+		h('span', { class: 'ws-live' }, db ? `${db.database ?? t('dictionary')}${db.built ? ` · ${t('build {build}', { build: db.built })}` : ''}` : t('dictionary unavailable')),
 		waitingText,
 		h('span', { class: 'ws-status-gap' }),
-		h('span', null, 'Site:'),
-		h('a', { href: '/' }, 'Home'),
+		h('span', null, t('Site:')),
+		h('a', { href: '/' }, t('Home')),
 		definition,
-		h('a', { href: '/grammar' }, 'Grammar'),
+		h('a', { href: '/grammar' }, t('Grammar')),
 	);
 	return {
 		node,
@@ -562,10 +564,10 @@ function statusBar(health, summary, editor) {
 		waiting(by) {
 			waiting = Math.max(0, waiting + by);
 			if (!editor) return;
-			waitingText.textContent = `${waiting} waiting`;
+			waitingText.textContent = t('{n} waiting', { n: waiting });
 			const badge = node.parentElement?.querySelector('.ws-badge');
 			if (badge) {
-				badge.textContent = String(waiting);
+				badge.textContent = num(waiting);
 				badge.toggleAttribute('hidden', waiting === 0);
 			}
 		},
@@ -582,17 +584,17 @@ function signedOut(back, alert) {
 	return h(
 		'div',
 		{ class: 'ws-signin' },
-		h('a', { href: '/', 'aria-label': 'MyOrdbok, the dictionary' }, h('img', { src: '/static/icon.svg', alt: '', width: 48, height: 48 })),
-		h('h1', null, 'Sign in'),
-		h('p', null, 'To rate meanings and suggest corrections or new ones. Reading and searching never need an account.'),
+		h('a', { href: '/', 'aria-label': t('MyOrdbok, the dictionary') }, h('img', { src: '/static/icon.svg', alt: '', width: 48, height: 48 })),
+		h('h1', null, t('Sign in')),
+		h('p', null, t('To rate meanings and suggest corrections or new ones. Reading and searching never need an account.')),
 		alert,
 		h(
 			'div',
 			{ class: 'ws-providers' },
-			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'ws-provider', href: signInHref(p, to) }, `Continue with ${PROVIDERS[p]}`)),
+			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'ws-provider', href: signInHref(p, to) }, t('Continue with {provider}', { provider: PROVIDERS[p] }))),
 		),
-		h('p', { class: 'ws-quiet' }, 'The same verified email through either provider is the same account. ', h('a', { href: '/privacy' }, 'Privacy'), ' · ', h('a', { href: '/terms' }, 'Terms of Use')),
-		h('a', { href: '/' }, 'Back to the dictionary'),
+		h('p', { class: 'ws-quiet' }, t('The same verified email through either provider is the same account.'), ' ', h('a', { href: '/privacy' }, t('Privacy')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
+		h('a', { href: '/' }, t('Back to the dictionary')),
 	);
 }
 
@@ -614,12 +616,12 @@ function notice(query) {
 	const error = query.get('error');
 	if (!error) return null;
 	const missing = query.get('missing');
-	return h('p', { class: 'ws-alert', role: 'alert' }, ERRORS[error] ?? 'The sign-in could not be completed.', missing && /^[A-Z_]+$/.test(missing) ? ` (${missing} is not set.)` : null);
+	return h('p', { class: 'ws-alert', role: 'alert' }, ERRORS[error] ? t(ERRORS[error]) : t('The sign-in could not be completed.'), missing && /^[A-Z_]+$/.test(missing) ? ` ${t('({name} is not set.)', { name: missing })}` : null);
 }
 
 /** @param {string} role */
 function roleName(role) {
-	return role === 'admin' ? 'Administrator' : role === 'editor' ? 'Editor' : 'Member';
+	return role === 'admin' ? t('Administrator') : role === 'editor' ? t('Editor') : t('Member');
 }
 
 /** @param {unknown} err */
@@ -635,13 +637,13 @@ function errorNote(err) {
 function ago(seconds, short = false) {
 	const diff = Date.now() / 1000 - seconds;
 	if (short) {
-		if (diff < 3600) return `${Math.max(1, Math.floor(diff / 60))} m`;
-		if (diff < 86400) return `${Math.floor(diff / 3600)} h`;
-		return `${Math.floor(diff / 86400)} d`;
+		if (diff < 3600) return t('{n} m', { n: Math.max(1, Math.floor(diff / 60)) });
+		if (diff < 86400) return t('{n} h', { n: Math.floor(diff / 3600) });
+		return t('{n} d', { n: Math.floor(diff / 86400) });
 	}
-	if (diff < 60) return 'just now';
-	if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-	if (diff < 86400) return `${Math.floor(diff / 3600)} h ago`;
-	if (diff < 172800) return 'yesterday';
-	return new Date(seconds * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+	if (diff < 60) return t('just now');
+	if (diff < 3600) return t('{n} min ago', { n: Math.floor(diff / 60) });
+	if (diff < 86400) return t('{n} h ago', { n: Math.floor(diff / 3600) });
+	if (diff < 172800) return t('yesterday');
+	return shortDate(new Date(seconds * 1000), { year: true });
 }

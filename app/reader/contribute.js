@@ -14,6 +14,7 @@
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
+import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
 
@@ -23,11 +24,11 @@ import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
 
 /** @type {Record<string, string>} */
 const STATUS = {
-	pending: 'waiting for review',
-	approved: 'approved, in the next release',
-	exported: 'approved, in the next release',
-	rejected: 'not accepted',
-	conflict: 'the entry changed first; please look again',
+	pending: mark('waiting for review'),
+	approved: mark('approved, in the next release'),
+	exported: mark('approved, in the next release'),
+	rejected: mark('not accepted'),
+	conflict: mark('the entry changed first; please look again'),
 };
 
 /**
@@ -58,9 +59,9 @@ const message = (err) => (err instanceof Error ? err.message : String(err));
 function thumbs(what, onPress, size) {
 	const upCount = h('span', { class: 'thumb-count' });
 	const downCount = h('span', { class: 'thumb-count' });
-	const up = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: `thumb ${size}`, 'aria-label': `Helpful: ${what}`, title: 'Helpful', 'aria-pressed': 'false' }, icon(ICONS.thumbUp, size === 'small' ? 16 : 20), upCount));
+	const up = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: `thumb ${size}`, 'aria-label': t('Helpful: {what}', { what }), title: t('Helpful'), 'aria-pressed': 'false' }, icon(ICONS.thumbUp, size === 'small' ? 16 : 20), upCount));
 	const down = /** @type {HTMLButtonElement} */ (
-		h('button', { type: 'button', class: `thumb ${size}`, 'aria-label': `Not helpful: ${what}`, title: 'Not helpful', 'aria-pressed': 'false' }, icon(ICONS.thumbDown, size === 'small' ? 16 : 20), downCount)
+		h('button', { type: 'button', class: `thumb ${size}`, 'aria-label': t('Not helpful: {what}', { what }), title: t('Not helpful'), 'aria-pressed': 'false' }, icon(ICONS.thumbDown, size === 'small' ? 16 : 20), downCount)
 	);
 	up.addEventListener('click', () => onPress(1));
 	down.addEventListener('click', () => onPress(-1));
@@ -69,8 +70,8 @@ function thumbs(what, onPress, size) {
 		down,
 		/** @param {Counts | undefined} c */
 		show(c) {
-			upCount.textContent = c?.likes ? String(c.likes) : '';
-			downCount.textContent = c?.dislikes ? String(c.dislikes) : '';
+			upCount.textContent = c?.likes ? num(c.likes) : '';
+			downCount.textContent = c?.dislikes ? num(c.dislikes) : '';
 			up.setAttribute('aria-pressed', String(c?.mine === 1));
 			down.setAttribute('aria-pressed', String(c?.mine === -1));
 		},
@@ -95,11 +96,11 @@ export function entryFeedback(lang, word) {
 	const note = h('p', { class: 'aside-quiet' });
 	const show = (/** @type {any} */ r) => {
 		state = r;
-		note.textContent = r.signedIn ? '' : 'Sign in to rate an entry or a meaning, or to suggest a change.';
+		note.textContent = r.signedIn ? '' : t('Sign in to rate an entry or a meaning, or to suggest a change.');
 		for (const v of views) v();
 	};
 	const loaded = reactions(lang, word).then(show, (err) => {
-		note.textContent = `Ratings are unavailable: ${message(err)}`;
+		note.textContent = t('Ratings are unavailable: {reason}', { reason: message(err) });
 	});
 
 	/**
@@ -111,7 +112,7 @@ export function entryFeedback(lang, word) {
 		await loaded;
 		// Ratings that did not load say so (in the card); only a known signed-out reader is sent to sign in.
 		if (!state) {
-			note.textContent = 'Ratings could not be loaded, so nothing was changed. Reload the page to try again.';
+			note.textContent = t('Ratings could not be loaded, so nothing was changed. Reload the page to try again.');
 			return;
 		}
 		if (!state.signedIn) return signIn();
@@ -132,9 +133,9 @@ export function entryFeedback(lang, word) {
 	return {
 		/** The side card: the entry as a whole. */
 		card() {
-			const t = thumbs(`“${word}”`, (v) => press({}, v, t), 'large');
-			views.push(() => t.show(state ?? undefined));
-			const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'aside-suggest' }, icon(ICONS.suggest, 18), 'Add a missing meaning'));
+			const pair = thumbs(`“${word}”`, (v) => press({}, v, pair), 'large');
+			views.push(() => pair.show(state ?? undefined));
+			const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'aside-suggest' }, icon(ICONS.suggest, 18), t('Add a missing meaning')));
 			add.addEventListener('click', async () => {
 				if (!(await member().catch(() => null))) return signIn();
 				openAddMeaning(lang, word);
@@ -142,9 +143,9 @@ export function entryFeedback(lang, word) {
 			return h(
 				'section',
 				{ class: 'aside-card' },
-				h('h2', null, 'Is this entry helpful?'),
-				h('div', { class: 'aside-actions' }, t.up, t.down, add),
-				h('p', { class: 'aside-quiet' }, 'Rate a single meaning, or suggest a change to it, with the buttons beside it.'),
+				h('h2', null, t('Is this entry helpful?')),
+				h('div', { class: 'aside-actions' }, pair.up, pair.down, add),
+				h('p', { class: 'aside-quiet' }, t('Rate a single meaning, or suggest a change to it, with the buttons beside it.')),
 				note,
 			);
 		},
@@ -161,9 +162,9 @@ export function entryFeedback(lang, word) {
 				const s = byId.get(/** @type {string} */ (row.dataset.senseId));
 				if (!s) continue;
 				const id = /** @type {number} */ (s.id);
-				const t = thumbs('this meaning', (v) => press({ sense_id: id, word: s.word }, v, t), 'small');
-				views.push(() => t.show(state?.senses[String(id)]));
-				const edit = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'thumb small sense-edit', 'aria-label': 'Suggest a change to this meaning', title: 'Suggest a change', 'aria-expanded': 'false' }, icon(ICONS.suggest, 15)));
+				const pair = thumbs(t('this meaning'), (v) => press({ sense_id: id, word: s.word }, v, pair), 'small');
+				views.push(() => pair.show(state?.senses[String(id)]));
+				const edit = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'thumb small sense-edit', 'aria-label': t('Suggest a change to this meaning'), title: t('Suggest a change'), 'aria-expanded': 'false' }, icon(ICONS.suggest, 15)));
 				edit.addEventListener('click', async () => {
 					if (!(await member().catch(() => null))) return signIn();
 					const shown = row.querySelector('.sense-editor');
@@ -181,7 +182,7 @@ export function entryFeedback(lang, word) {
 					row.querySelector('.gloss')?.after(editor);
 					editor.querySelector('textarea')?.focus();
 				});
-				row.querySelector('.gloss')?.append(h('span', { class: 'sense-tools' }, t.up, t.down, edit));
+				row.querySelector('.gloss')?.append(h('span', { class: 'sense-tools' }, pair.up, pair.down, edit));
 			}
 		},
 	};
@@ -199,10 +200,10 @@ export function entryFeedback(lang, word) {
 function senseEditor(lang, word, id, s, glossLang, close) {
 	const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }, s.sense));
 	const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text', value: s.example ?? '', lang: glossLang === 'my' ? 'en' : 'my' }));
-	const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: 'A source or a short reason helps the review' }));
-	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, 'Send change'));
-	const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, 'Suggest removing'));
-	const cancel = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, 'Cancel'));
+	const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: t('A source or a short reason helps the review') }));
+	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send change')));
+	const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Suggest removing')));
+	const cancel = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Cancel')));
 	const out = h('p', { class: 'suggest-result', role: 'status' });
 	const changed = () => meaning.value.trim() !== s.sense || example.value.trim() !== (s.example ?? '');
 	for (const f of [meaning, example]) f.addEventListener('input', () => (save.disabled = !changed()));
@@ -211,12 +212,12 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 	const send = async (list) => {
 		for (const b of [save, remove]) b.disabled = true;
 		out.className = 'suggest-result';
-		out.textContent = 'Sending…';
+		out.textContent = t('Sending…');
 		try {
 			let status = '';
 			for (const item of list) status = (await suggestEdit({ lang, word, note: reason.value, sense_id: id, ...item })).edit.status;
-			out.textContent = status === 'approved' ? 'Approved. It reaches the dictionary with the next release.' : 'Sent. An editor will review it.';
-			cancel.textContent = 'Close';
+			out.textContent = status === 'approved' ? t('Approved. It reaches the dictionary with the next release.') : t('Sent. An editor will review it.');
+			cancel.textContent = t('Close');
 		} catch (err) {
 			out.className = 'suggest-result suggest-failed';
 			out.textContent = message(err);
@@ -236,9 +237,9 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 	const editor = h(
 		'div',
 		{ class: 'sense-editor' },
-		h('label', null, 'Meaning', meaning),
-		h('label', null, 'Example', example),
-		h('label', null, 'Why (optional)', reason),
+		h('label', null, t('Meaning'), meaning),
+		h('label', null, t('Example'), example),
+		h('label', null, t('Why (optional)'), reason),
 		h('div', { class: 'suggest-buttons' }, save, remove, cancel),
 		out,
 	);
@@ -254,9 +255,9 @@ function senseEditor(lang, word, id, s, glossLang, close) {
  * @param {string} word
  */
 async function openAddMeaning(lang, word) {
-	const body = h('div', { class: 'suggest-body' }, h('p', { class: 'notice' }, 'Loading…'));
-	const close = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-close', 'aria-label': 'Close' }, icon(ICONS.close, 20)));
-	const dialog = /** @type {HTMLDialogElement} */ (h('dialog', { class: 'suggest', 'aria-label': `Add a meaning to “${word}”` }, h('header', { class: 'suggest-head' }, h('h2', null, `Add a meaning to “${word}”`), close), body));
+	const body = h('div', { class: 'suggest-body' }, h('p', { class: 'notice' }, t('Loading…')));
+	const close = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-close', 'aria-label': t('Close') }, icon(ICONS.close, 20)));
+	const dialog = /** @type {HTMLDialogElement} */ (h('dialog', { class: 'suggest', 'aria-label': t('Add a meaning to “{word}”', { word }) }, h('header', { class: 'suggest-head' }, h('h2', null, t('Add a meaning to “{word}”', { word })), close), body));
 	close.addEventListener('click', () => dialog.close());
 	dialog.addEventListener('close', () => dialog.remove());
 	document.body.append(dialog);
@@ -264,19 +265,19 @@ async function openAddMeaning(lang, word) {
 	try {
 		const data = await editableSenses(lang, word);
 		const glossLang = lang === 'en' ? 'my' : 'en';
-		const type = /** @type {HTMLSelectElement} */ (h('select', null, data.types.map((t) => h('option', { value: String(t.id) }, t.name))));
-		const noun = data.types.find((t) => t.name === 'Noun');
+		const type = /** @type {HTMLSelectElement} */ (h('select', null, data.types.map((ty) => h('option', { value: String(ty.id) }, posName(ty.name)))));
+		const noun = data.types.find((ty) => ty.name === 'Noun');
 		if (noun) type.value = String(noun.id);
 		const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }));
 		const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text' }));
-		const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: 'A source or a short reason helps the review' }));
-		const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, 'Send new meaning'));
+		const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: t('A source or a short reason helps the review') }));
+		const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send new meaning')));
 		const out = h('p', { class: 'suggest-result', role: 'status' });
 		const mine = h('ul', { class: 'suggest-mine' });
-		const mineHead = h('h3', null, 'Your suggestions for this word');
+		const mineHead = h('h3', null, t('Your suggestions for this word'));
 		/** @param {OwnEdit[]} list */
 		const showMine = (list) => {
-			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, STATUS[e.status] ?? e.status), ' ', describe(e, data.senses))));
+			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, STATUS[e.status] ? t(STATUS[e.status]) : e.status), ' ', describe(e, data.senses))));
 			mineHead.hidden = !list.length;
 		};
 		showMine(data.mine);
@@ -284,10 +285,10 @@ async function openAddMeaning(lang, word) {
 		add.addEventListener('click', async () => {
 			add.disabled = true;
 			out.className = 'suggest-result';
-			out.textContent = 'Sending…';
+			out.textContent = t('Sending…');
 			try {
 				const { edit } = await suggestEdit({ lang, word, action: 'add', wrte: Number(type.value), sense: meaning.value, exam: example.value, note: reason.value });
-				out.textContent = edit.status === 'approved' ? 'Approved. It reaches the dictionary with the next release.' : 'Sent. An editor will review it.';
+				out.textContent = edit.status === 'approved' ? t('Approved. It reaches the dictionary with the next release.') : t('Sent. An editor will review it.');
 				meaning.value = example.value = reason.value = '';
 				showMine((await editableSenses(lang, word)).mine);
 			} catch (err) {
@@ -297,11 +298,11 @@ async function openAddMeaning(lang, word) {
 			}
 		});
 		body.replaceChildren(
-			h('p', { class: 'aside-quiet suggest-intro' }, data.role === 'editor' || data.role === 'admin' ? 'As an editor, your addition is approved at once and reaches the dictionary with the next release.' : 'An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.'),
-			h('label', null, 'Part of speech', type),
-			h('label', null, 'Meaning', meaning),
-			h('label', null, 'Example', example),
-			h('label', null, 'Why (optional)', reason),
+			h('p', { class: 'aside-quiet suggest-intro' }, data.role === 'editor' || data.role === 'admin' ? t('As an editor, your addition is approved at once and reaches the dictionary with the next release.') : t('An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.')),
+			h('label', null, t('Part of speech'), type),
+			h('label', null, t('Meaning'), meaning),
+			h('label', null, t('Example'), example),
+			h('label', null, t('Why (optional)'), reason),
 			h('div', { class: 'suggest-buttons' }, add),
 			out,
 			mineHead,
@@ -319,14 +320,15 @@ async function openAddMeaning(lang, word) {
  */
 function describe(e, senses) {
 	const n = senses.findIndex((s) => s.id === e.sense_id) + 1;
-	const which = n ? `meaning ${n}` : 'a meaning';
-	if (e.action === 'delete') return `Remove ${which}.`;
+	const which = n ? t('meaning {n}', { n }) : t('a meaning');
+	if (e.action === 'delete') return t('Remove {which}.', { which });
 	if (e.action === 'add') {
 		try {
-			return `New meaning: ${JSON.parse(e.data ?? '{}').sense ?? ''}`;
+			return t('New meaning: {text}', { text: JSON.parse(e.data ?? '{}').sense ?? '' });
 		} catch {
-			return 'New meaning.';
+			return t('New meaning.');
 		}
 	}
-	return `${e.field === 'exam' ? 'Example' : 'Meaning'} of ${which}: ${e.new_value ?? '(none)'}`;
+	const value = e.new_value ?? t('(none)');
+	return e.field === 'exam' ? t('Example of {which}: {value}', { which, value }) : t('Meaning of {which}: {value}', { which, value });
 }

@@ -5,12 +5,15 @@
  *   theme      follows the device until changed; the button steps through
  *              device → light → dark. Kept on this device (mo:theme) and set
  *              before the first paint by the line in index.html's <head>.
+ *   language   English or Myanmar; the button shows the other one, and
+ *              choosing it switches (app/i18n/index.js).
  *   analytics  when analytics were declined, a small chart icon stays here;
  *              choosing it allows them, and it goes.
  */
 import { analyticsAvailable, getChoice, setChoice } from './consent.js';
 import { h, icon } from './dom.js';
 import { ICONS } from './icons.js';
+import { getLang, mark, setLang, t } from '../i18n/index.js';
 
 const THEME_KEY = 'mo:theme';
 const THEMES = /** @type {const} */ (['system', 'light', 'dark']);
@@ -18,9 +21,9 @@ const THEMES = /** @type {const} */ (['system', 'light', 'dark']);
 
 /** @type {Record<Theme, string>} */
 const THEME_LABEL = {
-	system: 'Theme: as the device (choose for light)',
-	light: 'Theme: light (choose for dark)',
-	dark: 'Theme: dark (choose to follow the device)',
+	system: mark('Theme: as the device (choose for light)'),
+	light: mark('Theme: light (choose for dark)'),
+	dark: mark('Theme: dark (choose to follow the device)'),
 };
 
 /** @returns {Theme} */
@@ -53,10 +56,10 @@ export function setTheme(theme) {
 export function initPrefs(you) {
 	const theme = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'pref' }));
 	const showTheme = () => {
-		const t = getTheme();
-		theme.replaceChildren(icon(t === 'light' ? ICONS.sun : t === 'dark' ? ICONS.moon : ICONS.contrast, 19));
-		theme.setAttribute('aria-label', THEME_LABEL[t]);
-		theme.title = THEME_LABEL[t];
+		const now = getTheme();
+		theme.replaceChildren(icon(now === 'light' ? ICONS.sun : now === 'dark' ? ICONS.moon : ICONS.contrast, 19));
+		theme.setAttribute('aria-label', t(THEME_LABEL[now]));
+		theme.title = t(THEME_LABEL[now]);
 	};
 	theme.addEventListener('click', () => {
 		setTheme(THEMES[(THEMES.indexOf(getTheme()) + 1) % THEMES.length]);
@@ -65,17 +68,27 @@ export function initPrefs(you) {
 	showTheme();
 
 	const stats = /** @type {HTMLButtonElement} */ (
-		h('button', { type: 'button', class: 'pref', 'aria-label': 'Usage statistics are off. Choose to allow them.', title: 'Usage statistics are off · choose to allow' }, icon(ICONS.chart, 19))
+		h('button', { type: 'button', class: 'pref', 'aria-label': t('Usage statistics are off. Choose to allow them.'), title: t('Usage statistics are off · choose to allow') }, icon(ICONS.chart, 19))
 	);
 	stats.addEventListener('click', () => setChoice('granted'));
 	const showStats = () => (stats.hidden = !(analyticsAvailable() && getChoice() === 'denied'));
 	window.addEventListener('mo:consent', showStats);
 	showStats();
 
-	// One group at the right of the header: statistics (when declined), theme, account.
+	const other = getLang() === 'en' ? 'my' : 'en';
+	const language = /** @type {HTMLButtonElement} */ (
+		h(
+			'button',
+			{ type: 'button', class: 'pref pref-lang', lang: other, 'aria-label': other === 'my' ? 'မြန်မာဘာသာဖြင့် ကြည့်ရန်' : 'Show in English', title: other === 'my' ? 'မြန်မာ' : 'English' },
+			other === 'my' ? 'မြ' : 'EN',
+		)
+	);
+	language.addEventListener('click', () => setLang(other));
+
+	// One group at the right of the header: statistics (when declined), language, theme, account.
 	const tools = h('div', { class: 'header-tools' });
 	you.replaceWith(tools);
-	tools.append(stats, theme, you);
+	tools.append(stats, language, theme, you);
 	// The theme set elsewhere (another tab) is followed here too.
 	window.addEventListener('storage', (e) => {
 		if (e.key !== THEME_KEY) return;

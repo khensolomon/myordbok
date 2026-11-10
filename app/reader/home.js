@@ -4,7 +4,8 @@
  * page (styled by body[data-route="home"]); the view itself adds nothing.
  */
 import { h } from '../core/dom.js';
+import { t } from '../i18n/index.js';
 
 export function view() {
-	return h('section', { class: 'home', 'aria-label': 'Search the dictionary' });
+	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') });
 }
