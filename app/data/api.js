@@ -1,12 +1,16 @@
 // @ts-check
 /**
- * Dictionary data for the reader. Online for now; offline packs plug in here
- * so views never need to know where data came from.
+ * Dictionary data for the reader. Online first; when the network is not
+ * there, one word's answer and the search box's suggestions come from the
+ * offline copy on this device (offline.js), marked offline: true, and
+ * anything that copy lacks fails as it would have.
  *
  * Lookups are kept for the session (the last LOOKUPS_KEPT), so going back
  * and forth between the words of a sentence fetches each word once.
  */
 import { getJSON, postJSON } from '#platform/http.js';
+import { AppError } from '#shared/errors.js';
+import { lookupOffline, suggestOffline } from './offline.js';
 
 const LOOKUPS_KEPT = 50;
 /** @type {Map<string, Promise<any>>} */
@@ -40,7 +44,27 @@ function kept(store, url) {
  * @returns {Promise<import('#shared/types.js').Reading>}
  */
 export function read(q) {
-	return kept(readings, `/api/read?q=${encodeURIComponent(q)}`);
+	return kept(readings, `/api/read?q=${encodeURIComponent(q)}`).catch((err) =>
+		offlineOr(err, async () => {
+			const result = await lookupOffline(q);
+			return result ? { q, kind: 'entry', result } : null;
+		}),
+	);
+}
+
+/**
+ * When the network failed, the answer from this device; otherwise, or when
+ * the device has none, the error itself.
+ * @template T
+ * @param {unknown} err
+ * @param {() => Promise<T | null>} fromDevice
+ * @returns {Promise<T>}
+ */
+async function offlineOr(err, fromDevice) {
+	if (!(err instanceof AppError && err.code === 'unavailable')) throw err;
+	const answer = await fromDevice().catch(() => null);
+	if (answer === null) throw err;
+	return answer;
 }
 
 /**
@@ -58,7 +82,12 @@ export function remember(q, result) {
  * @returns {Promise<import('#shared/types.js').Suggestions>}
  */
 export function suggest(q) {
-	return getJSON(`/api/suggest?q=${encodeURIComponent(q)}`);
+	return getJSON(`/api/suggest?q=${encodeURIComponent(q)}`).catch((err) =>
+		offlineOr(err, async () => {
+			const words = await suggestOffline(q);
+			return words ? { q, lang: /[\u1000-\u109f]/.test(q) ? 'my' : 'en', words } : null;
+		}),
+	);
 }
 
 /**
@@ -76,7 +105,7 @@ export function spelling(q) {
  * @returns {Promise<import('#shared/types.js').LookupResult>}
  */
 export function lookup(q) {
-	return kept(lookups, `/api/lookup?q=${encodeURIComponent(q)}`);
+	return kept(lookups, `/api/lookup?q=${encodeURIComponent(q)}`).catch((err) => offlineOr(err, () => lookupOffline(q)));
 }
 
 /** True when the reader has asked to save data (Save-Data, Data Saver). */
@@ -271,4 +300,17 @@ export function inboxMessages({ status, before }) {
  */
 export function markMessage(id, status) {
 	return postJSON(`/api/workspace/messages/${id}`, { status });
+}
+
+/** Site settings, for admins. @returns {Promise<{ settings: Array<{ key: string, value: unknown, about: string, updated_at: number | null }> }>} */
+export function siteSettings() {
+	return getJSON('/api/workspace/settings');
+}
+
+/**
+ * @param {string} key
+ * @param {unknown} value
+ */
+export function updateSetting(key, value) {
+	return postJSON('/api/workspace/settings', { key, value });
 }

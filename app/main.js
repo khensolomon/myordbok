@@ -11,6 +11,8 @@ import { member } from './core/member.js';
 import { initPrefs } from './core/prefs.js';
 import { initNav } from './core/nav.js';
 import { startRouter } from './core/router.js';
+import { savingData } from './data/api.js';
+import { keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
 import './reader/search-box.js';
 
@@ -74,3 +76,7 @@ document.addEventListener('mo:member', (e) => {
 });
 // Whether someone is signed in; a failure leaves the button as it is.
 member().catch((err) => console.warn('Account check failed:', err));
+
+// The word lists are kept on the device once the page has settled (offline.js).
+const idle = /** @type {(f: () => void) => void} */ (window.requestIdleCallback ?? ((f) => setTimeout(f, 3000)));
+idle(() => keepWordLists(savingData).catch((err) => console.warn('Word lists were not kept for offline use:', err)));

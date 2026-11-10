@@ -220,6 +220,35 @@ export const MY = {
 	'Privacy Policy': 'ကိုယ်ရေးအချက်အလက် မူဝါဒ',
 	'Terms of Use': 'အသုံးပြုမှု စည်းကမ်းချက်များ',
 
+	// Offline
+	Offline: 'အော့ဖ်လိုင်း',
+	'Offline copy': 'စက်ထဲရှိ မိတ္တူ',
+	'No connection: this is the copy on this device (build {build}).': 'ချိတ်ဆက်မှု မရှိပါ − ဤအဖြေသည် ဤစက်ထဲရှိ မိတ္တူမှ ဖြစ်သည် (တည်ဆောက်မှု {build})။',
+	'Keep the dictionary on this device to look words up without a connection. Choose only what you need; each part can be removed again.': 'ချိတ်ဆက်မှုမရှိဘဲ စကားလုံးရှာနိုင်ရန် အဘိဓာန်ကို ဤစက်ထဲတွင် သိမ်းထားနိုင်ပါသည်။ လိုအပ်သည်ကိုသာ ရွေးပါ၊ အပိုင်းတိုင်းကို ပြန်ဖယ်ရှားနိုင်ပါသည်။',
+	'English word list': 'အင်္ဂလိပ် စကားလုံးစာရင်း',
+	'Myanmar word list': 'မြန်မာ စကားလုံးစာရင်း',
+	'English → Myanmar definitions': 'အင်္ဂလိပ် → မြန်မာ အဓိပ္ပာယ်များ',
+	'Myanmar → English definitions': 'မြန်မာ → အင်္ဂလိပ် အဓိပ္ပာယ်များ',
+	'English related words': 'အင်္ဂလိပ် ဆက်စပ်စကားလုံးများ',
+	'Suggestions while typing, and whether a word is in the dictionary.': 'ရိုက်နေစဉ် အကြံပြုစာလုံးများနှင့် စကားလုံးတစ်လုံး အဘိဓာန်တွင် ပါ/မပါ။',
+	'The same for Myanmar words.': 'မြန်မာ စကားလုံးများအတွက်လည်း ထိုနည်းတူ။',
+	'Every English word’s meanings, examples and forms.': 'အင်္ဂလိပ် စကားလုံးတိုင်း၏ အဓိပ္ပာယ်၊ ဥပမာနှင့် ပုံစံများ။',
+	'Every Myanmar word’s meanings and pronunciation.': 'မြန်မာ စကားလုံးတိုင်း၏ အဓိပ္ပာယ်နှင့် အသံထွက်။',
+	'Synonyms, opposites and related words, shown with the English definitions.': 'ပြည်တူစကား၊ ဆန့်ကျင်ဘက်နှင့် ဆက်စပ်စကားလုံးများ − အင်္ဂလိပ် အဓိပ္ပာယ်များနှင့်အတူ ပြမည်။',
+	'Word lists are open to everyone; the definitions need a sign-in.': 'စကားလုံးစာရင်းများကို လူတိုင်း ရယူနိုင်ပြီး အဓိပ္ပာယ်များအတွက် အကောင့်ဝင်ရန် လိုပါသည်။',
+	'This site uses {used} of the space the browser allows ({quota}).': 'ဤဆိုက်သည် ဘရောက်ဇာ ခွင့်ပြုသော နေရာ ({quota}) အနက် {used} ကို အသုံးပြုထားသည်။',
+	'Phrases and sentences, ratings and suggestions still need a connection.': 'စကားစု၊ ဝါကျ၊ အဆင့်သတ်မှတ်ခြင်းနှင့် အကြံပြုခြင်းအတွက်မူ ချိတ်ဆက်မှု လိုပါသည်။',
+	'On this device': 'ဤစက်ထဲတွင် ရှိသည်',
+	'On this device, an older build ({build})': 'ဤစက်ထဲတွင် ရှိသည်၊ တည်ဆောက်မှုအဟောင်း ({build})',
+	'Sign in to download': 'ဒေါင်းလုဒ်လုပ်ရန် အကောင့်ဝင်ပါ',
+	Download: 'ဒေါင်းလုဒ်',
+	'Download again': 'ထပ်ဒေါင်းလုဒ်',
+	Update: 'အသစ်ယူရန်',
+	'Downloading…': 'ဒေါင်းလုဒ်လုပ်နေသည်…',
+	'{n} KB': '{n} KB',
+	'{n} MB': '{n} MB',
+	'{n} GB': '{n} GB',
+
 	// Contact
 	Contact: 'ဆက်သွယ်ရန်',
 	Feedback: 'အကြံပြုချက်',
@@ -359,6 +388,17 @@ export const MY = {
 	'{label}, {n} new': '{label}၊ အသစ် {n}',
 	'Showing the latest {n}.': 'နောက်ဆုံး {n} စောင်ကို ပြထားသည်။',
 	'new messages': 'စာအသစ်',
+
+	// Settings
+	Settings: 'ဆက်တင်များ',
+	'Offline definitions': 'အော့ဖ်လိုင်း အဓိပ္ပာယ်များ',
+	'Who may download the definitions and related words for offline use. Word lists are open to everyone either way.': 'အဓိပ္ပာယ်များနှင့် ဆက်စပ်စကားလုံးများကို အော့ဖ်လိုင်းအသုံးပြုရန် မည်သူ ဒေါင်းလုဒ်လုပ်နိုင်သနည်း။ စကားလုံးစာရင်းများကိုမူ မည်သို့ပင်ဖြစ်စေ လူတိုင်း ရယူနိုင်သည်။',
+	'Members only': 'အဖွဲ့ဝင်များသာ',
+	Everyone: 'လူတိုင်း',
+	'Changed {date}': '{date} တွင် ပြောင်းထားသည်',
+	'The default': 'မူလသတ်မှတ်ချက်',
+	'Saving…': 'သိမ်းနေသည်…',
+	'Saved.': 'သိမ်းပြီးပါပြီ။',
 
 	// Overview
 	sent: 'ပို့ထားသည်',

@@ -98,11 +98,21 @@ async function result(data, asked) {
 	if (data.language === 'my') {
 		if (!data.entries.length) return null;
 		const feedback = entryFeedback('my', data.query);
-		const article = h('article', { class: 'entry', lang: 'my' }, myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query));
+		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query));
 		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
 		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries));
 	}
 	return english(data, asked);
+}
+
+/**
+ * Said when an answer comes from the copy on this device, not the server.
+ * @param {object} result  A lookup result; offline.js marks those from the device.
+ */
+function offlineNote(result) {
+	const data = /** @type {{ offline?: boolean, build?: string }} */ (result);
+	if (!data.offline) return null;
+	return h('p', { class: 'entry-note offline-note', role: 'status' }, t('No connection: this is the copy on this device (build {build}).', { build: data.build ?? '?' }), ' ', h('a', { href: '/offline' }, t('Offline copy')));
 }
 
 /**
@@ -148,7 +158,7 @@ async function english(data, asked) {
 
 	const rel = data.entries.length ? related(data) : null;
 	/** @type {import('../core/dom.js').Child[]} */
-	const notes = [understood(data.query, asked, rel)];
+	const notes = [offlineNote(data), understood(data.query, asked, rel)];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */
@@ -408,6 +418,7 @@ function related(data) {
 	];
 	for (const [name, words] of lists) if (words.length) rows.push([name, wordLinks(words)]);
 	// "similar word of love" points at #synonyms: Similar answers it when there are no synonyms.
+	/** @type {Record<string, string>} */
 	const ids = { ...FOCUS_ROWS, ...(data.synonyms.length ? {} : { Similar: 'synonyms' }) };
 	if (!rows.length) return null;
 	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, t(name)), h('dd', null, value)]));

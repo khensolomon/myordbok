@@ -15,6 +15,7 @@
  *                                             own for members
  *   POST /api/workspace/account/delete           { confirm }: the member's email (or
  *                                             DELETE without one); see deleteAccount
+ *   GET  /api/workspace/settings, POST /api/workspace/settings  { key, value }   admins
  *   GET  /api/workspace/messages, POST /api/workspace/messages/{id}
  *                                             the Inbox, admins (routes/messages.js)
  *
@@ -26,6 +27,7 @@ import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember, endSession } from '../lib/session.js';
 import { inbox } from './messages.js';
+import { allSettings, setSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -60,6 +62,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'GET' && what === 'edits' && parts.length === 2) return list(request, env, member);
 	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
 	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
+	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
 		if (action === 'review') return review(request, env, member, Number(id));
@@ -325,4 +328,20 @@ async function deleteAccount(request, env, member) {
 	]);
 	const cookie = await endSession(request, env);
 	return json({ ok: true }, { headers: { 'set-cookie': cookie, 'cache-control': 'no-store' } });
+}
+
+/**
+ * Site settings, for admins (worker/lib/settings.js).
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function settings(request, env, member) {
+	if (member.role !== 'admin') throw new AppError('forbidden', 'Only admins change site settings.');
+	if (request.method === 'POST') {
+		const data = /** @type {{ key?: unknown, value?: unknown } | null} */ (await request.json().catch(() => null));
+		if (!data || typeof data.key !== 'string') throw new AppError('bad_request', 'Send { key, value }');
+		await setSetting(env, data.key, data.value, member.id);
+	}
+	return json({ settings: await allSettings(env) }, NO_STORE);
 }

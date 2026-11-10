@@ -4,9 +4,10 @@
 
 - [x] Myanmar interface language
 - [ ] Myanmar text of About, Privacy and Terms (drafted for review)
+- [ ] Offline: phrases and sentences on the device; a Myanmar thesaurus pack
 - [ ] Myanmar text of the sums' messages (shared/query)
 - [x] Feedback and contact form (own, replacing the Google Form and the contact email)
-- [ ] Offline data: word lists for everyone; definitions and related words as separate opt-in packs
+- [x] Offline data: word lists for everyone; definitions and related words as separate opt-in packs
 - [ ] Comments
 - [ ] Backups of the app database (myordbok-app)
 - [ ] Fonts page (/myanmar-fonts)

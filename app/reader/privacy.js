@@ -93,7 +93,7 @@ export function view() {
 			h('p', null, 'Some data stays in the browser or app on the device and is never sent to MyOrdbok:'),
 			list(
 				'Settings such as theme, interface language and the analytics choice (local storage).',
-				'Dictionary data downloaded for offline use (IndexedDB).',
+				'Dictionary data kept for offline use (IndexedDB): the word lists, which arrive by themselves after the first visit (about 0.6 MB, not when the browser saves data), and the definitions chosen on the Offline page.',
 			),
 			h('p', null, 'Clearing the site data in the browser, or removing the app, deletes all of it.'),
 		),

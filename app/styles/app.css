@@ -662,7 +662,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 	font-size: 14px;
 	background: var(--ground);
 }
-.ws[data-section="account"], .ws[data-section="overview"] { grid-template-columns: 52px minmax(0, 1fr); }
+.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"] { grid-template-columns: 52px minmax(0, 1fr); }
 .ws-status { grid-column: 1 / -1; }
 
 /* Rail: icons only, the current one marked by a line and colour. */
@@ -679,6 +679,28 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-message { margin: 0; max-width: 680px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
 .ws-more-note { padding: 8px 12px; font-size: 12px; }
 .ws-box > .ws-primary, .ws-box > .ws-secondary { height: 34px; padding: 0 16px; }
+
+/* Offline */
+.offline { max-width: 720px; }
+.offline-lead { color: var(--ink-2); }
+.offline-status:empty, .offline-use:empty { display: none; }
+.offline-packs { list-style: none; margin: 20px 0; padding: 0; display: grid; gap: 10px; }
+.offline-pack { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 12px; }
+.offline-have { border-color: var(--line); background: var(--surface); }
+.offline-text { display: grid; gap: 2px; min-width: 0; }
+.offline-text span { font-size: 14px; color: var(--ink-2); }
+.offline-text .offline-state { font-size: 13px; color: var(--muted); }
+.offline-text progress { width: 100%; height: 6px; margin-top: 6px; accent-color: var(--brand); }
+.offline-buttons { display: flex; gap: 8px; flex: none; }
+.offline-act, .offline-drop { height: 34px; padding: 0 14px; border-radius: 999px; font: 600 14px var(--font-ui); cursor: pointer; }
+.offline-act { border: none; background: var(--ink); color: var(--ground); }
+.offline-drop { border: 1px solid var(--line); background: var(--ground); color: var(--ink); }
+.offline-act:disabled, .offline-drop:disabled { opacity: 0.5; cursor: default; }
+.offline-act:lang(my), .offline-drop:lang(my) { font-family: var(--font-my); font-weight: 400; }
+.offline-note { font-size: 14px; color: var(--muted); }
+.offline-use { font-size: 13px; color: var(--muted); }
+.entry-note.offline-note { padding: 8px 12px; border-radius: 10px; background: var(--term-tint); color: var(--ink); font-size: 14px; }
+@media (max-width: 600px) { .offline-pack { flex-direction: column; align-items: stretch; } }
 
 /* Contact */
 .contact { max-width: 640px; }
@@ -799,6 +821,16 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-danger { justify-self: start; height: 32px; padding: 0 14px; border: none; border-radius: 8px; background: #b23a2c; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .ws-danger:disabled { opacity: 0.45; cursor: default; }
 
+/* Settings */
+.ws-settings-title { margin: 0 0 18px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); }
+.ws-setting { max-width: 560px; padding: 16px 0; border-top: 1px solid var(--line-soft); }
+.ws-setting h2 { margin: 0 0 4px; font-size: 16px; }
+.ws-setting > p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
+.ws-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.ws-choice { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 14px; }
+.ws-choice:has(input:checked) { border-color: var(--brand); background: var(--term-tint); }
+.ws-choice input { accent-color: var(--brand); margin: 0; }
+
 /* Overview */
 .ws-overview .ws-work { max-width: 1180px; }
 .ws-ov-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
@@ -872,7 +904,7 @@ a.ws-tile:hover { border-color: var(--line); }
 
 /* Phones: the rail becomes a bar at the bottom; the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
 	.ws-rail {
 		position: fixed; z-index: 5; left: 12px; right: 12px; bottom: 14px;
 		flex-direction: row; justify-content: space-around; padding: 4px;

@@ -138,12 +138,26 @@ way the sign-in ends on :8787, the registered callback. Use `localhost`, not
 The app database needs migration 0002 (members' email) before sign-in works:
 `make db-migrate-remote APPLY=1`.
 
+Offline packs: once, create the bucket the packs live in, then after each
+`make data-publish` make the packs of that build (a promotion needs none; the
+packs are kept per build):
+
+```bash
+npx wrangler r2 bucket create myordbok-packs          # once
+make data-packs FILE=…/build/myordbok.db              # dry run: builds and reports sizes
+make data-packs FILE=…/build/myordbok.db APPLY=1      # uploads to R2
+```
+
+Packs are written next to the build (`build/packs/<build>/`), never inside
+this repository. Who may download the definitions is a setting admins
+change in the workspace (Settings).
+
 Every new file in `assets/db/migrations/` is applied the same way, on each
 site's database and locally: `make db-migrate-remote APPLY=1` and
 `make db-migrate`. 0003 adds ratings per meaning; 0004 adds search counts
 (the workspace overview) and user 0, "Former member", which deleted
 accounts' reviewed suggestions are moved to; 0005 adds the contact form's
-messages (the Inbox) and site settings.
+messages (the Inbox) and site settings (offline access).
 
 After signing in once, give the owner the admin role:
 

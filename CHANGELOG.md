@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+51
+
+- Offline: word lists kept on the device by themselves; definitions and related words downloaded on the Offline page (members, or everyone by an admin setting); one word's answer and suggestions work without a connection. Packs are made per build (make data-packs) into R2, never read from D1
+
 ## 26.11.10+50
 
 - Lookups: similar and broader read only their synsets' links (dataset b861c95); every English lookup read about 113,000 wn_link rows before, a handful now

@@ -133,6 +133,16 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   parts of speech their Myanmar names. Dictionary content is never
   translated. About, Privacy and Terms stay in English for now, with a
   notice; server messages are translated by error code for the generic ones.
+- **Offline packs come from the release, not from D1.** `make data-packs`
+  (`scripts/packs.js`) runs the same lookup as the Worker over a build, word by
+  word, and writes gzip files to R2 under the build (`myordbok-packs/<build>/`):
+  word lists (everyone), English and Myanmar senses, English related words
+  (members, or everyone by the admin setting `offline.access`). The app keeps
+  them in IndexedDB (`app/data/offline.js`): word lists by themselves once a
+  day at most, the rest chosen on `/offline`. Offline, one word's answer and
+  the search box's suggestions come from the device, marked as such on the
+  page; phrases, sentences, ratings and suggestions still need the network.
+  Downloads cost R2 reads and one Worker request per file, never D1 rows.
 - **Contact goes through the site, not email.** MyOrdbok has no address of
   its own: `/contact` sends feedback, questions, problems and words to add to
   the `messages` table (`POST /api/messages`), read by admins in the

@@ -15,6 +15,7 @@ import { auth, me } from './routes/auth.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
 import { sendMessage } from './routes/messages.js';
+import { packs } from './routes/packs.js';
 import { workspace } from './routes/workspace.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
@@ -107,6 +108,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'senses') return senses(request, env);
 	}
 	if (parts[0] === 'workspace') return workspace(request, env, parts);
+	if (parts[0] === 'packs') return packs(request, env, parts);
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }
 
