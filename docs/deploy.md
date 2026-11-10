@@ -344,7 +344,8 @@ The API serves the app, not the public. On beta and production
   which browsers set and web pages cannot. Other websites and scripts that
   leave the header out get 403. A script can forge the header, so this keeps
   the API to the app in browsers; the limits below are what slow a script.
-  Browsers older than about 2023 do not send the header and cannot search.
+  Browsers older than about 2023 (Safari before iOS 16.4) do not send the
+  header; for them a `Referer` on the site itself counts instead.
 - **Rate limits per visitor (IP address)**, counted by Cloudflare at each
   location: 120 a minute for lookups and suggestions (`RATE_LOOKUP`), 40 a
   minute for `read`, `phrase` and `spelling` (`RATE_HEAVY`), which read many

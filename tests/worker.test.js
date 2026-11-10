@@ -216,6 +216,10 @@ test('guard: own pages only, a limit per visitor, open health; off without API_G
 		assert.equal((await call('/api/lookup?q=love', env)).body.error?.code, 'forbidden', 'no header: a script');
 		assert.equal((await call('/api/lookup?q=love', env, { headers: { 'sec-fetch-site': 'cross-site' } })).status, 403);
 		assert.equal((await call('/api/lookup?q=love', env, own)).status, 200);
+		const older = { headers: { referer: 'https://myordbok.test/definition?q=love', 'cf-connecting-ip': '192.0.2.5' } };
+		assert.equal((await call('/api/lookup?q=love', env, older)).status, 200, 'a browser without Sec-Fetch-Site, on this site');
+		assert.equal((await call('/api/lookup?q=love', env, { headers: { referer: 'https://evil.test/' } })).status, 403, 'a Referer from another site');
+		assert.equal((await call('/api/lookup?q=love', env, { headers: { 'sec-fetch-site': 'cross-site', referer: 'https://myordbok.test/' } })).status, 403, 'Sec-Fetch-Site decides when sent');
 		assert.equal((await call('/api/health', env, { headers: { 'cf-connecting-ip': '192.0.2.9' } })).status, 200, 'health is open');
 
 		env = guarded();

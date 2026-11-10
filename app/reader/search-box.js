@@ -38,8 +38,10 @@ export class SearchBox extends HTMLElement {
 			'aria-controls': `${id}-list`,
 			'aria-autocomplete': 'list',
 			onInput: () => this.schedule(),
-			// Focus shows the suggestions for whatever the field holds, typed or not.
-			onFocus: () => this.suggest(),
+			// Focus shows suggestions only for text already in the field.
+			onFocus: () => {
+				if (this.input?.value.trim()) this.suggest();
+			},
 			onKeydown: (/** @type {KeyboardEvent} */ e) => this.keys(e),
 		});
 		this.list = h('ul', { id: `${id}-list`, role: 'listbox', class: 'search-list', hidden: true });

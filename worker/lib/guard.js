@@ -5,8 +5,9 @@
  * and the tests run without it unless they set it.
  *
  * 1. Own pages only. Browsers send Sec-Fetch-Site, which a web page cannot
- *    set; anything but "same-origin" is refused, including requests that
- *    leave the header out (scripts). The header can be forged by a script,
+ *    set; anything but "same-origin" is refused. Browsers too old to send it
+ *    (Safari before iOS 16.4) are recognised by a Referer on this site;
+ *    requests with neither (scripts) are refused. The header can be forged by a script,
  *    so this keeps the API to the app in browsers; the rate limits are what
  *    slow a script down.
  * 2. Rate limits per visitor (IP address), counted by Cloudflare at each
@@ -46,8 +47,8 @@ const CACHED = new Set(['lookup', 'suggest', 'read', 'phrase', 'spelling']);
 export async function guard(request, env, route) {
 	if (env.API_GUARD !== '1') return;
 	const site = request.headers.get('sec-fetch-site');
-	if (!OPEN.has(route) && site !== 'same-origin') {
-		console.warn(JSON.stringify({ event: 'api_refused', route, site: site ?? 'none', country: country(request) }));
+	if (!OPEN.has(route) && !ownPage(request, site)) {
+		console.warn(JSON.stringify({ event: 'api_refused', route, site: site ?? 'none', referer: refererKind(request), country: country(request) }));
 		throw new AppError('forbidden', 'Access denied.');
 	}
 	const name = HEAVY.has(route) ? 'RATE_HEAVY' : 'RATE_LOOKUP';
@@ -81,6 +82,33 @@ export async function cached(request, route, ctx, make) {
 	const res = await make();
 	if (res.status === 200 && /\bpublic\b/.test(res.headers.get('cache-control') ?? '')) ctx.waitUntil(cache.put(key, res.clone()));
 	return res;
+}
+
+/**
+ * Whether a request comes from this site's own pages: Sec-Fetch-Site says so
+ * in current browsers; browsers that do not send it (Safari before iOS 16.4)
+ * send a Referer on this site instead. Either header can be forged by a
+ * script, which the rate limits are for.
+ * @param {Request} request
+ * @param {string | null} site
+ */
+function ownPage(request, site) {
+	if (site !== null) return site === 'same-origin';
+	return refererKind(request) === 'own';
+}
+
+/**
+ * @param {Request} request
+ * @returns {'own' | 'other' | 'none'}
+ */
+function refererKind(request) {
+	const referer = request.headers.get('referer');
+	if (!referer) return 'none';
+	try {
+		return new URL(referer).origin === new URL(request.url).origin ? 'own' : 'other';
+	} catch {
+		return 'other';
+	}
 }
 
 /** @param {Request} request */

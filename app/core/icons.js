@@ -15,6 +15,10 @@ export const ICONS = Object.freeze({
 	dislike: '<path d="M12 19.5c-4-2.6-8-6-8-10C4 6.9 6 5 8.4 5c1.5 0 2.8.8 3.6 2"/><path d="M13.6 6.2c.7-.7 1.6-1.2 2.6-1.2C18 5 20 6.9 20 9.5c0 4-4 7.4-8 10"/><path d="M12.6 9.5l-1.7 2.4 2.2 1.6-1.4 2.5"/>',
 	suggest: '<path d="M16.6 3.9a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L9 18.5l-4.5 1 1-4.5z"/><path d="M14.5 6l3.5 3.5"/>',
 	document: '<path d="M5.5 4.5h9l4 4v11h-13z"/><path d="M14 4.5v4.5h4.5"/><path d="M8.5 13h7M8.5 16.5h5"/>',
+	sun: '<circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>',
+	moon: '<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>',
+	contrast: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/>',
+	chart: '<path d="M5 19.5h14"/><path d="M7.5 16v-4M12 16V8M16.5 16v-6"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 });

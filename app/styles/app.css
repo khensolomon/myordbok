@@ -99,6 +99,16 @@ body::before {
 	.nav-lens, .nav-hover { transition: none; }
 }
 
+.header-tools { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.header-tools .you { margin-left: 4px; }
+.pref {
+	width: 40px; height: 40px; padding: 0;
+	display: flex; align-items: center; justify-content: center;
+	border: none; border-radius: 999px; background: none;
+	color: var(--muted); cursor: pointer;
+}
+.pref:hover { color: var(--ink); background: var(--glass-fill); }
+.pref[hidden] { display: none; }
 .you {
 	margin-left: auto;
 	width: 40px; height: 40px;
@@ -266,11 +276,13 @@ mo-search { display: block; position: relative; height: 44px; }
 }
 .search-box:hover { background: var(--glass-fill-hover); }
 
-/* Focused: the box grows 4px outward (the field and the text do not move)
+/* Open (suggestions shown): the box grows 4px outward (the field and the text do not move)
    and its corners ease from a pill to --field-r plus that 4px, so the
    suggestions' highlight runs parallel to the box (concentric). A hairline
    separates the field from the suggestions. */
-.search-box:focus-within,
+/* Focus alone only outlines the pill; it lifts and opens when there is a
+   list to show. */
+.search-box:focus-within { border-color: var(--guide); background: var(--glass-lens); }
 mo-search[data-open] .search-box {
 	--field-r: 16px;
 	inset: -4px -4px auto -4px;

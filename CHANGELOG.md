@@ -1,5 +1,12 @@
 # Changelog
 
+## 26.11.10+46
+
+- Browsers without Sec-Fetch-Site (Safari before iOS 16.4) can search again: a Referer on the site counts instead
+- The search box only lifts and opens when it has suggestions; focus alone outlines it
+- Theme switch in the header: device, light, dark; the device's theme by default
+- When usage statistics were declined, a chart icon beside the account button allows them in one tap
+
 ## 26.11.9+45
 
 - Workspace in studio form: rail, list, work area, inspector and status bar; on phones a bottom bar with list and item in turn
