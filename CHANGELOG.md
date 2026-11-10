@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+50
+
+- Lookups: similar and broader read only their synsets' links (dataset b861c95); every English lookup read about 113,000 wn_link rows before, a handful now
+
 ## 26.11.10+49
 
 - Contact form (/contact) with an admin Inbox in the workspace, replacing the contact email; missing words link to it

@@ -11,8 +11,8 @@ export default Object.freeze({
 	"root_senses": "SELECT j.value AS word, (SELECT count(*) FROM emd_sense s WHERE s.wrid IN\n                 (SELECT id FROM eng_word WHERE word = j.value COLLATE NOCASE)) AS senses\nFROM json_each(?1) j;",
 	"synsets_of": "SELECT DISTINCT synset FROM wn_member WHERE word IN (SELECT value FROM json_each(?1));",
 	"words_of": "SELECT w.word FROM wn_member m JOIN eng_word w ON w.id = m.word\nWHERE m.synset IN (SELECT value FROM json_each(?1))\nAND m.word NOT IN (SELECT value FROM json_each(?2))\nGROUP BY w.word ORDER BY min(m.rank), w.word;",
-	"similar": "SELECT target AS synset FROM wn_link WHERE type = 3 AND word = 0 AND synset IN (SELECT value FROM json_each(?1))\nUNION SELECT synset FROM wn_link WHERE type = 3 AND word = 0 AND target IN (SELECT value FROM json_each(?1));",
-	"broader": "SELECT target AS synset FROM wn_link WHERE type IN (1, 2) AND word = 0 AND synset IN (SELECT value FROM json_each(?1));",
+	"similar": "SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3\nUNION SELECT synset FROM wn_link WHERE target IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3;",
+	"broader": "SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type IN (1, 2);",
 	"opposite": "SELECT DISTINCT w.word FROM eng_word w JOIN\n  (SELECT target_word AS other FROM wn_link WHERE type = 5 AND word IN (SELECT value FROM json_each(?1))\n   UNION SELECT word FROM wn_link WHERE type = 5 AND target_word IN (SELECT value FROM json_each(?1))\n   AND word NOT IN (SELECT value FROM json_each(?1))) o ON w.id = o.other\nORDER BY w.word;",
 	"related": "SELECT w.word FROM eng_related r JOIN eng_word w ON w.id = r.related\nWHERE r.wrid IN (SELECT value FROM json_each(?1)) ORDER BY r.rank;"
 });

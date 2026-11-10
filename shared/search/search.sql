@@ -61,12 +61,15 @@ GROUP BY w.word ORDER BY min(m.rank), w.word;
 
 -- name: similar
 -- Meanings linked as similar. ?1 = JSON array of synset ids.
-SELECT target AS synset FROM wn_link WHERE type = 3 AND word = 0 AND synset IN (SELECT value FROM json_each(?1))
-UNION SELECT synset FROM wn_link WHERE type = 3 AND word = 0 AND target IN (SELECT value FROM json_each(?1));
+-- The unary + keeps word and type out of the index choice: wn_link_2
+-- (word, type) would otherwise be walked for every link between meanings
+-- (word = 0); the primary key and wn_link_1 find the few rows of the synsets.
+SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3
+UNION SELECT synset FROM wn_link WHERE target IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3;
 
 -- name: broader
--- Broader meanings. ?1 = JSON array of synset ids.
-SELECT target AS synset FROM wn_link WHERE type IN (1, 2) AND word = 0 AND synset IN (SELECT value FROM json_each(?1));
+-- Broader meanings. ?1 = JSON array of synset ids. The unary + as in similar.
+SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type IN (1, 2);
 
 -- name: opposite
 -- Opposite words. ?1 = JSON array of word ids.
