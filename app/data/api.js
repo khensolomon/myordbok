@@ -240,14 +240,36 @@ export function withdrawEdit(id) {
 }
 
 /**
+ * @typedef {object} SideStats
+ * @property {number} headwords
+ * @property {number} senses
+ * @property {number} examples
+ * @property {number} awaiting
+ * @property {number} drafts
+ * @property {Record<string, number>} pos
+ * @property {Record<string, number>} labels
+ */
+
+/**
+ * A build's statistics (scripts/stats.js).
+ * @typedef {object} DictStats
+ * @property {string} build
+ * @property {string | null} source
+ * @property {SideStats & { words: number, forms: number, variants: number, synsets: number, links: number, related: number }} en
+ * @property {SideStats & { words: number, pronunciations: number, thesaurus: number }} my
+ */
+
+/**
  * @typedef {object} Overview
  * @property {string} role
- * @property {{ suggestions: Record<string, number>, ratings: number }} own
- * @property {number} [days]
- * @property {{ today: number, week: number, month: number, daily: Array<{ day: string, hits: number, missed: number }>, top: Array<{ lang: string, term: string, hits: number }>, wanted: Array<{ lang: string, term: string, hits: number }> }} [searches]
- * @property {Record<string, number>} [suggestions]
- * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]
- * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]
+ * @property {{ suggestions: Record<string, number>, ratings: number, rated: { entries: number, senses: number } }} own
+ * @property {number} days
+ * @property {{ build: string | null, stats: DictStats | null, previous: DictStats | null }} dictionary
+ * @property {{ today: number, week: number, month: number, daily: Array<{ day: string, hits: number, missed: number }>, top: Array<{ lang: string, term: string, hits: number }>, wanted: Array<{ lang: string, term: string, hits: number }> }} searches
+ * @property {{ members: number, accepted: number, merged: number, ratings: number }} community
+ * @property {Record<string, number>} [suggestions]  Editors and admins.
+ * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]  Editors and admins.
+ * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]  Editors and admins.
  * @property {number} [unread]  New messages in the Inbox; admins only.
  */
 
@@ -272,6 +294,8 @@ export function sendMessage(message) {
 	return postJSON('/api/messages', message);
 }
 
+/** @typedef {'new' | 'read' | 'replied' | 'done'} MessageState */
+
 /**
  * @typedef {object} InboxMessage
  * @property {number} id
@@ -281,25 +305,30 @@ export function sendMessage(message) {
  * @property {string | null} reply_to
  * @property {string | null} page
  * @property {'en' | 'my'} lang
- * @property {'new' | 'done'} status
+ * @property {MessageState} status
+ * @property {string | null} note  The admins' own note.
  * @property {string | null} member
+ * @property {string | null} handled_by
+ * @property {number | null} handled_at
  */
 
 /**
  * The Inbox, for admins.
- * @param {{ status: 'new' | 'done' | 'all', before?: number }} options
- * @returns {Promise<{ messages: InboxMessage[], more: boolean, unread: number }>}
+ * @param {{ status: MessageState | 'all', before?: number }} options
+ * @returns {Promise<{ messages: InboxMessage[], more: boolean, unread: number, counts: Record<MessageState, number> }>}
  */
 export function inboxMessages({ status, before }) {
 	return getJSON(`/api/workspace/messages?status=${status}${before ? `&before=${before}` : ''}`);
 }
 
 /**
+ * A message's state, its note (null clears it), or both.
  * @param {number} id
- * @param {'new' | 'done'} status
+ * @param {{ status?: MessageState, note?: string | null }} change
+ * @returns {Promise<{ ok: true, status: MessageState, note: string | null }>}
  */
-export function markMessage(id, status) {
-	return postJSON(`/api/workspace/messages/${id}`, { status });
+export function updateMessage(id, change) {
+	return postJSON(`/api/workspace/messages/${id}`, change);
 }
 
 /** Site settings, for admins. @returns {Promise<{ settings: Array<{ key: string, value: unknown, about: string, updated_at: number | null }> }>} */
@@ -313,4 +342,21 @@ export function siteSettings() {
  */
 export function updateSetting(key, value) {
 	return postJSON('/api/workspace/settings', { key, value });
+}
+
+/**
+ * @typedef {{ dict: 'emd' | 'med', sense_id: number, value: 1 | -1, at: number, word: string | null, type: string | null, sense: string | null, state: 'current' | 'changed' | 'gone' }} RatedSense
+ * @typedef {{ lang: 'en' | 'my', word: string, value: 1 | -1, at: number }} RatedEntry
+ * @typedef {{ lang: 'en' | 'my', word: string, up: number, down: number }} EntryScore
+ * @typedef {{ dict: 'emd' | 'med', sense_id: number, word: string, type: string, sense: string, up: number, down: number }} SenseScore
+ */
+
+/**
+ * Ratings: the member's own, or the site's for editors.
+ * @template {'mine' | 'site'} S
+ * @param {S} scope
+ * @returns {Promise<S extends 'mine' ? { entries: RatedEntry[], senses: RatedSense[] } : { entries: { liked: EntryScore[], disliked: EntryScore[] }, senses: { liked: SenseScore[], disliked: SenseScore[] } }>}
+ */
+export function workspaceRatings(scope) {
+	return getJSON(`/api/workspace/ratings?scope=${scope}`);
 }

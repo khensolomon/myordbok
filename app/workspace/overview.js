@@ -1,17 +1,24 @@
 // @ts-check
 /**
- * The workspace's home (?s=overview). A member sees where their suggestions
- * stand and how many meanings they rated; editors and admins see the site:
- * searches (counted per word and day, nobody's identity), the words searched
- * most, the words searched but missing, suggestions, members and the meanings
- * rated down most. Figures come from /api/workspace/overview.
+ * The workspace's home (?s=overview), different by level:
+ *
+ *   everyone   their own suggestions and ratings; the dictionary as built
+ *              (headwords, meanings, review progress, parts of speech, labels,
+ *              change since the build before); searches of the last days; the
+ *              community's totals. A member's view of the project.
+ *   editors    the review queue, members by role, meanings rated down most
+ *   admins     unread messages
+ *
+ * Figures come from /api/workspace/overview; the dictionary's are worked out
+ * once per build (scripts/stats.js) and read as one row.
  */
 import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { workspaceOverview } from '../data/api.js';
-import { num, shortDate, t } from '../i18n/index.js';
+import { num, posName, shortDate, t } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').Overview} Overview */
+/** @typedef {import('../data/api.js').DictStats} DictStats */
 
 /**
  * @param {import('../core/member.js').Member} me
@@ -27,63 +34,227 @@ export async function overviewPane(me, health) {
 		main.append(h('div', { class: 'ws-work' }, h('p', { class: 'ws-result', role: 'alert' }, err instanceof Error ? err.message : String(err))));
 		return main;
 	}
+	const editor = data.role === 'editor' || data.role === 'admin';
 	const head = h('header', { class: 'ws-ov-head' }, h('h1', null, t('Overview')), h('span', null, me.name));
-	main.append(h('div', { class: 'ws-work' }, head, data.searches ? site(data, health) : own(data)));
+	main.append(
+		h(
+			'div',
+			{ class: 'ws-work' },
+			head,
+			h(
+				'div',
+				{ class: 'ws-ov' },
+				yours(data, editor),
+				dictionary(data, health, me.role === 'admin'),
+				searches(data),
+				community(data),
+				editor ? review(data) : '',
+			),
+		),
+	);
 	return main;
 }
 
 /**
- * A member's own figures.
- * @param {Overview} data
+ * @param {string} title
+ * @param {...(Node | string)} body
  */
-function own(data) {
+const block = (title, ...body) => h('section', { class: 'ws-block' }, h('h2', { class: 'ws-block-title' }, title), ...body);
+
+/**
+ * The member's own figures, and for editors and admins what waits for them.
+ * @param {Overview} data
+ * @param {boolean} editor
+ */
+function yours(data, editor) {
 	const s = data.own.suggestions;
 	const total = Object.values(s).reduce((a, b) => a + b, 0);
-	return h(
-		'div',
-		{ class: 'ws-ov' },
+	return block(
+		t('Yours'),
 		h(
 			'div',
 			{ class: 'ws-tiles' },
-			tile(t('Suggestions'), total, t('sent'), '/workspace?s=contributions'),
-			tile(t('Waiting'), s.pending ?? 0, t('for review')),
+			editor ? tile(t('Waiting'), data.suggestions?.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions') : '',
+			data.unread === undefined ? '' : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox'),
+			tile(t('Suggestions'), total, (s.pending ?? 0) ? t('{n} waiting', { n: s.pending ?? 0 }) : t('sent'), '/workspace?s=contributions'),
 			tile(t('Approved'), (s.approved ?? 0) + (s.exported ?? 0) + (s.merged ?? 0), (s.merged ?? 0) ? t('{n} in the dictionary', { n: s.merged }) : t('so far')),
-			tile(t('Meanings rated'), data.own.ratings, t('up or down')),
+			tile(t('Meanings rated'), data.own.rated.senses, data.own.rated.entries ? t('and {n} whole entries', { n: data.own.rated.entries }) : t('up or down'), '/workspace?s=ratings'),
 		),
-		total
-			? null
-			: h('p', { class: 'ws-quiet ws-ov-tip' }, t('On any entry, ✎ beside a meaning suggests a correction, and the thumbs rate it. Everything you send shows up here and under Contributions.')),
+		total || data.own.ratings ? '' : h('p', { class: 'ws-quiet ws-ov-tip' }, t('On any entry, ✎ beside a meaning suggests a correction, and the thumbs rate it. Everything you send shows up here and under Contributions.')),
 	);
 }
 
 /**
- * The site's figures, for editors and admins.
+ * The dictionary as built.
  * @param {Overview} data
  * @param {{ dictionary?: { database?: string, built?: string | null } | null } | null} health
+ * @param {boolean} admin
  */
-function site(data, health) {
-	const searches = /** @type {NonNullable<Overview['searches']>} */ (data.searches);
-	const days = data.days ?? 30;
-	const missed = searches.daily.reduce((a, d) => a + d.missed, 0);
-	const sug = data.suggestions ?? {};
-	const roles = data.members?.roles ?? {};
-	const members = Object.values(roles).reduce((a, b) => a + b, 0);
-	const db = health?.dictionary;
+function dictionary(data, health, admin) {
+	const d = data.dictionary;
+	const s = d.stats;
+	if (!s) {
+		return block(
+			t('Dictionary'),
+			h('p', { class: 'ws-quiet' }, t('Build {build}.', { build: d.build ?? health?.dictionary?.built ?? '—' }), ' ', admin ? t('Its statistics appear once they are kept: make data-stats FILE=… APPLY=1 (make data-publish does it for each new build).') : ''),
+		);
+	}
+	const p = d.previous;
+	/** @param {number} now @param {number | undefined} before */
+	const change = (now, before) => (before === undefined || now === before ? '' : `${now > before ? '+' : '−'}${num(Math.abs(now - before))} ${t('since the build before')}`);
+	return block(
+		t('Dictionary'),
+		h(
+			'div',
+			{ class: 'ws-tiles' },
+			tile(t('English headwords'), s.en.headwords, change(s.en.headwords, p?.en.headwords)),
+			tile(t('English meanings'), s.en.senses, change(s.en.senses, p?.en.senses) || t('{n} with an example', { n: s.en.examples })),
+			tile(t('Myanmar headwords'), s.my.headwords, change(s.my.headwords, p?.my.headwords)),
+			tile(t('Myanmar meanings'), s.my.senses, change(s.my.senses, p?.my.senses) || t('{n} with an example', { n: s.my.examples })),
+		),
+		h(
+			'div',
+			{ class: 'ws-cards' },
+			h('section', { class: 'ws-card' }, h('h2', null, t('Review')), progress(t('English → Myanmar'), s.en), progress(t('Myanmar → English'), s.my), legend()),
+			h('section', { class: 'ws-card' }, h('h2', null, t('Parts of speech')), h('h3', { class: 'ws-card-sub ws-card-sub-first' }, t('English → Myanmar')), bars(s.en.pos, 'en'), h('h3', { class: 'ws-card-sub' }, t('Myanmar → English')), bars(s.my.pos, 'my')),
+			h(
+				'section',
+				{ class: 'ws-card' },
+				h('h2', null, t('Also in the dictionary')),
+				h(
+					'dl',
+					{ class: 'ws-pairs' },
+					...pair(t('Word forms (went, mice …)'), s.en.forms),
+					...pair(t('Spelling variants'), s.en.variants),
+					...pair(t('Synonym sets'), s.en.synsets),
+					...pair(t('Links between meanings'), s.en.links),
+					...pair(t('Related-word pairs'), s.en.related),
+					...pair(t('Myanmar pronunciations'), s.my.pronunciations),
+					...pair(t('Myanmar thesaurus links'), s.my.thesaurus),
+				),
+				h('p', { class: 'ws-quiet' }, t('Build {build}', { build: s.build }), s.source ? ` · ${s.source}` : '', p ? ` · ${t('compared with {build}', { build: p.build })}` : ''),
+			),
+		),
+		Object.keys(s.en.labels).length ? h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Labels and glossaries')), labels(s.en.labels)) : '',
+	);
+}
+
+/**
+ * Reviewed, awaiting a native speaker, draft: one bar of the language's meanings.
+ * @param {string} title
+ * @param {{ senses: number, awaiting: number, drafts: number }} side
+ */
+function progress(title, side) {
+	const reviewed = side.senses - side.awaiting - side.drafts;
+	const part = (/** @type {number} */ n) => (side.senses ? (n / side.senses) * 100 : 0);
+	const text = t('{reviewed} reviewed, {awaiting} awaiting a native speaker, {drafts} drafts', { reviewed, awaiting: side.awaiting, drafts: side.drafts });
 	return h(
 		'div',
-		{ class: 'ws-ov' },
+		{ class: 'ws-progress' },
+		h('div', { class: 'ws-progress-head' }, h('span', null, title), h('strong', null, `${num(Math.round(part(reviewed)))}%`)),
+		h(
+			'div',
+			{ class: 'ws-stack', role: 'img', 'aria-label': text, title: text },
+			h('span', { class: 'ws-stack-done', style: `width:${part(reviewed)}%` }),
+			h('span', { class: 'ws-stack-wait', style: `width:${part(side.awaiting)}%` }),
+			h('span', { class: 'ws-stack-draft', style: `width:${part(side.drafts)}%` }),
+		),
+		h('p', { class: 'ws-stack-note' }, text),
+	);
+}
+
+function legend() {
+	return h('div', { class: 'ws-legend' }, h('span', { class: 'ws-key ws-key-found' }, t('Reviewed')), h('span', { class: 'ws-key ws-key-miss' }, t('Awaiting review')), h('span', { class: 'ws-key ws-key-draft' }, t('Draft')));
+}
+
+/**
+ * Meanings by part of speech, the largest first (eight, then the rest together).
+ * @param {Record<string, number>} counts
+ * @param {'en' | 'my'} lang
+ */
+function bars(counts, lang) {
+	const list = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+	const shown = list.slice(0, 6);
+	const rest = list.slice(6).reduce((a, [, n]) => a + n, 0);
+	if (rest) shown.push([t('others'), rest]);
+	const max = Math.max(1, ...shown.map(([, n]) => n));
+	return h(
+		'ul',
+		{ class: 'ws-hbars', 'aria-label': lang === 'en' ? t('English → Myanmar') : t('Myanmar → English') },
+		shown.map(([name, n]) =>
+			h('li', { title: `${num(n)}` }, h('span', { class: 'ws-hbar-name' }, name === t('others') ? name : posName(name)), h('span', { class: 'ws-hbar' }, h('span', { style: `width:${(n / max) * 100}%` })), h('span', { class: 'ws-hbar-n' }, num(n))),
+		),
+	);
+}
+
+/**
+ * Sense labels (idiom, slang, the school glossaries …), as the dataset names them.
+ * @param {Record<string, number>} counts
+ */
+function labels(counts) {
+	return h(
+		'ul',
+		{ class: 'ws-chips', lang: 'en' },
+		Object.entries(counts)
+			.sort((a, b) => b[1] - a[1])
+			.slice(0, 24)
+			.map(([name, n]) => h('li', null, h('span', null, name), h('strong', null, num(n)))),
+	);
+}
+
+/** @param {string} label @param {number} value */
+const pair = (label, value) => [h('dt', null, label), h('dd', null, num(value))];
+
+/**
+ * Searches of the last days.
+ * @param {Overview} data
+ */
+function searches(data) {
+	const searches = data.searches;
+	const days = data.days ?? 30;
+	const missed = searches.daily.reduce((a, d) => a + d.missed, 0);
+	return block(
+		t('Searches'),
 		h(
 			'div',
 			{ class: 'ws-tiles' },
 			tile(t('Searches today'), searches.today),
 			tile(t('Last {n} days', { n: 7 }), searches.week),
 			tile(t('Last {n} days', { n: days }), searches.month, searches.month ? t('{pct} not found', { pct: percent(missed, searches.month) }) : ''),
-			tile(t('Waiting'), sug.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions'),
-			tile(t('Members'), members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : t('none joined this week')),
-			data.unread === undefined ? null : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox'),
 		),
 		h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Searches, last {n} days', { n: days })), chart(searches.daily, days)),
-		h('div', { class: 'ws-cards' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.')), disliked(data.disliked ?? [])),
+		h('div', { class: 'ws-cards' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.'))),
+		h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.')),
+	);
+}
+
+/**
+ * The community's totals.
+ * @param {Overview} data
+ */
+function community(data) {
+	const c = data.community;
+	return block(
+		t('Community'),
+		h(
+			'div',
+			{ class: 'ws-tiles' },
+			tile(t('Members'), c.members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : ''),
+			tile(t('Suggestions accepted'), c.accepted, c.merged ? t('{n} in the dictionary', { n: c.merged }) : ''),
+			tile(t('Ratings'), c.ratings, t('of entries and meanings')),
+		),
+	);
+}
+
+/**
+ * The review queue and the members, for editors and admins.
+ * @param {Overview} data
+ */
+function review(data) {
+	const sug = data.suggestions ?? {};
+	const roles = data.members?.roles ?? {};
+	return block(
+		t('For editors'),
 		h(
 			'div',
 			{ class: 'ws-cards' },
@@ -100,13 +271,7 @@ function site(data, health) {
 				[t('Editors'), roles.editor ?? 0],
 				[t('Members'), roles.member ?? 0],
 			]),
-			h(
-				'section',
-				{ class: 'ws-card' },
-				h('h2', null, t('Dictionary')),
-				h('dl', { class: 'ws-pairs' }, h('dt', null, t('Database')), h('dd', null, db?.database ?? t('unavailable')), h('dt', null, t('Build')), h('dd', null, db?.built ?? '—')),
-				h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.')),
-			),
+			disliked(data.disliked ?? []),
 		),
 	);
 }

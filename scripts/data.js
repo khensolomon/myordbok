@@ -27,6 +27,8 @@
  *                               production reads myordbok-dataset while the same
  *                               build is imported into myordbok-dictionary and
  *                               checked, then reads myordbok-dictionary again
+ *   stats   --file BUILD        a build's statistics → myordbok-app (build_stats),
+ *                               shown in the workspace; publish does it too
  *   export  --out DIR           approved edits → TSV files for the dataset scripts
  *   switch  --env beta|production --to dataset|dictionary
  *                               point one site at one database (repairs only)
@@ -43,7 +45,9 @@
  * outside it (exports/ is ignored by git for convenience).
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { statsOfFile, statsSql } from './stats.js';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -635,6 +639,32 @@ export function publish(db, file, apply, log) {
 	point(db, 'beta', 'dataset', meta.built);
 	log(`Beta previews it (within 30 seconds). Check https://beta.myordbok.com, then: make data-promote FILE=${file} APPLY=1`);
 	markMerged(db, 'dataset', meta.built, log);
+	writeStats(db, file, true, log);
+}
+
+/**
+ * A build's statistics into myordbok-app, worked out here from the file.
+ * @param {Runner} db
+ * @param {string} file
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ */
+export function writeStats(db, file, apply, log) {
+	if (!existsSync(file)) throw new Error(`${file} not found`);
+	const stats = statsOfFile(file);
+	log(`Statistics of build ${stats.build}: English ${stats.en.headwords} headwords, ${stats.en.senses} meanings (${stats.en.awaiting} awaiting review); Myanmar ${stats.my.headwords} headwords, ${stats.my.senses} meanings.`);
+	if (!apply) {
+		log('Dry run. Add --apply to keep them in myordbok-app for the workspace.');
+		return;
+	}
+	const path = join(tmpdir(), `myordbok-stats-${process.pid}.sql`);
+	writeFileSync(path, statsSql(stats));
+	try {
+		db.file('APP', path);
+	} finally {
+		rmSync(path, { force: true });
+	}
+	log(`Kept in myordbok-app (${db.where}); the workspace shows them.`);
 }
 
 /**
@@ -884,6 +914,8 @@ async function main() {
 	switch (command) {
 		case 'status':
 			return status(db, log);
+		case 'stats':
+			return writeStats(db, fileArg('count'), apply, log);
 		case 'export':
 			return exportEdits(db, option(args, '--out') ?? 'exports', apply, log);
 		case 'publish':
@@ -901,7 +933,7 @@ async function main() {
 		case 'grant':
 			return grant(db, option(args, '--email') ?? '', option(args, '--role') ?? '', apply, log);
 		default:
-			throw new Error('Commands: setup, status, publish, promote, export, switch, grant (see the top of scripts/data.js)');
+			throw new Error('Commands: setup, status, publish, promote, stats, export, switch, grant (see the top of scripts/data.js)');
 	}
 }
 

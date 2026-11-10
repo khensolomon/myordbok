@@ -129,8 +129,14 @@ test('overview: a member sees their own figures; an editor sees the board', asyn
 	await suggest(e, 'member', { action: 'delete', sense_id: first.id });
 
 	assert.equal((await call(e, '/api/workspace/overview')).status, 401);
+	e.raw.prepare("INSERT INTO build_stats (build, stats, created_at) VALUES ('older', ?1, 1), ('sample', ?2, 2)").run(JSON.stringify({ build: 'older', en: { senses: 1 } }), JSON.stringify({ build: 'sample', en: { senses: 2 } }));
 	const member = (await call(e, '/api/workspace/overview', { who: 'member' })).body;
-	assert.deepEqual(member, { role: 'member', own: { suggestions: { pending: 1 }, ratings: 1 } });
+	// A member sees their own figures, and as a member the dictionary's and the community's.
+	assert.deepEqual(member.own, { suggestions: { pending: 1 }, ratings: 1, rated: { entries: 0, senses: 1 } });
+	assert.deepEqual([member.dictionary.build, member.dictionary.stats.en.senses, member.dictionary.previous.build], ['sample', 2, 'older']);
+	assert.equal(member.searches.today, 2);
+	assert.deepEqual(member.community, { members: 3, accepted: 0, merged: 0, ratings: 1 });
+	assert.equal(member.suggestions, undefined, 'the review queue is for editors');
 
 	const board = (await call(e, '/api/workspace/overview', { who: 'editor' })).body;
 	assert.equal(board.searches.today, 2);
@@ -199,9 +205,41 @@ test('contact form: anyone may send; the hidden field drops a message; admins re
 	assert.equal((await call(e, `/api/workspace/messages/${box.messages[0].id}`, { who: 'editor', body: { status: 'done' } })).status, 200);
 	assert.equal((await call(e, '/api/workspace/overview', { who: 'editor' })).body.unread, 1);
 	assert.equal((await call(e, '/api/workspace/messages?status=done', { who: 'editor' })).body.messages.length, 1);
+
+	// Read, replied, a note; the counts follow.
+	const other = box.messages[1].id;
+	assert.equal((await call(e, `/api/workspace/messages/${other}`, { who: 'editor', body: { status: 'read' } })).body.status, 'read');
+	const noted = (await call(e, `/api/workspace/messages/${other}`, { who: 'editor', body: { status: 'replied', note: '  Answered by mail on Tuesday.  ' } })).body;
+	assert.deepEqual([noted.status, noted.note], ['replied', 'Answered by mail on Tuesday.']);
+	assert.equal((await call(e, `/api/workspace/messages/${other}`, { who: 'editor', body: { note: null } })).body.note, null);
+	assert.equal((await call(e, `/api/workspace/messages/${other}`, { who: 'editor', body: { status: 'archived' } })).status, 400);
+	const replied = (await call(e, '/api/workspace/messages?status=replied', { who: 'editor' })).body;
+	assert.deepEqual(replied.counts, { new: 0, read: 0, replied: 1, done: 1 });
+	assert.equal(replied.messages[0].handled_by, 'Ed');
 	assert.equal((await call(e, '/api/workspace/messages/999', { who: 'editor', body: { status: 'done' } })).status, 404);
 
 	// A deleted account takes its messages with it.
 	await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'm@example.com' } });
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM messages WHERE user_id = 1').get().n, 0);
+});
+
+test('ratings: a member sees their own, a changed meaning says so; editors see the site’s', async () => {
+	const e = env();
+	const senses = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
+	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 1 } });
+	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', sense_id: senses[0].id, value: -1 } });
+	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', sense_id: senses[1].id, value: 1 } });
+	e.raw.prepare("UPDATE sense_reactions SET text_hash = 'old' WHERE sense_id = ?").run(senses[1].id);
+
+	const mine = (await call(e, '/api/workspace/ratings', { who: 'member' })).body;
+	assert.deepEqual(mine.entries.map((r) => [r.word, r.value]), [['love', 1]]);
+	const byId = new Map(mine.senses.map((r) => [r.sense_id, r]));
+	assert.deepEqual([byId.get(senses[0].id).state, byId.get(senses[0].id).value, byId.get(senses[0].id).word], ['current', -1, 'love']);
+	assert.equal(byId.get(senses[1].id).state, 'changed');
+
+	assert.equal((await call(e, '/api/workspace/ratings?scope=site', { who: 'member' })).status, 403);
+	const site = (await call(e, '/api/workspace/ratings?scope=site', { who: 'editor' })).body;
+	assert.deepEqual(site.entries.liked, [{ lang: 'en', word: 'love', up: 1, down: 0 }]);
+	assert.deepEqual(site.senses.disliked.map((s) => [s.sense_id, s.down]), [[senses[0].id, 1]]);
+	assert.equal(site.senses.liked.length, 0, 'the changed meaning’s rating no longer counts');
 });

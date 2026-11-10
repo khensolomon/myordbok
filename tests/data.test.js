@@ -127,6 +127,11 @@ test('release cycle: publish to beta, promote to production, export, merge', asy
 	// Publish: the dataset gets the build, beta previews it, production is untouched.
 	publish(db, first, true, log);
 	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample' });
+	// …and its statistics are kept for the workspace.
+	const kept = JSON.parse(dbs.APP.prepare("SELECT stats FROM build_stats WHERE build = 'sample'").get().stats);
+	assert.equal(kept.en.senses, dbs.DATASET.prepare('SELECT count(*) AS n FROM emd_sense').get().n);
+	assert.equal(kept.my.headwords, dbs.DATASET.prepare('SELECT count(DISTINCT wrid) AS n FROM med_sense').get().n);
+	assert.ok(kept.en.pos.Noun > 0);
 
 	// Promote: production ends on the dictionary, holding the same build.
 	await promote(db, first, true, log, { waitMs: 0 });

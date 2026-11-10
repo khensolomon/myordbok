@@ -133,6 +133,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   parts of speech their Myanmar names. Dictionary content is never
   translated. About, Privacy and Terms stay in English for now, with a
   notice; server messages are translated by error code for the generic ones.
+- **Dictionary statistics are counted where the build is made.** Counting
+  the dictionary in D1 on each workspace visit would read every row; instead
+  `scripts/stats.js` counts the build file once (`make data-publish`, or
+  `make data-stats`) and keeps one row per build in `build_stats`. The
+  Overview reads it, with the build before for the change; the part every
+  member sees is kept at the edge for ten minutes.
 - **Offline packs come from the release, not from D1.** `make data-packs`
   (`scripts/packs.js`) runs the same lookup as the Worker over a build, word by
   word, and writes gzip files to R2 under the build (`myordbok-packs/<build>/`):

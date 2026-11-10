@@ -15,6 +15,8 @@
  *                                             own for members
  *   POST /api/workspace/account/delete           { confirm }: the member's email (or
  *                                             DELETE without one); see deleteAccount
+ *   GET  /api/workspace/ratings?scope=mine|site  the member's own ratings; editors also the
+ *                                             site's most liked and disliked
  *   GET  /api/workspace/settings, POST /api/workspace/settings  { key, value }   admins
  *   GET  /api/workspace/messages, POST /api/workspace/messages/{id}
  *                                             the Inbox, admins (routes/messages.js)
@@ -63,6 +65,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
 	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
 	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
+	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
 		if (action === 'review') return review(request, env, member, Number(id));
@@ -217,71 +220,134 @@ async function rows(db, sql, ...args) {
  */
 async function overview(env, member) {
 	const db = env.APP;
-	const mine = await rows(db, 'SELECT status, count(*) AS n FROM dict_edits WHERE user_id = ?1 GROUP BY status', member.id);
-	const rated = /** @type {{ n: number }} */ (
-		await db.prepare('SELECT (SELECT count(*) FROM reactions WHERE user_id = ?1) + (SELECT count(*) FROM sense_reactions WHERE user_id = ?1) AS n').bind(member.id).first()
-	);
-	const own = { suggestions: Object.fromEntries(mine.map((r) => [String(r.status), Number(r.n)])), ratings: Number(rated.n) };
-	if (!isEditor(member)) return json({ role: member.role, own }, NO_STORE);
+	const [mine, rated, shared] = await Promise.all([
+		rows(db, 'SELECT status, count(*) AS n FROM dict_edits WHERE user_id = ?1 GROUP BY status', member.id),
+		db.prepare('SELECT (SELECT count(*) FROM reactions WHERE user_id = ?1) AS entries, (SELECT count(*) FROM sense_reactions WHERE user_id = ?1) AS senses').bind(member.id).first(),
+		sharedFigures(env),
+	]);
+	const r = /** @type {{ entries: number, senses: number }} */ (rated);
+	const own = { suggestions: Object.fromEntries(mine.map((x) => [String(x.status), Number(x.n)])), ratings: Number(r.entries) + Number(r.senses), rated: { entries: Number(r.entries), senses: Number(r.senses) } };
+	const base = { role: member.role, own, days: OVERVIEW_DAYS, ...shared };
+	if (!isEditor(member)) return json(base, NO_STORE);
 
-	const since = dayKey(OVERVIEW_DAYS - 1);
-	const [daily, top, wanted, edits, members, joined, disliked] = await Promise.all([
-		rows(db, 'SELECT day, sum(hits) AS hits, sum(found = 0) AS missed FROM search_counts WHERE day >= ?1 GROUP BY day ORDER BY day', since),
-		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 1 ORDER BY hits DESC, term LIMIT 10', since),
-		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 0 ORDER BY hits DESC, term LIMIT 10', since),
+	const [edits, members, joined, disliked] = await Promise.all([
 		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
 		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
 	]);
-
-	// Dislikes count only for the meaning as it reads now (sense_reactions.text_hash).
-	/** @type {Array<Record<string, unknown>>} */
-	const worst = [];
-	if (disliked.length) {
-		const { dict, db: dictDb } = await dictionary(env);
-		for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
-			const ids = disliked.filter((r) => r.dict === name).map((r) => Number(r.sense_id));
-			if (!ids.length) continue;
-			const now = await dictDb
-				.prepare(CURRENT[name])
-				.bind(JSON.stringify(ids))
-				.all()
-				.catch((err) => {
-					throw explainDictError(err, dict, env);
-				});
-			for (const s of now.results) {
-				const hash = await textHash(String(s.sense ?? ''));
-				const r = disliked.find((d) => d.dict === name && Number(d.sense_id) === Number(s.id) && d.text_hash === hash);
-				if (r) worst.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up) });
-			}
-		}
-		worst.sort((a, b) => Number(b.down) - Number(a.down) || Number(a.up) - Number(b.up));
-	}
-
-	const sumHits = (/** @type {number} */ days) => daily.filter((d) => String(d.day) >= dayKey(days - 1)).reduce((a, d) => a + Number(d.hits), 0);
+	const worst = await currentSenses(env, disliked);
 	// Unread messages: admins only, as the Inbox is theirs.
 	const unread = member.role === 'admin' ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
 	return json(
 		{
-			role: member.role,
-			own,
-			days: OVERVIEW_DAYS,
+			...base,
 			...(unread === null ? {} : { unread }),
-			searches: {
-				today: sumHits(1),
-				week: sumHits(7),
-				month: sumHits(OVERVIEW_DAYS),
-				daily: daily.map((d) => ({ day: d.day, hits: Number(d.hits), missed: Number(d.missed) })),
-				top: top.map((r) => ({ lang: r.lang, term: r.term, hits: Number(r.hits) })),
-				wanted: wanted.map((r) => ({ lang: r.lang, term: r.term, hits: Number(r.hits) })),
-			},
-			suggestions: Object.fromEntries(edits.map((r) => [String(r.status), Number(r.n)])),
-			members: { roles: Object.fromEntries(members.map((r) => [String(r.role), Number(r.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
+			suggestions: Object.fromEntries(edits.map((x) => [String(x.status), Number(x.n)])),
+			members: { roles: Object.fromEntries(members.map((x) => [String(x.role), Number(x.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
 			disliked: worst.slice(0, 5),
 		},
 		NO_STORE,
 	);
+}
+
+/** How long the figures every member sees are kept at the edge (seconds). */
+const SHARED_TTL = 600;
+
+/**
+ * What every member sees on the Overview: the dictionary's statistics (one
+ * row, kept per build by make data-publish), searches over the last days,
+ * and the community's totals. The same for everyone, so kept at the edge for
+ * a few minutes rather than read again on each visit.
+ * @param {Env} env
+ */
+async function sharedFigures(env) {
+	const { dict, db: dictDb } = await dictionary(env);
+	const built = /** @type {{ value: string } | null} */ (
+		await dictDb
+			.prepare("SELECT value FROM meta WHERE key = 'built'")
+			.first()
+			.catch((err) => {
+				throw explainDictError(err, dict, env);
+			})
+	)?.value;
+	const cache = typeof caches === 'undefined' ? null : /** @type {Cache} */ (/** @type {any} */ (caches).default);
+	const key = new Request(`https://workspace.internal/overview/${encodeURIComponent(built ?? 'none')}/${dayKey(0)}`);
+	const hit = await cache?.match(key);
+	if (hit) return hit.json();
+
+	const db = env.APP;
+	const since = dayKey(OVERVIEW_DAYS - 1);
+	const [daily, top, wanted, stats, totals] = await Promise.all([
+		rows(db, 'SELECT day, sum(hits) AS hits, sum(found = 0) AS missed FROM search_counts WHERE day >= ?1 GROUP BY day ORDER BY day', since),
+		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 1 ORDER BY hits DESC, term LIMIT 10', since),
+		rows(db, 'SELECT lang, term, sum(hits) AS hits FROM search_counts WHERE day >= ?1 GROUP BY lang, term HAVING max(found) = 0 ORDER BY hits DESC, term LIMIT 10', since),
+		built
+			? rows(db, 'SELECT build, stats FROM build_stats WHERE created_at <= coalesce((SELECT created_at FROM build_stats WHERE build = ?1), 0) ORDER BY created_at DESC LIMIT 2', built)
+			: Promise.resolve([]),
+		db
+			.prepare(
+				`SELECT (SELECT count(*) FROM users WHERE id > 0 AND status = 'active') AS members,
+				        (SELECT count(*) FROM dict_edits WHERE status IN ('approved', 'exported', 'merged')) AS accepted,
+				        (SELECT count(*) FROM dict_edits WHERE status = 'merged') AS merged,
+				        (SELECT count(*) FROM reactions) + (SELECT count(*) FROM sense_reactions) AS ratings`,
+			)
+			.first(),
+	]);
+	const sumHits = (/** @type {number} */ days) => daily.filter((d) => String(d.day) >= dayKey(days - 1)).reduce((a, d) => a + Number(d.hits), 0);
+	const current = stats.find((x) => x.build === built);
+	const previous = stats.find((x) => x.build !== built);
+	const t = /** @type {Record<string, number>} */ (totals);
+	const figures = {
+		dictionary: {
+			build: built ?? null,
+			stats: current ? JSON.parse(String(current.stats)) : null,
+			previous: previous ? JSON.parse(String(previous.stats)) : null,
+		},
+		searches: {
+			today: sumHits(1),
+			week: sumHits(7),
+			month: sumHits(OVERVIEW_DAYS),
+			daily: daily.map((d) => ({ day: d.day, hits: Number(d.hits), missed: Number(d.missed) })),
+			top: top.map((x) => ({ lang: x.lang, term: x.term, hits: Number(x.hits) })),
+			wanted: wanted.map((x) => ({ lang: x.lang, term: x.term, hits: Number(x.hits) })),
+		},
+		community: { members: Number(t.members), accepted: Number(t.accepted), merged: Number(t.merged), ratings: Number(t.ratings) },
+	};
+	await cache?.put(key, new Response(JSON.stringify(figures), { headers: { 'content-type': 'application/json', 'cache-control': `max-age=${SHARED_TTL}` } }));
+	return figures;
+}
+
+/**
+ * Rated-down meanings that still read as they did when rated
+ * (sense_reactions.text_hash), with their word, part of speech and text.
+ * @param {Env} env
+ * @param {Array<Record<string, unknown>>} rated  Rows with dict, sense_id, text_hash, down, up.
+ */
+async function currentSenses(env, rated) {
+	/** @type {Array<Record<string, unknown>>} */
+	const out = [];
+	if (!rated.length) return out;
+	const { dict, db: dictDb } = await dictionary(env);
+	for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
+		const ids = rated.filter((r) => r.dict === name).map((r) => Number(r.sense_id));
+		if (!ids.length) continue;
+		const now = await dictDb
+			.prepare(CURRENT[name])
+			.bind(JSON.stringify(ids))
+			.all()
+			.catch((err) => {
+				throw explainDictError(err, dict, env);
+			});
+		for (const s of now.results) {
+			const hash = await textHash(String(s.sense ?? ''));
+			for (const r of rated.filter((d) => d.dict === name && Number(d.sense_id) === Number(s.id) && d.text_hash === hash)) {
+				out.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up), ...(r.value === undefined ? {} : { value: Number(r.value), at: Number(r.at) }) });
+			}
+		}
+	}
+	out.sort((a, b) => Number(b.down) - Number(a.down) || Number(a.up) - Number(b.up));
+	return out;
 }
 
 /** @param {string} text */
@@ -322,6 +388,7 @@ async function deleteAccount(request, env, member) {
 		db.prepare('DELETE FROM comments WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM messages WHERE user_id = ?1').bind(id),
 		db.prepare('UPDATE settings SET updated_by = 0 WHERE updated_by = ?1').bind(id),
+		db.prepare('UPDATE messages SET handled_by = 0 WHERE handled_by = ?1').bind(id),
 		db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM identities WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM users WHERE id = ?1').bind(id),
@@ -344,4 +411,76 @@ async function settings(request, env, member) {
 		await setSetting(env, data.key, data.value, member.id);
 	}
 	return json({ settings: await allSettings(env) }, NO_STORE);
+}
+
+/** How many ratings one list shows. */
+const RATINGS_MAX = 200;
+
+/**
+ * Ratings: the member's own (scope=mine), or for editors the site's most
+ * liked and disliked entries and meanings (scope=site). A meaning whose text
+ * changed since it was rated shows as changed; its rating no longer counts.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function ratings(request, env, member) {
+	const scope = new URL(request.url).searchParams.get('scope') ?? 'mine';
+	const db = env.APP;
+	if (scope === 'mine') {
+		const [entries, senses] = await Promise.all([
+			rows(db, 'SELECT lang, word, value, created_at AS at FROM reactions WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2', member.id, RATINGS_MAX),
+			rows(db, 'SELECT dict, sense_id, text_hash, value, created_at AS at FROM sense_reactions WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2', member.id, RATINGS_MAX),
+		]);
+		const now = await sensesNow(env, senses);
+		return json(
+			{
+				entries: entries.map((r) => ({ lang: r.lang, word: r.word, value: Number(r.value), at: Number(r.at) })),
+				senses: await Promise.all(
+					senses.map(async (r) => {
+						const s = now.get(`${r.dict}:${r.sense_id}`);
+						return { dict: r.dict, sense_id: Number(r.sense_id), value: Number(r.value), at: Number(r.at), word: s?.word ?? null, type: s?.type ?? null, sense: s?.sense ?? null, state: !s ? 'gone' : (await textHash(String(s.sense ?? ''))) === r.text_hash ? 'current' : 'changed' };
+					}),
+				),
+			},
+			NO_STORE,
+		);
+	}
+	if (scope !== 'site') throw new AppError('bad_request', 'scope must be mine or site');
+	if (!isEditor(member)) throw new AppError('forbidden', 'The site’s ratings are for editors.');
+	const [liked, disliked, sensesUp, sensesDown] = await Promise.all([
+		rows(db, 'SELECT lang, word, sum(value = 1) AS up, sum(value = -1) AS down FROM reactions GROUP BY lang, word HAVING up > 0 ORDER BY up DESC, down LIMIT 20'),
+		rows(db, 'SELECT lang, word, sum(value = 1) AS up, sum(value = -1) AS down FROM reactions GROUP BY lang, word HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
+		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING up > 0 ORDER BY up DESC, down LIMIT 30'),
+		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 30'),
+	]);
+	const entry = (/** @type {Record<string, unknown>} */ r) => ({ lang: r.lang, word: r.word, up: Number(r.up), down: Number(r.down) });
+	const up = await currentSenses(env, sensesUp);
+	up.sort((a, b) => Number(b.up) - Number(a.up) || Number(a.down) - Number(b.down));
+	return json({ entries: { liked: liked.map(entry), disliked: disliked.map(entry) }, senses: { liked: up.slice(0, 20), disliked: (await currentSenses(env, sensesDown)).slice(0, 20) } }, NO_STORE);
+}
+
+/**
+ * The meanings of the given rows as they read now, by "dict:id".
+ * @param {Env} env
+ * @param {Array<Record<string, unknown>>} list  Rows with dict and sense_id.
+ */
+async function sensesNow(env, list) {
+	/** @type {Map<string, Record<string, unknown>>} */
+	const out = new Map();
+	if (!list.length) return out;
+	const { dict, db: dictDb } = await dictionary(env);
+	for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
+		const ids = list.filter((r) => r.dict === name).map((r) => Number(r.sense_id));
+		if (!ids.length) continue;
+		const now = await dictDb
+			.prepare(CURRENT[name])
+			.bind(JSON.stringify(ids))
+			.all()
+			.catch((err) => {
+				throw explainDictError(err, dict, env);
+			});
+		for (const s of now.results) out.set(`${name}:${s.id}`, s);
+	}
+	return out;
 }

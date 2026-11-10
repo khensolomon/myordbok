@@ -12,7 +12,7 @@ OUT      ?= exports
 
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
-        version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-packs data-promote edits-export data-switch \
+        version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-stats data-packs data-promote edits-export data-switch \
         grant deploy-beta deploy-production logs-beta release clean
 
 help: ## List the commands
@@ -89,6 +89,10 @@ data-status: ## The build in each dictionary database, what each site reads, edi
 data-publish: ## A build → myordbok-dataset, checked; beta previews it: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
 	$(DATA) publish --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-stats: ## A build's statistics → myordbok-app, for the workspace: FILE=… [APPLY=1]
+	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
+	$(DATA) stats --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 data-packs: ## Offline packs of a build → R2 myordbok-packs: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }

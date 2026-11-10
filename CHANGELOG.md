@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.10+54
+
+- Workspace: Overview for every member (dictionary statistics per build, review progress, parts of speech, labels, searches, community); Ratings section (own ratings, take back; editors: the site's most liked and disliked); Inbox states unread, read, replied, done with admin notes; make data-stats
+
 ## 26.11.10+53
 
 - Search: / or Ctrl+K (⌘K) focuses the search field; Contact page points ideas, feature requests and bugs to GitHub issues

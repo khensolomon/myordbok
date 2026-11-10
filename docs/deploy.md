@@ -157,7 +157,10 @@ site's database and locally: `make db-migrate-remote APPLY=1` and
 `make db-migrate`. 0003 adds ratings per meaning; 0004 adds search counts
 (the workspace overview) and user 0, "Former member", which deleted
 accounts' reviewed suggestions are moved to; 0005 adds the contact form's
-messages (the Inbox) and site settings (offline access).
+messages (the Inbox) and site settings (offline access). 0006 gives messages
+their states (unread, read, replied, done) and notes, and adds the build
+statistics the workspace shows: `make data-publish` keeps them for each new
+build; for the build already published, once: `make data-stats FILE=…/build/myordbok.db APPLY=1`.
 
 After signing in once, give the owner the admin role:
 
