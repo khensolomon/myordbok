@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+81
+
+- Searches sort: most searched, last searched, most days, A to Z
+
 ## 26.11.11+80
 
 - Phrases, sentences and did-you-mean read offline on the device; releases in two commands (data-beta, data-live)

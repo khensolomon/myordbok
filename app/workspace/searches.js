@@ -29,6 +29,12 @@ const PERIODS = /** @type {const} */ ([
 	[90, mark('90 days')],
 	[0, mark('All time')],
 ]);
+const ORDERS = /** @type {const} */ ([
+	['hits', mark('Most searched')],
+	['recent', mark('Last searched')],
+	['days', mark('Most days')],
+	['az', mark('A to Z')],
+]);
 const LANGS = /** @type {const} */ ([
 	['', mark('Both')],
 	['en', mark('English')],
@@ -50,6 +56,7 @@ export async function searchesPanes(ctx, root, admin) {
 		days: /** @type {Filter['days']} */ (PERIODS.some(([d]) => String(d) === q.get('days')) ? Number(q.get('days')) : 30),
 		lang: /** @type {Filter['lang']} */ (LANGS.some(([l]) => l === q.get('lang')) ? q.get('lang') : ''),
 		q: (q.get('q') ?? '').trim(),
+		order: /** @type {Filter['order']} */ (ORDERS.some(([o]) => o === q.get('order')) ? q.get('order') : 'hits'),
 	};
 	/** The address with one part of the filter changed. @param {Partial<Filter>} change */
 	const href = (change) => {
@@ -62,6 +69,7 @@ export async function searchesPanes(ctx, root, admin) {
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose a word from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
 	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Contains…'), 'aria-label': t('Find a word'), value: f.q }));
+	const sort = /** @type {HTMLSelectElement} */ (h('select', { class: 'ws-sort', 'aria-label': t('Sort') }, ORDERS.map(([o, label]) => h('option', { value: o, selected: o === f.order ? true : null }, t(label)))));
 	const ol = h('ol', { class: 'ws-rows' });
 	const head = h('span');
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
@@ -186,6 +194,11 @@ export async function searchesPanes(ctx, root, admin) {
 			.catch((err) => ol.append(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))))
 			.finally(() => (more.disabled = false));
 	});
+	sort.addEventListener('change', () => {
+		f.order = /** @type {Filter['order']} */ (sort.value);
+		history.replaceState(history.state, '', href({}));
+		load().catch((err) => ol.replaceChildren(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))));
+	});
 	let timer = 0;
 	search.addEventListener('input', () => {
 		clearTimeout(timer);
@@ -203,7 +216,7 @@ export async function searchesPanes(ctx, root, admin) {
 		segments(t('Show'), SHOWS, f.show, (v) => ({ show: v })),
 		segments(t('Period'), PERIODS, f.days, (v) => ({ days: v })),
 		segments(t('Language'), LANGS, f.lang, (v) => ({ lang: v })),
-		h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
+		h('div', { class: 'ws-tools' }, h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search), sort),
 		ol,
 		more,
 	);

@@ -475,3 +475,20 @@ test('comments: members post plain text on an entry, delete their own; editors h
 	assert.equal((await call(e, '/api/comments', { who: 'other', body: { lang: 'en', word: 'love', body: 'Closed?' } })).status, 403);
 	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.open, false);
 });
+
+test('searches: sorted by most searched, last searched, most days, or A to Z', async () => {
+	const e = env();
+	const day = (ago) => new Date(Date.now() - ago * 86400000).toISOString().slice(0, 10);
+	const add = e.raw.prepare("INSERT INTO search_counts (day, lang, term, found, hits) VALUES (?1, 'en', ?2, 0, ?3)");
+	add.run(day(5), 'bbb', 9);
+	add.run(day(0), 'ccc', 1);
+	add.run(day(3), 'aaa', 2);
+	add.run(day(4), 'aaa', 2);
+	add.run(day(6), 'aaa', 1);
+	const order = async (o) => (await call(e, `/api/workspace/searches?order=${o}`, { who: 'editor' })).body.words.map((w) => w.term);
+	assert.deepEqual(await order('hits'), ['bbb', 'aaa', 'ccc']);
+	assert.deepEqual(await order('recent'), ['ccc', 'aaa', 'bbb']);
+	assert.deepEqual(await order('days'), ['aaa', 'bbb', 'ccc']);
+	assert.deepEqual(await order('az'), ['aaa', 'bbb', 'ccc']);
+	assert.equal((await call(e, '/api/workspace/searches?order=random', { who: 'editor' })).status, 400);
+});

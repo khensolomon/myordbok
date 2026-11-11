@@ -6,7 +6,8 @@
  *   GET /api/workspace/searches             the list: ?show=missed|found|all
  *                                           (missed: never found in the period),
  *                                           ?days=7|30|90|0 (0: all kept), ?lang=en|my,
- *                                           ?q= (contains), ?offset=; 50 a page.
+ *                                           ?q= (contains), ?order=hits|recent|days|az
+ *                                           (most searched first by default), ?offset=; 50 a page.
  *                                           ?format=csv: every matching word as CSV
  *   GET /api/workspace/searches/word        ?lang=&term=: one word, day by day
  *   POST /api/workspace/searches/prune      { days }: admins delete the counts of days
@@ -30,6 +31,13 @@ const PAGE = 50;
 export const CSV_MAX = 10000;
 const SHOWS = ['missed', 'found', 'all'];
 const PERIODS = [7, 30, 90, 0];
+/** Orders of the list, and how each sorts. */
+const ORDERS = {
+	hits: 'hits DESC, last DESC, term',
+	recent: 'last DESC, hits DESC, term',
+	days: 'days DESC, hits DESC, term',
+	az: 'term, lang',
+};
 
 /**
  * @param {Request} request
@@ -65,7 +73,9 @@ function filter(url) {
 	if (!Number.isInteger(offset) || offset < 0) throw new AppError('bad_request', 'offset must be a whole number');
 	// The first day counted: days ago, today included; 0 keeps every day.
 	const since = days ? new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10) : '0000-00-00';
-	return { show, days, lang, q, offset, since };
+	const order = p.get('order') ?? 'hits';
+	if (!Object.hasOwn(ORDERS, order)) throw new AppError('bad_request', `order must be one of ${Object.keys(ORDERS).join(', ')}`);
+	return { show, days, lang, q, offset, since, order: /** @type {keyof typeof ORDERS} */ (order) };
 }
 
 /**
@@ -95,7 +105,7 @@ const having = (show) => (show === 'missed' ? 'WHERE found = 0' : show === 'foun
 async function list(env, url) {
 	const f = filter(url);
 	const g = grouped(f);
-	const order = 'ORDER BY hits DESC, last DESC, term';
+	const order = `ORDER BY ${ORDERS[f.order]}`;
 	if (url.searchParams.get('format') === 'csv') {
 		const { results } = await env.APP.prepare(`SELECT * FROM (${g.sql}) ${having(f.show)} ${order} LIMIT ${CSV_MAX}`).bind(...g.args).all();
 		const now = await headwords(env, /** @type {any[]} */ (results).filter((r) => !r.found));

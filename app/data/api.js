@@ -273,7 +273,7 @@ export function withdrawEdit(id) {
  */
 
 /**
- * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string }} SearchFilter
+ * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string, order: 'hits' | 'recent' | 'days' | 'az' }} SearchFilter
  * @typedef {{ lang: 'en' | 'my', term: string, hits: number, days: number, first: string, last: string, found: boolean, now: boolean }} SearchedWord
  * @typedef {{ show: string, days: number, counts: { words: number, missed: number, found: number, hits: number }, words: SearchedWord[], more: boolean }} SearchesPage
  * @typedef {{ lang: 'en' | 'my', term: string, hits: number, found: boolean, now: boolean, daily: Array<{ day: string, hits: number, found: boolean }> }} SearchedDetail
@@ -284,6 +284,7 @@ export function searchesQuery(f) {
 	const p = new URLSearchParams({ show: f.show, days: String(f.days) });
 	if (f.lang) p.set('lang', f.lang);
 	if (f.q) p.set('q', f.q);
+	if (f.order !== 'hits') p.set('order', f.order);
 	return p;
 }
 

@@ -1335,6 +1335,9 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-comment { max-width: 760px; }
 .ws-comment-body { margin: 10px 0 18px; padding: 14px 16px; border-left: 3px solid var(--line); border-radius: 0 10px 10px 0; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.6; color: var(--ink); }
 .ws-actions .ws-danger { flex: none; }
+.ws-tools { display: flex; gap: 6px; margin: 0 14px 8px; }
+.ws-tools .ws-search { flex: 1; min-width: 0; margin: 0; }
+.ws-sort { flex: none; max-width: 46%; height: 30px; padding: 0 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: inherit; font-size: 12px; }
 .ws-days-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
 .ws-days { width: 80px; height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: inherit; }
 .ws-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
