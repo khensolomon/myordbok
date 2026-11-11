@@ -274,7 +274,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 3. Myanmar text for About, Privacy and Terms.
 4. Backups of the app database (members, suggestions, ratings, comments,
    messages) to storage outside Cloudflare's own 30-day restore.
-5. The Myanmar fonts page (`/myanmar-fonts`), moved over from the previous site.
-6. A simpler data release (one command from build to beta, one to production).
-7. Phrases offline: reading a phrase from the word lists and senses on the
+5. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
+   download link for the fonts.
+6. Phrases offline: reading a phrase from the word lists and senses on the
    device, as the server does.

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { badDatabaseIds, buildOfFile, exportEdits, planExport, promote, publish, setDatabaseIds, status, switchSite, tsv, verifyBuild } from '../scripts/data.js';
+import { badDatabaseIds, buildOfFile, exportEdits, planExport, promote, publish, releaseBeta, releaseLive, setDatabaseIds, status, switchSite, tsv, verifyBuild } from '../scripts/data.js';
 import { MIGRATION, SAMPLE, runner, sqlite } from './helpers/d1.js';
 
 /** @param {Partial<import('../scripts/data.js').Edit>} e */
@@ -259,4 +259,34 @@ test('grant: a level the database does not know yet says which migrations to app
 	app.exec("INSERT INTO users (id, name, email) VALUES (1, 'K', 'k@example.com')");
 	const db = runner({ APP: app, DATASET: sqlite(), DICTIONARY: sqlite() });
 	assert.throws(() => grant(db, 'k@example.com', 'owner', true, () => {}), /does not know the level "owner" yet\. Apply the migrations first: make db-migrate/);
+});
+
+test('release in two commands: beta (packs first, then publish), live from the remembered file', async () => {
+	const { dir, dbs, db, out, log } = setupRelease();
+	const file = join(dir, 'build.sql');
+	writeFileSync(file, SAMPLE);
+	const remember = join(dir, 'state', 'release.json');
+	/** @type {string[]} */
+	const order = [];
+	const packs = async (/** @type {string} */ f) => {
+		order.push(`packs ${readsOf(dbs.APP).beta ?? 'none'}`);
+		return 'sample';
+	};
+
+	await assert.rejects(releaseLive(db, null, true, log, { remember, waitMs: 0 }), /No build was released to beta/);
+	await releaseBeta(db, file, false, log, { packs, remember });
+	assert.deepEqual([order, readsOf(dbs.APP)], [[], {}], 'a dry run changes nothing');
+
+	await releaseBeta(db, file, true, log, { packs, remember });
+	assert.deepEqual(order, ['packs none'], 'the packs are up before beta reads the build');
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample' });
+	assert.equal(JSON.parse(readFileSync(remember, 'utf8')).built, 'sample');
+
+	// The file changed after it went to beta: production is refused.
+	writeFileSync(file, `${SAMPLE}\n-- rebuilt`);
+	await assert.rejects(releaseLive(db, null, true, log, { remember, waitMs: 0 }), /changed since it went to beta/);
+	writeFileSync(file, SAMPLE);
+	out.length = 0;
+	await releaseLive(db, null, true, log, { remember, waitMs: 0 });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample', production: 'dictionary sample' });
 });

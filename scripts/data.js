@@ -17,6 +17,17 @@
  * here as the dataset's own patch files, applied and merged in the dataset,
  * and come back with the next release.
  *
+ * A release takes two commands:
+ *
+ *   beta    --file BUILD.sql    the offline packs to R2, then publish (beta
+ *                               previews the build, with its statistics); the
+ *                               file is remembered for live
+ *   live    [--file BUILD.sql]  promote the build beta previews to production,
+ *                               from the remembered file, refused if the file
+ *                               changed since
+ *
+ * and the steps they are made of, also run on their own:
+ *
  *   setup                       create the databases that are missing and write
  *                               their ids into wrangler.toml (once)
  *   status                      the build in each database, what each site reads,
@@ -45,11 +56,13 @@
  * outside it (exports/ is ignored by git for convenience).
  */
 import { execFileSync } from 'node:child_process';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { statsOfFile, statsSql } from './stats.js';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { makePacks } from './packs.js';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 
@@ -730,6 +743,74 @@ export async function promote(db, file, apply, log, opts = {}) {
 }
 
 /**
+ * Where beta's build file is remembered between `beta` and `live`: outside
+ * the repository, per machine.
+ * @param {boolean} local
+ */
+export function releaseFile(local) {
+	const base = process.env.XDG_STATE_HOME || join(homedir(), '.local', 'state');
+	return join(base, 'myordbok', local ? 'release.local.json' : 'release.json');
+}
+
+/** @param {string} file */
+function sha256Of(file) {
+	return createHash('sha256').update(readFileSync(file)).digest('hex');
+}
+
+/**
+ * A build to beta in one go: its offline packs first (a site never lists a
+ * build whose packs are missing), then publish, which imports and checks it,
+ * shows it on beta and keeps its statistics. The file is remembered for live.
+ * @param {Runner} db
+ * @param {string} file
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ * @param {{ local?: boolean, packs?: typeof makePacks, remember?: string }} [opts]
+ */
+export async function releaseBeta(db, file, apply, log, opts = {}) {
+	if (!existsSync(file)) throw new Error(`${file} not found; build the dataset first (scripts/db_build.py --apply)`);
+	const packs = opts.packs ?? makePacks;
+	const remember = opts.remember ?? releaseFile(Boolean(opts.local));
+	if (!apply) {
+		log('Release to beta, step by step:');
+		log('  1. offline packs of the build → R2 (built and uploaded, the manifest last)');
+		log('  2. publish: the build → myordbok-dataset, checked; beta previews it; statistics kept');
+		publish(db, file, false, log);
+		log(`Then: make data-live APPLY=1 promotes it to production.`);
+		return;
+	}
+	log('1. Offline packs');
+	const built = await packs(file, { apply: true, local: Boolean(opts.local), log: (line) => log(`   ${line}`) });
+	log('2. Publish');
+	publish(db, file, true, (line) => log(`   ${line}`));
+	mkdirSync(dirname(remember), { recursive: true });
+	writeFileSync(remember, JSON.stringify({ file, built, sha256: sha256Of(file), at: new Date().toISOString() }, null, '\t'));
+	log(`Beta previews build ${built}. Check https://beta.myordbok.com, then: make data-live APPLY=1`);
+}
+
+/**
+ * Production gets the build beta previews, from the file remembered by
+ * `beta` (or the one given), refused when that file changed since.
+ * @param {Runner} db
+ * @param {string | null} given
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ * @param {{ local?: boolean, remember?: string, waitMs?: number }} [opts]
+ */
+export async function releaseLive(db, given, apply, log, opts = {}) {
+	const remember = opts.remember ?? releaseFile(Boolean(opts.local));
+	/** @type {{ file: string, built: string, sha256: string } | null} */
+	const kept = existsSync(remember) ? JSON.parse(readFileSync(remember, 'utf8')) : null;
+	const file = given ?? kept?.file;
+	if (!file) throw new Error(`No build was released to beta from this machine (${remember} is missing). Run make data-beta FILE=… first, or give FILE=…`);
+	if (!existsSync(file)) throw new Error(`${file} is gone since it went to beta; give FILE=… for the build beta previews`);
+	if (kept && kept.file === file && sha256Of(file) !== kept.sha256) {
+		throw new Error(`${file} changed since it went to beta (build ${kept.built}). Release it to beta again (make data-beta) before production.`);
+	}
+	await promote(db, file, apply, log, opts.waitMs === undefined ? {} : { waitMs: opts.waitMs });
+}
+
+/**
  * Exported edits that the new build contains become merged.
  * @param {Runner} db
  * @param {Dict} dict
@@ -932,6 +1013,12 @@ async function main() {
 			return writeStats(db, fileArg('count'), apply, log);
 		case 'export':
 			return exportEdits(db, option(args, '--out') ?? 'exports', apply, log);
+		case 'beta':
+			return releaseBeta(db, fileArg('release to beta'), apply, log, { local });
+		case 'live': {
+			const given = option(args, '--file');
+			return releaseLive(db, given ? resolve(given) : null, apply, log, local ? { local, waitMs: 0 } : {});
+		}
 		case 'publish':
 			return publish(db, fileArg('publish'), apply, log);
 		case 'promote':
@@ -947,7 +1034,7 @@ async function main() {
 		case 'grant':
 			return grant(db, option(args, '--email') ?? '', option(args, '--role') ?? '', apply, log);
 		default:
-			throw new Error('Commands: setup, status, publish, promote, stats, export, switch, grant (see the top of scripts/data.js)');
+			throw new Error('Commands: setup, status, beta, live, publish, promote, stats, export, switch, grant (see the top of scripts/data.js)');
 	}
 }
 

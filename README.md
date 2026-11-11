@@ -52,12 +52,12 @@ make test                 # node:test, no dependencies
 
 The dictionary itself is built in a separate, private repository; this one
 holds only a made-up sample in the same tables. A build reaches the sites in
-steps, each a dry run unless `APPLY=1` is given:
+two commands, each a dry run unless `APPLY=1` is given (the steps they run,
+`data-packs`, `data-publish` and `data-promote`, also run on their own):
 
 ```bash
-make data-publish FILE=…/myordbok.sql APPLY=1   # → myordbok-dataset, read by beta, with its statistics
-make data-packs   FILE=…/myordbok.sql APPLY=1   # offline packs → R2
-make data-promote FILE=…/myordbok.sql APPLY=1   # → myordbok-dictionary, read by production
+make data-beta FILE=…/myordbok.sql APPLY=1      # offline packs → R2, then → myordbok-dataset: beta previews it
+make data-live APPLY=1                          # the same build → myordbok-dictionary, read by production
 make db-migrate-remote APPLY=1                  # app database migrations on Cloudflare
 make grant EMAIL=… ROLE=member|editor|admin|owner APPLY=1   # LOCAL=1 for the local database
 ```

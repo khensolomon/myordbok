@@ -86,7 +86,14 @@ data-setup: ## Create the three databases if missing, write their ids into wrang
 data-status: ## The build in each dictionary database, what each site reads, edits by status
 	$(DATA) status $(if $(LOCAL),--local)
 
-data-publish: ## A build → myordbok-dataset, checked; beta previews it: FILE=… [APPLY=1]
+data-beta: ## Release a build to beta: offline packs, then publish with statistics: FILE=… [APPLY=1]
+	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
+	$(DATA) beta --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-live: ## Promote the build beta previews to production (the file data-beta used) [FILE=…] [APPLY=1]
+	$(DATA) live $(if $(FILE),--file "$(FILE)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-publish: ## Step: a build → myordbok-dataset, checked; beta previews it: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
 	$(DATA) publish --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
@@ -94,11 +101,11 @@ data-stats: ## A build's statistics → myordbok-app, for the workspace: FILE=�
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
 	$(DATA) stats --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-packs: ## Offline packs of a build → R2 myordbok-packs: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
+data-packs: ## Step: offline packs of a build → R2 myordbok-packs: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
 	node --no-warnings scripts/packs.js --file "$(FILE)" $(if $(PACKS_OUT),--out "$(PACKS_OUT)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-promote: ## The build beta previews → myordbok-dictionary for production: FILE=… [APPLY=1]
+data-promote: ## Step: the build beta previews → myordbok-dictionary for production: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql (the build beta previews)'; exit 1; }
 	$(DATA) promote --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 

@@ -151,29 +151,40 @@ async function main(argv) {
 		if (!v || v.startsWith('--')) throw new Error(`${name} needs a value`);
 		return v;
 	};
-	const apply = argv.includes('--apply');
-	const local = argv.includes('--local');
 	const file = arg('--file');
 	if (!file) throw new Error('Usage: node scripts/packs.js --file BUILD.db|BUILD.sql [--out DIR] [--apply] [--local]');
+	await makePacks(file, { out: arg('--out'), apply: argv.includes('--apply'), local: argv.includes('--local') });
+}
+
+/**
+ * Builds a build's packs next to the file and, with apply, uploads them to
+ * R2, the manifest last. Also run by `scripts/data.js beta`.
+ * @param {string} file
+ * @param {{ out?: string | null, apply?: boolean, local?: boolean, log?: (line: string) => void }} [options]
+ * @returns {Promise<string>} The build.
+ */
+export async function makePacks(file, options = {}) {
+	const { apply = false, local = false } = options;
+	const say = options.log ?? ((/** @type {string} */ line) => console.log(line));
 
 	const started = Date.now();
 	const db = openBuild(resolve(file));
 	const { built, files } = await buildPacks(db);
 	const key = buildKey(built);
-	const out = resolve(arg('--out') ?? join(dirname(resolve(file)), 'packs', key));
+	const out = resolve(options.out ?? join(dirname(resolve(file)), 'packs', key));
 	if (!relative(ROOT, out).startsWith('..')) throw new Error(`${out} is inside the repository; dictionary data never goes there. Choose --out outside it.`);
 	mkdirSync(out, { recursive: true });
 	const manifest = manifestOf(built, files);
 	for (const { pack, data } of files) writeFileSync(join(out, pack.file), data);
 	writeFileSync(join(out, 'manifest.json'), JSON.stringify(manifest, null, '\t'));
 
-	console.log(`Build ${built}: packs in ${out} (${((Date.now() - started) / 1000).toFixed(0)} s)`);
-	for (const p of manifest.packs) console.log(`  ${p.id.padEnd(11)} ${String(p.rows).padStart(7)} rows  ${size(p.bytes).padStart(8)}  ${OPEN_KINDS.includes(p.kind) ? 'everyone' : 'by the access setting'}`);
-	console.log(`  total ${size(manifest.packs.reduce((a, p) => a + p.bytes, 0))}`);
+	say(`Build ${built}: packs in ${out} (${((Date.now() - started) / 1000).toFixed(0)} s)`);
+	for (const p of manifest.packs) say(`  ${p.id.padEnd(11)} ${String(p.rows).padStart(7)} rows  ${size(p.bytes).padStart(8)}  ${OPEN_KINDS.includes(p.kind) ? 'everyone' : 'by the access setting'}`);
+	say(`  total ${size(manifest.packs.reduce((a, p) => a + p.bytes, 0))}`);
 
 	if (!apply) {
-		console.log(`Dry run: nothing uploaded. Add --apply to upload to R2 ${BUCKET}/${key}/${local ? ' (local)' : ''}.`);
-		return;
+		say(`Dry run: nothing uploaded. Add --apply to upload to R2 ${BUCKET}/${key}/${local ? ' (local)' : ''}.`);
+		return built;
 	}
 	const where = local ? '--local' : '--remote';
 	// The manifest goes last: a site sees a build's packs only once all its files are there.
@@ -186,9 +197,10 @@ async function main(argv) {
 			const hint = /bucket.*(not exist|not found)/i.test(text) ? ` Create it once: npx wrangler r2 bucket create ${BUCKET}` : '';
 			throw new Error(`Uploading ${name} failed.${hint}\n${text.trim()}`);
 		}
-		console.log(`  uploaded ${key}/${name}`);
+		say(`  uploaded ${key}/${name}`);
 	}
-	console.log(`Packs of build ${built} are in R2 ${BUCKET}${local ? ' (local)' : ''}. Sites reading this build offer them now.`);
+	say(`Packs of build ${built} are in R2 ${BUCKET}${local ? ' (local)' : ''}. Sites reading this build offer them now.`);
+	return built;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

@@ -138,9 +138,9 @@ way the sign-in ends on :8787, the registered callback. Use `localhost`, not
 The app database needs migration 0002 (members' email) before sign-in works:
 `make db-migrate-remote APPLY=1`.
 
-Offline packs: once, create the bucket the packs live in, then after each
-`make data-publish` make the packs of that build (a promotion needs none; the
-packs are kept per build):
+Offline packs: once, create the bucket the packs live in. `make data-beta`
+uploads each build's packs; on their own (a promotion needs none; the packs
+are kept per build):
 
 ```bash
 npx wrangler r2 bucket create myordbok-packs          # once
@@ -245,12 +245,20 @@ change. A build reaches readers in two steps: beta first, then production.
 python3 scripts/db_build.py --apply          # build/myordbok.sql, 75 search checks
 
 # Here
-make data-status                                                     # the build in each database, who reads it
-make data-publish FILE=../lai/myordbok/build/myordbok.sql            # dry run
-make data-publish FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # → myordbok-dataset; beta previews it
+make data-status                                                  # the build in each database, who reads it
+make data-beta FILE=../lai/myordbok/build/myordbok.sql            # dry run
+make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # packs → R2, then → myordbok-dataset; beta previews it
 # check beta.myordbok.com
-make data-promote FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # → myordbok-dictionary; production gets it
+make data-live APPLY=1                                            # the same build → myordbok-dictionary; production gets it
 ```
+
+**data-beta** uploads the build's offline packs first, so beta never lists a
+build whose packs are missing, then publishes it (below). It remembers the
+file in `~/.local/state/myordbok/release.json` (outside the repository).
+**data-live** promotes that file (below), and refuses when the file changed
+after it went to beta: a rebuilt file goes through beta again. `FILE=…`
+names another file, which must still be the build beta previews. The steps
+also run on their own: `data-packs`, `data-publish`, `data-promote`.
 
 **Publish** imports the build into `myordbok-dataset` (`--file` replaces every
 table), checks each table against the row counts the build wrote into
