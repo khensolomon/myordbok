@@ -8,6 +8,7 @@
 import { h } from '../core/dom.js';
 import { siteSettings, updateSetting } from '../data/api.js';
 import { mark, shortDate, t } from '../i18n/index.js';
+import { fitLinks } from './list-bar.js';
 
 /**
  * @typedef {{ title: string, about: string, choices?: Array<[string, string]>, number?: { min: number, max: number, unit: string, zero?: string } }} Known
@@ -115,11 +116,11 @@ export async function settingsPane() {
 	const onChange = (/** @type {string} */ key, /** @type {unknown} */ value) => {
 		if (key === 'site.readonly') banner.hidden = value !== 'on';
 	};
-	const jump = h(
+	const jump = fitLinks(h(
 		'nav',
 		{ class: 'ws-settings-jump', 'aria-label': t('Groups') },
 		GROUPS.map(([group]) => h('a', { href: `#set-${group.toLowerCase()}` }, t(group))),
-	);
+	));
 	const cards = GROUPS.map(([group, items]) =>
 		h(
 			'section',
@@ -145,7 +146,7 @@ export async function settingsPane() {
 	// Jumping to a group scrolls the work area, not the page.
 	jump.addEventListener('click', (e) => {
 		const a = /** @type {HTMLElement} */ (e.target).closest('a');
-		if (!a) return;
+		if (!a || a.closest('.ws-more-panel')) return;
 		e.preventDefault();
 		main.querySelector(/** @type {string} */ (a.getAttribute('href')))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	});

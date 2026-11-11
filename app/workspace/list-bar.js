@@ -242,3 +242,72 @@ export function listResizer(root, list) {
 	list.append(handle);
 	return handle;
 }
+
+/**
+ * A row of links that never scrolls sideways: the links that do not fit go
+ * under ⋯ at its end, in order, and come back as the row widens. Choosing
+ * one under ⋯ is the same as clicking the link itself.
+ * @param {HTMLElement} nav  Holding only links.
+ */
+export function fitLinks(nav) {
+	const links = /** @type {HTMLAnchorElement[]} */ ([...nav.querySelectorAll(':scope > a')]);
+	const id = `ws-fit-${Math.random().toString(36).slice(2, 8)}`;
+	const button = h('button', { type: 'button', class: 'ws-more-button', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': id, 'aria-label': t('More'), title: t('More') }, h('span', { 'aria-hidden': 'true' }, '⋯'));
+	const panel = h('div', { class: 'ws-more-panel', id, hidden: true });
+	const wrap = h('div', { class: 'ws-more-wrap', hidden: true }, button, panel);
+	nav.append(wrap);
+	nav.classList.add('ws-fit');
+
+	const close = () => {
+		panel.hidden = true;
+		button.setAttribute('aria-expanded', 'false');
+		document.removeEventListener('pointerdown', outside, true);
+	};
+	const outside = (/** @type {Event} */ e) => {
+		if (!wrap.contains(/** @type {Node} */ (e.target))) close();
+	};
+	button.addEventListener('click', () => {
+		if (!panel.hidden) return close();
+		const r = button.getBoundingClientRect();
+		panel.style.top = `${Math.round(r.bottom + 6)}px`;
+		panel.style.left = `${Math.round(Math.max(8, Math.min(r.right - 220, innerWidth - 228)))}px`;
+		panel.replaceChildren(
+			h(
+				'section',
+				{ class: 'ws-more-group' },
+				h('ul', null, links
+					.filter((a) => a.hidden)
+					.map((a) => {
+						const item = h('a', { href: a.getAttribute('href') ?? '#' }, a.textContent ?? '');
+						item.addEventListener('click', (e) => {
+							e.preventDefault();
+							close();
+							a.hidden = false;
+							a.click();
+							fit();
+						});
+						return h('li', null, item);
+					})),
+			),
+		);
+		panel.hidden = false;
+		button.setAttribute('aria-expanded', 'true');
+		document.addEventListener('pointerdown', outside, true);
+	});
+	button.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+
+	const fit = () => {
+		if (!nav.clientWidth) return;
+		links.forEach((a) => (a.hidden = false));
+		wrap.hidden = true;
+		if (nav.scrollWidth <= nav.clientWidth) return;
+		wrap.hidden = false;
+		for (let n = links.length; n > 0 && nav.scrollWidth > nav.clientWidth; ) links[--n].hidden = true;
+	};
+	let frame = 0;
+	new ResizeObserver(() => {
+		cancelAnimationFrame(frame);
+		frame = requestAnimationFrame(fit);
+	}).observe(nav);
+	return nav;
+}

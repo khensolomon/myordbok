@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+91
+
+- Settings group links fit the width, the rest under a menu; no sideways scrolling
+
 ## 26.11.11+90
 
 - Settings redesigned: cards of rows with switches, segments and numbers beside their full description; a read-only warning, jump links, and a dot for changed settings

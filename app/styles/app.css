@@ -1256,14 +1256,16 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 /* Settings */
 /* Settings (settings.js): cards of rows, what a setting does on the left,
    its control on the right; stacked on narrow screens. */
-.ws-settings .ws-work.ws-settings-page { max-width: 880px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 36px) 60px; }
+.ws-settings .ws-work.ws-settings-page { width: 100%; max-width: 880px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 36px) 60px; }
 .ws-settings-head h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
 .ws-settings-head p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
 .ws-settings-banner { margin: 18px 0 0; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, #b23a2c 10%, var(--ground)); color: #9a2f22; font-size: 14px; font-weight: 500; }
 .ws-settings-banner[hidden] { display: none; }
-.ws-settings-jump { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 4px; padding: 8px 0; background: var(--ground); }
-.ws-settings-jump a { padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
-.ws-settings-jump a:hover { border-color: var(--guide); color: var(--ink); }
+.ws-settings-jump { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: nowrap; overflow: hidden; gap: 6px; margin: 18px 0 4px; padding: 8px 0; background: var(--ground); }
+.ws-settings-jump > a[hidden] { display: none; }
+.ws-fit > .ws-more-wrap .ws-more-button { border-radius: 999px; }
+.ws-settings-jump > a { flex: none; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
+.ws-settings-jump > a:hover { border-color: var(--guide); color: var(--ink); }
 .ws-settings-card { margin-top: 18px; border: 1px solid var(--line-soft); border-radius: 14px; background: var(--glass-solid); box-shadow: 0 1px 2px rgba(23, 32, 43, 0.03); scroll-margin-top: 56px; overflow: hidden; }
 .ws-settings-card > h2 { margin: 0; padding: 12px 20px; border-bottom: 1px solid var(--line-soft); background: var(--surface); font-size: 12px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
 .ws-settings-card > h2:lang(my) { text-transform: none; letter-spacing: 0; }
@@ -1288,8 +1290,6 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-set-number input { width: 84px; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: inherit; font-size: 14px; text-align: right; }
 .ws-set-number input:focus { outline: none; border-color: var(--guide); }
 @media (max-width: 640px) {
-	.ws-settings-jump { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
-	.ws-settings-jump a { flex: none; }
 	.ws-set { grid-template-columns: minmax(0, 1fr); }
 	.ws-set-control { justify-self: start; }
 }
