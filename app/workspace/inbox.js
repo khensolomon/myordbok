@@ -53,6 +53,15 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 	const rows = items.map((m, i) => row(m, ago, () => open(i)));
 	const ol = h('ol', { class: 'ws-rows' }, rows.length ? rows.map((b) => h('li', null, b)) : h('li', { class: 'ws-none' }, filter === 'new' ? t('No unread messages.') : t('Nothing here.')));
 	const bar = h('div', { class: 'ws-list-top' });
+	// Searches the messages in the list (the latest of the filter), as typed.
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Text, member or email'), 'aria-label': t('Find a message') }));
+	search.addEventListener('input', () => {
+		const q = search.value.trim().toLowerCase();
+		items.forEach((m, i) => {
+			const hit = !q || [m.body, m.member, m.reply_to, m.note].some((v) => v?.toLowerCase().includes(q));
+			/** @type {HTMLElement} */ (rows[i].parentElement).hidden = !hit;
+		});
+	});
 	const href = (/** @type {string} */ s) => `/workspace?s=inbox${s === 'new' ? '' : `&status=${s}`}`;
 	/** The head and its filters; drawn again when a count changes. */
 	const drawSegments = () =>
@@ -63,6 +72,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 				main: { title: t('Show'), current: filter, fallback: 'new', href, choices: [{ value: 'new', label: t('Unread'), count: counts.new }, { value: 'all', label: t('All') }] },
 				more: [{ title: t('Status'), current: filter, fallback: 'new', href, choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) }],
 				reset: href('new'),
+				search,
 			}),
 		);
 	drawSegments();

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+83
+
+- List heads: filters and menu on one row, the search box on its own row in the same place everywhere; Inbox search; Contributions status menu
+
 ## 26.11.11+82
 
 - Workspace lists share one head: title and count, one line of filters, the rest under a menu; the list column resizes on desktops

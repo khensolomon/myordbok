@@ -4,7 +4,11 @@
  * Comments, Inbox, Members), the same everywhere:
  *
  *   row 1   the title and a count
- *   row 2   the main filter as segments, the search box, and ⋯
+ *   row 2   the main filter as segments, and ⋯ at the end
+ *   row 3   the search box, across the column
+ *
+ * Every list has all three rows, so the search box sits in the same place
+ * in each section.
  *
  * ⋯ opens the less used choices (period, language, sort, a status, a
  * level), grouped and ticked; a dot on it says one of them is not at its
@@ -48,6 +52,7 @@ import { num, t } from '../i18n/index.js';
 export function listBar(o) {
 	const head = h('header', { class: 'ws-list-head' }, h('h1', null, o.title), h('span', null, o.count));
 	const bar = h('div', { class: 'ws-filterbar' });
+	const rows = [head, bar];
 	if (o.main) {
 		const g = o.main;
 		bar.append(
@@ -58,10 +63,10 @@ export function listBar(o) {
 			),
 		);
 	}
-	if (o.search) bar.append(h('label', { class: 'ws-search' }, icon(ICONS.search, 14), o.search));
 	const more = o.more ?? [];
 	if (more.length) bar.append(moreMenu(more, o.reset ?? ''));
-	return [head, bar];
+	if (o.search) rows.push(h('label', { class: 'ws-search' }, icon(ICONS.search, 14), o.search));
+	return rows;
 }
 
 /**

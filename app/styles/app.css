@@ -1335,10 +1335,9 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-comment-body { margin: 10px 0 18px; padding: 14px 16px; border-left: 3px solid var(--line); border-radius: 0 10px 10px 0; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.6; color: var(--ink); }
 .ws-actions .ws-danger { flex: none; }
 /* The list column's head (list-bar.js): one line of filters, the rest under ⋯. */
-.ws-filterbar { display: flex; align-items: center; gap: 6px; margin: 0 14px 8px; min-width: 0; }
-.ws-filterbar .ws-segments { flex: none; margin: 0; }
-.ws-filterbar .ws-segments a { flex: none; padding-inline: 9px; }
-.ws-filterbar .ws-search { flex: 1 1 0; min-width: 72px; margin: 0; }
+.ws-filterbar { display: flex; align-items: center; gap: 6px; min-height: 30px; margin: 0 14px 8px; min-width: 0; }
+.ws-filterbar .ws-segments { flex: 0 1 auto; min-width: 0; margin: 0; overflow: hidden; }
+.ws-filterbar .ws-segments a { flex: none; padding-inline: 10px; }
 .ws-more-wrap { position: relative; flex: none; margin-left: auto; }
 .ws-more-button { position: relative; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink-2); font: 700 16px/1 var(--font-ui); cursor: pointer; }
 .ws-more-button:hover, .ws-more-button[aria-expanded="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--line) 50%, var(--muted)); }

@@ -606,6 +606,8 @@ export const MY = {
 	'Reset': 'မူလအတိုင်း ပြန်ထားရန်',
 	'Width of the list': 'စာရင်း၏ အကျယ်',
 	'Drag to resize; double-click to reset': 'ဆွဲ၍ အရွယ်ပြောင်းပါ၊ မူလအတိုင်းအတွက် နှစ်ချက်နှိပ်ပါ',
+	'Text, member or email': 'စာသား၊ အဖွဲ့ဝင် သို့မဟုတ် အီးမေးလ်',
+	'Find a message': 'စာ ရှာရန်',
 	'See all': 'အားလုံးကြည့်ရန်',
 	'7 days': '၇ ရက်',
 	'30 days': '၃၀ ရက်',

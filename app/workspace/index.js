@@ -291,7 +291,8 @@ export async function view(ctx) {
 
 	await load();
 	const count = section === 'suggestions' ? t('{n} waiting', { n: summary.waiting ?? 0 }) : num(Object.values(summary.mine).reduce((a, b) => a + b, 0));
-	const statusHref = (/** @type {string} */ s) => `/workspace?s=${section}${s === 'pending' ? '' : `&status=${s}`}`;
+	const fallback = section === 'suggestions' ? 'pending' : 'all';
+	const statusHref = (/** @type {string} */ s) => `/workspace?s=${section}${s === fallback ? '' : `&status=${s}`}`;
 	listPane.replaceChildren(
 		...listBar(
 			section === 'suggestions'
@@ -303,7 +304,13 @@ export async function view(ctx) {
 						more: [{ title: t('Status'), current: filter, fallback: 'pending', href: statusHref, choices: FILTERS.map(([s, label]) => ({ value: s, label: t(label) })) }],
 						reset: statusHref('pending'),
 					}
-				: { title: t('Contributions'), count, search },
+				: {
+						title: t('Contributions'),
+						count,
+						search,
+						more: [{ title: t('Status'), current: filter, fallback: 'all', href: statusHref, choices: [...FILTERS.filter(([s]) => s !== 'all'), /** @type {const} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label) })) }],
+						reset: statusHref('all'),
+					},
 		),
 		ol,
 		more,
