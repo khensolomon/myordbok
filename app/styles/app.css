@@ -1256,7 +1256,12 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 /* Settings */
 /* Settings (settings.js): cards of rows, what a setting does on the left,
    its control on the right; stacked on narrow screens. */
-.ws-settings .ws-work.ws-settings-page { width: 100%; max-width: 880px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 36px) 60px; }
+.ws-settings .ws-work.ws-settings-page { width: 100%; max-width: none; margin: 0; padding: 28px clamp(16px, 3vw, 36px) 60px; }
+.ws-settings-head p, .ws-settings-banner { max-width: 880px; }
+/* The cards fill the width in columns of at least 520px, each card whole,
+   top to bottom then across; one column on narrower screens. */
+.ws-settings-cards { columns: 520px auto; column-gap: 24px; margin-top: 18px; }
+.ws-settings-cards > .ws-settings-card { break-inside: avoid; margin: 0 0 18px; }
 .ws-settings-head h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
 .ws-settings-head p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
 .ws-settings-banner { margin: 18px 0 0; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, #b23a2c 10%, var(--ground)); color: #9a2f22; font-size: 14px; font-weight: 500; }

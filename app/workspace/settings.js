@@ -140,7 +140,7 @@ export async function settingsPane() {
 			h('header', { class: 'ws-settings-head' }, h('h1', null, t('Settings')), h('p', null, t('Each change takes effect at once, for everyone; no release needed. A dot marks a setting that is not at its default.'))),
 			banner,
 			jump,
-			cards,
+			h('div', { class: 'ws-settings-cards' }, cards),
 		),
 	);
 	// Jumping to a group scrolls the work area, not the page.

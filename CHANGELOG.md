@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+92
+
+- Settings use the full width, left aligned, cards in columns
+
 ## 26.11.11+91
 
 - Settings group links fit the width, the rest under a menu; no sideways scrolling
