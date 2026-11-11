@@ -187,9 +187,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   word lists (everyone), English and Myanmar senses, English related words
   (members, or everyone by the admin setting `offline.access`). The app keeps
   them in IndexedDB (`app/data/offline.js`): word lists by themselves once a
-  day at most, the rest chosen on `/offline`. Offline, one word's answer and
-  the search box's suggestions come from the device, marked as such on the
-  page; phrases, sentences, ratings and suggestions still need the network.
+  day at most, the rest chosen on `/offline`. Offline, the device reads a
+  query as the server does (`app/data/read-offline.js`, the same shared code
+  over IndexedDB): a word, a phrase read from its words, a sentence split into
+  words, or "did you mean" from the word list; all marked as the copy on the
+  device. Ratings, comments and suggestions still need the network.
   Downloads cost R2 reads and one Worker request per file, and one counter
   row write.
 - **Long lists get their own section.** Searches (`?s=searches`, editors)
@@ -276,5 +278,3 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
    messages) to storage outside Cloudflare's own 30-day restore.
 5. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
    download link for the fonts.
-6. Phrases offline: reading a phrase from the word lists and senses on the
-   device, as the server does.

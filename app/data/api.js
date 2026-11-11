@@ -11,6 +11,7 @@
 import { getJSON, postJSON } from '#platform/http.js';
 import { AppError } from '#shared/errors.js';
 import { lookupOffline, suggestOffline } from './offline.js';
+import { normalizeQuery } from '#shared/validate.js';
 
 const LOOKUPS_KEPT = 50;
 /** @type {Map<string, Promise<any>>} */
@@ -44,12 +45,8 @@ function kept(store, url) {
  * @returns {Promise<import('#shared/types.js').Reading>}
  */
 export function read(q) {
-	return kept(readings, `/api/read?q=${encodeURIComponent(q)}`).catch((err) =>
-		offlineOr(err, async () => {
-			const result = await lookupOffline(q);
-			return result ? { q, kind: 'entry', result } : null;
-		}),
-	);
+	// Without a connection, the device reads it the same way (read-offline.js), loaded only then.
+	return kept(readings, `/api/read?q=${encodeURIComponent(q)}`).catch((err) => offlineOr(err, async () => (await import('./read-offline.js')).readOffline(normalizeQuery(q))));
 }
 
 /**
@@ -96,7 +93,7 @@ export function suggest(q) {
  * @returns {Promise<import('#shared/types.js').Spelling>}
  */
 export function spelling(q) {
-	return getJSON(`/api/spelling?q=${encodeURIComponent(q)}`);
+	return getJSON(`/api/spelling?q=${encodeURIComponent(q)}`).catch((err) => offlineOr(err, async () => ({ q, words: await (await import('./read-offline.js')).closeOffline(q) })));
 }
 
 /**

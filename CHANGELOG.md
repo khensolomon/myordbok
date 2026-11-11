@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+80
+
+- Phrases, sentences and did-you-mean read offline on the device; releases in two commands (data-beta, data-live)
+
 ## 26.11.11+79
 
 - Comments on entries with moderation; statistics shared with chosen members; deleting old search counts; LICENSE holder

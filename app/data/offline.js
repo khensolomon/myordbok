@@ -10,7 +10,8 @@
  *                       or for everyone by the site's setting
  *
  * An answer from here equals the online lookup for one word, as the packs
- * are made with the same lookup; phrases and sentences need the server.
+ * are made with the same lookup. Phrases, sentences and "did you mean" are
+ * read from these lookups and the word lists (read-offline.js).
  * Answers from here carry offline: true and the build they come from.
  *
  * Usage (worker/lib/usage.js): a download says whether it replaces a copy
@@ -208,6 +209,26 @@ export async function remove(id) {
 /** Word lists held in memory once read. @type {Map<string, Promise<string[] | null>>} */
 const wordLists = new Map();
 
+/**
+ * The word list of a language on this device, or null.
+ * @param {'en' | 'my'} lang
+ * @returns {Promise<string[] | null>}
+ */
+export function wordListOf(lang) {
+	return wordList(lang).catch(() => null);
+}
+
+/**
+ * The build of the senses kept for a language, or null without them.
+ * @param {'en' | 'my'} lang
+ */
+export async function sensesBuild(lang) {
+	const db = await open().catch(() => null);
+	if (!db) return null;
+	const pack = /** @type {Installed | undefined} */ (await done(db.transaction('packs').objectStore('packs').get(`senses-${lang}`)));
+	return pack?.build ?? null;
+}
+
 /** @param {'en' | 'my'} lang */
 function wordList(lang) {
 	let list = wordLists.get(lang);
@@ -268,9 +289,10 @@ const NO_RELATED = { synonyms: [], similar: [], broader: [], opposite: [], relat
  * One word's answer from this device, in the shape of /api/lookup, or null
  * when this device has no senses for its language or not this word.
  * @param {string} q
+ * @param {{ count?: boolean }} [options]  count: false for a lookup that is part of reading a phrase.
  * @returns {Promise<(import('#shared/types.js').LookupResult & { offline: true, build: string }) | null>}
  */
-export async function lookupOffline(q) {
+export async function lookupOffline(q, options = {}) {
 	const text = q.normalize('NFC').split(/\s+/).filter(Boolean).join(' ');
 	const lang = MYANMAR.test(text) ? 'my' : 'en';
 	const db = await open().catch(() => null);
@@ -281,7 +303,7 @@ export async function lookupOffline(q) {
 	const key = lang === 'en' ? text.toLowerCase() : text;
 	const answer = await done(db.transaction(`senses-${lang}`).objectStore(`senses-${lang}`).get(key));
 	if (!answer) return null;
-	tally(1);
+	if (options.count !== false) tally(1);
 	if (lang === 'my') return /** @type {any} */ ({ query: text, language: 'my', ...answer, offline: true, build: senses.build });
 	const related = have.some((p) => p.id === 'related-en') ? await done(db.transaction('related-en').objectStore('related-en').get(key)) : null;
 	return /** @type {any} */ ({ query: text, language: 'en', ...answer, ...NO_RELATED, ...(related ?? {}), offline: true, build: senses.build });
@@ -326,7 +348,7 @@ function tallied() {
 }
 
 /** @param {number} n  Added to the tally; negative after a check-in sent it. */
-function tally(n) {
+export function tally(n) {
 	try {
 		localStorage.setItem(TALLY_KEY, String(Math.max(0, Math.min(TALLY_MAX, tallied() + n))));
 	} catch {

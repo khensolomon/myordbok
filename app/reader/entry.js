@@ -76,19 +76,25 @@ export async function view(ctx) {
 		}
 	}
 
-	// One request decides what the query is (worker/routes/read.js).
+	// One request decides what the query is (worker/routes/read.js); offline, the device (read-offline.js).
 	const reading = await read(q);
+	/** A phrase, a sentence or nothing read on the device says so, as an entry does. @param {Node} node */
+	const marked = (node) => {
+		const note = offlineNote(reading);
+		if (note && node instanceof HTMLElement) node.prepend(note);
+		return node;
+	};
 	switch (reading.kind) {
 		case 'entry':
 			return (await result(reading.result, asked)) ?? missing(q, { close: [], starts: [] });
 		case 'phrase':
-			return phraseView(reading.phrase, asked);
+			return marked(phraseView(reading.phrase, asked));
 		case 'sentence':
 			// The first word came with the reading; it is not fetched again.
 			if (reading.first) remember(reading.words[0].text, reading.first);
-			return sentence(q, reading.words, at === null ? 0 : Number(at) || 0);
+			return marked(await sentence(q, reading.words, at === null ? 0 : Number(at) || 0));
 		default:
-			return missing(q, reading);
+			return marked(await missing(q, reading));
 	}
 }
 
@@ -537,7 +543,10 @@ async function sentence(q, list, index) {
 
 	const entry = list[i].known === false
 		? h('p', { class: 'notice no-result inline' }, t('“{word}” is not a word in the dictionary.', { word }))
-		: ((await result(await lookup(word))) ?? (await missing(word, null, { inline: true })));
+		: ((await lookup(word)
+				// Offline, a word the device has no answer for is simply not there.
+				.then((r) => result(r))
+				.catch((err) => (/** @type {{ code?: string }} */ (err)?.code === 'unavailable' ? null : Promise.reject(err)))) ?? (await missing(word, null, { inline: true })));
 	const pager = h(
 		'nav',
 		{ class: 'sentence-pager', 'aria-label': t('Words of the sentence') },

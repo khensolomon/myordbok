@@ -141,7 +141,7 @@ test('errors are JSON with a stable code', async () => {
 });
 
 test('spelling: headwords one edit away, with senses', async () => {
-	const { edits1 } = await import('../worker/routes/spelling.js');
+	const { edits1 } = await import('../shared/query/spelling.js');
 	assert.ok(edits1('lvoe').includes('love'));
 	assert.ok(!edits1('love').includes('love'));
 	assert.deepEqual((await call('/api/spelling?q=lvoe', localEnv())).body.words, ['love']);

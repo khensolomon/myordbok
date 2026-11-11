@@ -648,6 +648,8 @@ mark { background: none; color: inherit; font-weight: 600; }
 /* A definition is as wide as the logo and the search box together. */
 .entry { max-width: calc(var(--logo-w) + var(--bar-gap) + var(--search-w)); }
 /* Comments under an entry (comments.js). */
+/* A sentence read on the device says so once, above its words. */
+.sentence .entry .offline-note { display: none; }
 .comments { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
 .comments-title { margin: 0 0 14px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .comments-title:lang(my), :lang(my) > .comments-title { text-transform: none; letter-spacing: 0; }

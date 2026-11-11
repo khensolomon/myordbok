@@ -8,12 +8,11 @@
  * be too large to be of use.
  */
 import { detectLang, normalizeQuery } from '../../shared/validate.js';
+import { edits1, spellable } from '../../shared/query/spelling.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 
 export const SPELLING_LIMIT = 6;
-const MAX_LENGTH = 24;
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 
 const SQL = `SELECT min(w.word) AS word, count(s.wrid) AS senses
 	FROM json_each(?1) j
@@ -22,27 +21,6 @@ const SQL = `SELECT min(w.word) AS word, count(s.wrid) AS senses
 	GROUP BY w.word COLLATE NOCASE
 	ORDER BY senses DESC, word COLLATE NOCASE
 	LIMIT ?2`;
-
-/**
- * Every string one edit away from `word` (Norvig's edits1), without `word`.
- * @param {string} word  Lower case.
- */
-export function edits1(word) {
-	/** @type {Set<string>} */
-	const out = new Set();
-	for (let i = 0; i <= word.length; i++) {
-		const [a, b] = [word.slice(0, i), word.slice(i)];
-		if (b) out.add(a + b.slice(1));
-		if (b.length > 1) out.add(a + b[1] + b[0] + b.slice(2));
-		for (const c of LETTERS) {
-			if (b) out.add(a + c + b.slice(1));
-			out.add(a + c + b);
-		}
-	}
-	out.delete(word);
-	out.delete('');
-	return [...out];
-}
 
 /**
  * Headwords one edit away from `q`, the most used first; none for text that
@@ -54,7 +32,7 @@ export function edits1(word) {
  */
 export async function closeWords(db, q, limit = SPELLING_LIMIT) {
 	const word = q.toLowerCase();
-	if (detectLang(q) !== 'en' || word.length > MAX_LENGTH || !/^[a-z' -]+$/.test(word)) return [];
+	if (detectLang(q) !== 'en' || !spellable(word)) return [];
 	const { results } = await db.prepare(SQL).bind(JSON.stringify(edits1(word)), limit).all();
 	return results.map((r) => String(r.word));
 }
