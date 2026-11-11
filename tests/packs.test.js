@@ -90,3 +90,13 @@ test('GET /api/packs without packs for the build says so', async () => {
 	assert.equal(res.status, 404);
 	assert.match((await res.json()).error.message, /No offline packs for build/);
 });
+
+test('packs: a download is counted as new, or as an update when the app says it replaces a copy', async () => {
+	const e = env();
+	assert.equal((await get(e, '/api/packs/words-en')).status, 200);
+	const res = await worker.fetch(new Request(`${SITE}/api/packs/words-en`, { headers: { origin: SITE, 'x-pack-update': '1' } }), e);
+	assert.equal(res.status, 200);
+	assert.equal((await get(e, '/api/packs/senses-en')).status, 401, 'refused downloads are not counted');
+	const counts = Object.fromEntries(e.raw.prepare('SELECT name, n FROM usage_counts').all().map((r) => [r.name, r.n]));
+	assert.deepEqual(counts, { 'download.words-en.new': 1, 'download.words-en.update': 1 });
+});

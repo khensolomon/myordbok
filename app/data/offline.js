@@ -12,8 +12,13 @@
  * An answer from here equals the online lookup for one word, as the packs
  * are made with the same lookup; phrases and sentences need the server.
  * Answers from here carry offline: true and the build they come from.
+ *
+ * Usage (worker/lib/usage.js): a download says whether it replaces a copy
+ * already here; words answered from here are tallied on the device, and
+ * once a day, when online, a device keeping definitions reports which packs
+ * it keeps and that tally. No words and nothing identifying the device.
  */
-import { getJSON } from '#platform/http.js';
+import { getJSON, postJSON } from '#platform/http.js';
 import { AppError } from '#shared/errors.js';
 
 const DB_NAME = 'myordbok-offline';
@@ -105,7 +110,9 @@ export async function installed() {
  * @param {(fraction: number) => void} [onProgress]
  */
 export async function install(pack, build, onProgress) {
-	const res = await fetch(`/api/packs/${pack.id}`, { credentials: 'same-origin' }).catch(() => {
+	// Counted on the server as a first download or an update (worker/index.js).
+	const had = (await installed().catch(() => [])).some((p) => p.id === pack.id);
+	const res = await fetch(`/api/packs/${pack.id}`, { credentials: 'same-origin', headers: had ? { 'x-pack-update': '1' } : {} }).catch(() => {
 		throw new AppError('unavailable', 'Could not reach MyOrdbok. Check the connection.');
 	});
 	if (!res.ok || !res.body) {
@@ -274,6 +281,7 @@ export async function lookupOffline(q) {
 	const key = lang === 'en' ? text.toLowerCase() : text;
 	const answer = await done(db.transaction(`senses-${lang}`).objectStore(`senses-${lang}`).get(key));
 	if (!answer) return null;
+	tally(1);
 	if (lang === 'my') return /** @type {any} */ ({ query: text, language: 'my', ...answer, offline: true, build: senses.build });
 	const related = have.some((p) => p.id === 'related-en') ? await done(db.transaction('related-en').objectStore('related-en').get(key)) : null;
 	return /** @type {any} */ ({ query: text, language: 'en', ...answer, ...NO_RELATED, ...(related ?? {}), offline: true, build: senses.build });
@@ -301,6 +309,52 @@ export async function keepWordLists(savingData) {
 		if (have.some((h) => h.id === pack.id && h.build === info.build)) continue;
 		await install(pack, info.build);
 	}
+}
+
+const TALLY_KEY = 'mo:offline-lookups';
+const CHECKIN_KEY = 'mo:usage-sent';
+/** Most lookups one check-in reports (worker/lib/usage.js LOOKUPS_MAX). */
+const TALLY_MAX = 5000;
+
+/** Words answered from this device since the last check-in. */
+function tallied() {
+	try {
+		return Math.min(TALLY_MAX, Math.max(0, Math.floor(Number(localStorage.getItem(TALLY_KEY) ?? 0)) || 0));
+	} catch {
+		return 0;
+	}
+}
+
+/** @param {number} n  Added to the tally; negative after a check-in sent it. */
+function tally(n) {
+	try {
+		localStorage.setItem(TALLY_KEY, String(Math.max(0, Math.min(TALLY_MAX, tallied() + n))));
+	} catch {
+		// storage blocked: offline use goes uncounted
+	}
+}
+
+/**
+ * The daily check-in: which definition packs this device keeps and how many
+ * words it answered offline since the last one. At most once a UTC day,
+ * only online, and only when there is something to say. Failures are the
+ * caller's to log; the tally waits for the next day.
+ */
+export async function checkIn() {
+	if (!navigator.onLine || typeof indexedDB === 'undefined') return;
+	const today = new Date().toISOString().slice(0, 10);
+	try {
+		if (localStorage.getItem(CHECKIN_KEY) === today) return;
+	} catch {
+		return; // storage blocked: no way to keep it to once a day
+	}
+	const packs = (await installed()).map((p) => p.id).filter((id) => !id.startsWith('words-'));
+	const lookups = tallied();
+	if (packs.length || lookups) {
+		await postJSON('/api/usage', { packs, lookups });
+		tally(-lookups);
+	}
+	localStorage.setItem(CHECKIN_KEY, today);
 }
 
 /** How much this site keeps on the device, when the browser says. */

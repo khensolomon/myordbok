@@ -341,3 +341,20 @@ test('stats: the figures of the build the site reads, for anyone; null before an
 	const { stats } = (await call(e, '/api/stats')).body;
 	assert.deepEqual(stats, { build: 'sample', en: { headwords: 19, senses: 24, examples: 13, forms: 12, synsets: 3 }, my: { headwords: 19, senses: 24, examples: 13, pronunciations: 5 } });
 });
+
+test('usage: offline check-ins and pack downloads are counted per day, without words or devices; editors see them', async () => {
+	const e = env();
+	assert.equal((await call(e, '/api/usage', { body: { packs: ['senses-en', 'related-en'], lookups: 7 } })).status, 200);
+	assert.equal((await call(e, '/api/usage', { body: { packs: ['senses-en'], lookups: 0 } })).status, 200);
+	assert.equal((await call(e, '/api/usage', { body: { packs: [], lookups: 2 } })).status, 200, 'a device that removed its packs still reports its tally');
+	assert.equal((await call(e, '/api/usage', { body: { packs: ['words-en'] } })).status, 400, 'word lists are not definitions');
+	assert.equal((await call(e, '/api/usage', { body: { packs: ['senses-en', 'senses-en'] } })).status, 400);
+	assert.equal((await call(e, '/api/usage', { body: { lookups: 5001 } })).status, 400);
+	assert.equal((await call(e, '/api/usage', { body: { lookups: 1.5 } })).status, 400);
+	const counts = Object.fromEntries(e.raw.prepare('SELECT name, n FROM usage_counts').all().map((r) => [r.name, r.n]));
+	assert.deepEqual(counts, { 'offline.devices': 2, 'offline.devices.senses-en': 2, 'offline.devices.related-en': 1, 'offline.lookups': 9 });
+
+	const usage = (await call(e, '/api/workspace/overview', { who: 'editor' })).body.usage;
+	assert.equal(usage.find((u) => u.name === 'offline.lookups').n, 9);
+	assert.equal((await call(e, '/api/workspace/overview', { who: 'member' })).body.usage, undefined, 'members do not see it');
+});

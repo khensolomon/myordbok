@@ -24,6 +24,7 @@ import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
+import { addUsage, reportUsage } from './lib/usage.js';
 
 /**
  * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & import('./routes/auth.js').AuthEnv & {
@@ -77,6 +78,14 @@ async function api(request, env, ctx) {
 	if (route === 'read' && ctx) {
 		ctx.waitUntil(countSearch(env, res.clone()).catch((err) => console.error(JSON.stringify({ event: 'count_failed', error: String(err) }))));
 	}
+	// A pack sent is counted: to a device that had none, or again for a newer
+	// build (the app says which, x-pack-update). Never holding the download up.
+	if (route === 'packs' && parts.length === 2 && res.status === 200) {
+		const name = `download.${parts[1]}.${request.headers.get('x-pack-update') === '1' ? 'update' : 'new'}`;
+		const counting = addUsage(env, { [name]: 1 }).catch((err) => console.error(JSON.stringify({ event: 'usage_failed', name, error: String(err) })));
+		if (ctx) ctx.waitUntil(counting);
+		else await counting;
+	}
 	return res;
 }
 
@@ -95,6 +104,7 @@ async function answer(request, env, url, parts) {
 		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
 		if (parts.length === 1 && parts[0] === 'messages') return sendMessage(request, env);
+		if (parts.length === 1 && parts[0] === 'usage') return reportUsage(request, env);
 	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);

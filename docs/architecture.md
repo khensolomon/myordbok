@@ -190,7 +190,16 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   day at most, the rest chosen on `/offline`. Offline, one word's answer and
   the search box's suggestions come from the device, marked as such on the
   page; phrases, sentences, ratings and suggestions still need the network.
-  Downloads cost R2 reads and one Worker request per file, never D1 rows.
+  Downloads cost R2 reads and one Worker request per file, and one counter
+  row write.
+- **Offline use is counted, not tracked.** `usage_counts` (day, name, n)
+  holds plain counters: each pack download, as new or as an update (the app
+  sends `x-pack-update` when it replaces a copy), and a daily check-in
+  (`POST /api/usage`) from a device keeping definitions, with the packs it
+  keeps and how many words it answered offline since the last one (tallied
+  on the device). No words, no device id: "devices today" is exact, distinct
+  devices over longer spans are not. Editors see the last seven days on the
+  workspace Overview. The table is general; other counters can share it.
 - **Contact goes through the site, not email.** MyOrdbok has no address of
   its own: `/contact` sends feedback, questions, problems and words to add to
   the `messages` table (`POST /api/messages`), read by admins in the

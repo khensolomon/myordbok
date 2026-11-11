@@ -84,6 +84,11 @@ export function view() {
 			h(
 				'p',
 				null,
+				'Offline use is counted the same way, without words. Each download of offline data adds one to a count for that day, noting whether it replaced an older copy. Once a day, a device that keeps the definitions sends which of them it keeps and how many words it answered offline since it last did; the device keeps that number until then, and nothing else. Nothing identifying the device or its owner is sent with it.',
+			),
+			h(
+				'p',
+				null,
 				'MyOrdbok runs on Cloudflare. Like any web host, Cloudflare processes technical request data such as IP address, browser type and time of request to deliver pages and protect the service from abuse.',
 			),
 		),

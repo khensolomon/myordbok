@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+76
+
+- Offline use counted in usage_counts (downloads, daily check-in, words answered offline) and shown to editors on the Overview
+
 ## 26.11.11+75
 
 - Home lists centred, recent searches removable one by one; smaller ringed account button with the first letter when there is no picture

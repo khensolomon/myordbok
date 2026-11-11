@@ -44,7 +44,7 @@ export async function overviewPane(me, health) {
 		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
 		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? review(data) : '')));
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
 	return main;
 }
 
@@ -290,6 +290,43 @@ function community(data) {
 }
 
 /**
+ * Offline use, for editors and admins (usage_counts): devices keeping the
+ * definitions, words answered from them, and downloads, over the last seven
+ * days. The word lists download by themselves on a first visit, so theirs
+ * stand for new devices rather than a choice to go offline.
+ * @param {Array<{ day: string, name: string, n: number }>} usage  Two weeks, from the server.
+ */
+function offline(usage) {
+	const weekStart = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+	const today = new Date().toISOString().slice(0, 10);
+	/** @param {(name: string) => boolean} which @param {(day: string) => boolean} when */
+	const sum = (which, when) => usage.reduce((a, u) => (which(u.name) && when(u.day) ? a + u.n : a), 0);
+	const week = (/** @type {string} */ day) => day >= weekStart;
+	const before = (/** @type {string} */ day) => day < weekStart;
+	const is = (/** @type {string} */ name) => (/** @type {string} */ n) => n === name;
+	const definitions = (/** @type {string} */ end) => (/** @type {string} */ n) => n.startsWith('download.') && !n.startsWith('download.words-') && n.endsWith(end);
+	const wordLists = (/** @type {string} */ n) => n.startsWith('download.words-') && n.endsWith('.new');
+
+	const devicesToday = sum(is('offline.devices'), (d) => d === today);
+	const devicesDaily = Math.round(sum(is('offline.devices'), week) / 7);
+	const lookups = sum(is('offline.lookups'), week);
+	const lookupsBefore = sum(is('offline.lookups'), before);
+	const updates = sum(definitions('.update'), week);
+	return block(
+		t('Offline'),
+		h(
+			'div',
+			{ class: 'ws-tiles' },
+			tile(t('Devices keeping definitions'), devicesDaily, t('a day on average; {n} today', { n: num(devicesToday) })),
+			tile(t('Words answered offline'), lookups, lookupsBefore ? trend(lookups, lookupsBefore) : t('in the last {n} days', { n: 7 })),
+			tile(t('Definitions downloaded'), sum(definitions('.new'), week), updates ? t('{n} updated to a new build', { n: num(updates) }) : t('in the last {n} days', { n: 7 })),
+			tile(t('Word lists downloaded'), sum(wordLists, week), t('new devices, in the last {n} days', { n: 7 })),
+		),
+		h('p', { class: 'ws-quiet ws-foot' }, t('A device keeping definitions checks in once a day with how many words it answered offline: no words and nothing that identifies it.')),
+	);
+}
+
+/**
  * The review queue and the members, for editors and admins.
  * @param {Overview} data
  */
@@ -322,7 +359,7 @@ function review(data) {
 /**
  * @param {string} label
  * @param {number} value
- * @param {string} [sub]
+ * @param {string | Node} [sub]
  * @param {string} [href]
  * @param {string} [glyph]  An icon from ICONS beside the label.
  */

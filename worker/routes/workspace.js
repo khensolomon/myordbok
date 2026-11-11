@@ -11,8 +11,8 @@
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
  *   GET  /api/workspace/overview                 figures for the home board: the whole
- *                                             site for editors and admins, the member's
- *                                             own for members
+ *                                             site for editors and admins (offline use
+ *                                             among them), the member's own for members
  *   POST /api/workspace/account/delete           { confirm }: the member's email (or
  *                                             DELETE without one); see deleteAccount
  *   GET  /api/workspace/ratings?scope=mine|site  the member's own ratings; editors also the
@@ -239,11 +239,13 @@ async function overview(env, member) {
 	const base = { role: member.role, own, days: OVERVIEW_DAYS, ...shared };
 	if (!isEditor(member)) return json(base, NO_STORE);
 
-	const [edits, members, joined, disliked] = await Promise.all([
+	const [edits, members, joined, disliked, usage] = await Promise.all([
 		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
 		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
+		// Offline use (usage_counts): two weeks, for the last seven days against the seven before.
+		rows(db, "SELECT day, name, n FROM usage_counts WHERE day >= ?1 AND (name LIKE 'offline.%' OR name LIKE 'download.%') ORDER BY day", dayKey(13)),
 	]);
 	const worst = await currentSenses(env, disliked);
 	// Unread messages: admins only, as the Inbox is theirs.
@@ -255,6 +257,7 @@ async function overview(env, member) {
 			suggestions: Object.fromEntries(edits.map((x) => [String(x.status), Number(x.n)])),
 			members: { roles: Object.fromEntries(members.map((x) => [String(x.role), Number(x.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
 			disliked: worst.slice(0, 5),
+			usage: usage.map((u) => ({ day: String(u.day), name: String(u.name), n: Number(u.n) })),
 		},
 		NO_STORE,
 	);
