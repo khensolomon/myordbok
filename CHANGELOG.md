@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+60
+
+- Person menu stays under its button when the page has a scrollbar
+
 ## 26.11.11+59
 
 - Answers laid out like an entry, with copy buttons; forms within their part of speech and related words on the entry's timeline; the home page shows recent searches (kept on the device) and the words searched most this week; README brought up to date

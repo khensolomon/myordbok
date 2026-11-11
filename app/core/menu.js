@@ -79,7 +79,11 @@ export function initMenu(you) {
 	panel.addEventListener('click', (e) => {
 		if (/** @type {HTMLElement} */ (e.target).closest('a')) close(false);
 	});
-	window.addEventListener('resize', () => !panel.hidden && place(panel, you));
+	// A scrollbar appearing or going away (a page change while open) moves the
+	// button without a resize event; the page's width changes, so watch that.
+	const follow = () => !panel.hidden && place(panel, you);
+	window.addEventListener('resize', follow);
+	new ResizeObserver(follow).observe(document.documentElement);
 }
 
 /**
@@ -89,12 +93,15 @@ export function initMenu(you) {
  */
 function place(panel, you) {
 	const b = you.getBoundingClientRect();
-	const width = Math.min(340, window.innerWidth - 24);
-	const right = Math.max(12, window.innerWidth - b.right - 4);
+	// A fixed box's `right` counts from the page's edge, inside any scrollbar;
+	// innerWidth would include the scrollbar and push the box off the button.
+	const page = document.documentElement.clientWidth;
+	const width = Math.min(340, page - 24);
+	const right = Math.max(12, page - b.right - 4);
 	panel.style.top = `${b.bottom + 10}px`;
 	panel.style.right = `${right}px`;
 	panel.style.width = `${width}px`;
-	panel.style.setProperty('--arrow-right', `${window.innerWidth - right - (b.left + b.width / 2) - 7}px`);
+	panel.style.setProperty('--arrow-right', `${page - right - (b.left + b.width / 2) - 7}px`);
 }
 
 /**
