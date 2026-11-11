@@ -1345,7 +1345,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-more-button { position: relative; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink-2); font: 700 16px/1 var(--font-ui); cursor: pointer; }
 .ws-more-button:hover, .ws-more-button[aria-expanded="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--line) 50%, var(--muted)); }
 .ws-more-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--ground); }
-.ws-more-panel { position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; min-width: 200px; max-height: min(70vh, 520px); overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); box-shadow: 0 14px 40px -12px rgb(16 24 40 / 0.28), 0 3px 10px -3px rgb(16 24 40 / 0.1); }
+.ws-more-panel { position: fixed; z-index: 1000; width: 220px; max-height: min(70vh, 520px); overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); box-shadow: 0 14px 40px -12px rgb(16 24 40 / 0.28), 0 3px 10px -3px rgb(16 24 40 / 0.1); }
 .ws-more-panel[hidden] { display: none; }
 .ws-more-group + .ws-more-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line-soft); }
 .ws-more-group h2 { margin: 6px 8px 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }

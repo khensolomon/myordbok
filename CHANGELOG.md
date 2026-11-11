@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+86
+
+- The filters menu opens in full instead of clipped by its row
+
 ## 26.11.11+85
 
 - List filters fill the column's width, the rest under a menu that goes when all fit; search hints for each list

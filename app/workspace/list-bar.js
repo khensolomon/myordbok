@@ -141,8 +141,13 @@ function moreMenu(groups, reset) {
 	};
 	button.addEventListener('click', () => {
 		if (!panel.hidden) return close();
+		// Placed on the page, not in the row: the row clips what overflows it.
+		const r = button.getBoundingClientRect();
+		panel.style.top = `${Math.round(r.bottom + 6)}px`;
+		panel.style.left = `${Math.round(Math.max(8, r.right - 220))}px`;
 		panel.hidden = false;
 		button.setAttribute('aria-expanded', 'true');
+		window.addEventListener('resize', close, { once: true });
 		document.addEventListener('pointerdown', outside, true);
 		document.addEventListener('keydown', escape);
 		/** @type {HTMLElement | null} */ (panel.querySelector('a[aria-current], a'))?.focus();
