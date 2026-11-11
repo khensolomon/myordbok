@@ -102,7 +102,7 @@ export async function allSettings(env) {
 	const stored = new Map(results.map((r) => [String(r.key), r]));
 	return Object.entries(SETTINGS).map(([key, s]) => {
 		const row = stored.get(key);
-		return { key, value: row ? JSON.parse(String(row.value)) : s.fallback, about: s.about, updated_at: row ? Number(row.updated_at) : null };
+		return { key, value: row ? JSON.parse(String(row.value)) : s.fallback, fallback: s.fallback, about: s.about, updated_at: row ? Number(row.updated_at) : null };
 	});
 }
 

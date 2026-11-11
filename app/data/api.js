@@ -437,7 +437,7 @@ export function updateMessage(id, change) {
 	return postJSON(`/api/workspace/messages/${id}`, change);
 }
 
-/** Site settings, for admins. @returns {Promise<{ settings: Array<{ key: string, value: unknown, about: string, updated_at: number | null }> }>} */
+/** Site settings, for admins. @returns {Promise<{ settings: Array<{ key: string, value: unknown, fallback: unknown, about: string, updated_at: number | null }> }>} */
 export function siteSettings() {
 	return getJSON('/api/workspace/settings');
 }

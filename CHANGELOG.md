@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+90
+
+- Settings redesigned: cards of rows with switches, segments and numbers beside their full description; a read-only warning, jump links, and a dot for changed settings
+
 ## 26.11.11+89
 
 - Settings: read-only mode, new accounts, suggestions, ratings, comments (hidden too, daily and first-day limits, no duplicates), contact form, search counting and keeping, home list, word lists by themselves

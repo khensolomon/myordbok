@@ -100,99 +100,169 @@ const GROUPS = [
 	],
 ];
 
+/** @typedef {{ key: string, value: unknown, fallback: unknown, updated_at: number | null }} Setting */
+
 export async function settingsPane() {
 	const main = h('main', { class: 'ws-main ws-account ws-settings', 'aria-label': t('Settings') });
-	const work = h('div', { class: 'ws-work' }, h('h1', { class: 'ws-settings-title' }, t('Settings')), h('p', { class: 'ws-quiet' }, t('Each change takes effect at once, for everyone; no release needed.')));
-	main.append(work);
 	const { settings } = await siteSettings();
-	const byKey = new Map(settings.map((s) => [s.key, s]));
+	const byKey = new Map(settings.map((s) => [s.key, /** @type {Setting} */ (s)]));
 	const known = new Set(GROUPS.flatMap(([, g]) => Object.keys(g)));
 	const missing = settings.filter((s) => !known.has(s.key)).map((s) => s.key);
 	if (missing.length) throw new Error(`The workspace has no form for the setting ${missing.join(', ')}`);
 
-	const grid = h('div', { class: 'ws-settings-grid' });
-	work.append(grid);
-	for (const [group, items] of GROUPS) {
-		const section = h('section', { class: 'ws-settings-group' }, h('h2', { class: 'ws-block-title' }, t(group)));
-		for (const [key, k] of Object.entries(items)) {
-			const s = byKey.get(key);
-			if (!s) throw new Error(`The site has no setting ${key}`);
-			section.append(k.number ? numberSetting(s, k) : choiceSetting(s, k, main));
-		}
-		grid.append(section);
-	}
+	// A warning on top while the site is read-only: easy to forget once set.
+	const banner = h('p', { class: 'ws-settings-banner', role: 'status', hidden: byKey.get('site.readonly')?.value !== 'on' }, t('The site is read-only: nobody can rate, suggest, comment or send messages until it is turned off below.'));
+	const onChange = (/** @type {string} */ key, /** @type {unknown} */ value) => {
+		if (key === 'site.readonly') banner.hidden = value !== 'on';
+	};
+	const jump = h(
+		'nav',
+		{ class: 'ws-settings-jump', 'aria-label': t('Groups') },
+		GROUPS.map(([group]) => h('a', { href: `#set-${group.toLowerCase()}` }, t(group))),
+	);
+	const cards = GROUPS.map(([group, items]) =>
+		h(
+			'section',
+			{ class: 'ws-settings-card', id: `set-${group.toLowerCase()}`, 'aria-labelledby': `set-${group.toLowerCase()}-h` },
+			h('h2', { id: `set-${group.toLowerCase()}-h` }, t(group)),
+			Object.entries(items).map(([key, k]) => {
+				const s = byKey.get(key);
+				if (!s) throw new Error(`The site has no setting ${key}`);
+				return row(s, k, onChange);
+			}),
+		),
+	);
+	main.append(
+		h(
+			'div',
+			{ class: 'ws-work ws-settings-page' },
+			h('header', { class: 'ws-settings-head' }, h('h1', null, t('Settings')), h('p', null, t('Each change takes effect at once, for everyone; no release needed. A dot marks a setting that is not at its default.'))),
+			banner,
+			jump,
+			cards,
+		),
+	);
+	// Jumping to a group scrolls the work area, not the page.
+	jump.addEventListener('click', (e) => {
+		const a = /** @type {HTMLElement} */ (e.target).closest('a');
+		if (!a) return;
+		e.preventDefault();
+		main.querySelector(/** @type {string} */ (a.getAttribute('href')))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	});
 	return main;
 }
 
 /**
- * @param {{ key: string, value: unknown, updated_at: number | null }} s
+ * One setting: what it is and does on the left, its control on the right.
+ * @param {Setting} s
  * @param {Known} k
- * @param {HTMLElement} main
+ * @param {(key: string, value: unknown) => void} onChange
  */
-function choiceSetting(s, k, main) {
-	const note = h('p', { class: 'ws-result', role: 'status' });
-	const when = changed(s.updated_at);
-	let value = s.value;
-	const choices = /** @type {Array<[string, string]>} */ (k.choices).map(([v, label]) => {
-		const input = /** @type {HTMLInputElement} */ (h('input', { type: 'radio', name: s.key, value: v, checked: value === v ? true : null }));
-		input.addEventListener('change', async () => {
-			const all = /** @type {HTMLInputElement[]} */ ([...main.querySelectorAll(`input[name="${s.key}"]`)]);
-			all.forEach((i) => (i.disabled = true));
-			note.textContent = t('Saving…');
-			try {
-				await updateSetting(s.key, v);
-				value = v;
-				note.textContent = t('Saved.');
-				when.textContent = t('Changed {date}', { date: shortDate(new Date(), { year: true }) });
-			} catch (err) {
-				note.textContent = err instanceof Error ? err.message : String(err);
-				all.forEach((i) => (i.checked = i.value === value));
-			} finally {
-				all.forEach((i) => (i.disabled = false));
-			}
-		});
-		return h('label', { class: 'ws-choice' }, input, t(label));
-	});
-	return h('section', { class: 'ws-setting' }, h('h3', null, t(k.title)), h('p', null, t(k.about)), h('div', { class: 'ws-choices', role: 'radiogroup', 'aria-label': t(k.title) }, choices), when, note);
-}
-
-/**
- * @param {{ key: string, value: unknown, updated_at: number | null }} s
- * @param {Known} k
- */
-function numberSetting(s, k) {
-	const n = /** @type {NonNullable<Known['number']>} */ (k.number);
-	const note = h('p', { class: 'ws-result', role: 'status' });
-	const when = changed(s.updated_at);
-	const input = /** @type {HTMLInputElement} */ (h('input', { type: 'number', class: 'ws-days', min: n.zero ? 0 : n.min, max: n.max, step: 1, value: String(s.value), 'aria-label': t(k.title) }));
-	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary ws-setting-save', disabled: true }, t('Save')));
-	input.addEventListener('input', () => (save.disabled = input.value === String(s.value)));
-	save.addEventListener('click', async () => {
-		const v = Number(input.value);
-		save.disabled = true;
+function row(s, k, onChange) {
+	const note = h('span', { class: 'ws-set-note', role: 'status' });
+	const when = h('span', { class: 'ws-set-when' }, s.updated_at ? t('Changed {date}', { date: shortDate(new Date(s.updated_at * 1000), { year: true }) }) : t('The default'));
+	const dot = h('span', { class: 'ws-set-dot', title: t('Not the default'), hidden: s.value === s.fallback });
+	/** Saves a value; the control shows it once the site has it. @param {unknown} v @param {() => void} undo */
+	const save = async (v, undo) => {
 		note.textContent = t('Saving…');
+		note.className = 'ws-set-note';
 		try {
 			await updateSetting(s.key, v);
 			s.value = v;
-			note.textContent = t('Saved.');
+			note.textContent = t('Saved');
+			note.classList.add('ws-set-ok');
 			when.textContent = t('Changed {date}', { date: shortDate(new Date(), { year: true }) });
+			dot.hidden = v === s.fallback;
+			onChange(s.key, v);
+			setTimeout(() => note.textContent === t('Saved') && (note.textContent = ''), 2500);
 		} catch (err) {
 			note.textContent = err instanceof Error ? err.message : String(err);
-			save.disabled = false;
+			note.classList.add('ws-set-error');
+			undo();
 		}
-	});
+	};
+	const control = k.number ? numberControl(s, k, save) : toggleable(k) ? toggleControl(s, k, save) : choiceControl(s, k, save);
 	return h(
-		'section',
-		{ class: 'ws-setting' },
-		h('h3', null, t(k.title)),
-		h('p', null, t(k.about), n.zero ? ` ${t(n.zero)}.` : ''),
-		h('div', { class: 'ws-days-row' }, input, h('span', null, t(n.unit)), save),
-		when,
-		note,
+		'div',
+		{ class: 'ws-set' },
+		h('div', { class: 'ws-set-text' }, h('h3', null, dot, t(k.title)), h('p', null, t(k.about), k.number?.zero ? ` ${t(k.number.zero)}.` : ''), h('p', { class: 'ws-set-meta' }, when, note)),
+		h('div', { class: 'ws-set-control' }, control),
 	);
 }
 
-/** @param {number | null} at */
-function changed(at) {
-	return h('p', { class: 'ws-quiet' }, at ? t('Changed {date}', { date: shortDate(new Date(at * 1000), { year: true }) }) : t('The default'));
+/** Two choices, on and off: a switch. @param {Known} k */
+const toggleable = (k) => k.choices?.length === 2 && k.choices.every(([v]) => v === 'on' || v === 'off');
+
+/**
+ * @param {Setting} s
+ * @param {Known} k
+ * @param {(v: unknown, undo: () => void) => Promise<void>} save
+ */
+function toggleControl(s, k, save) {
+	const label = (/** @type {string} */ v) => t(/** @type {[string, string]} */ (k.choices?.find(([c]) => c === v))[1]);
+	const state = h('span', { class: 'ws-set-state' }, label(String(s.value)));
+	const sw = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', role: 'switch', class: `you-switch${s.key === 'site.readonly' ? ' ws-switch-danger' : ''}`, 'aria-checked': String(s.value === 'on'), 'aria-label': t(k.title) }));
+	sw.addEventListener('click', async () => {
+		const before = String(s.value);
+		const next = before === 'on' ? 'off' : 'on';
+		sw.setAttribute('aria-checked', String(next === 'on'));
+		state.textContent = label(next);
+		sw.disabled = true;
+		await save(next, () => {
+			sw.setAttribute('aria-checked', String(before === 'on'));
+			state.textContent = label(before);
+		});
+		sw.disabled = false;
+	});
+	return h('div', { class: 'ws-set-toggle' }, state, sw);
+}
+
+/**
+ * @param {Setting} s
+ * @param {Known} k
+ * @param {(v: unknown, undo: () => void) => Promise<void>} save
+ */
+function choiceControl(s, k, save) {
+	const buttons = /** @type {Array<[string, string]>} */ (k.choices).map(([v, text]) => {
+		const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', role: 'radio', 'aria-checked': String(s.value === v) }, t(text)));
+		b.addEventListener('click', async () => {
+			if (s.value === v) return;
+			const before = s.value;
+			const pick = (/** @type {unknown} */ x) => buttons.forEach((o, i) => o.setAttribute('aria-checked', String(/** @type {any} */ (k.choices)[i][0] === x)));
+			pick(v);
+			buttons.forEach((o) => (o.disabled = true));
+			await save(v, () => pick(before));
+			buttons.forEach((o) => (o.disabled = false));
+		});
+		return b;
+	});
+	return h('div', { class: 'ws-set-choices', role: 'radiogroup', 'aria-label': t(k.title) }, buttons);
+}
+
+/**
+ * A number, saved when it is left or Enter is pressed.
+ * @param {Setting} s
+ * @param {Known} k
+ * @param {(v: unknown, undo: () => void) => Promise<void>} save
+ */
+function numberControl(s, k, save) {
+	const n = /** @type {NonNullable<Known['number']>} */ (k.number);
+	const input = /** @type {HTMLInputElement} */ (h('input', { type: 'number', inputmode: 'numeric', min: n.zero ? 0 : n.min, max: n.max, step: 1, value: String(s.value), 'aria-label': t(k.title) }));
+	const commit = () => {
+		if (input.value === String(s.value) || input.value === '') {
+			input.value = String(s.value);
+			return;
+		}
+		const before = String(s.value);
+		save(Number(input.value), () => (input.value = before));
+	};
+	input.addEventListener('change', commit);
+	input.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter') input.blur();
+		if (e.key === 'Escape') {
+			input.value = String(s.value);
+			input.blur();
+		}
+	});
+	return h('label', { class: 'ws-set-number' }, input, h('span', null, t(n.unit)));
 }
