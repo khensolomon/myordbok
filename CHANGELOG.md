@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+74
+
+- Phone search focus: Cancel replaces the menu row, the entry fades back; clearer search box; contact form linked from About
+
 ## 26.11.11+73
 
 - Search bar does not stick while typing on touch screens, so the iOS cursor stays in the field; the redraw attempt removed

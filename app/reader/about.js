@@ -7,7 +7,7 @@
  */
 import { getJSON } from '#platform/http.js';
 import { parseVersion } from '#shared/version.js';
-import { REPOSITORY as REPO } from '../core/config.js';
+import { CONTACT, REPOSITORY as REPO } from '../core/config.js';
 import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { englishOnly, t } from '../i18n/index.js';
@@ -114,7 +114,9 @@ export async function view() {
 				null,
 				'Reading and searching need no account. Signing in with Google or GitHub lets you like an entry, comment, and suggest a correction or a new meaning right beside it. MyOrdbok then keeps the name, picture and verified email address the provider gives, only to recognise you and to credit your contributions; it never uses them for advertising and never shares them. The ',
 				h('a', { href: '/privacy' }, 'Privacy'),
-				' page explains what is stored and how to have it deleted. Mistakes and suggestions are also welcome as an ',
+				' page explains what is stored and how to have it deleted. Questions, mistakes and words to add are welcome through the ',
+				h('a', { href: CONTACT }, 'contact form'),
+				', or as an ',
 				h('a', { href: `${REPO}/issues`, rel: 'noopener' }, 'issue on GitHub'),
 				'.',
 			),

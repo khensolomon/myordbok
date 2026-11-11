@@ -419,15 +419,15 @@ mo-search { display: block; position: relative; height: 44px; }
 	inset: 0 0 auto 0;
 	z-index: 4;
 	padding: 0;
-	border: 0.5px solid transparent;
+	/* Paper on the bar, with a line and a low shadow: easy to find at a
+	   glance on any screen, without weight. */
+	border: 1px solid var(--line);
 	border-radius: var(--field-r);
-	background: var(--glass-fill);
-	-webkit-backdrop-filter: saturate(180%) blur(20px);
-	backdrop-filter: saturate(180%) blur(20px);
-	box-shadow: var(--glass-shine), var(--glass-ring);
+	background: var(--glass-solid);
+	box-shadow: 0 1px 2px rgba(23, 32, 43, 0.04), 0 3px 10px rgba(23, 32, 43, 0.04);
 	transition: inset 0.18s, padding 0.18s, border-radius 0.18s, background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.search-box:hover { background: var(--glass-fill-hover); }
+.search-box:hover { border-color: color-mix(in srgb, var(--line) 55%, var(--muted)); }
 .search-key { display: none; flex: none; align-self: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 6px; border: 1px solid var(--line); border-radius: 5px; font: 500 12px/18px var(--font-ui); text-align: center; color: var(--muted); background: var(--ground); }
 @media (hover: hover) and (pointer: fine) {
 	.search-box:not(:focus-within) .search:has(input:placeholder-shown) .search-key { display: inline-block; }
@@ -453,6 +453,39 @@ body[data-searching] .search-bar::before { -webkit-backdrop-filter: none; backdr
    (search-box.js brings the page to its top first). */
 @media (pointer: coarse) {
 	body[data-searching] .search-bar { position: relative; top: auto; }
+}
+
+/* Phones, typing: the header's menu and account step aside and Cancel takes
+   their row, as in native search; the field itself stays where it is (a
+   moving field loses its cursor on iOS). On a definition the entry fades
+   back, and a tap on it only puts the keyboard away. */
+.search-cancel { display: none; }
+@media (max-width: 640px) {
+	.search-cancel {
+		display: block;
+		position: absolute;
+		right: var(--gutter);
+		top: calc(env(safe-area-inset-top) + (var(--header-h) - 40px) / 2);
+		height: 40px; padding: 0 18px;
+		border: none; border-radius: 999px;
+		background: var(--chrome);
+		-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--chrome-shadow);
+		color: var(--ink); font: 500 16px/40px var(--font-ui);
+		cursor: pointer;
+		opacity: 0; transform: translateX(14px) scale(0.94); pointer-events: none;
+		transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+	.site-nav, .you { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
+	main#view, .site-footer { transition: opacity 0.25s ease; }
+	body[data-searching] .search-cancel { opacity: 1; transform: none; pointer-events: auto; }
+	body[data-searching] .site-nav { opacity: 0; transform: translateX(-12px) scale(0.96); pointer-events: none; }
+	body[data-searching] .you { opacity: 0; transform: scale(0.8); pointer-events: none; }
+	body[data-route="definition"][data-searching] main#view,
+	body[data-route="definition"][data-searching] .site-footer { opacity: 0.3; pointer-events: none; }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+	.search-cancel, .site-nav, .you { transform: none !important; transition: opacity 0.15s; }
 }
 mo-search[data-open] .search-box {
 	--field-r: 16px;

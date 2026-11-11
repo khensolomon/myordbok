@@ -53,6 +53,13 @@ const router = startRouter(outlet, (route) => {
 	nav.setCurrent(currentLink);
 });
 
+// Phones: Cancel, in the header while the field has focus (app.css).
+const cancel = document.querySelector('.search-cancel');
+if (!(cancel instanceof HTMLButtonElement)) throw new Error('index.html is missing <button class="search-cancel">');
+// Pressed, the button keeps focus in the field until it acts, so the header does not start to change back first.
+cancel.addEventListener('pointerdown', (e) => e.preventDefault());
+cancel.addEventListener('click', () => search.cancel());
+
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 

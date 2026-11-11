@@ -96,8 +96,11 @@ export class SearchBox extends HTMLElement {
 		// waits a moment, so a tap that moved focus lands where it was aimed.
 		/** @type {number | undefined} */
 		let settle;
-		this.addEventListener('focusin', () => {
+		/** What the field held when focus came in; Cancel puts it back. */
+		this.valueBefore = value;
+		this.addEventListener('focusin', (e) => {
 			clearTimeout(settle);
+			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget)) && !document.body.hasAttribute('data-searching')) this.valueBefore = this.input?.value ?? '';
 			document.body.toggleAttribute('data-searching', true);
 		});
 		// On a touch screen the bar stops sticking while the field has focus
@@ -134,6 +137,12 @@ export class SearchBox extends HTMLElement {
 		if (this.input && this.input.value !== value) this.input.value = value;
 		this.seq++; // a suggestion request still under way is no longer wanted
 		this.show([]);
+	}
+
+	/** Cancel (phones): what was typed goes, the list closes, the keyboard goes away. */
+	cancel() {
+		this.setValue(this.valueBefore);
+		this.input?.blur();
 	}
 
 	schedule() {
