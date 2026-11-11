@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+88
+
+- Desktop search bar gets a soft shadow once the page scrolls under it
+
 ## 26.11.11+87
 
 - Search focus eases in a soft ring; the search button steps back to a plain icon until something is typed
