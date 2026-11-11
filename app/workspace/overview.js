@@ -12,7 +12,8 @@
  * Figures come from /api/workspace/overview; the dictionary's are worked out
  * once per build (scripts/stats.js) and read as one row.
  */
-import { h } from '../core/dom.js';
+import { h, icon } from '../core/dom.js';
+import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { workspaceOverview } from '../data/api.js';
 import { atLeast } from '#shared/roles.js';
@@ -36,23 +37,14 @@ export async function overviewPane(me, health) {
 		return main;
 	}
 	const editor = atLeast(data.role, 'editor');
-	const head = h('header', { class: 'ws-ov-head' }, h('h1', null, t('Overview')), h('span', null, me.name));
-	main.append(
-		h(
-			'div',
-			{ class: 'ws-work' },
-			head,
-			h(
-				'div',
-				{ class: 'ws-ov' },
-				yours(data, editor),
-				dictionary(data, health, atLeast(me.role, 'admin')),
-				searches(data),
-				community(data),
-				editor ? review(data) : '',
-			),
-		),
+	const build = data.dictionary.stats?.build ?? data.dictionary.build ?? health?.dictionary?.built ?? null;
+	const head = h(
+		'header',
+		{ class: 'ws-hero' },
+		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
+		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? review(data) : '')));
 	return main;
 }
 
@@ -61,6 +53,9 @@ export async function overviewPane(me, health) {
  * @param {...(Node | string)} body
  */
 const block = (title, ...body) => h('section', { class: 'ws-block' }, h('h2', { class: 'ws-block-title' }, title), ...body);
+
+/** @param {string} role */
+const roleName = (role) => (role === 'owner' ? t('Owner') : role === 'admin' ? t('Administrator') : role === 'editor' ? t('Editor') : t('Member'));
 
 /**
  * The member's own figures, and for editors and admins what waits for them.
@@ -75,11 +70,11 @@ function yours(data, editor) {
 		h(
 			'div',
 			{ class: 'ws-tiles' },
-			editor ? tile(t('Waiting'), data.suggestions?.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions') : '',
-			data.unread === undefined ? '' : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox'),
-			tile(t('Suggestions'), total, (s.pending ?? 0) ? t('{n} waiting', { n: s.pending ?? 0 }) : t('sent'), '/workspace?s=contributions'),
-			tile(t('Approved'), (s.approved ?? 0) + (s.exported ?? 0) + (s.merged ?? 0), (s.merged ?? 0) ? t('{n} in the dictionary', { n: s.merged }) : t('so far')),
-			tile(t('Meanings rated'), data.own.rated.senses, data.own.rated.entries ? t('and {n} whole entries', { n: data.own.rated.entries }) : t('up or down'), '/workspace?s=ratings'),
+			editor ? tile(t('Waiting'), data.suggestions?.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions', ICONS.document) : '',
+			data.unread === undefined ? '' : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox', ICONS.inbox),
+			tile(t('Suggestions'), total, (s.pending ?? 0) ? t('{n} waiting', { n: s.pending ?? 0 }) : t('sent'), '/workspace?s=contributions', ICONS.suggest),
+			tile(t('Approved'), (s.approved ?? 0) + (s.exported ?? 0) + (s.merged ?? 0), (s.merged ?? 0) ? t('{n} in the dictionary', { n: s.merged }) : t('so far'), undefined, ICONS.check),
+			tile(t('Meanings rated'), data.own.rated.senses, data.own.rated.entries ? t('and {n} whole entries', { n: data.own.rated.entries }) : t('up or down'), '/workspace?s=ratings', ICONS.thumbUp),
 		),
 		total || data.own.ratings ? '' : h('p', { class: 'ws-quiet ws-ov-tip' }, t('On any entry, ✎ beside a meaning suggests a correction, and the thumbs rate it. Everything you send shows up here and under Contributions.')),
 	);
@@ -107,7 +102,7 @@ function dictionary(data, health, admin) {
 		t('Dictionary'),
 		h(
 			'div',
-			{ class: 'ws-tiles' },
+			{ class: 'ws-tiles ws-tiles-big' },
 			tile(t('English headwords'), s.en.headwords, change(s.en.headwords, p?.en.headwords)),
 			tile(t('English meanings'), s.en.senses, change(s.en.senses, p?.en.senses) || t('{n} with an example', { n: s.en.examples })),
 			tile(t('Myanmar headwords'), s.my.headwords, change(s.my.headwords, p?.my.headwords)),
@@ -115,12 +110,12 @@ function dictionary(data, health, admin) {
 		),
 		h(
 			'div',
-			{ class: 'ws-cards' },
-			h('section', { class: 'ws-card' }, h('h2', null, t('Review')), progress(t('English → Myanmar'), s.en), progress(t('Myanmar → English'), s.my), legend()),
-			h('section', { class: 'ws-card' }, h('h2', null, t('Parts of speech')), h('h3', { class: 'ws-card-sub ws-card-sub-first' }, t('English → Myanmar')), bars(s.en.pos, 'en'), h('h3', { class: 'ws-card-sub' }, t('Myanmar → English')), bars(s.my.pos, 'my')),
+			{ class: 'ws-grid' },
+			h('section', { class: 'ws-card ws-third' }, h('h2', null, t('Review')), progress(t('English → Myanmar'), s.en), progress(t('Myanmar → English'), s.my), legend()),
+			h('section', { class: 'ws-card ws-third' }, h('h2', null, t('Parts of speech')), h('h3', { class: 'ws-card-sub ws-card-sub-first' }, t('English → Myanmar')), bars(s.en.pos, 'en'), h('h3', { class: 'ws-card-sub' }, t('Myanmar → English')), bars(s.my.pos, 'my')),
 			h(
 				'section',
-				{ class: 'ws-card' },
+				{ class: 'ws-card ws-third ws-third-last' },
 				h('h2', null, t('Also in the dictionary')),
 				h(
 					'dl',
@@ -135,8 +130,8 @@ function dictionary(data, health, admin) {
 				),
 				h('p', { class: 'ws-quiet' }, t('Build {build}', { build: s.build }), s.source ? ` · ${s.source}` : '', p ? ` · ${t('compared with {build}', { build: p.build })}` : ''),
 			),
+			Object.keys(s.en.labels).length ? h('section', { class: 'ws-card ws-full' }, h('h2', null, t('Labels and glossaries')), labels(s.en.labels)) : '',
 		),
-		Object.keys(s.en.labels).length ? h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Labels and glossaries')), labels(s.en.labels)) : '',
 	);
 }
 
@@ -207,26 +202,73 @@ function labels(counts) {
 const pair = (label, value) => [h('dt', null, label), h('dd', null, num(value))];
 
 /**
- * Searches of the last days.
+ * Searches of the last days: the figures over the daily chart, beside it the
+ * words searched most and those the dictionary did not have.
  * @param {Overview} data
  */
 function searches(data) {
 	const searches = data.searches;
 	const days = data.days ?? 30;
-	const missed = searches.daily.reduce((a, d) => a + d.missed, 0);
+	const all = everyDay(searches.daily, days);
+	const missed = all.reduce((a, d) => a + d.missed, 0);
+	const sum = (/** @type {typeof all} */ list) => list.reduce((a, d) => a + d.hits, 0);
+	const last = sum(all.slice(-7));
+	const before = sum(all.slice(-14, -7));
 	return block(
 		t('Searches'),
 		h(
 			'div',
-			{ class: 'ws-tiles' },
-			tile(t('Searches today'), searches.today),
-			tile(t('Last {n} days', { n: 7 }), searches.week),
-			tile(t('Last {n} days', { n: days }), searches.month, searches.month ? t('{pct} not found', { pct: percent(missed, searches.month) }) : ''),
+			{ class: 'ws-grid' },
+			h(
+				'section',
+				{ class: 'ws-card ws-wide-col ws-chart-card' },
+				h(
+					'div',
+					{ class: 'ws-figures' },
+					figure(t('Today'), searches.today),
+					figure(t('Last {n} days', { n: 7 }), searches.week, before ? trend(last, before) : ''),
+					figure(t('Last {n} days', { n: days }), searches.month, searches.month ? t('{pct} not found', { pct: percent(missed, searches.month) }) : ''),
+				),
+				chart(all),
+			),
+			h('div', { class: 'ws-side-col' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.'))),
 		),
-		h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Searches, last {n} days', { n: days })), chart(searches.daily, days)),
-		h('div', { class: 'ws-cards' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.'))),
-		h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.')),
+		h('p', { class: 'ws-quiet ws-foot' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.')),
 	);
+}
+
+/**
+ * Every day of the window, zero or not, oldest first.
+ * @param {Array<{ day: string, hits: number, missed: number }>} daily
+ * @param {number} days
+ */
+function everyDay(daily, days) {
+	const byDay = new Map(daily.map((d) => [d.day, d]));
+	return Array.from({ length: days }, (_, i) => {
+		const day = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().slice(0, 10);
+		return byDay.get(day) ?? { day, hits: 0, missed: 0 };
+	});
+}
+
+/**
+ * A headline figure over the chart.
+ * @param {string} label
+ * @param {number} value
+ * @param {Node | string} [note]
+ */
+function figure(label, value, note = '') {
+	return h('div', { class: 'ws-figure' }, h('span', { class: 'ws-figure-label' }, label), h('strong', { class: 'ws-figure-value' }, num(value)), h('span', { class: 'ws-figure-note' }, note));
+}
+
+/**
+ * The last seven days against the seven before: "↑ 12% on the week before".
+ * @param {number} now
+ * @param {number} before
+ */
+function trend(now, before) {
+	const pct = Math.round(((now - before) / before) * 100);
+	if (!pct) return t('as many as the week before');
+	return h('span', { class: `ws-trend ${pct > 0 ? 'ws-trend-up' : 'ws-trend-down'}` }, h('span', { 'aria-hidden': 'true' }, pct > 0 ? '↑ ' : '↓ '), pct > 0 ? t('{pct} more than the week before', { pct: `${num(pct)}%` }) : t('{pct} fewer than the week before', { pct: `${num(-pct)}%` }));
 }
 
 /**
@@ -258,7 +300,7 @@ function review(data) {
 		t('For editors'),
 		h(
 			'div',
-			{ class: 'ws-cards' },
+			{ class: 'ws-grid ws-grid-thirds' },
 			pairs(t('Suggestions'), [
 				[t('Waiting'), sug.pending ?? 0],
 				[t('Approved, not yet exported'), sug.approved ?? 0],
@@ -282,9 +324,10 @@ function review(data) {
  * @param {number} value
  * @param {string} [sub]
  * @param {string} [href]
+ * @param {string} [glyph]  An icon from ICONS beside the label.
  */
-function tile(label, value, sub = '', href) {
-	const body = [h('span', { class: 'ws-tile-label' }, label), h('strong', { class: 'ws-tile-value' }, num(value)), h('span', { class: 'ws-tile-sub' }, sub)];
+function tile(label, value, sub = '', href, glyph) {
+	const body = [h('span', { class: 'ws-tile-label' }, glyph ? h('span', { class: 'ws-tile-icon', 'aria-hidden': 'true' }, icon(glyph, 15)) : '', label), h('strong', { class: 'ws-tile-value' }, num(value)), h('span', { class: 'ws-tile-sub' }, sub)];
 	return href ? h('a', { class: 'ws-tile', href }, body) : h('div', { class: 'ws-tile' }, body);
 }
 
@@ -292,15 +335,9 @@ function tile(label, value, sub = '', href) {
  * Daily searches as stacked bars: found, then not found on top. Every day
  * of the window has a bar, zero or not; each says its numbers on hover and
  * to screen readers, and the table below holds them all.
- * @param {Array<{ day: string, hits: number, missed: number }>} daily
- * @param {number} days
+ * @param {Array<{ day: string, hits: number, missed: number }>} all  Every day, oldest first.
  */
-function chart(daily, days) {
-	const byDay = new Map(daily.map((d) => [d.day, d]));
-	const all = Array.from({ length: days }, (_, i) => {
-		const day = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().slice(0, 10);
-		return byDay.get(day) ?? { day, hits: 0, missed: 0 };
-	});
+function chart(all) {
 	const max = Math.max(1, ...all.map((d) => d.hits));
 	const top = niceMax(max);
 	const label = (/** @type {string} */ day) => shortDate(new Date(`${day}T00:00:00Z`), { utc: true });

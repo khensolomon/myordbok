@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+64
+
+- Workspace overview redesigned: cards across the whole width, a greeting, the search chart with this week's change beside the most searched words, and a layout that follows the work area's width
+
 ## 26.11.11+63
 
 - The blue bar at the top of every page is gone; a thin bar now shows only while a page takes a moment to load

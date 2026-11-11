@@ -969,15 +969,12 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-danger:disabled { opacity: 0.45; cursor: default; }
 
 /* Overview blocks */
-.ws-ov { gap: 28px; }
-.ws-block { display: grid; gap: 12px; }
-.ws-block-title { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .ws-card-sub-first { margin-top: 0 !important; }
 .ws-card-sub { margin: 14px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .ws-progress { margin-bottom: 14px; }
 .ws-progress-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
 .ws-progress-head strong { font-variant-numeric: tabular-nums; }
-.ws-stack { display: flex; gap: 2px; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line-soft); }
+.ws-stack { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: var(--line-soft); }
 .ws-stack span { display: block; height: 100%; }
 .ws-stack span[style="width:0%"] { display: none; }
 .ws-stack-done { background: var(--chart-found); }
@@ -989,7 +986,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-hbars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .ws-hbars li { display: grid; grid-template-columns: minmax(84px, 34%) minmax(0, 1fr) 4.5em; gap: 8px; align-items: center; font-size: 13px; }
 .ws-hbar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
-.ws-hbar { height: 8px; border-radius: 0 4px 4px 0; background: var(--line-soft); }
+.ws-hbar { height: 10px; border-radius: 0 4px 4px 0; background: var(--line-soft); }
 .ws-hbar span { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--chart-found); }
 .ws-hbar-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
 .ws-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1050,25 +1047,93 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-choice:has(input:checked) { border-color: var(--brand); background: var(--term-tint); }
 .ws-choice input { accent-color: var(--brand); margin: 0; }
 
-/* Overview */
-.ws-overview .ws-work { max-width: 1180px; }
-.ws-ov-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
-.ws-ov-head h1 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); }
+/* Overview: cards on a soft canvas across the whole work area. The layout
+   follows the work area's own width (container queries), not the window's,
+   so it adapts the same with or without the rail. */
+.ws-overview { background: color-mix(in srgb, var(--surface) 55%, var(--ground)); }
+.ws-overview .ws-work { max-width: none; padding: 26px clamp(16px, 3vw, 40px) 40px; container-type: inline-size; }
+.ws-ov-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+.ws-ov-head h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
 .ws-ov-head span { font-size: 12px; color: var(--muted); }
-.ws-ov { display: grid; gap: 14px; }
-.ws-ov-tip { max-width: 560px; }
-.ws-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.ws-tile { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--ground); color: var(--ink); text-decoration: none; }
-a.ws-tile:hover { border-color: var(--line); }
-.ws-tile-label { font-size: 12px; color: var(--muted); }
-.ws-tile-value { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ws-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+.ws-hero-kicker { margin: 0 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand); }
+.ws-hero-title { margin: 0; font-size: clamp(22px, 2.4vw, 30px); font-weight: 650; letter-spacing: -0.015em; line-height: 1.2; color: var(--ink); }
+.ws-hero-sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.ws-hero-date { margin: 0; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ws-ov { display: grid; gap: 34px; }
+.ws-ov-tip { max-width: 620px; margin: 0; }
+.ws-block { display: grid; gap: 14px; }
+.ws-block-title { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 12px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.ws-block-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.ws-block-title:lang(my), .ws-card h2:lang(my), .ws-hero-kicker:lang(my) { text-transform: none; letter-spacing: 0; }
+.ws-foot { margin: 0; font-size: 12px; }
+
+.ws-card, .ws-tile {
+	background: var(--card);
+	border: 1px solid var(--line-soft); border-radius: 16px;
+	box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 28px -18px rgb(16 24 40 / 0.18);
+}
+.ws-card { padding: 18px 20px; min-width: 0; }
+.ws-card h2 { margin: 0 0 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.ws-card .ws-quiet { margin: 10px 0 0; font-size: 12px; }
+
+.ws-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.ws-tile { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; color: var(--ink); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+a.ws-tile:hover { text-decoration: none; border-color: var(--line); transform: translateY(-1px); box-shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 14px 32px -16px rgb(16 24 40 / 0.26); }
+a.ws-tile::after { content: "→"; position: absolute; top: 16px; right: 18px; color: var(--faint); opacity: 0; transition: opacity 0.15s, transform 0.15s; }
+a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: translateX(2px); }
+.ws-tile-label { display: flex; align-items: center; gap: 8px; min-height: 26px; font-size: 13px; color: var(--muted); }
+.ws-tile-icon { display: inline-flex; flex: none; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 8px; background: var(--term-tint); color: var(--brand); }
+.ws-tile-value { margin-top: 2px; font-size: 30px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.ws-tiles-big .ws-tile-value { font-size: 34px; }
 .ws-tile-sub { min-height: 16px; font-size: 12px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .ws-tile, a.ws-tile::after { transition: none; } a.ws-tile:hover { transform: none; } }
+
 .ws-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-.ws-card { padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 10px; min-width: 0; }
-.ws-card h2 { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-.ws-card .ws-quiet { margin: 8px 0 0; font-size: 12px; }
+/* Twelve columns; each card spans what the work area's width allows. */
+.ws-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.ws-grid > * { grid-column: 1 / -1; }
+.ws-grid-thirds, .ws-grid:has(.ws-third) { align-items: stretch; }
+.ws-side-col { display: grid; gap: 14px; align-content: start; }
+@container (min-width: 620px) {
+	.ws-side-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.ws-grid > .ws-third, .ws-grid-thirds > * { grid-column: span 6; }
+	.ws-grid > .ws-third-last, .ws-grid-thirds > :last-child { grid-column: 1 / -1; }
+}
+@container (min-width: 1060px) {
+	.ws-grid > .ws-wide-col { grid-column: span 8; }
+	.ws-grid > .ws-side-col { grid-column: span 4; grid-template-columns: minmax(0, 1fr); }
+	.ws-grid > .ws-third, .ws-grid > .ws-third-last, .ws-grid-thirds > *, .ws-grid-thirds > :last-child { grid-column: span 4; }
+}
+@container (min-width: 1500px) {
+	.ws-grid > .ws-wide-col { grid-column: span 9; }
+	.ws-grid > .ws-side-col { grid-column: span 3; }
+}
+.ws-grid > .ws-full { grid-column: 1 / -1; }
+
+/* The figures over the search chart. */
+.ws-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft); }
+.ws-figure { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ws-figure + .ws-figure { padding-left: 16px; border-left: 1px solid var(--line-soft); }
+.ws-figure-label { font-size: 12px; color: var(--muted); }
+.ws-figure-value { font-size: clamp(22px, 2.6cqi, 34px); font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--ink); }
+.ws-figure-note { font-size: 12px; color: var(--muted); }
+.ws-trend { color: var(--ink-2); }
+.ws-chart-card .ws-plot { height: clamp(150px, 20cqi, 260px); }
+/* Beside the word lists, the chart card grows to their height and the plot takes the room. */
+@container (min-width: 1060px) {
+	.ws-grid:has(> .ws-chart-card) { align-items: stretch; }
+	.ws-chart-card { display: flex; flex-direction: column; }
+	.ws-chart-card .ws-chart { flex: 1; display: flex; flex-direction: column; }
+	.ws-chart-card .ws-plot { flex: 1; height: auto; min-height: clamp(150px, 20cqi, 260px); }
+}
+@container (max-width: 480px) {
+	.ws-figure + .ws-figure { padding-left: 10px; }
+	.ws-figure-note { display: none; }
+}
 .ws-words { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: w; }
-.ws-words li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; counter-increment: w; font-variant-numeric: tabular-nums; }
+.ws-words li { display: flex; justify-content: space-between; gap: 10px; margin: 0 -8px; padding: 6px 8px; border-radius: 8px; counter-increment: w; font-variant-numeric: tabular-nums; }
+.ws-words li:hover { background: var(--surface); }
 .ws-words li::before { content: counter(w); width: 18px; flex: none; color: var(--faint); font-size: 12px; }
 .ws-words li:lang(my)::before { content: counter(w, myanmar); }
 .ws-words li > :first-child { flex: 1; min-width: 0; }
@@ -1089,7 +1154,7 @@ a.ws-tile:hover { border-color: var(--line); }
 .ws-plot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; height: 150px; }
 .ws-axis { display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 .ws-bars {
-	display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid var(--line);
+	display: flex; align-items: flex-end; gap: 3px; border-bottom: 1px solid var(--line);
 	background: linear-gradient(var(--line-soft), var(--line-soft)) 0 0 / 100% 1px no-repeat, linear-gradient(var(--line-soft), var(--line-soft)) 0 50% / 100% 1px no-repeat;
 }
 .ws-bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; border-radius: 4px 4px 0 0; outline-offset: 2px; }
