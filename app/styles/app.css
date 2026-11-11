@@ -693,7 +693,13 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	/* Forms line up with the meanings' text, related words with their rings. */
 	.pos-forms { margin: 14px 16px 0 42px; }
 	.pos-only-forms .pos-forms { margin: 14px 16px 10px 42px; }
-	.related-list { margin: 14px 16px 6px; }
+	.related-list { margin: 14px 16px 6px; gap: 14px; }
+	/* Related words are tapped more than read: a size up, and room between
+	   the lines so a finger finds the word it means. */
+	.related-list li { font-size: 17px; line-height: 1.75; gap: 2px; }
+	.related-list li::before { top: 0.7em; }
+	.related-name, .pos-forms-name { font-size: 13px; }
+	.pos-forms { font-size: 16px; line-height: 1.7; }
 	.gloss { font-size: 19px; }
 	.related { grid-template-columns: 1fr; gap: 2px; margin: 20px 4px 0; }
 	.related dd { margin-bottom: 10px; }

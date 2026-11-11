@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+68
+
+- Phones: related words and forms a size larger, with more room between lines for tapping
+
 ## 26.11.11+67
 
 - Workspace on phones: the top bar is Liquid Glass like the site's header: a floating capsule with the logo and the section's name, the menu button beside it, and the page scrolling under them
