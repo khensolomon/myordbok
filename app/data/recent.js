@@ -34,6 +34,21 @@ export function addRecent(q) {
 	}
 }
 
+/**
+ * Takes one search off the list.
+ * @param {string} q
+ * @returns {string[]} The list left.
+ */
+export function removeRecent(q) {
+	const list = recentSearches().filter((x) => x !== q);
+	try {
+		localStorage.setItem(KEY, JSON.stringify(list));
+	} catch {
+		// storage blocked: nothing was kept
+	}
+	return list;
+}
+
 export function clearRecent() {
 	try {
 		localStorage.removeItem(KEY);

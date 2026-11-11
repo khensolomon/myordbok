@@ -85,6 +85,7 @@ export const MY = {
 	"Recent": "မကြာသေးမီက ရှာထားသည်များ",
 	"Searched most this week": "ဤအပတ် အများဆုံး ရှာသည်များ",
 	"Clear": "ရှင်းလင်းရန်",
+	"Remove “{word}”": "“{word}” ကို ဖယ်ရန်",
 
 	// Entry
 	Definition: 'အဓိပ္ပာယ်',

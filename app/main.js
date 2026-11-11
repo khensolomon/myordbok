@@ -82,13 +82,22 @@ document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
 	you.setAttribute('aria-label', m ? t('Account: {name}', { name: m.name }) : t('Account: sign in'));
 	you.title = m ? m.name : t('Account');
+	// Without a picture, or when it fails to load, the name's first letter.
+	const initial = () => {
+		const face = document.createElement('span');
+		face.className = 'you-initial';
+		face.textContent = (m?.name ?? '?').slice(0, 1).toUpperCase();
+		you.replaceChildren(face);
+	};
 	if (m?.avatar_url) {
 		const img = document.createElement('img');
-		img.src = m.avatar_url;
 		img.alt = '';
 		img.referrerPolicy = 'no-referrer';
+		img.addEventListener('error', initial, { once: true });
+		img.src = m.avatar_url;
 		you.replaceChildren(img);
-	} else you.innerHTML = blankFace;
+	} else if (m) initial();
+	else you.innerHTML = blankFace;
 });
 // Whether someone is signed in; a failure leaves the button as it is.
 // Then the site notices: with a session, also those for members or editors.

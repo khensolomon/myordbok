@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+75
+
+- Home lists centred, recent searches removable one by one; smaller ringed account button with the first letter when there is no picture
+
 ## 26.11.11+74
 
 - Phone search focus: Cancel replaces the menu row, the entry fades back; clearer search box; contact form linked from About
