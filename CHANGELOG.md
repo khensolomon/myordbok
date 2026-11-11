@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+71
+
+- Search cursor stays with the field on iOS: no blur behind the field while typing
+
 ## 26.11.11+70
 
 - Softer menus: one faint shadow instead of outline, highlight and stacked shadows

@@ -440,6 +440,14 @@ mo-search { display: block; position: relative; height: 44px; }
 /* Focus alone only outlines the pill; it lifts and opens when there is a
    list to show. */
 .search-box:focus-within { border-color: var(--guide); background: var(--glass-lens); }
+/* While typing, the box and the bar it sits in are plain, unblurred layers.
+   iOS Safari draws the text cursor of a field inside a blurred
+   (backdrop-filter) layer where the field was, not where it is, once the
+   layer moves: the cursor was left behind when the box rose or the
+   suggestions opened and closed. Focused, the box is all but opaque anyway. */
+.search-box:focus-within { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--glass-solid); }
+body[data-searching] .search-bar,
+body[data-searching] .search-bar::before { -webkit-backdrop-filter: none; backdrop-filter: none; }
 mo-search[data-open] .search-box {
 	--field-r: 16px;
 	inset: -4px -4px auto -4px;
