@@ -548,8 +548,8 @@ function railFor(me, editor, section, summary) {
 	return h(
 		'nav',
 		{ class: 'ws-rail', 'aria-label': t('Workspace') },
-		h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })),
-		h('span', { class: 'ws-rail-title' }, current),
+		// On phones the logo and the section's name share a glass capsule; elsewhere the wrapper is invisible (display: contents).
+		h('span', { class: 'ws-rail-head' }, h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })), h('span', { class: 'ws-rail-title' }, current)),
 		items,
 		h('span', { class: 'ws-rail-gap' }),
 		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face()),

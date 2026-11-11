@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+67
+
+- Workspace on phones: the top bar is Liquid Glass like the site's header: a floating capsule with the logo and the section's name, the menu button beside it, and the page scrolling under them
+
 ## 26.11.11+66
 
 - Workspace on phones: a bar at the top with the section's name and a menu of sections from the button on the right, replacing the bottom bar; plain http is sent to https before sign-in

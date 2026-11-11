@@ -1281,39 +1281,57 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-provider:hover { border-color: var(--ink-2); }
 
 /* The phone bar's parts (below), hidden on wider screens. */
+.ws-rail-head { display: contents; }
 .ws-rail-title, .ws-menu-button, .ws-menu { display: none; }
 
-/* Phones: the rail becomes a bar at the top, with the section's name and a
-   menu button on the right that opens the sections, as the site's person
-   menu does; then the list, then the item. */
+/* Phones (Liquid Glass, as the site's header): the rail becomes floating
+   glass over the top of the page: a capsule with the logo and the section's
+   name, and on the right the menu button that opens the sections, as the
+   site's person menu does. The page scrolls under them, behind a fading
+   scrim. Then the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+	.ws { --ws-bar: calc(60px + env(safe-area-inset-top)); }
 	.ws-rail {
-		position: sticky; top: 0; z-index: 20; grid-row: 1;
-		flex-direction: row; align-items: center; gap: 10px;
-		padding: calc(8px + env(safe-area-inset-top)) 12px 8px 14px;
-		border-right: none; border-bottom: 0.5px solid var(--glass-edge);
-		background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+		flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
+		padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+		border: none; background: none; pointer-events: none;
+		isolation: isolate;
 	}
-	.ws-logo { margin: 0; }
+	.ws-rail > * { pointer-events: auto; }
+	.ws-rail::before {
+		content: ""; position: absolute; inset: 0 0 -18px; z-index: -1; pointer-events: none;
+		background: linear-gradient(to bottom, var(--scrim), transparent);
+		-webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+		-webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent);
+	}
+	.ws-rail-head {
+		display: flex; align-items: center; gap: 10px; min-width: 0; height: 44px; padding: 0 18px 0 8px;
+		border: 0.5px solid transparent; border-radius: 999px;
+		background: var(--glass-fill); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-lift);
+	}
+	.ws-logo { margin: 0; width: 28px; height: 28px; flex: none; }
 	.ws-rail-item, .ws-rail-gap, .ws-rail > .ws-rail-face { display: none; }
-	.ws-rail-title { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 650; color: var(--ink); }
+	.ws-rail-title { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 650; color: var(--ink); }
 	.ws-menu-button {
 		position: relative; display: inline-flex; align-items: center; justify-content: center;
-		width: 40px; height: 40px; padding: 0; border: 0.5px solid transparent; border-radius: 999px;
-		background: var(--glass-fill); box-shadow: var(--glass-shine), var(--glass-ring); cursor: pointer;
+		flex: none; width: 44px; height: 44px; padding: 0; border: 0.5px solid transparent; border-radius: 999px;
+		background: var(--glass-fill); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-lift); cursor: pointer;
 	}
 	.ws-menu-button .ws-rail-face { width: 30px; height: 30px; font-size: 13px; }
 	.ws-menu-button[aria-expanded="true"] { border-color: var(--guide); }
 	.ws-menu-dot { position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--ground); }
 	.ws-menu:not([hidden]) {
-		display: grid; position: absolute; top: calc(100% + 6px); right: 10px; z-index: 30;
+		display: grid; position: absolute; top: calc(100% + 2px); right: 10px; z-index: 30;
 		width: min(300px, calc(100vw - 24px)); padding: 6px 0;
 		border: 1px solid var(--line); border-radius: 16px; background: var(--ground); color: var(--ink);
 		box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
 	}
 	.ws-menu::before {
-		content: ""; position: absolute; top: -7px; right: 23px;
+		content: ""; position: absolute; top: -7px; right: 26px;
 		width: 12px; height: 12px; transform: rotate(45deg);
 		background: var(--ground); border-left: 1px solid var(--line); border-top: 1px solid var(--line); border-top-left-radius: 3px;
 	}
@@ -1327,13 +1345,15 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	.ws-menu-list a:hover, .ws-menu-list a:focus-visible { background: var(--surface); color: var(--ink); }
 	.ws-menu-list a[aria-current="page"] { background: var(--term-tint); color: var(--brand); font-weight: 600; }
 	.ws-menu-list .ws-badge { position: static; margin-left: auto; min-width: 20px; height: 20px; line-height: 20px; font-size: 11px; padding: 0 6px; }
-	.ws-list, .ws-main, .ws-inspector { grid-column: 1; grid-row: 2; border: none; }
+	/* The page starts below the floating bar and scrolls under it. */
+	.ws-list, .ws-main, .ws-inspector { grid-column: 1; grid-row: 1; border: none; }
+	.ws-list, .ws-main { padding-top: var(--ws-bar); }
 	.ws:not([data-open]) .ws-main:not(.ws-account, .ws-overview, .ws-notices), .ws:not([data-open]) .ws-inspector { display: none; }
 	.ws-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.ws[data-open] .ws-list { display: none; }
-	.ws[data-open] .ws-main { grid-row: 2; overflow: visible; }
-	.ws[data-open] .ws-inspector { grid-row: 3; overflow: visible; }
-	.ws[data-open] { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
+	.ws[data-open] .ws-main { grid-row: 1; overflow: visible; }
+	.ws[data-open] .ws-inspector { grid-row: 2; overflow: visible; }
+	.ws[data-open] { height: auto; min-height: 100vh; grid-template-rows: auto auto; }
 	.ws-back { display: inline-flex; align-items: center; justify-content: center; margin-left: -8px; }
 	.ws-status { display: none; }
 	/* The bar already names the section. */
