@@ -666,6 +666,9 @@ mark { background: none; color: inherit; font-weight: 600; }
 /* Comments under an entry (comments.js). */
 /* A sentence read on the device says so once, above its words. */
 .sentence .entry .offline-note { display: none; }
+/* Paused in Settings (main.js sets these from /api/site): the controls step aside. */
+body[data-ratings-off] .thumb:not(.sense-edit) { display: none; }
+body[data-suggestions-off] .sense-edit, body[data-suggestions-off] .aside-suggest { display: none; }
 .comments { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
 .comments-title { margin: 0 0 14px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .comments-title:lang(my), :lang(my) > .comments-title { text-transform: none; letter-spacing: 0; }
@@ -1253,7 +1256,13 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 /* Settings */
 .ws-settings-title { margin: 0 0 18px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); }
 .ws-setting { max-width: 560px; padding: 16px 0; border-top: 1px solid var(--line-soft); }
-.ws-setting h2 { margin: 0 0 4px; font-size: 16px; }
+.ws-setting h2, .ws-setting h3 { margin: 0 0 4px; font-size: 16px; }
+.ws-settings .ws-work { max-width: 1400px; padding-inline: clamp(20px, 3vw, 40px); }
+.ws-settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 8px 40px; align-items: start; }
+.ws-settings-group { margin-top: 26px; }
+.ws-settings-group .ws-setting { max-width: none; }
+.ws-settings-group .ws-block-title { margin-bottom: 4px; }
+.ws-setting-save { flex: none; height: 30px; padding: 0 14px; }
 .ws-setting > p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
 .ws-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .ws-choice { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; font-size: 14px; }

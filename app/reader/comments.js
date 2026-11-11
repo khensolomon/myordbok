@@ -118,6 +118,8 @@ export function commentsSection(lang, word) {
 		if (!navigator.onLine) return section.remove();
 		try {
 			const got = await entryComments(lang, word);
+			// Hidden in Settings: no section at all.
+			if (got.hidden) return section.remove();
 			items = got.comments;
 			form.replaceChildren(writer(got.open, got.signedIn));
 			list.replaceChildren(...items.map(item));

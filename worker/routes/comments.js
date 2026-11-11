@@ -15,7 +15,7 @@ import { AppError } from '../../shared/errors.js';
 import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
-import { getSetting } from '../lib/settings.js';
+import { getSetting, getSettings } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -64,6 +64,7 @@ export async function comments(request, env, parts) {
 async function list(request, env, url) {
 	const { lang, word } = entryOf(url.searchParams);
 	const [member, open] = await Promise.all([currentMember(request, env), getSetting(env, 'comments.open')]);
+	if (open === 'hidden') return json({ open: false, hidden: true, signedIn: member !== null, comments: [] }, NO_STORE);
 	const { results } = await env.APP.prepare(
 		`SELECT c.id, c.body, c.created_at, c.user_id, u.name, u.avatar_url FROM comments c JOIN users u ON u.id = c.user_id
 		 WHERE c.lang = ?1 AND c.word = ?2 AND c.status = 'visible' AND u.status = 'active' ORDER BY c.created_at DESC, c.id DESC LIMIT ?3`,
@@ -73,6 +74,7 @@ async function list(request, env, url) {
 	return json(
 		{
 			open: open === 'on',
+			hidden: open === 'hidden',
 			signedIn: member !== null,
 			comments: results.map((r) => ({ id: Number(r.id), body: r.body, at: Number(r.created_at), name: r.name, avatar_url: r.avatar_url, own: member !== null && Number(r.user_id) === member.id })),
 		},
@@ -87,13 +89,27 @@ async function list(request, env, url) {
 async function post(request, env) {
 	const member = await currentMember(request, env);
 	if (!member) throw new AppError('unauthorized', 'Sign in to comment.');
-	if ((await getSetting(env, 'comments.open')) !== 'on') throw new AppError('forbidden', 'Comments are closed for now.');
+	const set = await getSettings(env, ['comments.open', 'comments.daily', 'comments.newcomer']);
+	if (set['comments.open'] !== 'on') throw new AppError('forbidden', 'Comments are closed for now.');
 	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
 	if (!data) throw new AppError('bad_request', 'Send { lang, word, body }');
 	const { lang, word } = entryOf(data);
 	const body = cleanBody(data.body);
 	const recent = /** @type {{ n: number }} */ (await env.APP.prepare('SELECT count(*) AS n FROM comments WHERE user_id = ?1 AND created_at > unixepoch() - ?2').bind(member.id, RECENT).first());
 	if (Number(recent.n) >= BURST) throw new AppError('rate_limited', 'That is a lot of comments in a short time. Wait a few minutes, then try again.');
+	// A day's limit, smaller on an account's first day; and no text twice in a day.
+	const day = /** @type {{ n: number, same: number, joined: number }} */ (
+		await env.APP.prepare(
+			`SELECT count(*) AS n, coalesce(sum(body = ?3), 0) AS same, (SELECT created_at FROM users WHERE id = ?1) AS joined
+			 FROM comments WHERE user_id = ?1 AND created_at > unixepoch() - ?2`,
+		)
+			.bind(member.id, 86400, body)
+			.first()
+	);
+	const newcomer = Number(day.joined) > Math.floor(Date.now() / 1000) - 86400;
+	const limit = newcomer ? set['comments.newcomer'] : set['comments.daily'];
+	if (Number(day.n) >= limit) throw new AppError('rate_limited', newcomer ? 'New accounts post a few comments on their first day. Try again tomorrow.' : 'That is today’s comments for this account. Try again tomorrow.');
+	if (Number(day.same)) throw new AppError('conflict', 'You posted this comment already today.');
 	const row = /** @type {{ id: number, created_at: number }} */ (
 		await env.APP.prepare('INSERT INTO comments (user_id, lang, word, body) VALUES (?1, ?2, ?3, ?4) RETURNING id, created_at').bind(member.id, lang, word, body).first()
 	);

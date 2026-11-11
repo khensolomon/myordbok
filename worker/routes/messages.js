@@ -16,6 +16,7 @@
 import { AppError } from '../../shared/errors.js';
 import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
+import { requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
 
 /** @typedef {{ APP: D1Database }} Env */
@@ -35,6 +36,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @param {Env} env
  */
 export async function sendMessage(request, env) {
+	await requireOn(env, 'contact.open', 'The contact form is closed for now.');
 	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
 	if (!data || typeof data !== 'object') throw new AppError('bad_request', 'The request body must be a JSON object');
 	if (typeof data.website === 'string' && data.website.trim()) {

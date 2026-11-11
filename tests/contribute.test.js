@@ -31,12 +31,12 @@ async function call(e, path, o = {}) {
 test('reactions: counts for anyone; like, change, take back when signed in', async () => {
 	const e = env();
 	const get = () => call(e, '/api/reactions?lang=en&word=love', { who: 'member' });
-	assert.deepEqual((await call(e, '/api/reactions?lang=en&word=love')).body, { lang: 'en', word: 'love', likes: 0, dislikes: 0, mine: 0, senses: {}, signedIn: false });
+	assert.deepEqual((await call(e, '/api/reactions?lang=en&word=love')).body, { lang: 'en', word: 'love', likes: 0, dislikes: 0, mine: 0, senses: {}, signedIn: false, open: true });
 	assert.equal((await call(e, '/api/reactions', { body: { lang: 'en', word: 'love', value: 1 } })).status, 401, 'signed out');
 	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 1 } })).body.likes, 1);
 	await call(e, '/api/reactions', { who: 'editor', body: { lang: 'en', word: 'love', value: 1 } });
 	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: -1 } });
-	assert.deepEqual((await get()).body, { lang: 'en', word: 'love', likes: 1, dislikes: 1, mine: -1, senses: {}, signedIn: true });
+	assert.deepEqual((await get()).body, { lang: 'en', word: 'love', likes: 1, dislikes: 1, mine: -1, senses: {}, signedIn: true, open: true });
 	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 0 } });
 	assert.equal((await get()).body.mine, 0);
 	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'xx', word: 'love', value: 1 } })).status, 400);

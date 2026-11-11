@@ -24,6 +24,7 @@
  */
 import { AppError } from '../../shared/errors.js';
 import { json } from '../lib/http.js';
+import { getSetting } from '../lib/settings.js';
 import { base64url, currentMember, endSession, randomToken, readCookie, setCookie, sha256, startSession } from '../lib/session.js';
 
 /**
@@ -213,6 +214,7 @@ export async function memberFor(env, provider, profile, signedIn) {
 		}
 	}
 	if (userId === null) {
+		if ((await getSetting(env, 'signup.open')) !== 'on') throw new SignInError('signups_closed', 'new accounts are paused (signup.open)');
 		const row = /** @type {{ id: number }} */ (
 			await db.prepare('INSERT INTO users (name, email, avatar_url) VALUES (?1, ?2, ?3) RETURNING id').bind(profile.name, profile.email, profile.avatar).first()
 		);

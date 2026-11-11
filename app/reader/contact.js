@@ -12,7 +12,7 @@
  */
 import { h } from '../core/dom.js';
 import { member } from '../core/member.js';
-import { sendMessage } from '../data/api.js';
+import { sendMessage, siteSwitches } from '../data/api.js';
 import { getLang, mark, t } from '../i18n/index.js';
 import { REPOSITORY } from '../core/config.js';
 
@@ -29,7 +29,12 @@ export function title() {
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
-export function view(ctx) {
+export async function view(ctx) {
+	// Closed in Settings: a note instead of the form (the Worker refuses messages either way).
+	const site = await siteSwitches().catch(() => null);
+	if (site && !site.contact) {
+		return h('section', { class: 'page contact' }, h('h1', null, t('Contact')), h('p', { class: 'notice' }, t('The contact form is closed for now. Please try again later.')));
+	}
 	const asked = ctx.query.get('kind');
 	/** @type {Kind} */
 	const kind = KINDS.some(([k]) => k === asked) ? /** @type {Kind} */ (asked) : 'feedback';

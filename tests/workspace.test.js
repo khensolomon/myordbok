@@ -492,3 +492,69 @@ test('searches: sorted by most searched, last searched, most days, or A to Z', a
 	assert.deepEqual(await order('az'), ['aaa', 'bbb', 'ccc']);
 	assert.equal((await call(e, '/api/workspace/searches?order=random', { who: 'editor' })).status, 400);
 });
+
+test('settings: switches pause parts of the site at once, and numbers set the limits', async () => {
+	const e = env();
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2; UPDATE users SET created_at = unixepoch() - 864000");
+	const set = async (key, value) => assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key, value } })).status, 200, key);
+	const site = async () => (await call(e, '/api/site')).body;
+	assert.deepEqual(await site(), { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true });
+
+	// Read-only: writes wait, the setting itself can be changed back.
+	await set('site.readonly', 'on');
+	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 1 } })).status, 403);
+	await set('site.readonly', 'off');
+	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: 1 } })).status, 200);
+
+	await set('ratings.open', 'off');
+	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', value: -1 } })).status, 403);
+	assert.equal((await call(e, '/api/reactions?lang=en&word=love')).body.open, false);
+	await set('suggestions.open', 'off');
+	assert.equal((await call(e, '/api/edits', { who: 'member', body: { lang: 'en', word: 'love', action: 'add', wrte: 0, sense: 'ချစ်' } })).status, 403);
+	await set('contact.open', 'off');
+	assert.equal((await call(e, '/api/messages', { body: { kind: 'feedback', body: 'Hello there', lang: 'en' } })).status, 403);
+
+	// Comments: a day's limit, no text twice, a smaller one for new accounts, hidden altogether.
+	await set('comments.daily', 2);
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'First one' } })).status, 200);
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'First one' } })).status, 409, 'the same text twice');
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'Second one' } })).status, 200);
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'Third one' } })).status, 429);
+	e.raw.exec('UPDATE users SET created_at = unixepoch() WHERE id = 3');
+	await set('comments.newcomer', 0);
+	assert.equal((await call(e, '/api/comments', { who: 'other', body: { lang: 'en', word: 'love', body: 'New here' } })).status, 429);
+	await set('comments.open', 'hidden');
+	assert.deepEqual((await call(e, '/api/comments?lang=en&word=love')).body.comments, []);
+	assert.equal((await site()).comments, 'hidden');
+	assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key: 'comments.daily', value: 0 } })).status, 400);
+	assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key: 'searches.keep_days', value: 10 } })).status, 400, 'at least 30 days, or 0');
+	await set('searches.keep_days', 0);
+});
+
+test('settings: new accounts paused, searches not counted, the home list off or stricter', async () => {
+	const e = env();
+	const { memberFor } = await import('../worker/routes/auth.js');
+	const { countSearch } = await import('../worker/lib/counts.js');
+	const { popular } = await import('../worker/routes/popular.js');
+	const put = (key, value) => e.raw.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?1, ?2)').run(key, JSON.stringify(value));
+
+	put('signup.open', 'off');
+	await assert.rejects(memberFor(e, 'github', { id: 'new-1', name: 'New', email: 'new@example.com', avatar: null }, null), /new accounts are paused/);
+	const known = await memberFor(e, 'google', { id: 'g-mya', name: 'Mya', email: 'm@example.com', avatar: null }, null);
+	assert.ok(known, 'a member with an account still signs in');
+
+	const read = (q) => new Response(JSON.stringify({ q, kind: 'entry' }));
+	put('searches.count', 'off');
+	await countSearch(e, read('love'));
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM search_counts').get().n, 0);
+	put('searches.count', 'on');
+	for (let i = 0; i < 2; i++) await countSearch(e, read('love'));
+	const words = async () => (await (await popular(e)).json()).words.map((w) => w.term);
+	put('home.popular_min', 2);
+	assert.deepEqual(await words(), ['love']);
+	put('home.popular_min', 3);
+	assert.deepEqual(await words(), []);
+	put('home.popular_min', 1);
+	put('home.popular', 'off');
+	assert.deepEqual(await words(), []);
+});

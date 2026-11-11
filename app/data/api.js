@@ -328,7 +328,7 @@ export function searchedWord(lang, term) {
  * An entry's comments, newest first.
  * @param {'en' | 'my'} lang
  * @param {string} word
- * @returns {Promise<{ open: boolean, signedIn: boolean, comments: EntryComment[] }>}
+ * @returns {Promise<{ open: boolean, hidden?: boolean, signedIn: boolean, comments: EntryComment[] }>}
  */
 export function entryComments(lang, word) {
 	return getJSON(`/api/comments?${new URLSearchParams({ lang, word })}`);
@@ -369,6 +369,14 @@ export function workspaceComments(f, offset) {
  */
 export function moderateComment(id, status) {
 	return postJSON(`/api/workspace/comments/${id}`, { status });
+}
+
+/**
+ * The switches pages follow (worker/lib/settings.js), the same for everyone.
+ * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean }>}
+ */
+export function siteSwitches() {
+	return getJSON('/api/site');
 }
 
 /** @returns {Promise<Overview>} The home board; editors and admins get the site's figures. */

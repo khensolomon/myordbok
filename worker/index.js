@@ -26,6 +26,7 @@ import { spelling } from './routes/spelling.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 import { addUsage, reportUsage } from './lib/usage.js';
+import { getSetting, getSettings } from './lib/settings.js';
 
 /**
  * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & import('./routes/auth.js').AuthEnv & {
@@ -65,6 +66,19 @@ async function health(env) {
 }
 
 /**
+ * GET /api/site: the switches the pages follow (worker/lib/settings.js), the
+ * same for everyone, kept at the edge for a minute.
+ * @param {Env} env
+ */
+async function siteSwitches(env) {
+	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open']);
+	return json(
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on' },
+		{ headers: { 'cache-control': 'public, max-age=60' } },
+	);
+}
+
+/**
  * @param {Request} request
  * @param {Env} env
  * @param {ExecutionContext} [ctx]
@@ -101,6 +115,11 @@ async function answer(request, env, url, parts) {
 	if (request.method === 'POST') {
 		// Writes come only from this site's own pages (sign-out checks the same itself).
 		if (request.headers.get('origin') !== url.origin) throw new AppError('forbidden', 'Access denied.');
+		// Read-only (setting site.readonly): every write waits, but changing that setting.
+		const settingsWrite = parts[0] === 'workspace' && parts[1] === 'settings';
+		if (!settingsWrite && (await getSetting(env, 'site.readonly')) === 'on') {
+			throw new AppError('forbidden', 'MyOrdbok is read-only for a while. Reading and searching work; try again later.');
+		}
 		if (parts[0] === 'workspace') return workspace(request, env, parts);
 		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
@@ -121,6 +140,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'me') return me(request, env);
 		if (parts[0] === 'notices') return activeNotices(request, env, url);
 		if (parts[0] === 'stats') return publicStats(env);
+		if (parts[0] === 'site') return siteSwitches(env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);

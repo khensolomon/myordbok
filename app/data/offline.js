@@ -31,7 +31,7 @@ const MYANMAR = /[က-႟]/;
 
 /**
  * @typedef {{ id: string, kind: 'words' | 'senses' | 'related', lang: 'en' | 'my', rows: number, bytes: number, allowed: boolean }} PackInfo
- * @typedef {{ build: string, access: 'members' | 'everyone', signedIn: boolean, packs: PackInfo[] }} PacksInfo
+ * @typedef {{ build: string, access: 'members' | 'everyone', auto?: boolean, signedIn: boolean, packs: PackInfo[] }} PacksInfo
  * @typedef {{ id: string, build: string, rows: number, bytes: number, at: number }} Installed
  */
 
@@ -327,6 +327,8 @@ export async function keepWordLists(savingData) {
 		// storage blocked: check on each visit
 	}
 	const [info, have] = await Promise.all([packsInfo(), installed()]);
+	// Paused in Settings (offline.words_auto): nothing arrives by itself.
+	if (info.auto === false) return;
 	for (const pack of info.packs.filter((p) => p.kind === 'words')) {
 		if (have.some((h) => h.id === pack.id && h.build === info.build)) continue;
 		await install(pack, info.build);

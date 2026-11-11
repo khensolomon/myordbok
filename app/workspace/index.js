@@ -91,6 +91,7 @@ const ERRORS = {
 	not_configured: mark('Signing in with this provider is not available on this site yet.'),
 	suspended: mark('This account is suspended.'),
 	linked_elsewhere: mark('That account is already linked to another MyOrdbok account.'),
+	signups_closed: mark('New accounts are paused for now. Members who already have an account can sign in.'),
 };
 
 /** @type {Record<'google' | 'github', string>} */

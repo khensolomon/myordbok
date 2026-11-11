@@ -28,13 +28,13 @@ import { getSetting } from '../lib/settings.js';
 export async function packs(request, env, parts) {
 	if (!env.PACKS) throw new AppError('internal', 'The R2 binding PACKS is missing; it is declared in wrangler.toml for each environment.');
 	const { build, manifest } = await currentManifest(env);
-	const [member, access] = await Promise.all([currentMember(request, env), getSetting(env, 'offline.access')]);
+	const [member, access, auto] = await Promise.all([currentMember(request, env), getSetting(env, 'offline.access'), getSetting(env, 'offline.words_auto')]);
 	/** @param {Pack} p */
 	const allowed = (p) => OPEN_KINDS.includes(p.kind) || access === 'everyone' || member !== null;
 
 	if (parts.length === 1) {
 		return json(
-			{ build, access, signedIn: member !== null, packs: manifest.packs.map((p) => ({ id: p.id, kind: p.kind, lang: p.lang, rows: p.rows, bytes: p.bytes, allowed: allowed(p) })) },
+			{ build, access, auto: auto === 'on', signedIn: member !== null, packs: manifest.packs.map((p) => ({ id: p.id, kind: p.kind, lang: p.lang, rows: p.rows, bytes: p.bytes, allowed: allowed(p) })) },
 			{ headers: { 'cache-control': 'no-store' } },
 		);
 	}

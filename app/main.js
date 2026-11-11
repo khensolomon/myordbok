@@ -13,7 +13,7 @@ import { followTheme } from './core/prefs.js';
 import { initNav } from './core/nav.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
-import { savingData } from './data/api.js';
+import { savingData, siteSwitches } from './data/api.js';
 import { checkIn, keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
 import './reader/search-box.js';
@@ -108,6 +108,16 @@ member()
 	})
 	.then((m) => showNotices(m !== null))
 	.catch((err) => console.warn('Site notices unavailable:', err));
+
+// What admins have paused (Settings): the controls for it step aside. The
+// Worker refuses the writes either way; this only spares a button that fails.
+siteSwitches()
+	.then((s) => {
+		document.body.toggleAttribute('data-ratings-off', !s.ratings);
+		document.body.toggleAttribute('data-suggestions-off', !s.suggestions);
+		document.body.toggleAttribute('data-readonly', s.readonly);
+	})
+	.catch((err) => console.warn('Site switches unavailable:', err));
 
 // The word lists are kept on the device once the page has settled (offline.js).
 const idle = /** @type {(f: () => void) => void} */ (window.requestIdleCallback ?? ((f) => setTimeout(f, 3000)));

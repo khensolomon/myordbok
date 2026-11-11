@@ -32,6 +32,7 @@ import { AppError } from '../../shared/errors.js';
 import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { getSetting, requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
 
 /** Longest value a suggestion may carry, in characters. */
@@ -114,8 +115,8 @@ export async function reactions(request, env) {
 	const url = new URL(request.url);
 	const lang = language(url.searchParams.get('lang'));
 	const word = headword(url.searchParams.get('word'));
-	const member = await currentMember(request, env);
-	return json(await countsFor(env, lang, word, member?.id ?? null), NO_STORE);
+	const [member, open] = await Promise.all([currentMember(request, env), getSetting(env, 'ratings.open')]);
+	return json({ ...(await countsFor(env, lang, word, member?.id ?? null)), open: open === 'on' }, NO_STORE);
 }
 
 /**
@@ -167,6 +168,7 @@ async function countsFor(env, lang, word, memberId) {
  */
 async function react(request, env) {
 	const member = await requireMember(request, env);
+	await requireOn(env, 'ratings.open', 'Rating is paused for now.');
 	const data = await body(request);
 	const lang = language(/** @type {string} */ (data.lang));
 	const word = headword(data.word);
@@ -274,6 +276,7 @@ export async function senses(request, env) {
 export async function suggestEdit(request, env) {
 	if (request.method !== 'POST') throw new AppError('bad_request', 'Suggest with POST');
 	const member = await requireMember(request, env);
+	await requireOn(env, 'suggestions.open', 'Suggestions are paused for now.');
 	const data = await body(request);
 	const lang = language(/** @type {string} */ (data.lang));
 	const word = headword(data.word);

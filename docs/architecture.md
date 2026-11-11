@@ -202,6 +202,17 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   The filtered list downloads as CSV (formula-like cells defused). Ratings
   pages the same way, one kind at a time, the site's ranked not helpful
   first.
+- **Switches, not releases.** `settings` (key, JSON value) holds what admins
+  start, stop or pause in the workspace (Settings), each read when used
+  (`worker/lib/settings.js`): read-only mode (every write but signing in and
+  the settings refused), new accounts, suggestions, ratings, comments
+  (open, closed or hidden, with a daily limit and a smaller one for an
+  account's first day; the same text twice a day is refused), the contact
+  form, counting searches and how long counts are kept, the home page's
+  most-searched list and its threshold, offline access and whether word
+  lists arrive by themselves. Pages learn the switches from `/api/site`
+  (kept at the edge for a minute) and hide controls that would fail; the
+  Worker refuses the writes either way.
 - **Comments sit under the entry.** `comments` (lang, word, body) holds
   plain text from signed-in members, shown at once with the member's name,
   newest first, loaded when the section nears the screen and never offline.

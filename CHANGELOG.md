@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+89
+
+- Settings: read-only mode, new accounts, suggestions, ratings, comments (hidden too, daily and first-day limits, no duplicates), contact form, search counting and keeping, home list, word lists by themselves
+
 ## 26.11.11+88
 
 - Desktop search bar gets a soft shadow once the page scrolls under it
