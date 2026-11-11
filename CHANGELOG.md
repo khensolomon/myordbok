@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+87
+
+- Search focus eases in a soft ring; the search button steps back to a plain icon until something is typed
+
 ## 26.11.11+86
 
 - The filters menu opens in full instead of clipped by its row

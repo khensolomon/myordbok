@@ -435,7 +435,7 @@ mo-search { display: block; position: relative; height: 44px; }
 	border-radius: var(--field-r);
 	background: var(--glass-solid);
 	box-shadow: 0 1px 2px rgba(23, 32, 43, 0.04), 0 3px 10px rgba(23, 32, 43, 0.04);
-	transition: inset 0.18s, padding 0.18s, border-radius 0.18s, background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
+	transition: inset 0.18s, padding 0.18s, border-radius 0.18s, background-color 0.15s, box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s;
 }
 .search-box:hover { border-color: color-mix(in srgb, var(--line) 55%, var(--muted)); }
 .search-key { display: none; flex: none; align-self: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 6px; border: 1px solid var(--line); border-radius: 5px; font: 500 12px/18px var(--font-ui); text-align: center; color: var(--muted); background: var(--ground); }
@@ -450,6 +450,11 @@ mo-search { display: block; position: relative; height: 44px; }
 /* Focus alone only outlines the pill; it lifts and opens when there is a
    list to show. */
 .search-box:focus-within { border-color: var(--guide); background: var(--glass-lens); }
+/* Focus eases in a soft ring and a deeper shadow; the box itself stays put
+   (a moving field loses its cursor on iOS). */
+.search-box:focus-within:not(:has(.search-list:not([hidden]))) {
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 13%, transparent), 0 6px 22px rgba(23, 32, 43, 0.08);
+}
 /* While typing, the box and the bar it sits in are plain, unblurred layers.
    iOS Safari draws the text cursor of a field inside a blurred
    (backdrop-filter) layer where the field was, not where it is, once the
@@ -528,10 +533,19 @@ mo-search[data-open] .search-box {
 	border: none; border-radius: 999px;
 	background: var(--brand); color: #ffffff; cursor: pointer;
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(23, 32, 43, 0.2);
-	transition: filter 0.15s;
+	transition: filter 0.15s, background-color 0.22s, color 0.22s, box-shadow 0.22s, transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .search-go:hover { filter: brightness(1.08); }
 .search-go:active { filter: brightness(0.92); }
+/* Focused with nothing typed, there is nothing to search yet: the button
+   steps back to a plain icon, still there and still a button. The first
+   letter brings the blue back. */
+.search-box:focus-within .search:has(input:placeholder-shown) .search-go {
+	background: transparent; color: var(--faint); box-shadow: none; transform: scale(0.88);
+}
+@media (prefers-reduced-motion: reduce) {
+	.search-box, .search-go { transition: none; }
+}
 
 .search-list { margin: 4px 0 0; padding: 4px 0 0; list-style: none; border-top: 0.5px solid var(--glass-edge); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are square: above them is the straight hairline. Only the last row
