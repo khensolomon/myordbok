@@ -6,6 +6,7 @@
  *
  *   ?s=overview      everyone, the default: figures for the role (overview.js)
  *   ?s=suggestions   editors and admins: suggestions by status
+ *   ?s=searches      editors and admins: every word searched, not found first (searches.js)
  *   ?s=contributions everyone: the member's own suggestions
  *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
@@ -39,16 +40,18 @@ import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
+import { searchesPanes } from './searches.js';
 import { noticesPane } from './notices.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'searches' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
 	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false },
 	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
+	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: true, admin: false },
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
@@ -116,7 +119,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'searches') && editor ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -136,6 +139,10 @@ export async function view(ctx) {
 	}
 	if (section === 'ratings') {
 		root.append(rail, await ratingsPane(ctx, editor, ago), status.node);
+		return root;
+	}
+	if (section === 'searches') {
+		root.append(rail, ...(await searchesPanes(ctx, root)), status.node);
 		return root;
 	}
 	if (section === 'members') {

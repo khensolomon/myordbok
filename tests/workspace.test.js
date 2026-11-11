@@ -232,16 +232,21 @@ test('ratings: a member sees their own, a changed meaning says so; editors see t
 	e.raw.prepare("UPDATE sense_reactions SET text_hash = 'old' WHERE sense_id = ?").run(senses[1].id);
 
 	const mine = (await call(e, '/api/workspace/ratings', { who: 'member' })).body;
-	assert.deepEqual(mine.entries.map((r) => [r.word, r.value]), [['love', 1]]);
-	const byId = new Map(mine.senses.map((r) => [r.sense_id, r]));
+	assert.deepEqual(mine.counts, { senses: 2, entries: 1, up: 2, down: 1 });
+	const byId = new Map(mine.items.map((r) => [r.sense_id, r]));
 	assert.deepEqual([byId.get(senses[0].id).state, byId.get(senses[0].id).value, byId.get(senses[0].id).word], ['current', -1, 'love']);
 	assert.equal(byId.get(senses[1].id).state, 'changed');
+	assert.deepEqual((await call(e, '/api/workspace/ratings?kind=entries', { who: 'member' })).body.items.map((r) => [r.word, r.value]), [['love', 1]]);
+	assert.deepEqual((await call(e, '/api/workspace/ratings?value=down', { who: 'member' })).body.items.map((r) => r.sense_id), [senses[0].id]);
+	assert.equal((await call(e, '/api/workspace/ratings?q=lo', { who: 'member' })).body.items.length, 2, 'a word that starts with the search');
+	assert.equal((await call(e, '/api/workspace/ratings?q=xyz', { who: 'member' })).body.items.length, 0);
+	assert.equal((await call(e, '/api/workspace/ratings?kind=words', { who: 'member' })).status, 400);
 
 	assert.equal((await call(e, '/api/workspace/ratings?scope=site', { who: 'member' })).status, 403);
 	const site = (await call(e, '/api/workspace/ratings?scope=site', { who: 'editor' })).body;
-	assert.deepEqual(site.entries.liked, [{ lang: 'en', word: 'love', up: 1, down: 0 }]);
-	assert.deepEqual(site.senses.disliked.map((s) => [s.sense_id, s.down]), [[senses[0].id, 1]]);
-	assert.equal(site.senses.liked.length, 0, 'the changed meaning’s rating no longer counts');
+	assert.deepEqual(site.items.map((s) => [s.sense_id, s.down]), [[senses[0].id, 1]], 'not helpful most, by default');
+	assert.deepEqual((await call(e, '/api/workspace/ratings?scope=site&kind=entries&order=up', { who: 'editor' })).body.items.map((r) => [r.word, r.up, r.down]), [['love', 1, 0]]);
+	assert.equal((await call(e, '/api/workspace/ratings?scope=site&order=up', { who: 'editor' })).body.items.length, 0, 'the changed meaning’s rating no longer counts');
 });
 
 test('members: an owner gives any level, an admin only member and editor; the site keeps an owner', async () => {
@@ -357,4 +362,55 @@ test('usage: offline check-ins and pack downloads are counted per day, without w
 	const usage = (await call(e, '/api/workspace/overview', { who: 'editor' })).body.usage;
 	assert.equal(usage.find((u) => u.name === 'offline.lookups').n, 9);
 	assert.equal((await call(e, '/api/workspace/overview', { who: 'member' })).body.usage, undefined, 'members do not see it');
+});
+
+test('searches: every word over a period, not found first, paged; one word day by day; CSV; for editors', async () => {
+	const e = env();
+	const day = (ago) => new Date(Date.now() - ago * 86400000).toISOString().slice(0, 10);
+	const add = e.raw.prepare('INSERT INTO search_counts (day, lang, term, found, hits) VALUES (?1, ?2, ?3, ?4, ?5)');
+	add.run(day(0), 'en', 'lofe', 0, 3);
+	add.run(day(1), 'en', 'lofe', 0, 2);
+	add.run(day(0), 'en', 'love', 1, 9);
+	add.run(day(40), 'en', 'olden', 0, 4);
+	add.run(day(0), 'en', '=sum', 0, 1);
+	for (let i = 0; i < 55; i++) add.run(day(2), 'my', `စကား${i}`, 0, 1);
+
+	assert.equal((await call(e, '/api/workspace/searches', { who: 'member' })).status, 403);
+	assert.equal((await call(e, '/api/workspace/searches?days=12', { who: 'editor' })).status, 400);
+
+	const first = (await call(e, '/api/workspace/searches', { who: 'editor' })).body;
+	assert.equal(first.words[0].term, 'lofe');
+	assert.deepEqual([first.words[0].hits, first.words[0].days, first.words[0].found], [5, 2, false]);
+	assert.ok(!first.words.some((w) => w.term === 'love' || w.term === 'olden'), 'found words and words older than 30 days are left out');
+	assert.equal(first.words.length, 50);
+	assert.equal(first.more, true);
+	assert.deepEqual(first.counts, { words: 58, missed: 57, found: 1, hits: 70 });
+	const second = (await call(e, '/api/workspace/searches?offset=50', { who: 'editor' })).body;
+	assert.equal(second.words.length, 7);
+	assert.equal(second.more, false);
+
+	assert.deepEqual((await call(e, '/api/workspace/searches?show=found&days=0', { who: 'editor' })).body.words.map((w) => w.term), ['love']);
+	assert.deepEqual((await call(e, '/api/workspace/searches?days=0&lang=en&q=ol', { who: 'editor' })).body.words.map((w) => w.term), ['olden']);
+	// A word never found that is a headword now (the sample has "love"; "Love" searched, kept lower case).
+	add.run(day(3), 'en', 'love', 0, 1);
+	const now = (await call(e, '/api/workspace/searches?show=all&q=love', { who: 'editor' })).body.words[0];
+	assert.equal(now.found, true, 'found on a later day counts as found');
+
+	const one = (await call(e, '/api/workspace/searches/word?lang=en&term=lofe', { who: 'editor' })).body;
+	assert.deepEqual([one.hits, one.found, one.now, one.daily.length], [5, false, false, 2]);
+	assert.equal((await call(e, '/api/workspace/searches/word?lang=en&term=never', { who: 'editor' })).status, 404);
+
+	const res = await worker.fetch(new Request(`${SITE}/api/workspace/searches?lang=en&format=csv`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e);
+	assert.match(res.headers.get('content-type'), /text\/csv/);
+	const csv = (await res.text()).trim().split('\r\n');
+	assert.equal(csv[0], 'language,word,searches,days,first,last,found,now_in_dictionary');
+	assert.ok(csv.some((l) => l.startsWith("en,'=sum,1,")), 'a leading = is defused for spreadsheets');
+});
+
+test('searches: a word never found that has become a headword says so', async () => {
+	const e = env();
+	const today = new Date().toISOString().slice(0, 10);
+	e.raw.prepare("INSERT INTO search_counts (day, lang, term, found, hits) VALUES (?1, 'en', 'love', 0, 2), (?1, 'en', 'lofe', 0, 1)").run(today);
+	const words = (await call(e, '/api/workspace/searches', { who: 'editor' })).body.words;
+	assert.deepEqual(words.map((w) => [w.term, w.now]), [['love', true], ['lofe', false]]);
 });

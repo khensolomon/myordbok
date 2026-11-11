@@ -274,6 +274,43 @@ export function withdrawEdit(id) {
  * @property {Array<{ day: string, name: string, n: number }>} [usage]  Offline use, two weeks of counters; editors and admins.
  */
 
+/**
+ * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string }} SearchFilter
+ * @typedef {{ lang: 'en' | 'my', term: string, hits: number, days: number, first: string, last: string, found: boolean, now: boolean }} SearchedWord
+ * @typedef {{ show: string, days: number, counts: { words: number, missed: number, found: number, hits: number }, words: SearchedWord[], more: boolean }} SearchesPage
+ * @typedef {{ lang: 'en' | 'my', term: string, hits: number, found: boolean, now: boolean, daily: Array<{ day: string, hits: number, found: boolean }> }} SearchedDetail
+ */
+
+/** @param {SearchFilter} f */
+export function searchesQuery(f) {
+	const p = new URLSearchParams({ show: f.show, days: String(f.days) });
+	if (f.lang) p.set('lang', f.lang);
+	if (f.q) p.set('q', f.q);
+	return p;
+}
+
+/**
+ * Words searched, for editors: 50 at a time.
+ * @param {SearchFilter} f
+ * @param {number} offset
+ * @returns {Promise<SearchesPage>}
+ */
+export function workspaceSearches(f, offset) {
+	const p = searchesQuery(f);
+	if (offset) p.set('offset', String(offset));
+	return getJSON(`/api/workspace/searches?${p}`);
+}
+
+/**
+ * One searched word, day by day.
+ * @param {string} lang
+ * @param {string} term
+ * @returns {Promise<SearchedDetail>}
+ */
+export function searchedWord(lang, term) {
+	return getJSON(`/api/workspace/searches/word?${new URLSearchParams({ lang, term })}`);
+}
+
 /** @returns {Promise<Overview>} The home board; editors and admins get the site's figures. */
 export function workspaceOverview() {
 	return getJSON('/api/workspace/overview');
@@ -353,13 +390,24 @@ export function updateSetting(key, value) {
  */
 
 /**
- * Ratings: the member's own, or the site's for editors.
- * @template {'mine' | 'site'} S
- * @param {S} scope
- * @returns {Promise<S extends 'mine' ? { entries: RatedEntry[], senses: RatedSense[] } : { entries: { liked: EntryScore[], disliked: EntryScore[] }, senses: { liked: SenseScore[], disliked: SenseScore[] } }>}
+ * @typedef {{ scope: 'mine' | 'site', kind: 'senses' | 'entries', value: 'all' | 'up' | 'down', order: 'down' | 'up' | 'new', q: string }} RatingsFilter
+ * @typedef {{ senses: number, entries: number, up: number, down: number }} RatingsCounts
+ * @typedef {{ scope: 'mine' | 'site', kind: 'senses' | 'entries', counts: RatingsCounts, items: Array<RatedSense | RatedEntry | (SenseScore & { at: number }) | (EntryScore & { at: number })>, more: boolean }} RatingsPage
  */
-export function workspaceRatings(scope) {
-	return getJSON(`/api/workspace/ratings?scope=${scope}`);
+
+/**
+ * Ratings, 50 at a time: the member's own, or the site's for editors.
+ * @param {RatingsFilter} f
+ * @param {number} [offset]
+ * @returns {Promise<RatingsPage>}
+ */
+export function workspaceRatings(f, offset = 0) {
+	const p = new URLSearchParams({ scope: f.scope, kind: f.kind });
+	if (f.scope === 'mine' && f.value !== 'all') p.set('value', f.value);
+	if (f.scope === 'site') p.set('order', f.order);
+	if (f.q) p.set('q', f.q);
+	if (offset) p.set('offset', String(offset));
+	return getJSON(`/api/workspace/ratings?${p}`);
 }
 
 /**

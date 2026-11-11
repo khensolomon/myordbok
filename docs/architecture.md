@@ -192,6 +192,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   page; phrases, sentences, ratings and suggestions still need the network.
   Downloads cost R2 reads and one Worker request per file, and one counter
   row write.
+- **Long lists get their own section.** Searches (`?s=searches`, editors)
+  lists every word in `search_counts` over 7, 30 or 90 days or all time,
+  not found first, 50 a page with offset paging, and opens a word with its
+  days; a word never found that is now an `eng_word`/`mya_word` headword is
+  marked, so the list shrinks as words are added, with no table of its own.
+  The filtered list downloads as CSV (formula-like cells defused). Ratings
+  pages the same way, one kind at a time, the site's ranked not helpful
+  first.
 - **Offline use is counted, not tracked.** `usage_counts` (day, name, n)
   holds plain counters: each pack download, as new or as an update (the app
   sends `x-pack-update` when it replaces a copy), and a daily check-in

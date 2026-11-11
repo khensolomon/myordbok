@@ -44,7 +44,7 @@ export async function overviewPane(me, health) {
 		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
 		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, editor), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
 	return main;
 }
 
@@ -205,8 +205,9 @@ const pair = (label, value) => [h('dt', null, label), h('dd', null, num(value))]
  * Searches of the last days: the figures over the daily chart, beside it the
  * words searched most and those the dictionary did not have.
  * @param {Overview} data
+ * @param {boolean} editor  Links to the Searches section.
  */
-function searches(data) {
+function searches(data, editor) {
 	const searches = data.searches;
 	const days = data.days ?? 30;
 	const all = everyDay(searches.daily, days);
@@ -233,7 +234,12 @@ function searches(data) {
 			),
 			h('div', { class: 'ws-side-col' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.'))),
 		),
-		h('p', { class: 'ws-quiet ws-foot' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.')),
+		h(
+			'p',
+			{ class: 'ws-quiet ws-foot' },
+			t('Search counts keep the word, the day and whether it was found; nothing about who searched.'),
+			editor ? [' ', h('a', { href: '/workspace?s=searches' }, t('See every search'))] : '',
+		),
 	);
 }
 
@@ -242,7 +248,7 @@ function searches(data) {
  * @param {Array<{ day: string, hits: number, missed: number }>} daily
  * @param {number} days
  */
-function everyDay(daily, days) {
+export function everyDay(daily, days) {
 	const byDay = new Map(daily.map((d) => [d.day, d]));
 	return Array.from({ length: days }, (_, i) => {
 		const day = new Date(Date.now() - (days - 1 - i) * 86400000).toISOString().slice(0, 10);
@@ -256,7 +262,7 @@ function everyDay(daily, days) {
  * @param {number} value
  * @param {Node | string} [note]
  */
-function figure(label, value, note = '') {
+export function figure(label, value, note = '') {
 	return h('div', { class: 'ws-figure' }, h('span', { class: 'ws-figure-label' }, label), h('strong', { class: 'ws-figure-value' }, num(value)), h('span', { class: 'ws-figure-note' }, note));
 }
 
@@ -374,7 +380,7 @@ function tile(label, value, sub = '', href, glyph) {
  * to screen readers, and the table below holds them all.
  * @param {Array<{ day: string, hits: number, missed: number }>} all  Every day, oldest first.
  */
-function chart(all) {
+export function chart(all) {
 	const max = Math.max(1, ...all.map((d) => d.hits));
 	const top = niceMax(max);
 	const label = (/** @type {string} */ day) => shortDate(new Date(`${day}T00:00:00Z`), { utc: true });

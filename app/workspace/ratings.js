@@ -1,18 +1,38 @@
 // @ts-check
 /**
- * Ratings (?s=ratings): the entries and meanings the member rated, each with
- * a way to take the rating back; for editors and admins also the site's most
- * liked and disliked (?view=site). A meaning rated before its text changed
- * shows as changed: its rating no longer counts, and rating it again does.
+ * Ratings (?s=ratings): the entries and meanings the member rated, newest
+ * first, each with a way to take the rating back; for editors and admins
+ * also the whole site's (?view=site), not helpful most first. One list at a
+ * time (meanings or whole entries), filtered, searched by the word's start,
+ * and 50 rows a page. A meaning rated before its text changed shows as
+ * changed: its rating no longer counts, and rating it again does.
+ *
+ *   &kind=senses|entries  &value=up|down (yours)  &order=down|up|new (site)  &q=…
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { react, workspaceRatings } from '../data/api.js';
-import { num, posName, t } from '../i18n/index.js';
+import { mark, num, posName, t } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').RatedSense} RatedSense */
 /** @typedef {import('../data/api.js').RatedEntry} RatedEntry */
+/** @typedef {import('../data/api.js').RatingsFilter} Filter */
+
+const KINDS = /** @type {const} */ ([
+	['senses', mark('Meanings')],
+	['entries', mark('Whole entries')],
+]);
+const VALUES = /** @type {const} */ ([
+	['all', mark('All')],
+	['up', mark('Helpful')],
+	['down', mark('Not helpful')],
+]);
+const ORDERS = /** @type {const} */ ([
+	['down', mark('Not helpful most')],
+	['up', mark('Helpful most')],
+	['new', mark('Newest')],
+]);
 
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
@@ -20,7 +40,30 @@ import { num, posName, t } from '../i18n/index.js';
  * @param {(when: number, short?: boolean) => string} ago
  */
 export async function ratingsPane(ctx, editor, ago) {
-	const site = editor && ctx.query.get('view') === 'site';
+	const q = ctx.query;
+	/** @type {Filter} */
+	const f = {
+		scope: editor && q.get('view') === 'site' ? 'site' : 'mine',
+		kind: q.get('kind') === 'entries' ? 'entries' : 'senses',
+		value: /** @type {Filter['value']} */ (VALUES.some(([v]) => v === q.get('value')) ? q.get('value') : 'all'),
+		order: /** @type {Filter['order']} */ (ORDERS.some(([o]) => o === q.get('order')) ? q.get('order') : 'down'),
+		q: (q.get('q') ?? '').trim(),
+	};
+	const site = f.scope === 'site';
+	/** @param {Partial<Filter>} change */
+	const href = (change) => {
+		const n = { ...f, ...change };
+		const p = new URLSearchParams({ s: 'ratings' });
+		if (n.scope === 'site') p.set('view', 'site');
+		if (n.kind !== 'senses') p.set('kind', n.kind);
+		if (n.scope === 'mine' && n.value !== 'all') p.set('value', n.value);
+		if (n.scope === 'site' && n.order !== 'down') p.set('order', n.order);
+		if (n.q) p.set('q', n.q);
+		return `/workspace?${p}`;
+	};
+	const segments = (/** @type {string} */ label, /** @type {ReadonlyArray<readonly [string, string]>} */ options, /** @type {string} */ now, /** @type {(v: any) => Partial<Filter>} */ change) =>
+		h('nav', { class: 'ws-segments', 'aria-label': label }, options.map(([v, text]) => h('a', { href: href(change(v)), 'aria-current': v === now ? 'true' : null }, t(text))));
+
 	const main = h('main', { class: 'ws-main ws-overview ws-ratings', 'aria-label': t('Ratings') });
 	const head = h(
 		'header',
@@ -29,38 +72,99 @@ export async function ratingsPane(ctx, editor, ago) {
 		editor
 			? h(
 					'nav',
-					{ class: 'ws-segments', 'aria-label': t('Show') },
-					h('a', { href: '/workspace?s=ratings', 'aria-current': site ? null : 'true' }, t('Yours')),
-					h('a', { href: '/workspace?s=ratings&view=site', 'aria-current': site ? 'true' : null }, t('Whole site')),
+					{ class: 'ws-segments', 'aria-label': t('Whose') },
+					h('a', { href: href({ scope: 'mine', q: '' }), 'aria-current': site ? null : 'true' }, t('Yours')),
+					h('a', { href: href({ scope: 'site', q: '' }), 'aria-current': site ? 'true' : null }, t('Whole site')),
 				)
 			: '',
 	);
-	const work = h('div', { class: 'ws-work' }, head);
-	main.append(work);
-	work.append(site ? await sitePane() : await minePane(ago));
+	const tiles = h('div', { class: 'ws-tiles' });
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Word starts with…'), 'aria-label': t('Find a word'), value: f.q }));
+	const list = h('ul', { class: 'ws-rated' });
+	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
+	const card = h(
+		'section',
+		{ class: 'ws-card ws-card-wide ws-rated-card' },
+		h(
+			'div',
+			{ class: 'ws-rated-bar' },
+			segments(t('Kind'), KINDS, f.kind, (v) => ({ kind: v })),
+			site ? segments(t('Order'), ORDERS, f.order, (v) => ({ order: v })) : segments(t('Show'), VALUES, f.value, (v) => ({ value: v })),
+			h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
+		),
+		site && f.kind === 'senses' ? h('p', { class: 'ws-quiet' }, t('Only ratings of a meaning as it reads now count; a meaning edited since starts again.')) : '',
+		list,
+		more,
+	);
+	let shown = 0;
+
+	/** @param {boolean} [again] */
+	const load = async (again = false) => {
+		const page = await workspaceRatings(f, again ? shown : 0);
+		const c = page.counts;
+		tiles.replaceChildren(tile(t('Meanings rated'), c.senses), tile(t('Entries rated'), c.entries), tile(t('Helpful'), c.up), tile(t('Not helpful'), c.down));
+		if (!again) {
+			list.replaceChildren();
+			shown = 0;
+		}
+		shown += page.items.length;
+		list.append(
+			...page.items.map((r) =>
+				site
+					? scoreRow(/** @type {any} */ (r), f.kind, ago)
+					: f.kind === 'senses'
+						? senseRow(/** @type {RatedSense} */ (r), ago)
+						: entryRow(/** @type {RatedEntry} */ (r), ago),
+			),
+		);
+		if (!shown) {
+			const nothing = f.q || f.value !== 'all' ? t('Nothing matches.') : site ? t('None yet.') : t('Nothing rated yet. On any entry, the thumbs beside a meaning, or beside the whole entry, rate it; what you rate shows up here.');
+			list.replaceChildren(h('li', { class: 'ws-quiet ws-rated-none' }, nothing));
+		}
+		more.hidden = !page.more;
+	};
+
+	more.addEventListener('click', () => {
+		more.disabled = true;
+		load(true)
+			.catch((err) => list.append(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))))
+			.finally(() => (more.disabled = false));
+	});
+	let timer = 0;
+	search.addEventListener('input', () => {
+		clearTimeout(timer);
+		timer = window.setTimeout(() => {
+			f.q = search.value.trim();
+			history.replaceState(history.state, '', href({}));
+			load().catch((err) => list.replaceChildren(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))));
+		}, 250);
+	});
+
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, tiles, card)));
+	await load();
 	return main;
 }
 
-/** @param {(when: number, short?: boolean) => string} ago */
-async function minePane(ago) {
-	const data = await workspaceRatings('mine');
-	if (!data.entries.length && !data.senses.length) {
-		return h('p', { class: 'ws-quiet ws-ov-tip' }, t('Nothing rated yet. On any entry, the thumbs beside a meaning, or beside the whole entry, rate it; what you rate shows up here.'));
-	}
-	const total = (/** @type {Array<{ value: number }>} */ list, /** @type {number} */ v) => list.filter((r) => r.value === v).length;
+/**
+ * A meaning or an entry of the whole site, with its counts.
+ * @param {{ lang?: 'en' | 'my', dict?: 'emd' | 'med', word: string, type?: string, sense?: string, up: number, down: number, at?: number }} r
+ * @param {'senses' | 'entries'} kind
+ * @param {(when: number, short?: boolean) => string} ago
+ */
+function scoreRow(r, kind, ago) {
+	const lang = kind === 'senses' ? (r.dict === 'emd' ? 'en' : 'my') : /** @type {'en' | 'my'} */ (r.lang);
 	return h(
-		'div',
-		{ class: 'ws-ov' },
+		'li',
+		{ class: 'ws-rated-row ws-scored-row' },
+		h('span', { class: 'ws-score', title: t('{down} down, {up} up', { down: r.down, up: r.up }) }, h('span', { class: 'ws-score-down' }, `${num(r.down)} ↓`), h('span', { class: 'ws-score-up' }, `${num(r.up)} ↑`)),
 		h(
 			'div',
-			{ class: 'ws-tiles' },
-			tile(t('Meanings rated'), data.senses.length),
-			tile(t('Helpful'), total(data.senses, 1) + total(data.entries, 1)),
-			tile(t('Not helpful'), total(data.senses, -1) + total(data.entries, -1)),
-			tile(t('Entries rated'), data.entries.length),
+			{ class: 'ws-rated-text' },
+			h('a', { href: definitionHref(r.word), lang }, r.word),
+			r.type ? h('em', null, ` ${posName(r.type)}`) : '',
+			r.sense ? h('span', { class: 'ws-sense', lang: lang === 'en' ? 'my' : 'en' }, r.sense) : '',
 		),
-		data.senses.length ? h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Meanings')), h('ul', { class: 'ws-rated' }, data.senses.map((s) => senseRow(s, ago)))) : '',
-		data.entries.length ? h('section', { class: 'ws-card ws-card-wide' }, h('h2', null, t('Whole entries')), h('ul', { class: 'ws-rated' }, data.entries.map((e) => entryRow(e, ago)))) : '',
+		h('span', { class: 'ws-rated-time' }, r.at ? ago(r.at, true) : ''),
 	);
 }
 
@@ -126,60 +230,6 @@ function takeBack(undo) {
 		}
 	});
 	return b;
-}
-
-async function sitePane() {
-	const data = await workspaceRatings('site');
-	/**
-	 * @param {string} title
-	 * @param {import('../data/api.js').SenseScore[]} list
-	 * @param {'up' | 'down'} by
-	 */
-	const senses = (title, list, by) =>
-		h(
-			'section',
-			{ class: 'ws-card' },
-			h('h2', null, title),
-			list.length
-				? h(
-						'ol',
-						{ class: 'ws-words ws-disliked' },
-						list.map((s) =>
-							h(
-								'li',
-								null,
-								h('span', null, h('a', { href: definitionHref(s.word), lang: s.dict === 'emd' ? 'en' : 'my' }, s.word), h('span', { class: 'ws-sense', lang: s.dict === 'emd' ? 'my' : 'en' }, s.sense)),
-								h('span', { title: t('{down} down, {up} up', { down: s.down, up: s.up }) }, by === 'up' ? `${num(s.up)} ↑ ${num(s.down)} ↓` : `${num(s.down)} ↓ ${num(s.up)} ↑`),
-							),
-						),
-					)
-				: h('p', { class: 'ws-quiet' }, t('None yet.')),
-		);
-	/**
-	 * @param {string} title
-	 * @param {import('../data/api.js').EntryScore[]} list
-	 * @param {'up' | 'down'} by
-	 */
-	const entries = (title, list, by) =>
-		h(
-			'section',
-			{ class: 'ws-card' },
-			h('h2', null, title),
-			list.length
-				? h(
-						'ol',
-						{ class: 'ws-words' },
-						list.map((e) => h('li', null, h('a', { href: definitionHref(e.word), lang: e.lang }, e.word), h('span', null, by === 'up' ? `${num(e.up)} ↑ ${num(e.down)} ↓` : `${num(e.down)} ↓ ${num(e.up)} ↑`))),
-					)
-				: h('p', { class: 'ws-quiet' }, t('None yet.')),
-		);
-	return h(
-		'div',
-		{ class: 'ws-ov' },
-		h('p', { class: 'ws-quiet' }, t('Only ratings of a meaning as it reads now count; a meaning edited since starts again.')),
-		h('div', { class: 'ws-cards' }, senses(t('Meanings rated down most'), data.senses.disliked, 'down'), senses(t('Meanings rated up most'), data.senses.liked, 'up')),
-		h('div', { class: 'ws-cards' }, entries(t('Entries rated down most'), data.entries.disliked, 'down'), entries(t('Entries rated up most'), data.entries.liked, 'up')),
-	);
 }
 
 /**

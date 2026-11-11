@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+77
+
+- Searches section for editors (every word, not found first, per word days, CSV); Ratings paged with filters and search
+
 ## 26.11.11+76
 
 - Offline use counted in usage_counts (downloads, daily check-in, words answered offline) and shown to editors on the Overview

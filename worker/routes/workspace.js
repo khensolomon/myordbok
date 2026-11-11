@@ -10,6 +10,7 @@
  *                                             each with the sense as the dictionary has it now
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
+ *   GET  /api/workspace/searches[/word]          every word searched, for editors (searches.js)
  *   GET  /api/workspace/overview                 figures for the home board: the whole
  *                                             site for editors and admins (offline use
  *                                             among them), the member's own for members
@@ -36,6 +37,7 @@ import { currentMember, endSession } from '../lib/session.js';
 import { inbox } from './messages.js';
 import { members } from './members.js';
 import { manageNotices } from './notices.js';
+import { searches } from './searches.js';
 import { allSettings, setSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
@@ -74,6 +76,7 @@ export async function workspace(request, env, parts) {
 	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
 	if (what === 'members' && parts.length <= 3) return members(request, env, member, id);
 	if (what === 'notices' && parts.length <= 4) return manageNotices(request, env, member, id, action);
+	if (what === 'searches' && parts.length <= 3) return searches(request, env, member, id);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
@@ -354,7 +357,7 @@ async function currentSenses(env, rated) {
 		for (const s of now.results) {
 			const hash = await textHash(String(s.sense ?? ''));
 			for (const r of rated.filter((d) => d.dict === name && Number(d.sense_id) === Number(s.id) && d.text_hash === hash)) {
-				out.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up), ...(r.value === undefined ? {} : { value: Number(r.value), at: Number(r.at) }) });
+				out.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up), ...(r.value === undefined ? {} : { value: Number(r.value) }), ...(r.at === undefined ? {} : { at: Number(r.at) }) });
 			}
 		}
 	}
@@ -426,51 +429,134 @@ async function settings(request, env, member) {
 	return json({ settings: await allSettings(env) }, NO_STORE);
 }
 
-/** How many ratings one list shows. */
-const RATINGS_MAX = 200;
+/** Ratings one page shows. */
+const RATINGS_PAGE = 50;
+/** Most meanings a word search looks among. */
+const RATED_WORD_SENSES = 5000;
 
 /**
- * Ratings: the member's own (scope=mine), or for editors the site's most
- * liked and disliked entries and meanings (scope=site). A meaning whose text
- * changed since it was rated shows as changed; its rating no longer counts.
+ * Ratings, a page at a time. The member's own (scope=mine), newest first,
+ * filtered by value=up|down; or for editors the site's (scope=site), each
+ * meaning or entry with its counts, by order=down (not helpful most, the
+ * default), up, or new (rated most recently). Both by kind=senses|entries
+ * and ?q= (the word starts with), ?offset=. A meaning whose text changed
+ * since it was rated shows as changed in the member's own list; in the
+ * site's, only ratings of the text as it reads now count.
  * @param {Request} request
  * @param {Env} env
  * @param {Member} member
  */
 async function ratings(request, env, member) {
-	const scope = new URL(request.url).searchParams.get('scope') ?? 'mine';
+	const p = new URL(request.url).searchParams;
+	const scope = p.get('scope') ?? 'mine';
+	if (scope !== 'mine' && scope !== 'site') throw new AppError('bad_request', 'scope must be mine or site');
+	if (scope === 'site' && !isEditor(member)) throw new AppError('forbidden', 'The site’s ratings are for editors.');
+	const kind = p.get('kind') ?? 'senses';
+	if (kind !== 'senses' && kind !== 'entries') throw new AppError('bad_request', 'kind must be senses or entries');
+	const value = p.get('value') ?? 'all';
+	if (!['all', 'up', 'down'].includes(value)) throw new AppError('bad_request', 'value must be all, up or down');
+	const order = p.get('order') ?? 'down';
+	if (!['down', 'up', 'new'].includes(order)) throw new AppError('bad_request', 'order must be down, up or new');
+	const offset = Number(p.get('offset') ?? 0);
+	if (!Number.isInteger(offset) || offset < 0) throw new AppError('bad_request', 'offset must be a whole number');
+	const q = (p.get('q') ?? '').normalize('NFC').trim();
+	if (q.length > 60) throw new AppError('bad_request', 'q is longer than 60 characters');
 	const db = env.APP;
-	if (scope === 'mine') {
-		const [entries, senses] = await Promise.all([
-			rows(db, 'SELECT lang, word, value, created_at AS at FROM reactions WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2', member.id, RATINGS_MAX),
-			rows(db, 'SELECT dict, sense_id, text_hash, value, created_at AS at FROM sense_reactions WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2', member.id, RATINGS_MAX),
-		]);
-		const now = await sensesNow(env, senses);
-		return json(
-			{
-				entries: entries.map((r) => ({ lang: r.lang, word: r.word, value: Number(r.value), at: Number(r.at) })),
-				senses: await Promise.all(
-					senses.map(async (r) => {
-						const s = now.get(`${r.dict}:${r.sense_id}`);
-						return { dict: r.dict, sense_id: Number(r.sense_id), value: Number(r.value), at: Number(r.at), word: s?.word ?? null, type: s?.type ?? null, sense: s?.sense ?? null, state: !s ? 'gone' : (await textHash(String(s.sense ?? ''))) === r.text_hash ? 'current' : 'changed' };
-					}),
-				),
-			},
-			NO_STORE,
-		);
+	const mine = scope === 'mine';
+	const who = mine ? 'user_id = ?1' : '?1 = ?1';
+
+	// The counts above the list, for the scope, before any filter.
+	const counts = /** @type {Record<string, number>} */ (
+		await db
+			.prepare(
+				mine
+					? `SELECT (SELECT count(*) FROM sense_reactions WHERE ${who}) AS senses, (SELECT count(*) FROM reactions WHERE ${who}) AS entries,
+					          (SELECT count(*) FROM sense_reactions WHERE ${who} AND value = 1) + (SELECT count(*) FROM reactions WHERE ${who} AND value = 1) AS up,
+					          (SELECT count(*) FROM sense_reactions WHERE ${who} AND value = -1) + (SELECT count(*) FROM reactions WHERE ${who} AND value = -1) AS down`
+					: `SELECT (SELECT count(*) FROM (SELECT 1 FROM sense_reactions GROUP BY dict, sense_id)) AS senses, (SELECT count(*) FROM (SELECT 1 FROM reactions GROUP BY lang, word)) AS entries,
+					          (SELECT count(*) FROM sense_reactions WHERE value = 1) + (SELECT count(*) FROM reactions WHERE value = 1) AS up,
+					          (SELECT count(*) FROM sense_reactions WHERE value = -1) + (SELECT count(*) FROM reactions WHERE value = -1) AS down
+					   WHERE ?1 = ?1`,
+			)
+			.bind(member.id)
+			.first()
+	);
+	const base = { scope, kind, counts: { senses: Number(counts.senses), entries: Number(counts.entries), up: Number(counts.up), down: Number(counts.down) } };
+
+	/** @type {string[]} */
+	const where = [who];
+	/** @type {unknown[]} */
+	const args = [member.id];
+	if (kind === 'entries') {
+		if (q) where.push(`word LIKE ?${args.push(`${likeEscape(q)}%`)} ESCAPE '\\'`);
+		if (mine && value !== 'all') where.push(`value = ${value === 'up' ? 1 : -1}`);
+		const sql = mine
+			? `SELECT lang, word, value, created_at AS at FROM reactions WHERE ${where.join(' AND ')} ORDER BY created_at DESC, word LIMIT ${RATINGS_PAGE + 1} OFFSET ${offset}`
+			: `SELECT lang, word, sum(value = 1) AS up, sum(value = -1) AS down, max(created_at) AS at FROM reactions WHERE ${where.join(' AND ')} GROUP BY lang, word
+			   ${order === 'up' ? 'HAVING up > 0 ORDER BY up DESC, down' : order === 'down' ? 'HAVING down > 0 ORDER BY down DESC, up' : 'ORDER BY at DESC'}, word LIMIT ${RATINGS_PAGE + 1} OFFSET ${offset}`;
+		const got = await rows(db, sql, ...args);
+		const items = got.slice(0, RATINGS_PAGE).map((r) => (mine ? { lang: r.lang, word: r.word, value: Number(r.value), at: Number(r.at) } : { lang: r.lang, word: r.word, up: Number(r.up), down: Number(r.down), at: Number(r.at) }));
+		return json({ ...base, items, more: got.length > RATINGS_PAGE }, NO_STORE);
 	}
-	if (scope !== 'site') throw new AppError('bad_request', 'scope must be mine or site');
-	if (!isEditor(member)) throw new AppError('forbidden', 'The site’s ratings are for editors.');
-	const [liked, disliked, sensesUp, sensesDown] = await Promise.all([
-		rows(db, 'SELECT lang, word, sum(value = 1) AS up, sum(value = -1) AS down FROM reactions GROUP BY lang, word HAVING up > 0 ORDER BY up DESC, down LIMIT 20'),
-		rows(db, 'SELECT lang, word, sum(value = 1) AS up, sum(value = -1) AS down FROM reactions GROUP BY lang, word HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
-		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING up > 0 ORDER BY up DESC, down LIMIT 30'),
-		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 30'),
-	]);
-	const entry = (/** @type {Record<string, unknown>} */ r) => ({ lang: r.lang, word: r.word, up: Number(r.up), down: Number(r.down) });
-	const up = await currentSenses(env, sensesUp);
-	up.sort((a, b) => Number(b.up) - Number(a.up) || Number(a.down) - Number(b.down));
-	return json({ entries: { liked: liked.map(entry), disliked: disliked.map(entry) }, senses: { liked: up.slice(0, 20), disliked: (await currentSenses(env, sensesDown)).slice(0, 20) } }, NO_STORE);
+
+	if (q) {
+		const ids = await sensesOfWords(env, q);
+		where.push(`((dict = 'emd' AND sense_id IN (SELECT value FROM json_each(?${args.push(JSON.stringify(ids.emd))}))) OR (dict = 'med' AND sense_id IN (SELECT value FROM json_each(?${args.push(JSON.stringify(ids.med))}))))`);
+	}
+	if (mine) {
+		if (value !== 'all') where.push(`value = ${value === 'up' ? 1 : -1}`);
+		const got = await rows(db, `SELECT dict, sense_id, text_hash, value, created_at AS at FROM sense_reactions WHERE ${where.join(' AND ')} ORDER BY created_at DESC, sense_id LIMIT ${RATINGS_PAGE + 1} OFFSET ${offset}`, ...args);
+		const page = got.slice(0, RATINGS_PAGE);
+		const now = await sensesNow(env, page);
+		const items = await Promise.all(
+			page.map(async (r) => {
+				const s = now.get(`${r.dict}:${r.sense_id}`);
+				return { dict: r.dict, sense_id: Number(r.sense_id), value: Number(r.value), at: Number(r.at), word: s?.word ?? null, type: s?.type ?? null, sense: s?.sense ?? null, state: !s ? 'gone' : (await textHash(String(s.sense ?? ''))) === r.text_hash ? 'current' : 'changed' };
+			}),
+		);
+		return json({ ...base, items, more: got.length > RATINGS_PAGE }, NO_STORE);
+	}
+	const got = await rows(
+		db,
+		`SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up, max(created_at) AS at FROM sense_reactions WHERE ${where.join(' AND ')}
+		 GROUP BY dict, sense_id, text_hash ${order === 'up' ? 'HAVING up > 0 ORDER BY up DESC, down' : order === 'down' ? 'HAVING down > 0 ORDER BY down DESC, up' : 'ORDER BY at DESC'}, sense_id
+		 LIMIT ${RATINGS_PAGE + 1} OFFSET ${offset}`,
+		...args,
+	);
+	// Only ratings of the meaning as it reads now count: older texts drop out.
+	const items = await currentSenses(env, got.slice(0, RATINGS_PAGE));
+	const rank = order === 'up' ? (/** @type {any} */ a, /** @type {any} */ b) => b.up - a.up || a.down - b.down : order === 'down' ? (/** @type {any} */ a, /** @type {any} */ b) => b.down - a.down || a.up - b.up : (/** @type {any} */ a, /** @type {any} */ b) => b.at - a.at;
+	items.sort(rank);
+	return json({ ...base, items, more: got.length > RATINGS_PAGE }, NO_STORE);
+}
+
+/** @param {string} s  Text for LIKE, with its wildcards taken literally. */
+const likeEscape = (s) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+/**
+ * The meanings of the words starting with q, by dictionary.
+ * @param {Env} env
+ * @param {string} q
+ */
+async function sensesOfWords(env, q) {
+	const { dict, db } = await dictionary(env);
+	const like = `${likeEscape(q)}%`;
+	const [emd, med] = await Promise.all(
+		[
+			`SELECT s.id FROM emd_sense s JOIN eng_word w ON w.id = s.wrid WHERE w.word LIKE ?1 ESCAPE '\\' LIMIT ${RATED_WORD_SENSES}`,
+			`SELECT s.id FROM med_sense s JOIN mya_word w ON w.id = s.wrid WHERE w.word LIKE ?1 ESCAPE '\\' LIMIT ${RATED_WORD_SENSES}`,
+		].map((sql) =>
+			db
+				.prepare(sql)
+				.bind(like)
+				.all()
+				.then((r) => r.results.map((x) => Number(x.id)))
+				.catch((err) => {
+					throw explainDictError(err, dict, env);
+				}),
+		),
+	);
+	return { emd, med };
 }
 
 /**
