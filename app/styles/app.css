@@ -254,7 +254,13 @@ body[data-route="definition"] .search-bar { display: block; }
 		-webkit-mask-image: none;
 		mask-image: none;
 	}
-	.search-bar::before { bottom: -16px; }
+	/* Below the search box the scrim stays solid a little way, then fades,
+	   so text scrolling under the box never shows through its edge. */
+	.search-bar::before {
+		bottom: -24px;
+		-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
+		mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
+	}
 	body[data-scrolled] .site-header::before,
 	body[data-scrolled] .search-bar::before { opacity: 1; }
 	.site-footer { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -309,6 +315,19 @@ body[data-route="home"] main#view { max-width: none; }
 	body[data-route="home"] .search input { font-size: 17px; }
 	body[data-route="home"] .search-go { width: 40px; height: 40px; }
 	body[data-route="home"] mo-search[data-open] .search-box { --field-r: 18px; }
+	/* Typing: the logo and the language line step aside so the box rises
+	   and its suggestions have the room above the keyboard. */
+	body[data-route="home"] .search-bar,
+	body[data-route="home"] .bar-logo,
+	body[data-route="home"] .home-pair { transition: padding-top 0.25s ease, max-height 0.25s ease, opacity 0.2s, margin 0.25s ease; }
+	body[data-route="home"] .bar-logo, body[data-route="home"] .home-pair { max-height: 120px; overflow: hidden; }
+	body[data-route="home"][data-searching] .search-bar { padding-top: 6px; }
+	body[data-route="home"][data-searching] .bar-logo,
+	body[data-route="home"][data-searching] .home-pair { max-height: 0; opacity: 0; margin: 0; }
+	body[data-route="home"][data-searching] mo-search { margin-top: 4px; }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+	body[data-route="home"] .search-bar, body[data-route="home"] .bar-logo, body[data-route="home"] .home-pair { transition: none; }
 }
 /* The search box draws below its own element (which is 0 high), hence the room above. */
 .home { max-width: 680px; margin: 76px auto 0; display: grid; gap: 22px; }
@@ -403,7 +422,7 @@ mo-search[data-open] .search-box {
 .search-go:hover { filter: brightness(1.08); }
 .search-go:active { filter: brightness(0.92); }
 
-.search-list { margin: 4px 0 0; padding: 4px 0 0; list-style: none; border-top: 0.5px solid var(--glass-edge); }
+.search-list { margin: 4px 0 0; padding: 4px 0 0; list-style: none; border-top: 0.5px solid var(--glass-edge); overflow-y: auto; overscroll-behavior: contain; }
 /* Rows are square: above them is the straight hairline. Only the last row
    meets a curve, the box's bottom corners, so only its bottom corners round,
    4px inside the box's (concentric). */
@@ -619,6 +638,10 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	}
 	.pos-name::before { content: none; }
 	.senses { margin: 14px 16px 0; }
+	/* Forms line up with the meanings' text, related words with their rings. */
+	.pos-forms { margin: 14px 16px 0 42px; }
+	.pos-only-forms .pos-forms { margin: 14px 16px 10px 42px; }
+	.related-list { margin: 14px 16px 6px; }
 	.gloss { font-size: 19px; }
 	.related { grid-template-columns: 1fr; gap: 2px; margin: 20px 4px 0; }
 	.related dd { margin-bottom: 10px; }

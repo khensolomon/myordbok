@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+62
+
+- Phones: on the home page the logo steps aside while typing and suggestions stay above the keyboard; forms and related words line up with the meanings; text no longer shows under the search box while scrolling
+
 ## 26.11.11+61
 
 - Phones: smaller home logo and a taller search box; lighter outline and shadow on the search box, the header capsule and the person button

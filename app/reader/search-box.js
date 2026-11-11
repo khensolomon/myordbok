@@ -88,6 +88,22 @@ export class SearchBox extends HTMLElement {
 		});
 		// A chosen suggestion navigates; the list closes behind it.
 		this.list.addEventListener('click', () => this.show([]));
+		// While the field has focus the page may make room for it (on a phone's
+		// home page the logo steps aside, see app.css). Giving the room back
+		// waits a moment, so a tap that moved focus lands where it was aimed.
+		/** @type {number | undefined} */
+		let settle;
+		this.addEventListener('focusin', () => {
+			clearTimeout(settle);
+			document.body.toggleAttribute('data-searching', true);
+		});
+		this.addEventListener('focusout', (e) => {
+			if (this.contains(/** @type {Node | null} */ (e.relatedTarget))) return;
+			clearTimeout(settle);
+			settle = window.setTimeout(() => document.body.removeAttribute('data-searching'), 300);
+		});
+		// The on-screen keyboard shrinks the visible page; the list keeps above it.
+		window.visualViewport?.addEventListener('resize', () => this.hasAttribute('data-open') && this.fit());
 		/** @type {number | undefined} */
 		this.timer = undefined;
 		this.seq = 0;
@@ -146,7 +162,16 @@ export class SearchBox extends HTMLElement {
 		list.hidden = !open;
 		this.toggleAttribute('data-open', open);
 		this.input?.setAttribute('aria-expanded', String(open));
+		if (open) this.fit();
 		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? tn('{n} suggestion', '{n} suggestions', items.length) : '';
+	}
+
+	/** The list's height: what is left of the visible page below it, keyboard excluded. */
+	fit() {
+		const list = /** @type {HTMLUListElement} */ (this.list);
+		const vv = window.visualViewport;
+		const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+		list.style.maxHeight = `${Math.max(132, Math.floor(bottom - list.getBoundingClientRect().top - 16))}px`;
 	}
 
 	/** @param {KeyboardEvent} e */
