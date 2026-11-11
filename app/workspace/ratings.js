@@ -36,7 +36,7 @@ const ORDERS = /** @type {const} */ ([
 
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
- * @param {boolean} editor
+ * @param {boolean} editor  Sees the whole site's ratings (editors and up, or a member shown the statistics).
  * @param {(when: number, short?: boolean) => string} ago
  */
 export async function ratingsPane(ctx, editor, ago) {

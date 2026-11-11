@@ -271,6 +271,7 @@ export function withdrawEdit(id) {
  * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]  Editors and admins.
  * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]  Editors and admins.
  * @property {number} [unread]  New messages in the Inbox; admins only.
+ * @property {boolean} [insights]  Shown the site's statistics (editors and up, or by an admin's choice).
  * @property {Array<{ day: string, name: string, n: number }>} [usage]  Offline use, two weeks of counters; editors and admins.
  */
 
@@ -302,6 +303,15 @@ export function workspaceSearches(f, offset) {
 }
 
 /**
+ * Deletes the search counts of days older than `days`, for admins.
+ * @param {number} days
+ * @returns {Promise<{ deleted: number, keptFrom: string }>}
+ */
+export function pruneSearches(days) {
+	return postJSON('/api/workspace/searches/prune', { days });
+}
+
+/**
  * One searched word, day by day.
  * @param {string} lang
  * @param {string} term
@@ -309,6 +319,58 @@ export function workspaceSearches(f, offset) {
  */
 export function searchedWord(lang, term) {
 	return getJSON(`/api/workspace/searches/word?${new URLSearchParams({ lang, term })}`);
+}
+
+/**
+ * @typedef {{ id: number, body: string, at: number, name: string, avatar_url: string | null, own: boolean }} EntryComment
+ * @typedef {{ id: number, lang: 'en' | 'my', word: string, body: string, at: number, status: 'visible' | 'hidden', author: string, author_id: number }} ModeratedComment
+ */
+
+/**
+ * An entry's comments, newest first.
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @returns {Promise<{ open: boolean, signedIn: boolean, comments: EntryComment[] }>}
+ */
+export function entryComments(lang, word) {
+	return getJSON(`/api/comments?${new URLSearchParams({ lang, word })}`);
+}
+
+/**
+ * @param {'en' | 'my'} lang
+ * @param {string} word
+ * @param {string} body
+ * @returns {Promise<{ comment: EntryComment }>}
+ */
+export function postComment(lang, word, body) {
+	return postJSON('/api/comments', { lang, word, body });
+}
+
+/** The author deletes their own comment. @param {number} id */
+export function deleteComment(id) {
+	return postJSON(`/api/comments/${id}/delete`);
+}
+
+/**
+ * Comments for editors, newest first, 50 at a time.
+ * @param {{ show: 'visible' | 'hidden', q: string }} f
+ * @param {number} offset
+ * @returns {Promise<{ comments: ModeratedComment[], more: boolean, counts: { visible: number, hidden: number, week: number } }>}
+ */
+export function workspaceComments(f, offset) {
+	const p = new URLSearchParams({ show: f.show });
+	if (f.q) p.set('q', f.q);
+	if (offset) p.set('offset', String(offset));
+	return getJSON(`/api/workspace/comments?${p}`);
+}
+
+/**
+ * An editor hides a comment or shows it again.
+ * @param {number} id
+ * @param {'visible' | 'hidden'} status
+ */
+export function moderateComment(id, status) {
+	return postJSON(`/api/workspace/comments/${id}`, { status });
 }
 
 /** @returns {Promise<Overview>} The home board; editors and admins get the site's figures. */
@@ -418,6 +480,7 @@ export function workspaceRatings(f, offset = 0) {
  * @property {string | null} avatar_url
  * @property {import('#shared/roles.js').Role} role
  * @property {'active' | 'suspended'} status
+ * @property {boolean} insights  Shown the site's statistics.
  * @property {number} created_at
  * @property {number | null} seen_at
  * @property {Array<'google' | 'github'>} providers
@@ -447,7 +510,7 @@ export function workspaceMember(id) {
 
 /**
  * @param {number} id
- * @param {{ role?: import('#shared/roles.js').Role, status?: 'active' | 'suspended' }} change
+ * @param {{ role?: import('#shared/roles.js').Role, status?: 'active' | 'suspended', insights?: boolean }} change
  * @returns {Promise<{ member: MemberDetail }>}
  */
 export function changeMember(id, change) {

@@ -44,7 +44,7 @@ export async function overviewPane(me, health) {
 		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
 		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, editor), dictionary(data, health, atLeast(me.role, 'admin')), community(data), editor ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, Boolean(data.insights)), dictionary(data, health, atLeast(me.role, 'admin')), community(data), data.insights ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
 	return main;
 }
 
@@ -214,7 +214,7 @@ const pair = (label, value) => [h('dt', null, label), h('dd', null, num(value))]
  * Searches of the last days: the figures over the daily chart, beside it the
  * words searched most and those the dictionary did not have.
  * @param {Overview} data
- * @param {boolean} editor  Links to the Searches section.
+ * @param {boolean} editor  Links to the Searches section: editors and members shown the statistics.
  */
 function searches(data, editor) {
 	const searches = data.searches;
@@ -303,7 +303,7 @@ function community(data) {
 			{ class: 'ws-tiles' },
 			tile(t('Members'), c.members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : '', atLeast(data.role, 'admin') ? '/workspace?s=members' : undefined),
 			tile(t('Suggestions accepted'), c.accepted, c.merged ? t('{n} in the dictionary', { n: c.merged }) : ''),
-			tile(t('Ratings'), c.ratings, t('of entries and meanings'), atLeast(data.role, 'editor') ? '/workspace?s=ratings&view=site' : undefined),
+			tile(t('Ratings'), c.ratings, t('of entries and meanings'), data.insights ? '/workspace?s=ratings&view=site' : undefined),
 		),
 	);
 }

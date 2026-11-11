@@ -7,6 +7,7 @@
  *   ?s=overview      everyone, the default: figures for the role (overview.js)
  *   ?s=suggestions   editors and admins: suggestions by status
  *   ?s=searches      editors and admins: every word searched, not found first (searches.js)
+ *   ?s=comments      editors and admins: comments on entries, to hide or show (comments.js)
  *   ?s=contributions everyone: the member's own suggestions
  *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
@@ -29,7 +30,7 @@ import { getJSON } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
-import { atLeast } from '#shared/roles.js';
+import { atLeast, seesStatistics } from '#shared/roles.js';
 import { list, mark, num, posName, shortDate, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
@@ -41,17 +42,19 @@ import { ratingsPane } from './ratings.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
 import { searchesPanes } from './searches.js';
+import { commentsPanes } from './comments.js';
 import { noticesPane } from './notices.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'searches' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
 	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false },
 	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
-	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: true, admin: false },
+	{ id: 'comments', label: mark('Comments'), icon: ICONS.comment, editor: true, admin: false },
+	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: false, admin: false, stats: true },
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
@@ -119,7 +122,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'searches') && editor ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -138,11 +141,15 @@ export async function view(ctx) {
 		return root;
 	}
 	if (section === 'ratings') {
-		root.append(rail, await ratingsPane(ctx, editor, ago), status.node);
+		root.append(rail, await ratingsPane(ctx, seesStatistics(me), ago), status.node);
+		return root;
+	}
+	if (section === 'comments') {
+		root.append(rail, ...(await commentsPanes(ctx, root, ago)), status.node);
 		return root;
 	}
 	if (section === 'searches') {
-		root.append(rail, ...(await searchesPanes(ctx, root)), status.node);
+		root.append(rail, ...(await searchesPanes(ctx, root, admin)), status.node);
 		return root;
 	}
 	if (section === 'members') {
@@ -497,7 +504,7 @@ function progress(status) {
  * @param {{ waiting: number | null, unread?: number }} summary
  */
 function railFor(me, editor, section, summary) {
-	const sections = SECTIONS.filter((s) => (s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
+	const sections = SECTIONS.filter((s) => ('stats' in s ? seesStatistics(me) : s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
 	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? 0) : 0);
 	const badge = (/** @type {string} */ id, /** @type {number} */ count) => (id === 'suggestions' || id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': id, hidden: count ? null : true }, num(count)) : null);
 	const items = sections.map((s) => {

@@ -11,6 +11,7 @@
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
  *   GET  /api/workspace/searches[/word]          every word searched, for editors (searches.js)
+ *   GET  /api/workspace/comments                 comments to moderate, for editors (comments.js)
  *   GET  /api/workspace/overview                 figures for the home board: the whole
  *                                             site for editors and admins (offline use
  *                                             among them), the member's own for members
@@ -30,7 +31,7 @@
  * approval (export, merge) is make edits-export and the next release.
  */
 import { AppError } from '../../shared/errors.js';
-import { atLeast } from '../../shared/roles.js';
+import { atLeast, seesStatistics } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember, endSession } from '../lib/session.js';
@@ -38,6 +39,7 @@ import { inbox } from './messages.js';
 import { members } from './members.js';
 import { manageNotices } from './notices.js';
 import { searches } from './searches.js';
+import { moderateComments } from './comments.js';
 import { allSettings, setSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
@@ -77,6 +79,7 @@ export async function workspace(request, env, parts) {
 	if (what === 'members' && parts.length <= 3) return members(request, env, member, id);
 	if (what === 'notices' && parts.length <= 4) return manageNotices(request, env, member, id, action);
 	if (what === 'searches' && parts.length <= 3) return searches(request, env, member, id);
+	if (what === 'comments' && parts.length <= 3) return moderateComments(request, env, member, id);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
@@ -239,18 +242,22 @@ async function overview(env, member) {
 	]);
 	const r = /** @type {{ entries: number, senses: number }} */ (rated);
 	const own = { suggestions: Object.fromEntries(mine.map((x) => [String(x.status), Number(x.n)])), ratings: Number(r.entries) + Number(r.senses), rated: { entries: Number(r.entries), senses: Number(r.senses) } };
-	const base = { role: member.role, own, days: OVERVIEW_DAYS, ...shared };
-	if (!isEditor(member)) return json(base, NO_STORE);
+	const base = { role: member.role, insights: seesStatistics(member), own, days: OVERVIEW_DAYS, ...shared };
+	if (!seesStatistics(member)) return json(base, NO_STORE);
+	// The site's statistics: editors and above, and members shown them.
+	const [usage, ratedDown] = await Promise.all([
+		// Offline use (usage_counts): two weeks, for the last seven days against the seven before.
+		rows(db, "SELECT day, name, n FROM usage_counts WHERE day >= ?1 AND (name LIKE 'offline.%' OR name LIKE 'download.%') ORDER BY day", dayKey(13)),
+		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
+	]);
+	const statistics = { usage: usage.map((u) => ({ day: String(u.day), name: String(u.name), n: Number(u.n) })), disliked: (await currentSenses(env, ratedDown)).slice(0, 5) };
+	if (!isEditor(member)) return json({ ...base, ...statistics }, NO_STORE);
 
-	const [edits, members, joined, disliked, usage] = await Promise.all([
+	const [edits, members, joined] = await Promise.all([
 		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
-		rows(db, 'SELECT dict, sense_id, text_hash, sum(value = -1) AS down, sum(value = 1) AS up FROM sense_reactions GROUP BY dict, sense_id, text_hash HAVING down > 0 ORDER BY down DESC, up LIMIT 20'),
-		// Offline use (usage_counts): two weeks, for the last seven days against the seven before.
-		rows(db, "SELECT day, name, n FROM usage_counts WHERE day >= ?1 AND (name LIKE 'offline.%' OR name LIKE 'download.%') ORDER BY day", dayKey(13)),
 	]);
-	const worst = await currentSenses(env, disliked);
 	// Unread messages: admins only, as the Inbox is theirs.
 	const unread = atLeast(member.role, 'admin') ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
 	return json(
@@ -259,8 +266,7 @@ async function overview(env, member) {
 			...(unread === null ? {} : { unread }),
 			suggestions: Object.fromEntries(edits.map((x) => [String(x.status), Number(x.n)])),
 			members: { roles: Object.fromEntries(members.map((x) => [String(x.role), Number(x.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
-			disliked: worst.slice(0, 5),
-			usage: usage.map((u) => ({ day: String(u.day), name: String(u.name), n: Number(u.n) })),
+			...statistics,
 		},
 		NO_STORE,
 	);
@@ -450,7 +456,7 @@ async function ratings(request, env, member) {
 	const p = new URL(request.url).searchParams;
 	const scope = p.get('scope') ?? 'mine';
 	if (scope !== 'mine' && scope !== 'site') throw new AppError('bad_request', 'scope must be mine or site');
-	if (scope === 'site' && !isEditor(member)) throw new AppError('forbidden', 'The site’s ratings are for editors.');
+	if (scope === 'site' && !seesStatistics(member)) throw new AppError('forbidden', 'The site’s ratings are for editors and members shown the statistics.');
 	const kind = p.get('kind') ?? 'senses';
 	if (kind !== 'senses' && kind !== 'entries') throw new AppError('bad_request', 'kind must be senses or entries');
 	const value = p.get('value') ?? 'all';

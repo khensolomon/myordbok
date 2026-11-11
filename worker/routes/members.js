@@ -4,7 +4,8 @@
  *
  *   GET  /api/workspace/members?q=&role=&status=   the list, newest first; q matches name or email
  *   GET  /api/workspace/members/{id}               one member: sign-ins, contributions, role history
- *   POST /api/workspace/members/{id}               { role? , status? }
+ *   POST /api/workspace/members/{id}               { role?, status?, insights? }; insights:
+ *                                                  shown the site's statistics (shared/roles.js)
  *
  * Who may change what (shared/roles.js assignable): an owner gives and takes
  * every level and may suspend anyone but themselves; an admin moves members
@@ -53,7 +54,7 @@ async function list(request, env, actor) {
 	if (status && status !== 'active' && status !== 'suspended') throw new AppError('bad_request', 'status must be active or suspended');
 	const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 	const { results } = await env.APP.prepare(
-		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.created_at, u.seen_at,
+		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.created_at, u.seen_at,
 		        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
 		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
 		 FROM users u
@@ -91,6 +92,7 @@ function shape(r, actor) {
 		avatar_url: r.avatar_url,
 		role,
 		status: r.status,
+		insights: Number(r.insights ?? 0) === 1,
 		created_at: Number(r.created_at),
 		seen_at: r.seen_at === null ? null : Number(r.seen_at),
 		providers: r.providers ? String(r.providers).split(',') : [],
@@ -109,7 +111,7 @@ async function one(env, actor, id) {
 	const db = env.APP;
 	const row = await db
 		.prepare(
-			`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.created_at, u.seen_at,
+			`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.created_at, u.seen_at,
 			        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
 			        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
 			 FROM users u WHERE u.id = ?1 AND u.id > 0`,
@@ -150,8 +152,8 @@ async function one(env, actor, id) {
  * @param {number} id
  */
 async function change(request, env, actor, id) {
-	const data = /** @type {{ role?: unknown, status?: unknown } | null} */ (await request.json().catch(() => null));
-	if (!data || (data.role === undefined && data.status === undefined)) throw new AppError('bad_request', 'Send { role } or { status }');
+	const data = /** @type {{ role?: unknown, status?: unknown, insights?: unknown } | null} */ (await request.json().catch(() => null));
+	if (!data || (data.role === undefined && data.status === undefined && data.insights === undefined)) throw new AppError('bad_request', 'Send { role }, { status } or { insights }');
 	const db = env.APP;
 	const target = /** @type {{ id: number, role: import('../../shared/roles.js').Role, status: string } | null} */ (
 		await db.prepare('SELECT id, role, status FROM users WHERE id = ?1 AND id > 0').bind(id).first()
@@ -177,6 +179,10 @@ async function change(request, env, actor, id) {
 			steps.push(db.prepare('UPDATE users SET status = ?1 WHERE id = ?2').bind(data.status, id));
 			if (data.status === 'suspended') steps.push(db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id));
 		}
+	}
+	if (data.insights !== undefined) {
+		if (typeof data.insights !== 'boolean') throw new AppError('bad_request', 'insights must be true or false');
+		steps.push(db.prepare('UPDATE users SET insights = ?1 WHERE id = ?2').bind(data.insights ? 1 : 0, id));
 	}
 	// The site keeps an active owner: one who stops being owner, or is suspended, must not be the last.
 	const leavesOwner = target.role === 'owner' && ((data.role !== undefined && data.role !== 'owner') || data.status === 'suspended');

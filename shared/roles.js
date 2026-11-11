@@ -10,6 +10,10 @@
  *
  * The Worker checks these on every write, reading the role from D1; the app
  * uses them only to decide what to show.
+ *
+ * Apart from the levels, a member may be shown the site's statistics
+ * (users.insights): the Overview's figures, Searches and the whole site's
+ * ratings, read only. Editors and above see them anyway.
  */
 import { AppError } from './errors.js';
 
@@ -46,6 +50,14 @@ export function isRole(value) {
 export function atLeast(role, least) {
 	if (!isRole(role)) throw new AppError('internal', `Unknown role: ${String(role)}`);
 	return ROLES.indexOf(role) >= ROLES.indexOf(least);
+}
+
+/**
+ * Whether a member sees the site's statistics.
+ * @param {{ role: string, insights?: number | boolean | null }} m
+ */
+export function seesStatistics(m) {
+	return atLeast(m.role, 'editor') || m.insights === 1 || m.insights === true;
 }
 
 /**

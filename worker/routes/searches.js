@@ -9,12 +9,14 @@
  *                                           ?q= (contains), ?offset=; 50 a page.
  *                                           ?format=csv: every matching word as CSV
  *   GET /api/workspace/searches/word        ?lang=&term=: one word, day by day
+ *   POST /api/workspace/searches/prune      { days }: admins delete the counts of days
+ *                                           older than that many days (at least 30)
  *
  * A word never found is checked against the dictionary in use: "now" says it
  * has become a headword since, so the list shrinks as words are added.
  */
 import { AppError } from '../../shared/errors.js';
-import { atLeast } from '../../shared/roles.js';
+import { atLeast, seesStatistics } from '../../shared/roles.js';
 import { TERM_MAX } from '../lib/counts.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
@@ -36,9 +38,10 @@ const PERIODS = [7, 30, 90, 0];
  * @param {string | undefined} sub
  */
 export async function searches(request, env, member, sub) {
-	if (!atLeast(member.role, 'editor')) throw new AppError('forbidden', 'Searches are for editors.');
-	if (request.method !== 'GET') throw new AppError('not_found', 'Searches are read only.');
+	if (!seesStatistics(member)) throw new AppError('forbidden', 'Searches are for editors and members shown the statistics.');
 	const url = new URL(request.url);
+	if (request.method === 'POST' && sub === 'prune') return prune(request, env, member);
+	if (request.method !== 'GET') throw new AppError('not_found', `No API route for ${request.method} ${url.pathname}`);
 	if (sub === 'word') return word(env, url);
 	if (sub !== undefined) throw new AppError('not_found', `No API route for ${url.pathname}`);
 	return list(env, url);
@@ -139,6 +142,26 @@ async function word(env, url) {
 	const found = daily.some((d) => d.found);
 	const now = found ? false : (await headwords(env, [{ lang, term }])).size > 0;
 	return json({ lang, term, hits: daily.reduce((a, d) => a + d.hits, 0), found, now, daily }, NO_STORE);
+}
+
+/** Fewest days of counts a prune keeps. */
+export const PRUNE_MIN_DAYS = 30;
+
+/**
+ * Deletes the counts older than the given number of days, for admins.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function prune(request, env, member) {
+	if (!atLeast(member.role, 'admin')) throw new AppError('forbidden', 'Only admins delete search counts.');
+	const body = /** @type {{ days?: unknown } | null} */ (await request.json().catch(() => null));
+	const days = Number(body?.days);
+	if (!Number.isInteger(days) || days < PRUNE_MIN_DAYS || days > 36500) throw new AppError('bad_request', `days must be a whole number of at least ${PRUNE_MIN_DAYS}`);
+	// Days older than this many: the cut-off day itself and later stay.
+	const keepFrom = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+	const { meta } = await env.APP.prepare('DELETE FROM search_counts WHERE day < ?1').bind(keepFrom).run();
+	return json({ ok: true, deleted: Number(meta.changes ?? 0), keptFrom: keepFrom }, NO_STORE);
 }
 
 /**

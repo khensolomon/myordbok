@@ -20,6 +20,7 @@ export const SESSION_DAYS = 30;
  * @property {string | null} email
  * @property {string | null} avatar_url
  * @property {import('../../shared/roles.js').Role} role
+ * @property {0 | 1} insights  Shown the site's statistics (shared/roles.js seesStatistics).
  */
 
 /** @param {number} [bytes] */
@@ -77,7 +78,7 @@ export async function currentMember(request, env) {
 	const token = readCookie(request, SESSION_COOKIE);
 	if (!token) return null;
 	const row = await env.APP.prepare(
-		`SELECT u.id, u.name, u.email, u.avatar_url, u.role FROM sessions s JOIN users u ON u.id = s.user_id
+		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.insights FROM sessions s JOIN users u ON u.id = s.user_id
 		 WHERE s.id_hash = ?1 AND s.expires_at > unixepoch() AND u.status = 'active'`,
 	)
 		.bind(await sha256hex(token))

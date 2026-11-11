@@ -31,4 +31,5 @@ export const ICONS = Object.freeze({
 	clock: '<circle cx="12" cy="12" r="7.5"/><path d="M12 8v4.5l3 1.8"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
+	comment: '<path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H11l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/>',
 });

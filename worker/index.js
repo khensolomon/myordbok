@@ -16,6 +16,7 @@ import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
 import { sendMessage } from './routes/messages.js';
 import { activeNotices } from './routes/notices.js';
+import { comments } from './routes/comments.js';
 import { packs } from './routes/packs.js';
 import { popular } from './routes/popular.js';
 import { workspace } from './routes/workspace.js';
@@ -105,6 +106,7 @@ async function answer(request, env, url, parts) {
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
 		if (parts.length === 1 && parts[0] === 'messages') return sendMessage(request, env);
 		if (parts.length === 1 && parts[0] === 'usage') return reportUsage(request, env);
+		if (parts[0] === 'comments') return comments(request, env, parts);
 	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);
@@ -119,6 +121,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'me') return me(request, env);
 		if (parts[0] === 'notices') return activeNotices(request, env, url);
 		if (parts[0] === 'stats') return publicStats(env);
+		if (parts[0] === 'comments') return comments(request, env, parts);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);
 	}

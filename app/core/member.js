@@ -13,6 +13,7 @@ import { getJSON, postJSON } from '#platform/http.js';
  * @property {string | null} email
  * @property {string | null} avatar_url
  * @property {import('#shared/roles.js').Role} role
+ * @property {0 | 1} insights  Shown the site's statistics.
  * @property {Array<'google' | 'github'>} providers
  */
 

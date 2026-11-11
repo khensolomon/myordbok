@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Site settings (?s=settings), for admins: worker/lib/settings.js holds the
- * known keys. One setting so far: who may download the offline definitions.
+ * known keys: who may download the offline definitions, and whether comments are open.
  */
 import { h } from '../core/dom.js';
 import { siteSettings, updateSetting } from '../data/api.js';
@@ -15,6 +15,14 @@ const KNOWN = {
 		choices: [
 			['members', mark('Members only')],
 			['everyone', mark('Everyone')],
+		],
+	},
+	'comments.open': {
+		title: mark('Comments'),
+		about: mark('Whether signed-in members may post new comments on entries. Comments already posted stay, and editors can still hide them.'),
+		choices: [
+			['on', mark('Open')],
+			['off', mark('Closed')],
 		],
 	},
 };

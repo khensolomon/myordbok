@@ -36,6 +36,7 @@ import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { entryFeedback } from './contribute.js';
+import { commentsSection } from './comments.js';
 import { addRecent } from '../data/recent.js';
 import { classify, understoodHref } from './query.js';
 
@@ -102,6 +103,7 @@ async function result(data, asked) {
 		const feedback = entryFeedback('my', data.query);
 		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query));
 		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
+		if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('my', data.query));
 		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries));
 	}
 	return english(data, asked);
@@ -191,6 +193,7 @@ async function english(data, asked) {
 	const feedback = entryFeedback('en', word);
 	const article = h('article', { class: 'entry', lang: 'en' }, notes, blocks);
 	feedback.wire(article, shown, 'my');
+	if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('en', word));
 	return withAside(article, aside(feedback, summary, shown));
 }
 

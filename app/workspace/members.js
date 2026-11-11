@@ -116,7 +116,7 @@ export async function membersPanes(ctx, root, ago) {
 		);
 
 		const out = h('p', { class: 'ws-result', role: 'status' });
-		const apply = async (/** @type {{ role?: Role, status?: 'active' | 'suspended' }} */ change) => {
+		const apply = async (/** @type {{ role?: Role, status?: 'active' | 'suspended', insights?: boolean }} */ change) => {
 			out.textContent = t('Saving…');
 			try {
 				const { member } = await changeMember(m.id, change);
@@ -136,6 +136,18 @@ export async function membersPanes(ctx, root, ago) {
 			if (allowed && m.role !== r) b.addEventListener('click', () => apply({ role: r }));
 			return b;
 		});
+		/** Shown the site's statistics: a member only; editors and above see them anyway. @param {Detail} who */
+		const statistics = (who) => {
+			const box = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', checked: who.insights ? true : null }));
+			box.addEventListener('change', () => apply({ insights: box.checked }));
+			return h(
+				'section',
+				{ class: 'ws-box' },
+				h('h2', null, t('Statistics')),
+				h('label', { class: 'ws-choice' }, box, t('Can see the site’s statistics')),
+				h('p', { class: 'ws-quiet' }, t('The Overview’s figures, Searches and the whole site’s ratings, read only. Nothing else changes.')),
+			);
+		};
 		const suspended = m.status === 'suspended';
 		const toggle = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: suspended ? 'ws-secondary' : 'ws-danger', hidden: !m.may.suspend }, suspended ? t('Restore the account') : t('Suspend the account')));
 		let sure = false;
@@ -160,6 +172,7 @@ export async function membersPanes(ctx, root, ago) {
 				m.may.roles.length ? '' : h('p', { class: 'ws-quiet' }, m.self ? t('Your own level is changed by an owner.') : t('Only an owner changes this member’s level.')),
 				out,
 			),
+			m.may.suspend && m.role === 'member' ? statistics(m) : '',
 			m.may.suspend ? h('section', { class: 'ws-box' }, h('h2', null, t('Account')), h('p', { class: 'ws-quiet' }, suspended ? t('Suspended: cannot sign in, rate or suggest.') : t('Suspending signs them out everywhere; reading stays open to them.')), toggle) : '',
 			h(
 				'section',

@@ -15,6 +15,11 @@ export const SETTINGS = {
 		valid: (v) => typeof v === 'string' && /** @type {readonly string[]} */ (ACCESS).includes(v),
 		about: 'Who may download the offline definitions and related words: members or everyone. Word lists are open to all.',
 	},
+	'comments.open': {
+		fallback: 'on',
+		valid: (v) => v === 'on' || v === 'off',
+		about: 'Whether signed-in members may post new comments on entries. Comments already posted stay either way.',
+	},
 };
 
 /**

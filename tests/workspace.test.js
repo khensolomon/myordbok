@@ -414,3 +414,64 @@ test('searches: a word never found that has become a headword says so', async ()
 	const words = (await call(e, '/api/workspace/searches', { who: 'editor' })).body.words;
 	assert.deepEqual(words.map((w) => [w.term, w.now]), [['love', true], ['lofe', false]]);
 });
+
+test('statistics: an admin shows them to a member, read only; old search counts are deleted by admins', async () => {
+	const e = env();
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
+	const today = new Date().toISOString().slice(0, 10);
+	const old = new Date(Date.now() - 400 * 86400000).toISOString().slice(0, 10);
+	e.raw.prepare("INSERT INTO search_counts (day, lang, term, found, hits) VALUES (?1, 'en', 'lofe', 0, 1), (?2, 'en', 'olden', 0, 1)").run(today, old);
+
+	assert.equal((await call(e, '/api/workspace/searches', { who: 'member' })).status, 403);
+	assert.equal((await call(e, '/api/workspace/overview', { who: 'member' })).body.insights, false);
+	const changed = (await call(e, '/api/workspace/members/1', { who: 'editor', body: { insights: true } })).body.member;
+	assert.equal(changed.insights, true);
+	assert.equal((await call(e, '/api/workspace/members/1', { who: 'editor', body: { insights: 'yes' } })).status, 400);
+
+	assert.equal((await call(e, '/api/workspace/searches', { who: 'member' })).status, 200);
+	assert.equal((await call(e, '/api/workspace/ratings?scope=site', { who: 'member' })).status, 200);
+	const overview = (await call(e, '/api/workspace/overview', { who: 'member' })).body;
+	assert.deepEqual([overview.insights, Array.isArray(overview.usage), overview.suggestions, overview.members], [true, true, undefined, undefined], 'the statistics, not the review queue or the members');
+	assert.equal((await call(e, '/api/workspace/edits', { who: 'member' })).body.edits.every((x) => x.own), true, 'still a member everywhere else');
+
+	assert.equal((await call(e, '/api/workspace/searches/prune', { who: 'member', body: { days: 365 } })).status, 403);
+	assert.equal((await call(e, '/api/workspace/searches/prune', { who: 'editor', body: { days: 10 } })).status, 400);
+	const pruned = (await call(e, '/api/workspace/searches/prune', { who: 'editor', body: { days: 365 } })).body;
+	assert.equal(pruned.deleted, 1);
+	assert.deepEqual(e.raw.prepare('SELECT term FROM search_counts').all().map((r) => r.term), ['lofe']);
+});
+
+test('comments: members post plain text on an entry, delete their own; editors hide and show; admins close them', async () => {
+	const e = env();
+	assert.equal((await call(e, '/api/comments', { body: { lang: 'en', word: 'love', body: 'Hello' } })).status, 401);
+	const posted = (await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: '  Also used for tennis:\r\n\r\n\r\n\r\nlove all.  ' } })).body.comment;
+	assert.equal(posted.body, 'Also used for tennis:\n\nlove all.');
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'x' } })).status, 400);
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'xx', word: 'love', body: 'Fine text' } })).status, 400);
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'en', word: 'love', body: 'y'.repeat(1001) } })).status, 400);
+	await call(e, '/api/comments', { who: 'other', body: { lang: 'en', word: 'love', body: 'Nice entry' } });
+
+	const seen = (await call(e, '/api/comments?lang=en&word=love', { who: 'member' })).body;
+	assert.deepEqual([seen.open, seen.signedIn, seen.comments.map((c) => [c.body.slice(0, 4), c.own])], [true, true, [['Nice', false], ['Also', true]]]);
+	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.signedIn, false);
+
+	// Moderation: editors only; hidden comments leave the entry.
+	assert.equal((await call(e, '/api/workspace/comments', { who: 'member' })).status, 403);
+	const queue = (await call(e, '/api/workspace/comments', { who: 'editor' })).body;
+	assert.deepEqual(queue.counts, { visible: 2, hidden: 0, week: 2 });
+	const other = queue.comments.find((c) => c.author === 'Other');
+	assert.equal((await call(e, `/api/workspace/comments/${other.id}`, { who: 'editor', body: { status: 'hidden' } })).status, 200);
+	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.comments.length, 1);
+	assert.equal((await call(e, '/api/workspace/comments?show=hidden&q=nice', { who: 'editor' })).body.comments.length, 1);
+
+	// Authors delete their own, nobody else's.
+	assert.equal((await call(e, `/api/comments/${posted.id}/delete`, { who: 'other', method: 'POST' })).status, 404);
+	assert.equal((await call(e, `/api/comments/${posted.id}/delete`, { who: 'member', method: 'POST' })).status, 200);
+
+	// Too many in a few minutes, then closed by the setting.
+	for (let i = 0; i < 5; i++) await call(e, '/api/comments', { who: 'member', body: { lang: 'my', word: 'ချစ်', body: `Comment ${i}` } });
+	assert.equal((await call(e, '/api/comments', { who: 'member', body: { lang: 'my', word: 'ချစ်', body: 'One more' } })).status, 429);
+	e.raw.prepare("INSERT INTO settings (key, value) VALUES ('comments.open', '\"off\"')").run();
+	assert.equal((await call(e, '/api/comments', { who: 'other', body: { lang: 'en', word: 'love', body: 'Closed?' } })).status, 403);
+	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.open, false);
+});

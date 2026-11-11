@@ -200,6 +200,17 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   The filtered list downloads as CSV (formula-like cells defused). Ratings
   pages the same way, one kind at a time, the site's ranked not helpful
   first.
+- **Comments sit under the entry.** `comments` (lang, word, body) holds
+  plain text from signed-in members, shown at once with the member's name,
+  newest first, loaded when the section nears the screen and never offline.
+  Five in ten minutes per member at most; the author deletes their own,
+  editors hide or show any in the workspace (Comments), and the admin
+  setting `comments.open` closes new ones.
+- **Statistics can be shared without a level.** `users.insights` lets an
+  admin show a member the Overview's figures, Searches and the whole site's
+  ratings, read only (`seesStatistics` in `shared/roles.js`); nothing else
+  changes for them. Admins also delete search counts older than a number
+  of days (at least 30) from Searches.
 - **Offline use is counted, not tracked.** `usage_counts` (day, name, n)
   holds plain counters: each pack download, as new or as an update (the app
   sends `x-pack-update` when it replaces a copy), and a daily check-in
@@ -261,5 +272,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 1. Tauri adapters.
 2. Query: Zawgyi detection, multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.
-4. Comments on entries.
-5. A simpler data release (one command from build to beta, one to production).
+4. Backups of the app database (members, suggestions, ratings, comments,
+   messages) to storage outside Cloudflare's own 30-day restore.
+5. The Myanmar fonts page (`/myanmar-fonts`), moved over from the previous site.
+6. A simpler data release (one command from build to beta, one to production).
+7. Phrases offline: reading a phrase from the word lists and senses on the
+   device, as the server does.

@@ -11,7 +11,7 @@
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
-import { searchedWord, searchesQuery, workspaceSearches } from '../data/api.js';
+import { pruneSearches, searchedWord, searchesQuery, workspaceSearches } from '../data/api.js';
 import { mark, num, shortDate, t } from '../i18n/index.js';
 import { chart, everyDay, figure } from './overview.js';
 
@@ -40,8 +40,9 @@ const CHART_DAYS = 90;
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
  * @param {HTMLElement} root
+ * @param {boolean} admin  May delete older counts.
  */
-export async function searchesPanes(ctx, root) {
+export async function searchesPanes(ctx, root, admin) {
 	const q = ctx.query;
 	/** @type {Filter} */
 	const f = {
@@ -174,6 +175,7 @@ export async function searchesPanes(ctx, root) {
 				h('dl', { class: 'ws-facts' }, pair(t('Words'), c.words), pair(t('Never found'), c.missed), pair(t('Found'), c.found), pair(t('Searches'), c.hits)),
 			),
 			h('section', { class: 'ws-box' }, h('h2', null, t('This list')), h('p', { class: 'ws-quiet' }, t('Every word that matches the filter, with its figures, for a spreadsheet.')), download, out),
+			admin ? pruneBox(() => load()) : '',
 			h('section', { class: 'ws-box' }, h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.'))),
 		);
 	};
@@ -221,6 +223,55 @@ export async function searchesPanes(ctx, root) {
 	};
 	document.addEventListener('keydown', keys);
 	return [listPane, work, inspector];
+}
+
+/**
+ * Deleting the counts older than a number of days, for admins; asks twice.
+ * @param {() => Promise<void>} reload
+ */
+function pruneBox(reload) {
+	const days = /** @type {HTMLInputElement} */ (h('input', { type: 'number', min: 30, step: 1, value: 730, class: 'ws-days', 'aria-label': t('Days to keep') }));
+	const out = h('p', { class: 'ws-result', role: 'status' });
+	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-danger' }, t('Delete older counts')));
+	let sure = false;
+	go.addEventListener('click', async () => {
+		const n = Number(days.value);
+		if (!Number.isInteger(n) || n < 30) {
+			out.textContent = t('Keep at least {n} days.', { n: 30 });
+			return;
+		}
+		if (!sure) {
+			sure = true;
+			go.textContent = t('Delete counts older than {n} days?', { n: num(n) });
+			setTimeout(() => {
+				sure = false;
+				if (go.isConnected) go.textContent = t('Delete older counts');
+			}, 4000);
+			return;
+		}
+		sure = false;
+		go.disabled = true;
+		out.textContent = t('Deleting…');
+		try {
+			const { deleted } = await pruneSearches(n);
+			out.textContent = t('{n} day counts deleted.', { n: num(deleted) });
+			await reload();
+		} catch (err) {
+			out.textContent = err instanceof Error ? err.message : String(err);
+		} finally {
+			go.disabled = false;
+			go.textContent = t('Delete older counts');
+		}
+	});
+	return h(
+		'section',
+		{ class: 'ws-box' },
+		h('h2', null, t('Older counts')),
+		h('p', { class: 'ws-quiet' }, t('Counts of days older than this are deleted for good; the word lists above then cover less time.')),
+		h('label', { class: 'ws-days-row' }, t('Keep the last'), days, t('days')),
+		go,
+		out,
+	);
 }
 
 /**
