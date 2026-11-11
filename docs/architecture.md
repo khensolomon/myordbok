@@ -127,8 +127,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   an Origin header from the site.
 - **The workspace (`/workspace`) is one place for every member, laid out
   like a studio**: a rail of sections, a list, the work area, an inspector
-  and a status bar; on phones the rail becomes a bottom bar and the list and
-  the item take turns. The rail follows the role: members see Overview,
+  and a status bar; on phones the rail becomes a bar at the top with the section's
+  name and a menu button that opens the sections, and the list and the item
+  take turns. The rail follows the role: members see Overview,
   Contributions and Account; editors and admins also Suggestions. Overview
   is the home: a member's own figures, or for editors and admins searches
   per day, the words searched most and searched but missing, suggestions,

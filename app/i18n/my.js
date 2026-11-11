@@ -608,4 +608,5 @@ export const MY = {
 	'For fixed dates such as 4 January or 25 December. Lunar days move each year: schedule them one by one.': 'ဇန်နဝါရီ ၄ ရက် သို့မဟုတ် ဒီဇင်ဘာ ၂၅ ရက် ကဲ့သို့ ရက်စွဲမပြောင်းသော နေ့များအတွက်။ လပြက္ခဒိန်နေ့များသည် နှစ်စဉ် ပြောင်းလဲသဖြင့် တစ်ခုချင်း စီစဉ်ပါ။',
 	'Choose when it starts and ends.': 'စတင်ချိန်နှင့် ပြီးဆုံးချိန်ကို ရွေးပါ။',
 	'Delete for good?': 'အပြီးတိုင် ဖျက်မလား?',
+	'Workspace sections': 'လုပ်ငန်းခွင် အပိုင်းများ',
 };

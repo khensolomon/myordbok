@@ -323,3 +323,12 @@ test('notices: an announced maintenance shows before its window, with the window
 	assert.equal(n.starts, body.starts_at);
 	assert.equal(n.ends, body.ends_at);
 });
+
+test('plain http goes to https before anything else, sign-in included; localhost stays on http', async () => {
+	const e = env();
+	const res = await worker.fetch(new Request('http://beta.myordbok.test/api/auth/google/start?return=/workspace'), e);
+	assert.equal(res.status, 308);
+	assert.equal(res.headers.get('location'), 'https://beta.myordbok.test/api/auth/google/start?return=/workspace');
+	const local = await worker.fetch(new Request('http://localhost:8787/api/health'), e);
+	assert.notEqual(local.status, 308);
+});

@@ -152,8 +152,7 @@ export async function view(ctx) {
 	}
 	if (section === 'inbox') {
 		const panes = await inboxPanes(ctx, root, ago, (unread) => {
-			const badge = rail.querySelector('[data-section-badge="inbox"]');
-			if (badge) {
+			for (const badge of rail.querySelectorAll('[data-section-badge="inbox"]')) {
 				badge.textContent = num(unread);
 				badge.toggleAttribute('hidden', unread === 0);
 			}
@@ -491,24 +490,71 @@ function progress(status) {
  * @param {{ waiting: number | null, unread?: number }} summary
  */
 function railFor(me, editor, section, summary) {
-	const items = SECTIONS.filter((s) => (s.admin ? atLeast(me.role, 'admin') : editor || !s.editor)).map((s) => {
+	const sections = SECTIONS.filter((s) => (s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
+	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? 0) : 0);
+	const badge = (/** @type {string} */ id, /** @type {number} */ count) => (id === 'suggestions' || id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': id, hidden: count ? null : true }, num(count)) : null);
+	const items = sections.map((s) => {
 		const label = t(s.label);
-		const count = s.id === 'suggestions' ? (summary.waiting ?? 0) : s.id === 'inbox' ? (summary.unread ?? 0) : 0;
+		const count = countOf(s.id);
 		return h(
 			'a',
 			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: label, 'aria-label': count ? (s.id === 'inbox' ? t('{label}, {n} new', { label, n: count }) : t('{label}, {n} waiting', { label, n: count })) : label },
 			icon(s.icon, 20),
-			s.id === 'suggestions' || s.id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': s.id, hidden: count ? null : true }, num(count)) : null,
+			badge(s.id, count),
 		);
 	});
-	const face = me.avatar_url ? h('img', { src: me.avatar_url, alt: '', referrerpolicy: 'no-referrer' }) : me.name.slice(0, 1).toUpperCase();
+	const face = () => (me.avatar_url ? h('img', { src: me.avatar_url, alt: '', referrerpolicy: 'no-referrer' }) : me.name.slice(0, 1).toUpperCase());
+	const current = section === 'account' ? t('Account') : t(SECTIONS.find((s) => s.id === section)?.label ?? 'Overview');
+
+	// Phones: a bar at the top with the section's name, and the sections in a
+	// menu from the button on the right, as the person menu on the site.
+	const waiting = sections.reduce((n, s) => n + countOf(s.id), 0);
+	const button = /** @type {HTMLButtonElement} */ (
+		h('button', { type: 'button', class: 'ws-menu-button', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': 'ws-menu', 'aria-label': t('Workspace sections') }, h('span', { class: 'ws-rail-face' }, face()), waiting ? h('span', { class: 'ws-menu-dot', 'aria-hidden': 'true' }) : '')
+	);
+	const panel = h(
+		'div',
+		{ class: 'ws-menu', id: 'ws-menu', hidden: true },
+		h('div', { class: 'ws-menu-who' }, h('span', { class: 'ws-rail-face ws-menu-face' }, face()), h('div', null, h('strong', null, me.name), h('span', null, roleName(me.role)))),
+		h(
+			'nav',
+			{ class: 'ws-menu-list', 'aria-label': t('Workspace') },
+			sections.map((s) => h('a', { href: `/workspace?s=${s.id}`, 'aria-current': section === s.id ? 'page' : null }, icon(s.icon, 18), h('span', null, t(s.label)), badge(s.id, countOf(s.id)))),
+		),
+		h('nav', { class: 'ws-menu-list', 'aria-label': t('More') }, h('a', { href: '/workspace?s=account', 'aria-current': section === 'account' ? 'page' : null }, icon(ICONS.account, 18), h('span', null, t('Account'))), h('a', { href: '/' }, icon(ICONS.dictionary, 18), h('span', null, t('Back to the dictionary')))),
+	);
+	const setOpen = (/** @type {boolean} */ open) => {
+		panel.hidden = !open;
+		button.setAttribute('aria-expanded', String(open));
+		if (open) /** @type {HTMLElement | null} */ (panel.querySelector('[aria-current="page"]') ?? panel.querySelector('a'))?.focus();
+	};
+	button.addEventListener('click', () => setOpen(panel.hidden));
+	panel.addEventListener('click', (e) => {
+		if (/** @type {HTMLElement} */ (e.target).closest('a')) setOpen(false);
+	});
+	const outside = (/** @type {PointerEvent} */ e) => {
+		if (!button.isConnected) return document.removeEventListener('pointerdown', outside);
+		const target = /** @type {Node} */ (e.target);
+		if (!panel.hidden && !panel.contains(target) && !button.contains(target)) setOpen(false);
+	};
+	document.addEventListener('pointerdown', outside);
+	panel.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') {
+			setOpen(false);
+			button.focus();
+		}
+	});
+
 	return h(
 		'nav',
 		{ class: 'ws-rail', 'aria-label': t('Workspace') },
 		h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })),
+		h('span', { class: 'ws-rail-title' }, current),
 		items,
 		h('span', { class: 'ws-rail-gap' }),
-		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face),
+		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face()),
+		button,
+		panel,
 	);
 }
 
@@ -617,8 +663,7 @@ function statusBar(health, summary, editor) {
 			waiting = Math.max(0, waiting + by);
 			if (!editor) return;
 			waitingText.textContent = t('{n} waiting', { n: waiting });
-			const badge = node.parentElement?.querySelector('[data-section-badge="suggestions"]');
-			if (badge) {
+			for (const badge of node.parentElement?.querySelectorAll('[data-section-badge="suggestions"]') ?? []) {
 				badge.textContent = num(waiting);
 				badge.toggleAttribute('hidden', waiting === 0);
 			}

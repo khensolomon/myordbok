@@ -123,7 +123,16 @@ export default {
 	 * @param {ExecutionContext} [ctx]
 	 */
 	async fetch(request, env, ctx) {
-		const { pathname } = new URL(request.url);
+		const url = new URL(request.url);
+		const { pathname } = url;
+		// Only https is a registered sign-in address and keeps the session cookie;
+		// a request over plain http (a typed address without https://) is sent
+		// there first. Pages themselves are switched by the zone's Always Use
+		// HTTPS; this covers the API, sign-in above all. Local development stays on http.
+		if (url.protocol === 'http:' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+			url.protocol = 'https:';
+			return Response.redirect(url.toString(), 308);
+		}
 		if (!pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
 		let res;
 		try {

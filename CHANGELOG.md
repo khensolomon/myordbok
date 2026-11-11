@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+66
+
+- Workspace on phones: a bar at the top with the section's name and a menu of sections from the button on the right, replacing the bottom bar; plain http is sent to https before sign-in
+
 ## 26.11.11+65
 
 - Site notices: admins schedule maintenance, information and celebration notices in the workspace; maintenance and information show as a bar on every page, a celebration on the home page
