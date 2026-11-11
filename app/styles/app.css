@@ -173,28 +173,30 @@ main {
 	margin-left: auto;
 	width: 40px; height: 40px;
 	display: flex; align-items: center; justify-content: center;
-	border: 0.5px solid transparent; border-radius: 999px;
-	background: var(--glass-fill);
-	box-shadow: var(--glass-shine), var(--glass-ring);
+	border-radius: 999px;
+	background: var(--chrome);
+	-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+	box-shadow: var(--chrome-shadow);
 	color: var(--muted); overflow: hidden;
 }
 .you img { width: 100%; height: 100%; object-fit: cover; }
-.you[aria-current="page"], body[data-route="account"] .you, .you[aria-expanded="true"] { color: var(--brand); border-color: var(--guide); }
+.you[aria-current="page"], body[data-route="account"] .you, .you[aria-expanded="true"] { color: var(--ink); box-shadow: 0 0 0 2px var(--guide), var(--chrome-shadow); }
 
-/* Phones: the links become icons in a glass capsule, the page you are on
-   under a raised lens, as in iOS tab bars. */
+/* Phones: the links become icons in one quiet capsule. The page you are on
+   is a faint tint and full ink; nothing is raised. */
 @media (max-width: 640px) {
 	.site-nav {
-		margin-left: 0; padding: 3px;
-		border: 0.5px solid transparent; border-radius: 999px;
-		background: var(--glass-fill);
-		box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-lift);
+		margin-left: 0; padding: 4px;
+		border-radius: 999px;
+		background: var(--chrome);
+		-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--chrome-shadow);
 	}
-	.nav-lens, .nav-hover { top: 3px; bottom: 3px; }
-	.nav-lens { background: var(--glass-lens); box-shadow: var(--glass-shine), var(--glass-lift); }
-	.nav-hover { background: var(--glass-fill-hover); }
-	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--muted); }
-	.site-nav a[aria-current="page"] { color: var(--brand); }
+	.nav-lens, .nav-hover { top: 4px; bottom: 4px; }
+	.nav-lens { background: var(--nav-current); }
+	.nav-hover { background: var(--nav-hover); }
+	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--faint); }
+	.site-nav a[aria-current="page"] { color: var(--ink); }
 	.nav-icon { display: block; }
 	.nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
@@ -1360,21 +1362,21 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	}
 	.ws-rail-head {
 		display: flex; align-items: center; gap: 10px; min-width: 0; height: 44px; padding: 0 18px 0 8px;
-		border: 0.5px solid transparent; border-radius: 999px;
-		background: var(--glass-fill); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-		box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-lift);
+		border-radius: 999px;
+		background: var(--chrome); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--chrome-shadow);
 	}
 	.ws-logo { margin: 0; width: 28px; height: 28px; flex: none; }
 	.ws-rail-item, .ws-rail-gap, .ws-rail > .ws-rail-face { display: none; }
 	.ws-rail-title { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 650; color: var(--ink); }
 	.ws-menu-button {
 		position: relative; display: inline-flex; align-items: center; justify-content: center;
-		flex: none; width: 44px; height: 44px; padding: 0; border: 0.5px solid transparent; border-radius: 999px;
-		background: var(--glass-fill); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-		box-shadow: var(--glass-shine), var(--glass-ring), var(--glass-lift); cursor: pointer;
+		flex: none; width: 44px; height: 44px; padding: 0; border: none; border-radius: 999px;
+		background: var(--chrome); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+		box-shadow: var(--chrome-shadow); cursor: pointer;
 	}
 	.ws-menu-button .ws-rail-face { width: 30px; height: 30px; font-size: 13px; }
-	.ws-menu-button[aria-expanded="true"] { border-color: var(--guide); }
+	.ws-menu-button[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--guide), var(--chrome-shadow); }
 	.ws-menu-dot { position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--ground); }
 	.ws-menu:not([hidden]) {
 		display: grid; position: absolute; top: calc(100% + 2px); right: 10px; z-index: 30;
