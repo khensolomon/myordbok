@@ -12,6 +12,7 @@ import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { moderateComment, workspaceComments } from '../data/api.js';
 import { mark, num, t } from '../i18n/index.js';
+import { listBar } from './list-bar.js';
 
 /** @typedef {import('../data/api.js').ModeratedComment} Comment */
 
@@ -128,9 +129,12 @@ export async function commentsPanes(ctx, root, ago) {
 		}, 250);
 	});
 	listPane.append(
-		h('header', { class: 'ws-list-head' }, h('h1', null, t('Comments')), head),
-		h('nav', { class: 'ws-segments', 'aria-label': t('Show') }, SHOWS.map(([s, label]) => h('a', { href: `/workspace?s=comments${s === 'visible' ? '' : `&show=${s}`}`, 'aria-current': s === f.show ? 'true' : null }, t(label)))),
-		h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
+		...listBar({
+			title: t('Comments'),
+			count: head,
+			main: { title: t('Show'), current: f.show, fallback: 'visible', href: (s) => `/workspace?s=comments${s === 'visible' ? '' : `&show=${s}`}`, choices: SHOWS.map(([s, label]) => ({ value: s, label: t(label) })) },
+			search,
+		}),
 		ol,
 		more,
 	);

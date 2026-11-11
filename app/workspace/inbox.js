@@ -6,6 +6,7 @@
  * when nothing is left to do. Any state can be set again. Each message can
  * carry a note for the admins; the sender never sees it.
  */
+import { listBar } from './list-bar.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { inboxMessages, updateMessage } from '../data/api.js';
@@ -51,12 +52,18 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 	const items = page.messages;
 	const rows = items.map((m, i) => row(m, ago, () => open(i)));
 	const ol = h('ol', { class: 'ws-rows' }, rows.length ? rows.map((b) => h('li', null, b)) : h('li', { class: 'ws-none' }, filter === 'new' ? t('No unread messages.') : t('Nothing here.')));
-	const segments = h('nav', { class: 'ws-segments ws-segments-wrap', 'aria-label': t('Show') });
+	const bar = h('div', { class: 'ws-list-top' });
+	const href = (/** @type {string} */ s) => `/workspace?s=inbox${s === 'new' ? '' : `&status=${s}`}`;
+	/** The head and its filters; drawn again when a count changes. */
 	const drawSegments = () =>
-		segments.replaceChildren(
-			...[...STATES, /** @type {['all', string]} */ (['all', mark('All')])].map(([s, label]) =>
-				h('a', { href: `/workspace?s=inbox&status=${s}`, 'aria-current': s === filter ? 'true' : null }, t(label), s !== 'all' && counts[s] ? h('span', { class: 'ws-count' }, num(counts[s])) : ''),
-			),
+		bar.replaceChildren(
+			...listBar({
+				title: t('Inbox'),
+				count: t('{n} unread', { n: counts.new }),
+				main: { title: t('Show'), current: filter, fallback: 'new', href, choices: [{ value: 'new', label: t('Unread'), count: counts.new }, { value: 'all', label: t('All') }] },
+				more: [{ title: t('Status'), current: filter, fallback: 'new', href, choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) }],
+				reset: href('new'),
+			}),
 		);
 	drawSegments();
 
@@ -149,8 +156,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 	let current = -1;
 
 	listPane.append(
-		h('header', { class: 'ws-list-head' }, h('h1', null, t('Inbox')), h('span', null, t('{n} unread', { n: counts.new }))),
-		segments,
+		bar,
 		ol,
 		page.more ? h('p', { class: 'ws-quiet ws-more-note' }, t('Showing the latest {n}.', { n: items.length })) : '',
 	);

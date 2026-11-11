@@ -42,6 +42,7 @@ import { ratingsPane } from './ratings.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
 import { searchesPanes } from './searches.js';
+import { listBar, listResizer } from './list-bar.js';
 import { commentsPanes } from './comments.js';
 import { noticesPane } from './notices.js';
 
@@ -126,6 +127,11 @@ export async function view(ctx) {
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
+	/** Sections with a list: its column can be resized on a desktop (list-bar.js). */
+	const resizable = () => {
+		const list = root.querySelector('.ws-list');
+		if (list instanceof HTMLElement) listResizer(root, list);
+	};
 	const status = statusBar(health, summary, editor);
 	const rail = railFor(me, editor, section, summary);
 	if (section === 'account') {
@@ -146,14 +152,17 @@ export async function view(ctx) {
 	}
 	if (section === 'comments') {
 		root.append(rail, ...(await commentsPanes(ctx, root, ago)), status.node);
+		resizable();
 		return root;
 	}
 	if (section === 'searches') {
 		root.append(rail, ...(await searchesPanes(ctx, root, admin)), status.node);
+		resizable();
 		return root;
 	}
 	if (section === 'members') {
 		root.append(rail, ...(await membersPanes(ctx, root, ago)), status.node);
+		resizable();
 		return root;
 	}
 	if (section === 'settings') {
@@ -172,6 +181,7 @@ export async function view(ctx) {
 			}
 		});
 		root.append(rail, ...panes, status.node);
+		resizable();
 		return root;
 	}
 
@@ -180,6 +190,7 @@ export async function view(ctx) {
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
 	const listPane = h('section', { class: 'ws-list', 'aria-label': section === 'suggestions' ? t('Suggestions') : t('Contributions') });
 	root.append(rail, listPane, work, inspector, status.node);
+	resizable();
 
 	/** @type {Edit[]} */
 	let items = [];
@@ -280,12 +291,20 @@ export async function view(ctx) {
 
 	await load();
 	const count = section === 'suggestions' ? t('{n} waiting', { n: summary.waiting ?? 0 }) : num(Object.values(summary.mine).reduce((a, b) => a + b, 0));
+	const statusHref = (/** @type {string} */ s) => `/workspace?s=${section}${s === 'pending' ? '' : `&status=${s}`}`;
 	listPane.replaceChildren(
-		h('header', { class: 'ws-list-head' }, h('h1', null, section === 'suggestions' ? t('Suggestions') : t('Contributions')), h('span', null, count)),
-		section === 'suggestions'
-			? h('nav', { class: 'ws-segments', 'aria-label': t('Show') }, FILTERS.map(([s, label]) => h('a', { href: `/workspace?s=${section}&status=${s}`, 'aria-current': s === filter ? 'true' : null }, t(label))))
-			: '',
-		h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
+		...listBar(
+			section === 'suggestions'
+				? {
+						title: t('Suggestions'),
+						count,
+						main: { title: t('Show'), current: filter, fallback: 'pending', href: statusHref, choices: [{ value: 'pending', label: t('Waiting') }, { value: 'all', label: t('All') }] },
+						search,
+						more: [{ title: t('Status'), current: filter, fallback: 'pending', href: statusHref, choices: FILTERS.map(([s, label]) => ({ value: s, label: t(label) })) }],
+						reset: statusHref('pending'),
+					}
+				: { title: t('Contributions'), count, search },
+		),
 		ol,
 		more,
 	);

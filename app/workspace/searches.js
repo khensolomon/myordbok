@@ -14,6 +14,7 @@ import { definitionHref } from '../core/routes.js';
 import { pruneSearches, searchedWord, searchesQuery, workspaceSearches } from '../data/api.js';
 import { mark, num, shortDate, t } from '../i18n/index.js';
 import { chart, everyDay, figure } from './overview.js';
+import { listBar } from './list-bar.js';
 
 /** @typedef {import('../data/api.js').SearchFilter} Filter */
 /** @typedef {import('../data/api.js').SearchedWord} Word */
@@ -69,7 +70,6 @@ export async function searchesPanes(ctx, root, admin) {
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose a word from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
 	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Contains…'), 'aria-label': t('Find a word'), value: f.q }));
-	const sort = /** @type {HTMLSelectElement} */ (h('select', { class: 'ws-sort', 'aria-label': t('Sort') }, ORDERS.map(([o, label]) => h('option', { value: o, selected: o === f.order ? true : null }, t(label)))));
 	const ol = h('ol', { class: 'ws-rows' });
 	const head = h('span');
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
@@ -194,11 +194,6 @@ export async function searchesPanes(ctx, root, admin) {
 			.catch((err) => ol.append(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))))
 			.finally(() => (more.disabled = false));
 	});
-	sort.addEventListener('change', () => {
-		f.order = /** @type {Filter['order']} */ (sort.value);
-		history.replaceState(history.state, '', href({}));
-		load().catch((err) => ol.replaceChildren(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))));
-	});
 	let timer = 0;
 	search.addEventListener('input', () => {
 		clearTimeout(timer);
@@ -209,14 +204,21 @@ export async function searchesPanes(ctx, root, admin) {
 		}, 250);
 	});
 
-	const segments = (/** @type {string} */ label, /** @type {ReadonlyArray<readonly [string | number, string]>} */ options, /** @type {string | number} */ now, /** @type {(v: any) => Partial<Filter>} */ change) =>
-		h('nav', { class: 'ws-segments', 'aria-label': label }, options.map(([v, text]) => h('a', { href: href(change(v)), 'aria-current': v === now ? 'true' : null }, t(text))));
+	/** @param {ReadonlyArray<readonly [string | number, string]>} options */
+	const choices = (options) => options.map(([v, text]) => ({ value: String(v), label: t(text) }));
 	listPane.append(
-		h('header', { class: 'ws-list-head' }, h('h1', null, t('Searches')), head),
-		segments(t('Show'), SHOWS, f.show, (v) => ({ show: v })),
-		segments(t('Period'), PERIODS, f.days, (v) => ({ days: v })),
-		segments(t('Language'), LANGS, f.lang, (v) => ({ lang: v })),
-		h('div', { class: 'ws-tools' }, h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search), sort),
+		...listBar({
+			title: t('Searches'),
+			count: head,
+			main: { title: t('Show'), current: f.show, fallback: 'missed', href: (v) => href({ show: /** @type {Filter['show']} */ (v) }), choices: choices(SHOWS) },
+			search,
+			more: [
+				{ title: t('Period'), current: String(f.days), fallback: '30', href: (v) => href({ days: /** @type {Filter['days']} */ (Number(v)) }), choices: choices(PERIODS) },
+				{ title: t('Language'), current: f.lang, fallback: '', href: (v) => href({ lang: /** @type {Filter['lang']} */ (v) }), choices: choices(LANGS) },
+				{ title: t('Sort'), current: f.order, fallback: 'hits', href: (v) => href({ order: /** @type {Filter['order']} */ (v) }), choices: choices(ORDERS) },
+			],
+			reset: href({ days: 30, lang: '', order: 'hits' }),
+		}),
 		ol,
 		more,
 	);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+82
+
+- Workspace lists share one head: title and count, one line of filters, the rest under a menu; the list column resizes on desktops
+
 ## 26.11.11+81
 
 - Searches sort: most searched, last searched, most days, A to Z

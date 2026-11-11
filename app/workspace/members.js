@@ -11,6 +11,10 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { changeMember, workspaceMember, workspaceMembers } from '../data/api.js';
 import { mark, num, t } from '../i18n/index.js';
+import { listBar } from './list-bar.js';
+
+/** @param {string} f  A filter of FILTERS. */
+const memberHref = (f) => `/workspace?s=members${f ? `&show=${f}` : ''}`;
 
 /** @typedef {import('../data/api.js').MemberRow} Row */
 /** @typedef {import('../data/api.js').MemberDetail} Detail */
@@ -191,9 +195,14 @@ export async function membersPanes(ctx, root, ago) {
 		timer = window.setTimeout(() => load().catch((err) => ol.replaceChildren(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err)))), 250);
 	});
 	listPane.append(
-		h('header', { class: 'ws-list-head' }, h('h1', null, t('Members')), head),
-		h('nav', { class: 'ws-segments ws-segments-wrap', 'aria-label': t('Show') }, FILTERS.map(([f, label]) => h('a', { href: `/workspace?s=members${f ? `&show=${f}` : ''}`, 'aria-current': f === filter ? 'true' : null }, t(label)))),
-		h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
+		...listBar({
+			title: t('Members'),
+			count: head,
+			main: { title: t('Show'), current: filter === 'suspended' ? 'suspended' : filter ? 'level' : '', fallback: '', href: memberHref, choices: [{ value: '', label: t('All') }, { value: 'suspended', label: t('Suspended') }] },
+			search,
+			more: [{ title: t('Level'), current: filter === 'suspended' ? '' : filter, fallback: '', href: memberHref, choices: FILTERS.filter(([f]) => f !== 'suspended').map(([f, label]) => ({ value: f, label: t(label) })) }],
+			reset: memberHref(''),
+		}),
 		ol,
 	);
 	await load();
