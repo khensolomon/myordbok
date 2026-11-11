@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+72
+
+- Search cursor redrawn after the page moves under the sticky field on touch screens
+
 ## 26.11.11+71
 
 - Search cursor stays with the field on iOS: no blur behind the field while typing
