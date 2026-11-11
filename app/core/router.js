@@ -5,6 +5,7 @@
  */
 import { h } from './dom.js';
 import { match } from './routes.js';
+import { endProgress, startProgress } from './progress.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -23,16 +24,19 @@ export function startRouter(outlet, onRoute) {
 		onRoute?.(route);
 
 		if (!route) {
+			endProgress();
 			outlet.replaceChildren(notFound(url.pathname));
 			document.title = `${t('Page not found')} · MyOrdbok`;
 			return;
 		}
 
 		const ctx = { query: url.searchParams, go, replace };
+		startProgress();
 		try {
 			const mod = await route.load();
 			const node = await mod.view(ctx);
 			if (mine !== token) return; // a newer navigation won
+			endProgress();
 			outlet.replaceChildren(node);
 			document.title = mod.title ? `${mod.title(ctx)} · MyOrdbok` : 'MyOrdbok';
 			// Back or forward to a page: where it was left. A deep link to a place
@@ -45,6 +49,7 @@ export function startRouter(outlet, onRoute) {
 			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
 		} catch (err) {
 			if (mine !== token) return;
+			endProgress();
 			console.error(err);
 			outlet.replaceChildren(failure(err));
 		}

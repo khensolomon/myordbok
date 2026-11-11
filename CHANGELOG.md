@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+63
+
+- The blue bar at the top of every page is gone; a thin bar now shows only while a page takes a moment to load
+
 ## 26.11.11+62
 
 - Phones: on the home page the logo steps aside while typing and suggestions stay above the keyboard; forms and related words line up with the meanings; text no longer shows under the search box while scrolling
