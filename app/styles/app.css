@@ -448,6 +448,12 @@ mo-search { display: block; position: relative; height: 44px; }
 .search-box:focus-within { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--glass-solid); }
 body[data-searching] .search-bar,
 body[data-searching] .search-bar::before { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* Touch screens: the bar does not stick while typing; iOS draws the cursor
+   of a sticky field off the field once the keyboard moves the page
+   (search-box.js brings the page to its top first). */
+@media (pointer: coarse) {
+	body[data-searching] .search-bar { position: relative; top: auto; }
+}
 mo-search[data-open] .search-box {
 	--field-r: 16px;
 	inset: -4px -4px auto -4px;

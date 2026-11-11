@@ -43,7 +43,7 @@ function shortcut(e) {
 }
 document.addEventListener('keydown', shortcut);
 
-/** A touch screen, where the text cursor needs help (redrawCaret). */
+/** A touch screen (the bar's touchstart below). */
 const COARSE = window.matchMedia('(pointer: coarse)');
 
 export class SearchBox extends HTMLElement {
@@ -100,6 +100,19 @@ export class SearchBox extends HTMLElement {
 			clearTimeout(settle);
 			document.body.toggleAttribute('data-searching', true);
 		});
+		// On a touch screen the bar stops sticking while the field has focus
+		// (app.css): iOS Safari draws a sticky field's text cursor off the field
+		// once the keyboard moves the page. A tap on the bar stuck over a
+		// scrolled page first brings the page to its top, where the bar sits
+		// in place, so it does not move from under the finger.
+		this.addEventListener(
+			'touchstart',
+			() => {
+				const bar = this.closest('.search-bar');
+				if (COARSE.matches && bar && window.scrollY > 0 && getComputedStyle(bar).position === 'sticky') window.scrollTo(0, 0);
+			},
+			{ passive: true },
+		);
 		this.addEventListener('focusout', (e) => {
 			if (this.contains(/** @type {Node | null} */ (e.relatedTarget))) return;
 			clearTimeout(settle);
@@ -107,20 +120,6 @@ export class SearchBox extends HTMLElement {
 		});
 		// The on-screen keyboard shrinks the visible page; the list keeps above it.
 		window.visualViewport?.addEventListener('resize', () => this.hasAttribute('data-open') && this.fit());
-		// iOS Safari leaves the text cursor where the field was when the page
-		// moves under a sticky field (the keyboard opening scrolls it, the list
-		// opening or closing changes its height): the cursor floats above or
-		// below the box. Once things settle, the cursor is drawn again.
-		this.composing = false;
-		this.input.addEventListener('compositionstart', () => (this.composing = true));
-		this.input.addEventListener('compositionend', () => (this.composing = false));
-		/** @type {number | undefined} */
-		this.redrawTimer = undefined;
-		const later = () => this.redrawCaret();
-		this.addEventListener('focusin', later);
-		window.visualViewport?.addEventListener('resize', later);
-		window.visualViewport?.addEventListener('scroll', later);
-		window.addEventListener('scroll', later, { passive: true });
 		/** @type {number | undefined} */
 		this.timer = undefined;
 		this.seq = 0;
@@ -176,32 +175,11 @@ export class SearchBox extends HTMLElement {
 		});
 		list.replaceChildren(...items);
 		const open = items.length > 0;
-		if (open !== this.hasAttribute('data-open')) this.redrawCaret();
 		list.hidden = !open;
 		this.toggleAttribute('data-open', open);
 		this.input?.setAttribute('aria-expanded', String(open));
 		if (open) this.fit();
 		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? tn('{n} suggestion', '{n} suggestions', items.length) : '';
-	}
-
-	/**
-	 * Draws the text cursor again where the field now is, a moment after the
-	 * last move. Only on touch screens and only while the field has focus;
-	 * never while a keyboard is composing a character (Myanmar input).
-	 * Writing the same text back is what makes iOS place the cursor anew;
-	 * the selection is then put back as it was.
-	 */
-	redrawCaret() {
-		if (!COARSE.matches) return;
-		clearTimeout(this.redrawTimer);
-		this.redrawTimer = window.setTimeout(() => {
-			const input = this.input;
-			if (!input || document.activeElement !== input || this.composing) return;
-			const { value, selectionStart, selectionEnd, selectionDirection } = input;
-			input.value = `${value} `;
-			input.value = value;
-			if (selectionStart !== null && selectionEnd !== null) input.setSelectionRange(selectionStart, selectionEnd, selectionDirection ?? undefined);
-		}, 250);
 	}
 
 	/** The list's height: what is left of the visible page below it, keyboard excluded. */

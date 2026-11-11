@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+73
+
+- Search bar does not stick while typing on touch screens, so the iOS cursor stays in the field; the redraw attempt removed
+
 ## 26.11.11+72
 
 - Search cursor redrawn after the page moves under the sticky field on touch screens
