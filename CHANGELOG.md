@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+84
+
+- Suggestions and Contributions keep their resize handle
+
 ## 26.11.11+83
 
 - List heads: filters and menu on one row, the search box on its own row in the same place everywhere; Inbox search; Contributions status menu

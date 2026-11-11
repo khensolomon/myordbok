@@ -190,7 +190,6 @@ export async function view(ctx) {
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
 	const listPane = h('section', { class: 'ws-list', 'aria-label': section === 'suggestions' ? t('Suggestions') : t('Contributions') });
 	root.append(rail, listPane, work, inspector, status.node);
-	resizable();
 
 	/** @type {Edit[]} */
 	let items = [];
@@ -315,6 +314,8 @@ export async function view(ctx) {
 		ol,
 		more,
 	);
+	// After the list's content is in place: replacing it would drop the handle.
+	resizable();
 
 	// The item named in the address, else the first; on a phone, the list first.
 	const wanted = Number(ctx.query.get('id'));
