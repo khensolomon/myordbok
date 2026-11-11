@@ -332,3 +332,12 @@ test('plain http goes to https before anything else, sign-in included; localhost
 	const local = await worker.fetch(new Request('http://localhost:8787/api/health'), e);
 	assert.notEqual(local.status, 308);
 });
+
+test('stats: the figures of the build the site reads, for anyone; null before any are kept', async () => {
+	const e = env();
+	assert.deepEqual((await call(e, '/api/stats')).body, { stats: null });
+	const side = { headwords: 19, senses: 24, examples: 13, forms: 12, synsets: 3, pronunciations: 5, awaiting: 1 };
+	e.raw.prepare("INSERT INTO build_stats (build, stats, created_at) VALUES ('sample', ?1, 2)").run(JSON.stringify({ build: 'sample', en: side, my: side }));
+	const { stats } = (await call(e, '/api/stats')).body;
+	assert.deepEqual(stats, { build: 'sample', en: { headwords: 19, senses: 24, examples: 13, forms: 12, synsets: 3 }, my: { headwords: 19, senses: 24, examples: 13, pronunciations: 5 } });
+});

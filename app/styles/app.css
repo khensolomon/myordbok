@@ -705,6 +705,52 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.related dd { margin-bottom: 10px; }
 }
 
+/* ---------------------------------------------------------- how to search (/definition with no word) */
+
+.guide { display: grid; gap: 34px; padding-top: 8px; }
+.guide-hero { display: grid; gap: 10px; }
+.guide-kicker { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--brand); }
+.guide-kicker :lang(my) { font-family: var(--font-my); }
+.guide-hero h1 { margin: 0; font-size: clamp(28px, 4.4vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; color: var(--ink); }
+.guide-lead { margin: 0; max-width: 640px; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.guide-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 14px; padding: 16px 0; border-block: 1px solid var(--line); }
+.guide-figures[hidden] { display: none; }
+.guide-figure { display: grid; gap: 2px; padding: 0 18px; }
+.guide-figure:first-child { padding-left: 0; }
+.guide-figure + .guide-figure { border-left: 1px solid var(--line-soft); }
+.guide-figure strong { font-size: clamp(22px, 3vw, 30px); font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.guide-figure span { font-size: 13px; color: var(--muted); }
+.guide-ways { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 600px) { .guide-ways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 960px) { .guide-ways { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* No keyboard, no keyboard tip. */
+@media (hover: none) and (pointer: coarse) { .guide-keys { display: none; } }
+.guide-way {
+	display: grid; align-content: start; gap: 8px; padding: 18px 20px;
+	border: 1px solid var(--line-soft); border-radius: 18px; background: var(--card);
+	box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 28px -18px rgb(16 24 40 / 0.18);
+}
+.guide-icon { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 11px; background: var(--term-tint); color: var(--brand); }
+.guide-way h2 { margin: 4px 0 0; font-size: 17px; font-weight: 650; color: var(--ink); }
+.guide-way p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.guide-tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px !important; }
+.guide-tries a {
+	display: inline-block; padding: 5px 12px; border: 1px solid var(--line-soft); border-radius: 999px;
+	background: var(--glass-fill); color: var(--ink); font-size: 14px; text-decoration: none;
+	transition: border-color 0.15s, color 0.15s;
+}
+.guide-tries a:hover { border-color: var(--ring); color: var(--brand); }
+.guide-tries a:lang(my) { font-family: var(--font-my); line-height: 1.5; }
+.guide-tips { display: grid; gap: 6px; padding-top: 18px; border-top: 1px solid var(--line-soft); font-size: 14px; color: var(--muted); }
+.guide-tips p { margin: 0; }
+.guide-tips kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--ground); font: 500 12px/18px var(--font-ui); color: var(--ink-2); text-align: center; }
+@media (max-width: 640px) {
+	.guide { gap: 26px; }
+	.guide-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
+	.guide-figure:nth-child(odd) { padding-left: 0; border-left: none; }
+	.guide-lead { font-size: 16px; }
+}
+
 /* ---------------------------------------------------------- answers, sentences, no result */
 
 /* Search box: an answer or a choice as the first rows, worked out locally. */

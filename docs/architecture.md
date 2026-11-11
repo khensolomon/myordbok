@@ -98,6 +98,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   meanings for get a section of their own. Synonyms, opposites and other
   related words close the timeline as one more section (`#synonyms`,
   `#opposite` stay as anchors).
+- **No word, a guide.** `/definition` with no word shows how to search, with
+  examples of each kind of query that open when tapped, and the dictionary
+  in figures from the statistics already kept per build (`/api/stats`, read
+  from `build_stats`, kept at the edge for an hour); the home page's logo
+  leads there.
 - **The home page shows recent and popular searches.** Recent searches stay
   on the device (`mo:recent`, `app/data/recent.js`, twelve at most, cleared
   there). "Searched most this week" is `/api/popular`: found words searched

@@ -467,3 +467,11 @@ export function saveNotice(notice, id) {
 export function deleteNotice(id) {
 	return postJSON(`/api/workspace/notices/${id}/delete`, {});
 }
+
+/**
+ * The dictionary in figures (the build the site reads), or null when none were kept.
+ * @returns {Promise<{ stats: null | { build: string, en: { headwords: number, senses: number, examples: number, forms: number, synsets: number }, my: { headwords: number, senses: number, examples: number, pronunciations: number } } }>}
+ */
+export function dictionaryStats() {
+	return getJSON('/api/stats');
+}

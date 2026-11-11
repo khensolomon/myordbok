@@ -26,6 +26,9 @@ if (!outlet) throw new Error('index.html is missing <main id="view">');
 const search = /** @type {import('./reader/search-box.js').SearchBox | null} */ (document.getElementById('search'));
 if (!search) throw new Error('index.html is missing <mo-search id="search">');
 
+const logo = document.querySelector('.bar-logo');
+if (!(logo instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-logo">');
+
 const navElement = document.querySelector('.site-nav');
 if (!(navElement instanceof HTMLElement)) throw new Error('index.html is missing <nav class="site-nav">');
 const nav = initNav(navElement);
@@ -33,6 +36,9 @@ const nav = initNav(navElement);
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
 	document.body.dataset.route = route?.name ?? 'missing';
+	// The logo leads home; on home itself, to how to search.
+	logo.href = route?.name === 'home' ? '/definition' : '/';
+	logo.setAttribute('aria-label', route?.name === 'home' ? t('How to search') : t('MyOrdbok home'));
 	// The bar shows the word being looked up, and is empty elsewhere.
 	search.setValue(route?.name === 'definition' ? (new URL(location.href).searchParams.get('q') ?? '') : '');
 	/** @type {HTMLAnchorElement | null} */

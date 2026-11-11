@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Definition page: /definition?q=word
+ * Definition page: /definition?q=word; with no word, how to search (guide.js).
  *
  * What was typed is read first, in the browser (shared/query): a number, a
  * sum, the time or the date is answered here (answer.js) without asking the
@@ -55,13 +55,13 @@ const NOT_LISTED = /** @type {Record<string, string>} */ ({
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export function title(ctx) {
-	return ctx.query.get('q') ?? t('Definition');
+	return ctx.query.get('q')?.trim() || t('How to search');
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
 	const q = (ctx.query.get('q') ?? '').trim();
-	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, t('Type a word to look it up.')));
+	if (!q) return (await import('./guide.js')).guide();
 	addRecent(q);
 	const asked = ctx.query.get('asked');
 	const at = ctx.query.get('w');

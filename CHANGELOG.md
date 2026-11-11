@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+69
+
+- The home page's logo opens how to search: /definition with no word shows each kind of query with examples to try, and the dictionary in figures
+
 ## 26.11.11+68
 
 - Phones: related words and forms a size larger, with more room between lines for tapping

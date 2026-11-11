@@ -22,6 +22,7 @@ import { workspace } from './routes/workspace.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
+import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 
 /**
@@ -107,6 +108,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'read') return read(url, env);
 		if (parts[0] === 'me') return me(request, env);
 		if (parts[0] === 'notices') return activeNotices(request, env, url);
+		if (parts[0] === 'stats') return publicStats(env);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);
 	}
