@@ -198,9 +198,8 @@ export async function membersPanes(ctx, root, ago) {
 		...listBar({
 			title: t('Members'),
 			count: head,
-			main: { title: t('Show'), current: filter === 'suspended' ? 'suspended' : filter ? 'level' : '', fallback: '', href: memberHref, choices: [{ value: '', label: t('All') }, { value: 'suspended', label: t('Suspended') }] },
+			groups: [{ title: t('Show'), current: filter, fallback: '', href: memberHref, choices: FILTERS.map(([f, label]) => ({ value: f, label: t(label) })) }],
 			search,
-			more: [{ title: t('Level'), current: filter === 'suspended' ? '' : filter, fallback: '', href: memberHref, choices: FILTERS.filter(([f]) => f !== 'suspended').map(([f, label]) => ({ value: f, label: t(label) })) }],
 			reset: memberHref(''),
 		}),
 		ol,

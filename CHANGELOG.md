@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+85
+
+- List filters fill the column's width, the rest under a menu that goes when all fit; search hints for each list
+
 ## 26.11.11+84
 
 - Suggestions and Contributions keep their resize handle

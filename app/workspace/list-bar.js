@@ -4,16 +4,15 @@
  * Comments, Inbox, Members), the same everywhere:
  *
  *   row 1   the title and a count
- *   row 2   the main filter as segments, and ⋯ at the end
+ *   row 2   the filters, each a group of segments, as many as the column's
+ *           width holds; the ones that do not fit go under ⋯ at the end
  *   row 3   the search box, across the column
  *
- * Every list has all three rows, so the search box sits in the same place
- * in each section.
- *
- * ⋯ opens the less used choices (period, language, sort, a status, a
- * level), grouped and ticked; a dot on it says one of them is not at its
- * default, and Reset puts them all back. Which filter stays on row 2 is
- * fixed per section, so nothing moves when the column is resized.
+ * The groups come in a fixed order of importance and fill the row in that
+ * order, whole, never split; widening the column brings the next ones out
+ * of ⋯, and with all of them out ⋯ goes. A dot on ⋯ says a group under it
+ * is not at its default; Reset puts them all back. Every list has all three
+ * rows, so the search box sits in the same place in each section.
  *
  * Also the column's width: on a desktop, the line between the list and the
  * work area is dragged (or moved with the arrow keys once focused) between
@@ -43,29 +42,49 @@ import { num, t } from '../i18n/index.js';
  * @param {{
  *   title: string,
  *   count: Node | string,
- *   main?: Group | null,
+ *   groups?: Group[],
  *   search?: HTMLInputElement | null,
- *   more?: Group[],
  *   reset?: string,
- * }} o  reset: the address with every choice under ⋯ at its default.
+ * }} o  groups: the filters, most important first. reset: the address with every filter at its default.
  */
 export function listBar(o) {
 	const head = h('header', { class: 'ws-list-head' }, h('h1', null, o.title), h('span', null, o.count));
-	const bar = h('div', { class: 'ws-filterbar' });
+	const groups = o.groups ?? [];
+	const inline = groups.map((g) =>
+		h(
+			'nav',
+			{ class: 'ws-segments', 'aria-label': g.title },
+			g.choices.map((c) => h('a', { href: g.href(c.value), 'aria-current': c.value === g.current ? 'true' : null }, c.label, c.count ? h('span', { class: 'ws-count' }, num(c.count)) : '')),
+		),
+	);
+	const wrap = h('div', { class: 'ws-more-wrap', hidden: true });
+	const bar = h('div', { class: 'ws-filterbar' }, inline, wrap);
 	const rows = [head, bar];
-	if (o.main) {
-		const g = o.main;
-		bar.append(
-			h(
-				'nav',
-				{ class: 'ws-segments', 'aria-label': g.title },
-				g.choices.map((c) => h('a', { href: g.href(c.value), 'aria-current': c.value === g.current ? 'true' : null }, c.label, c.count ? h('span', { class: 'ws-count' }, num(c.count)) : '')),
-			),
-		);
-	}
-	const more = o.more ?? [];
-	if (more.length) bar.append(moreMenu(more, o.reset ?? ''));
 	if (o.search) rows.push(h('label', { class: 'ws-search' }, icon(ICONS.search, 14), o.search));
+	if (!groups.length) return rows;
+
+	let shown = -1;
+	/** The first groups that fit stay in the row, the rest go under ⋯. */
+	const fit = () => {
+		if (!bar.isConnected || !bar.clientWidth) return;
+		inline.forEach((n) => (n.hidden = false));
+		wrap.hidden = true;
+		let n = groups.length;
+		if (bar.scrollWidth > bar.clientWidth) {
+			wrap.hidden = false;
+			while (n > 0 && bar.scrollWidth > bar.clientWidth) inline[--n].hidden = true;
+		}
+		if (n === shown) return;
+		shown = n;
+		wrap.replaceChildren(...(n < groups.length ? moreMenu(groups.slice(n), o.reset ?? '') : []));
+	};
+	// Each change of width fits the row again, once per frame.
+	let frame = 0;
+	const watch = new ResizeObserver(() => {
+		cancelAnimationFrame(frame);
+		frame = requestAnimationFrame(fit);
+	});
+	watch.observe(bar);
 	return rows;
 }
 
@@ -106,7 +125,6 @@ function moreMenu(groups, reset) {
 		),
 		changed && reset ? h('a', { class: 'ws-more-reset', href: reset }, t('Reset')) : '',
 	);
-	const wrap = h('div', { class: 'ws-more-wrap' }, button, panel);
 	const close = () => {
 		panel.hidden = true;
 		button.setAttribute('aria-expanded', 'false');
@@ -114,7 +132,7 @@ function moreMenu(groups, reset) {
 		document.removeEventListener('keydown', escape);
 	};
 	const outside = (/** @type {Event} */ e) => {
-		if (!wrap.contains(/** @type {Node} */ (e.target))) close();
+		if (!button.parentElement?.contains(/** @type {Node} */ (e.target))) close();
 	};
 	const escape = (/** @type {KeyboardEvent} */ e) => {
 		if (e.key !== 'Escape') return;
@@ -132,7 +150,7 @@ function moreMenu(groups, reset) {
 	panel.addEventListener('click', (e) => {
 		if (/** @type {HTMLElement} */ (e.target).closest('a')) close();
 	});
-	return wrap;
+	return [button, panel];
 }
 
 const WIDTH_KEY = 'mo:ws-list-width';

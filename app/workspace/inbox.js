@@ -69,8 +69,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 			...listBar({
 				title: t('Inbox'),
 				count: t('{n} unread', { n: counts.new }),
-				main: { title: t('Show'), current: filter, fallback: 'new', href, choices: [{ value: 'new', label: t('Unread'), count: counts.new }, { value: 'all', label: t('All') }] },
-				more: [{ title: t('Status'), current: filter, fallback: 'new', href, choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) }],
+				groups: [{ title: t('Status'), current: filter, fallback: 'new', href, choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) }],
 				reset: href('new'),
 				search,
 			}),

@@ -69,7 +69,7 @@ export async function searchesPanes(ctx, root, admin) {
 	const listPane = h('section', { class: 'ws-list', 'aria-label': t('Searches') });
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose a word from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
-	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Contains…'), 'aria-label': t('Find a word'), value: f.q }));
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Searched word contains…'), 'aria-label': t('Find a word'), value: f.q }));
 	const ol = h('ol', { class: 'ws-rows' });
 	const head = h('span');
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
@@ -210,14 +210,14 @@ export async function searchesPanes(ctx, root, admin) {
 		...listBar({
 			title: t('Searches'),
 			count: head,
-			main: { title: t('Show'), current: f.show, fallback: 'missed', href: (v) => href({ show: /** @type {Filter['show']} */ (v) }), choices: choices(SHOWS) },
-			search,
-			more: [
+			groups: [
+				{ title: t('Show'), current: f.show, fallback: 'missed', href: (v) => href({ show: /** @type {Filter['show']} */ (v) }), choices: choices(SHOWS) },
 				{ title: t('Period'), current: String(f.days), fallback: '30', href: (v) => href({ days: /** @type {Filter['days']} */ (Number(v)) }), choices: choices(PERIODS) },
-				{ title: t('Language'), current: f.lang, fallback: '', href: (v) => href({ lang: /** @type {Filter['lang']} */ (v) }), choices: choices(LANGS) },
 				{ title: t('Sort'), current: f.order, fallback: 'hits', href: (v) => href({ order: /** @type {Filter['order']} */ (v) }), choices: choices(ORDERS) },
+				{ title: t('Language'), current: f.lang, fallback: '', href: (v) => href({ lang: /** @type {Filter['lang']} */ (v) }), choices: choices(LANGS) },
 			],
-			reset: href({ days: 30, lang: '', order: 'hits' }),
+			search,
+			reset: href({ show: 'missed', days: 30, lang: '', order: 'hits' }),
 		}),
 		ol,
 		more,

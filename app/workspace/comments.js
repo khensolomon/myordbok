@@ -132,7 +132,8 @@ export async function commentsPanes(ctx, root, ago) {
 		...listBar({
 			title: t('Comments'),
 			count: head,
-			main: { title: t('Show'), current: f.show, fallback: 'visible', href: (s) => `/workspace?s=comments${s === 'visible' ? '' : `&show=${s}`}`, choices: SHOWS.map(([s, label]) => ({ value: s, label: t(label) })) },
+			groups: [{ title: t('Show'), current: f.show, fallback: 'visible', href: (s) => `/workspace?s=comments${s === 'visible' ? '' : `&show=${s}`}`, choices: SHOWS.map(([s, label]) => ({ value: s, label: t(label) })) }],
+			reset: '/workspace?s=comments',
 			search,
 		}),
 		ol,

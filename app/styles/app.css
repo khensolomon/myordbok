@@ -1336,9 +1336,12 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-actions .ws-danger { flex: none; }
 /* The list column's head (list-bar.js): one line of filters, the rest under ⋯. */
 .ws-filterbar { display: flex; align-items: center; gap: 6px; min-height: 30px; margin: 0 14px 8px; min-width: 0; }
-.ws-filterbar .ws-segments { flex: 0 1 auto; min-width: 0; margin: 0; overflow: hidden; }
+.ws-filterbar { overflow: hidden; }
+.ws-filterbar .ws-segments { flex: none; margin: 0; }
+.ws-filterbar .ws-segments[hidden] { display: none; }
 .ws-filterbar .ws-segments a { flex: none; padding-inline: 10px; }
-.ws-more-wrap { position: relative; flex: none; margin-left: auto; }
+.ws-more-wrap { position: relative; flex: none; width: 30px; margin-left: auto; }
+.ws-more-wrap[hidden] { display: none; }
 .ws-more-button { position: relative; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink-2); font: 700 16px/1 var(--font-ui); cursor: pointer; }
 .ws-more-button:hover, .ws-more-button[aria-expanded="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--line) 50%, var(--muted)); }
 .ws-more-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 2px var(--ground); }

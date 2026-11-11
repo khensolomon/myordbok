@@ -198,7 +198,7 @@ export async function view(ctx) {
 	let current = -1;
 	const ol = h('ol', { class: 'ws-rows' });
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
-	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Filter by word or member'), 'aria-label': t('Filter the list') }));
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: section === 'suggestions' ? t('Filter by word or member') : t('Filter by word'), 'aria-label': t('Filter the list') }));
 
 	/** @param {number} i */
 	const open = (i) => {
@@ -293,24 +293,13 @@ export async function view(ctx) {
 	const fallback = section === 'suggestions' ? 'pending' : 'all';
 	const statusHref = (/** @type {string} */ s) => `/workspace?s=${section}${s === fallback ? '' : `&status=${s}`}`;
 	listPane.replaceChildren(
-		...listBar(
-			section === 'suggestions'
-				? {
-						title: t('Suggestions'),
-						count,
-						main: { title: t('Show'), current: filter, fallback: 'pending', href: statusHref, choices: [{ value: 'pending', label: t('Waiting') }, { value: 'all', label: t('All') }] },
-						search,
-						more: [{ title: t('Status'), current: filter, fallback: 'pending', href: statusHref, choices: FILTERS.map(([s, label]) => ({ value: s, label: t(label) })) }],
-						reset: statusHref('pending'),
-					}
-				: {
-						title: t('Contributions'),
-						count,
-						search,
-						more: [{ title: t('Status'), current: filter, fallback: 'all', href: statusHref, choices: [...FILTERS.filter(([s]) => s !== 'all'), /** @type {const} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label) })) }],
-						reset: statusHref('all'),
-					},
-		),
+		...listBar({
+			title: section === 'suggestions' ? t('Suggestions') : t('Contributions'),
+			count,
+			groups: [{ title: t('Status'), current: filter, fallback, href: statusHref, choices: FILTERS.map(([s, label]) => ({ value: s, label: t(label) })) }],
+			search,
+			reset: statusHref(fallback),
+		}),
 		ol,
 		more,
 	);
