@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+61
+
+- Phones: smaller home logo and a taller search box; lighter outline and shadow on the search box, the header capsule and the person button
+
 ## 26.11.11+60
 
 - Person menu stays under its button when the page has a scrollbar
