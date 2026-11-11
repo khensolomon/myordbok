@@ -54,6 +54,15 @@ export async function overviewPane(me, health) {
  */
 const block = (title, ...body) => h('section', { class: 'ws-block' }, h('h2', { class: 'ws-block-title' }, title), ...body);
 
+/**
+ * A card's heading, with a link to the section holding the whole list when
+ * the role may open it (the Worker enforces it either way; this only spares
+ * a link that would end in "not allowed").
+ * @param {string} title
+ * @param {string | null} [more]  The section's address, or null.
+ */
+const cardHead = (title, more) => h('div', { class: 'ws-card-head' }, h('h2', null, title), more ? h('a', { class: 'ws-card-more', href: more }, t('See all'), h('span', { 'aria-hidden': 'true' }, ' →')) : '');
+
 /** @param {string} role */
 const roleName = (role) => (role === 'owner' ? t('Owner') : role === 'admin' ? t('Administrator') : role === 'editor' ? t('Editor') : t('Member'));
 
@@ -232,13 +241,17 @@ function searches(data, editor) {
 				),
 				chart(all),
 			),
-			h('div', { class: 'ws-side-col' }, words(t('Searched most'), searches.top, t('Nothing searched yet.')), words(t('Searched, not found'), searches.wanted, t('Every search found something.'))),
+			h(
+				'div',
+				{ class: 'ws-side-col' },
+				words(t('Searched most'), searches.top, t('Nothing searched yet.'), editor ? '/workspace?s=searches&show=found' : null),
+				words(t('Searched, not found'), searches.wanted, t('Every search found something.'), editor ? '/workspace?s=searches&show=missed' : null),
+			),
 		),
 		h(
 			'p',
 			{ class: 'ws-quiet ws-foot' },
 			t('Search counts keep the word, the day and whether it was found; nothing about who searched.'),
-			editor ? [' ', h('a', { href: '/workspace?s=searches' }, t('See every search'))] : '',
 		),
 	);
 }
@@ -288,9 +301,9 @@ function community(data) {
 		h(
 			'div',
 			{ class: 'ws-tiles' },
-			tile(t('Members'), c.members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : ''),
+			tile(t('Members'), c.members, data.members?.joinedWeek ? t('{n} joined this week', { n: data.members.joinedWeek }) : '', atLeast(data.role, 'admin') ? '/workspace?s=members' : undefined),
 			tile(t('Suggestions accepted'), c.accepted, c.merged ? t('{n} in the dictionary', { n: c.merged }) : ''),
-			tile(t('Ratings'), c.ratings, t('of entries and meanings')),
+			tile(t('Ratings'), c.ratings, t('of entries and meanings'), atLeast(data.role, 'editor') ? '/workspace?s=ratings&view=site' : undefined),
 		),
 	);
 }
@@ -344,7 +357,7 @@ function review(data) {
 		h(
 			'div',
 			{ class: 'ws-grid ws-grid-thirds' },
-			pairs(t('Suggestions'), [
+			pairs(t('Suggestions'), '/workspace?s=suggestions', [
 				[t('Waiting'), sug.pending ?? 0],
 				[t('Approved, not yet exported'), sug.approved ?? 0],
 				[t('Exported'), sug.exported ?? 0],
@@ -352,7 +365,7 @@ function review(data) {
 				[t('Declined'), sug.rejected ?? 0],
 				[t('Needs a look'), sug.conflict ?? 0],
 			]),
-			pairs(t('Members'), [
+			pairs(t('Members'), atLeast(data.role, 'admin') ? '/workspace?s=members' : null, [
 				[t('Administrators'), roles.admin ?? 0],
 				[t('Editors'), roles.editor ?? 0],
 				[t('Members'), roles.member ?? 0],
@@ -438,12 +451,13 @@ function niceMax(n) {
  * @param {string} title
  * @param {Array<{ lang: string, term: string, hits: number }>} list
  * @param {string} empty
+ * @param {string | null} [more]  The section with the whole list, for editors.
  */
-function words(title, list, empty) {
+function words(title, list, empty, more) {
 	return h(
 		'section',
 		{ class: 'ws-card' },
-		h('h2', null, title),
+		cardHead(title, more),
 		list.length
 			? h(
 					'ol',
@@ -459,7 +473,7 @@ function disliked(list) {
 	return h(
 		'section',
 		{ class: 'ws-card' },
-		h('h2', null, t('Meanings rated down most')),
+		cardHead(t('Meanings rated down most'), '/workspace?s=ratings&view=site'),
 		list.length
 			? h(
 					'ol',
@@ -479,10 +493,11 @@ function disliked(list) {
 
 /**
  * @param {string} title
+ * @param {string | null} more  The section with the whole list, when the role may open it.
  * @param {Array<[string, number]>} rows
  */
-function pairs(title, rows) {
-	return h('section', { class: 'ws-card' }, h('h2', null, title), h('dl', { class: 'ws-pairs' }, rows.flatMap(([k, v]) => [h('dt', null, k), h('dd', null, num(v))])));
+function pairs(title, more, rows) {
+	return h('section', { class: 'ws-card' }, cardHead(title, more), h('dl', { class: 'ws-pairs' }, rows.flatMap(([k, v]) => [h('dt', null, k), h('dd', null, num(v))])));
 }
 
 /**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+78
+
+- Overview links each list to its section, only for roles that may open it
+
 ## 26.11.11+77
 
 - Searches section for editors (every word, not found first, per word days, CSV); Ratings paged with filters and search
