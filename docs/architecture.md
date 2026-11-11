@@ -191,6 +191,18 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   workspace's Inbox, where a sender's address (if left) opens a reply in the
   admin's own mail. Spam: a field people never see drops the message when
   filled, plus the same-origin rule and the stricter rate limit.
+- **Site notices are scheduled, not posted.** Admins write them in the
+  workspace's Notices section (`notices` table, `worker/routes/notices.js`,
+  `shared/notices.js`): maintenance, information or a celebration, in English,
+  Myanmar or both, for everyone, members or editors, with a start and end and
+  an optional earlier date to announce it from; a yearly one repeats on the
+  same days (fixed dates only; lunar days are scheduled each year).
+  Maintenance and information show as a bar under the header on every page,
+  maintenance with its window in the reader's own time; a celebration
+  replaces the language line on the home page. `/api/notices` is kept at the
+  edge for five minutes; signed-in readers ask with `?for=me`, uncached, for
+  the notices of their level. A notice closed by a reader stays closed on that
+  device until it is edited.
 - **Searches are counted, not logged.** Each search page (`/api/read`)
   adds one to `search_counts` (day, language, word, found), after the answer
   is sent and including answers from the edge cache

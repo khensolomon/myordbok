@@ -409,3 +409,61 @@ export function changeMember(id, change) {
 export function popularWords() {
 	return getJSON('/api/popular');
 }
+
+/**
+ * @typedef {object} ActiveNotice
+ * @property {number} id
+ * @property {import('#shared/notices.js').NoticeKind} kind
+ * @property {string | null} text_en
+ * @property {string | null} text_my
+ * @property {string | null} link
+ * @property {number} starts  This occurrence's start, Unix seconds.
+ * @property {number} ends
+ * @property {number} version  Changes whenever the notice is edited.
+ */
+
+/**
+ * The site notices in effect now; with forMe, also those for the signed-in member's level.
+ * @param {boolean} forMe
+ * @returns {Promise<{ notices: ActiveNotice[] }>}
+ */
+export function activeNotices(forMe) {
+	return getJSON(forMe ? '/api/notices?for=me' : '/api/notices');
+}
+
+/**
+ * @typedef {object} Notice
+ * @property {number} id
+ * @property {import('#shared/notices.js').NoticeKind} kind
+ * @property {string | null} text_en
+ * @property {string | null} text_my
+ * @property {string | null} link
+ * @property {import('#shared/notices.js').Audience} audience
+ * @property {number | null} announce_at
+ * @property {number} starts_at
+ * @property {number} ends_at
+ * @property {0 | 1} yearly
+ * @property {number} updated_at
+ * @property {string | null} updated_by
+ * @property {import('#shared/notices.js').Showing | null} next  Showing now or next; null once over.
+ */
+
+/** Every notice, for admins. @returns {Promise<{ notices: Notice[], now: number }>} */
+export function workspaceNotices() {
+	return getJSON('/api/workspace/notices');
+}
+
+/**
+ * Keeps a notice: a new one without an id.
+ * @param {Omit<Notice, 'id' | 'updated_at' | 'updated_by' | 'next'>} notice
+ * @param {number} [id]
+ * @returns {Promise<{ ok: true, id: number }>}
+ */
+export function saveNotice(notice, id) {
+	return postJSON(id ? `/api/workspace/notices/${id}` : '/api/workspace/notices', notice);
+}
+
+/** @param {number} id */
+export function deleteNotice(id) {
+	return postJSON(`/api/workspace/notices/${id}/delete`, {});
+}

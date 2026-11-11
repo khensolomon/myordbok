@@ -11,6 +11,7 @@
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
  *   ?s=inbox         admins: messages from the contact form (inbox.js)
  *   ?s=members       admins and owners: levels and suspending (members.js)
+ *   ?s=notices       admins: site notices, scheduled ahead (notices.js)
  *   ?s=settings      admins: site settings (settings.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
@@ -38,10 +39,11 @@ import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
+import { noticesPane } from './notices.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
@@ -52,6 +54,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
 	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: true, admin: true },
 	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
+	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
 ]);
 
@@ -113,7 +116,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings' || asked === 'members') && admin ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : asked === 'suggestions' && editor ? 'suggestions' : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -141,6 +144,10 @@ export async function view(ctx) {
 	}
 	if (section === 'settings') {
 		root.append(rail, await settingsPane(), status.node);
+		return root;
+	}
+	if (section === 'notices') {
+		root.append(rail, await noticesPane(ctx, ago), status.node);
 		return root;
 	}
 	if (section === 'inbox') {

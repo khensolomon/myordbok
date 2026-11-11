@@ -11,6 +11,7 @@ import { member } from './core/member.js';
 import { initMenu } from './core/menu.js';
 import { followTheme } from './core/prefs.js';
 import { initNav } from './core/nav.js';
+import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
 import { savingData } from './data/api.js';
 import { keepWordLists } from './data/offline.js';
@@ -77,7 +78,14 @@ document.addEventListener('mo:member', (e) => {
 	} else you.innerHTML = blankFace;
 });
 // Whether someone is signed in; a failure leaves the button as it is.
-member().catch((err) => console.warn('Account check failed:', err));
+// Then the site notices: with a session, also those for members or editors.
+member()
+	.catch((err) => {
+		console.warn('Account check failed:', err);
+		return null;
+	})
+	.then((m) => showNotices(m !== null))
+	.catch((err) => console.warn('Site notices unavailable:', err));
 
 // The word lists are kept on the device once the page has settled (offline.js).
 const idle = /** @type {(f: () => void) => void} */ (window.requestIdleCallback ?? ((f) => setTimeout(f, 3000)));

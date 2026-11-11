@@ -285,3 +285,41 @@ test('popular: found words of the last week searched at least three times, nothi
 	assert.equal(res.status, 200);
 	assert.deepEqual(res.body.words, [{ lang: 'en', term: 'love' }, { lang: 'my', term: 'ချစ်' }]);
 });
+
+test('notices: admins schedule them; each visitor gets those in effect for them', async () => {
+	const e = env();
+	const now = Math.floor(Date.now() / 1000);
+	const notice = { kind: 'maintenance', text_en: 'Sign-in pauses for ten minutes', starts_at: now - 60, ends_at: now + 3600 };
+	assert.equal((await call(e, '/api/workspace/notices', { who: 'editor', body: notice })).status, 403, 'editors do not manage notices');
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
+	const made = (await call(e, '/api/workspace/notices', { who: 'editor', body: notice })).body;
+	assert.ok(made.id);
+	await call(e, '/api/workspace/notices', { who: 'editor', body: { ...notice, kind: 'info', text_en: 'For editors', audience: 'editor' } });
+	await call(e, '/api/workspace/notices', { who: 'editor', body: { ...notice, kind: 'celebration', text_en: 'Later', starts_at: now + 7200, ends_at: now + 9000 } });
+	assert.equal((await call(e, '/api/workspace/notices', { who: 'editor', body: { ...notice, ends_at: notice.starts_at } })).status, 400);
+
+	const open = (await call(e, '/api/notices')).body.notices;
+	assert.deepEqual(open.map((n) => n.text_en), ['Sign-in pauses for ten minutes'], 'visitors: in effect and for everyone');
+	assert.deepEqual((await call(e, '/api/notices?for=me', { who: 'member' })).body.notices.map((n) => n.text_en), ['Sign-in pauses for ten minutes']);
+	assert.deepEqual((await call(e, '/api/notices?for=me', { who: 'editor' })).body.notices.map((n) => n.text_en).sort(), ['For editors', 'Sign-in pauses for ten minutes']);
+
+	const all = (await call(e, '/api/workspace/notices', { who: 'editor' })).body.notices;
+	assert.equal(all.length, 3);
+	assert.equal(all.find((n) => n.id === made.id).updated_by, 'Ed');
+
+	assert.equal((await call(e, `/api/workspace/notices/${made.id}`, { who: 'editor', body: { ...notice, text_en: 'Changed' } })).status, 200);
+	assert.equal((await call(e, `/api/workspace/notices/${made.id}/delete`, { who: 'editor', method: 'POST' })).status, 200);
+	assert.equal((await call(e, `/api/workspace/notices/${made.id}/delete`, { who: 'editor', method: 'POST' })).status, 404);
+	assert.deepEqual((await call(e, '/api/notices')).body.notices, []);
+});
+
+test('notices: an announced maintenance shows before its window, with the window', async () => {
+	const e = env();
+	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2");
+	const now = Math.floor(Date.now() / 1000);
+	const body = { kind: 'maintenance', text_en: 'Sign-in pauses', announce_at: now - 60, starts_at: now + 86400, ends_at: now + 90000 };
+	assert.equal((await call(e, '/api/workspace/notices', { who: 'editor', body })).status, 200);
+	const [n] = (await call(e, '/api/notices')).body.notices;
+	assert.equal(n.starts, body.starts_at);
+	assert.equal(n.ends, body.ends_at);
+});

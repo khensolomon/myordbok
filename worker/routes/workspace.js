@@ -22,6 +22,8 @@
  *   GET  /api/workspace/settings, POST /api/workspace/settings  { key, value }   admins
  *   GET  /api/workspace/messages, POST /api/workspace/messages/{id}
  *                                             the Inbox, admins (routes/messages.js)
+ *   GET|POST /api/workspace/notices[/{id}[/delete]]
+ *                                             site notices, admins (routes/notices.js)
  *
  * Only a waiting suggestion can be reviewed or withdrawn; what happens after
  * approval (export, merge) is make edits-export and the next release.
@@ -33,6 +35,7 @@ import { json } from '../lib/http.js';
 import { currentMember, endSession } from '../lib/session.js';
 import { inbox } from './messages.js';
 import { members } from './members.js';
+import { manageNotices } from './notices.js';
 import { allSettings, setSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
@@ -70,6 +73,7 @@ export async function workspace(request, env, parts) {
 	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
 	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
 	if (what === 'members' && parts.length <= 3) return members(request, env, member, id);
+	if (what === 'notices' && parts.length <= 4) return manageNotices(request, env, member, id, action);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
@@ -394,6 +398,7 @@ async function deleteAccount(request, env, member) {
 		db.prepare('DELETE FROM messages WHERE user_id = ?1').bind(id),
 		db.prepare('UPDATE settings SET updated_by = 0 WHERE updated_by = ?1').bind(id),
 		db.prepare('UPDATE messages SET handled_by = 0 WHERE handled_by = ?1').bind(id),
+		db.prepare('UPDATE notices SET updated_by = 0 WHERE updated_by = ?1').bind(id),
 		db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM identities WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM users WHERE id = ?1').bind(id),

@@ -15,6 +15,7 @@ import { auth, me } from './routes/auth.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
 import { sendMessage } from './routes/messages.js';
+import { activeNotices } from './routes/notices.js';
 import { packs } from './routes/packs.js';
 import { popular } from './routes/popular.js';
 import { workspace } from './routes/workspace.js';
@@ -105,6 +106,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'phrase') return phrase(url, env);
 		if (parts[0] === 'read') return read(url, env);
 		if (parts[0] === 'me') return me(request, env);
+		if (parts[0] === 'notices') return activeNotices(request, env, url);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);
 	}

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+65
+
+- Site notices: admins schedule maintenance, information and celebration notices in the workspace; maintenance and information show as a bar on every page, a celebration on the home page
+
 ## 26.11.11+64
 
 - Workspace overview redesigned: cards across the whole width, a greeting, the search chart with this week's change beside the most searched words, and a layout that follows the work area's width
