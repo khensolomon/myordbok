@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+93
+
+- Settings cards look like the Overview's: the same background, corners and shadow
+
 ## 26.11.11+92
 
 - Settings use the full width, left aligned, cards in columns
