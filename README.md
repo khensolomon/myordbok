@@ -6,29 +6,29 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 ![License](https://img.shields.io/github/license/khensolomon/myordbok)
 ![Last commit](https://img.shields.io/github/last-commit/khensolomon/myordbok)
 
-- Works ⚡ instantly in your browser
-- Search across **200,000+ terms**
-- Built specifically for Myanmar language structure
+- Works ⚡ instantly in your browser, installable as an app (PWA)
+- Search across **200,000+ terms**, English → Myanmar and Myanmar → English
+- Built specifically for Myanmar language structure: Myanmar text written
+  without spaces is split into words
 - No account needed to read; analytics only with consent
 - Works offline once the dictionary is downloaded
-- **Smart search** with real-time suggestions
-- **Rich definitions** with grammar support
-- Integrated Myanmar font rendering
-- Built-in grammar lookup tools
+- Interface in English or Myanmar
 
 ## Features
 
-- Optimized for fast client-side rendering
-- Efficient indexing for large-scale dictionary search
-- Structured dataset (57,000+ words, 100,000+ definitions)
-- Designed for responsive web usage
-- Custom Myanmar font handling
-
 | Category        | Details                                                                 |
 |-----------------|-------------------------------------------------------------------------|
+| Definitions     | Meanings grouped by part of speech on a timeline, with each part's forms (`loves, loved, loving`) beside it, and synonyms and opposites |
+| Smart search    | Suggestions while typing, "did you mean", phrases (`king of Norway`) read from their words, sentences one word at a time |
+| Answers         | Numbers read in words both ways (`10000`, `၁၀၀၀၀`, `ten thousand`), sums (`x=3/4*12`, `10% of 70`), shares, the time and date, laid out like an entry with copy buttons |
+| Home            | Recent searches (kept on the device) and the words searched most this week |
+| Members         | Sign in with Google or GitHub to rate meanings, suggest corrections and new meanings, and download the definitions for offline use |
+| Workspace       | Overview and usage statistics, contributions, ratings, offline copy and account for every member; suggestion review for editors; members and the contact inbox for admins |
 | Grammar         | Instant Myanmar [grammar][grammar] lookup                               |
 | Fonts           | Integrated Myanmar [fonts][fonts] support                               |
 | Apps            | Available on the [App Store][appstore], [Google play][playStore].       |
+
+Keyboard: `/` or Ctrl+K (⌘K) goes to the search field.
 
 ```bash
 git clone https://github.com/khensolomon/myordbok.git
@@ -37,24 +37,41 @@ git clone https://github.com/khensolomon/myordbok.git
 ## Development
 
 A single-page HTML5 app (PWA) in plain JavaScript modules with JSDoc, served
-by a Cloudflare Worker with D1. No framework and no bundler; Node 22.13+ and
-wrangler are the only tools. Tauri desktop and mobile builds reuse the same
-code through platform adapters (see [docs/architecture.md](docs/architecture.md)).
+by a Cloudflare Worker with D1 and R2. No framework and no bundler; Node
+22.13+ and wrangler are the only tools. Tauri desktop and mobile builds reuse
+the same code through platform adapters (see
+[docs/architecture.md](docs/architecture.md)).
 
 ```bash
 make install              # wrangler only
 make db-reset             # local D1: app tables + a small made-up sample dictionary
 make api                  # worker + local D1 on :8787
 make dev                  # app on :8000, no build step, /api proxied to :8787
+make test                 # node:test, no dependencies
 ```
 
-`make` lists every command. Anything that changes Cloudflare or GitHub is a
-dry run unless `APPLY=1` is given. Deployment, branches and releases are
-described in [docs/deploy.md](docs/deploy.md).
+The dictionary itself is built in a separate, private repository; this one
+holds only a made-up sample in the same tables. A build reaches the sites in
+steps, each a dry run unless `APPLY=1` is given:
+
+```bash
+make data-publish FILE=…/myordbok.sql APPLY=1   # → myordbok-dataset, read by beta, with its statistics
+make data-packs   FILE=…/myordbok.sql APPLY=1   # offline packs → R2
+make data-promote FILE=…/myordbok.sql APPLY=1   # → myordbok-dictionary, read by production
+make db-migrate-remote APPLY=1                  # app database migrations on Cloudflare
+make grant EMAIL=… ROLE=member|editor|admin|owner APPLY=1   # LOCAL=1 for the local database
+```
+
+Every push to `dev` is tested and deployed to beta by GitHub Actions.
+`make release APPLY=1` fast-forwards `master` to `dev`; production is deployed
+with `make deploy-production APPLY=1` once it replaces the current site.
+Versions are `yy.mm.dd+N` (`make version NOTE="…" APPLY=1`). `make` lists
+every command; deployment, branches and releases are described in
+[docs/deploy.md](docs/deploy.md).
 
 ## Privacy & Security
 
-We value your privacy. Reading, searching and offline use need **no account**, so your search history stays with you. Signing in with Google or GitHub is optional and only used to like entries, suggest edits and comment. Google Analytics runs only after visitors allow it. For a detailed breakdown of how data is handled, see the [Privacy Policy](https://myordbok.com/privacy).
+We value your privacy. Reading, searching and offline use need **no account**, so your search history stays with you. Recent searches stay on the device; the server only counts how often each word is searched, never who searched it. Signing in with Google or GitHub is optional and used to rate meanings, suggest edits and download definitions for offline use. Google Analytics runs only after visitors allow it. For a detailed breakdown of how data is handled, see the [Privacy Policy](https://myordbok.com/privacy).
 
 ---
 

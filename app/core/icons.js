@@ -24,6 +24,9 @@ export const ICONS = Object.freeze({
 	settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/>',
 	download: '<path d="M12 4.5v10"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 19.5h14"/>',
 	members: '<circle cx="9" cy="9" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="16.5" cy="8" r="2.6"/><path d="M16 13.2a4.6 4.6 0 0 1 5 4.8"/>',
+	copy: '<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
+	check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+	clock: '<circle cx="12" cy="12" r="7.5"/><path d="M12 8v4.5l3 1.8"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 });

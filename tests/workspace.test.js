@@ -273,3 +273,15 @@ test('members: an owner gives any level, an admin only member and editor; the si
 	assert.equal((await call(e, '/api/workspace/members/2', { who: 'other', body: { role: 'admin' } })).body.member.role, 'admin', 'with two owners, one may step another down');
 	assert.equal((await call(e, '/api/workspace/members/3', { who: 'editor', body: { role: 'member' } })).status, 403, 'an admin cannot touch an owner');
 });
+
+test('popular: found words of the last week searched at least three times, nothing rarer', async () => {
+	const e = env();
+	const today = new Date().toISOString().slice(0, 10);
+	const old = new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10);
+	e.raw.exec(`INSERT INTO search_counts (day, lang, term, found, hits) VALUES
+		('${today}', 'en', 'love', 1, 5), ('${today}', 'en', 'rare', 1, 2), ('${today}', 'en', 'qwxzk', 0, 9),
+		('${old}', 'en', 'stale', 1, 50), ('${today}', 'my', 'ချစ်', 1, 3)`);
+	const res = await call(e, '/api/popular');
+	assert.equal(res.status, 200);
+	assert.deepEqual(res.body.words, [{ lang: 'en', term: 'love' }, { lang: 'my', term: 'ချစ်' }]);
+});

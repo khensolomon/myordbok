@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.11+59
+
+- Answers laid out like an entry, with copy buttons; forms within their part of speech and related words on the entry's timeline; the home page shows recent searches (kept on the device) and the words searched most this week; README brought up to date
+
 ## 26.11.10+58
 
 - Migration 0007 fixed: it failed with FOREIGN KEY constraint failed on any database with members; users and role_grants are now rebuilt from copies under their own names, which keeps every reference

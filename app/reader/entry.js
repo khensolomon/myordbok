@@ -36,6 +36,7 @@ import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { entryFeedback } from './contribute.js';
+import { addRecent } from '../data/recent.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -61,6 +62,7 @@ export function title(ctx) {
 export async function view(ctx) {
 	const q = (ctx.query.get('q') ?? '').trim();
 	if (!q) return h('section', { class: 'page' }, h('p', { class: 'notice' }, t('Type a word to look it up.')));
+	addRecent(q);
 	const asked = ctx.query.get('asked');
 	const at = ctx.query.get('w');
 
@@ -120,14 +122,14 @@ function offlineNote(result) {
  * and a word when the part asked about (#synonyms) is not in the entry.
  * @param {string} word
  * @param {string | null | undefined} asked
- * @param {HTMLElement | null} [rel]  The entry's related words, if any.
+ * @param {Set<string> | null} [present]  The parts a question can point to that the entry has (forms, synonyms, opposite).
  * @param {string[]} [notes]  How words were read ("danmark" read as "Denmark").
  */
-function understood(word, asked, rel, notes = []) {
+function understood(word, asked, present, notes = []) {
 	if (!asked && !notes.length) return null;
 	const focus = decodeURIComponent(location.hash.slice(1));
 	const name = Object.entries(FOCUS_ROWS).find(([, id]) => id === focus)?.[0];
-	const absent = name && !rel?.querySelector(`#${focus}`);
+	const absent = name && !present?.has(focus);
 	return h(
 		'p',
 		{ class: 'entry-note understood' },
@@ -156,9 +158,9 @@ async function english(data, asked) {
 	const roots = [...new Set(data.forms_of.map(([root]) => root))];
 	if (!data.entries.length && !roots.length) return null;
 
-	const rel = data.entries.length ? related(data) : null;
+	const extra = data.entries.length ? extras(data) : null;
 	/** @type {import('../core/dom.js').Child[]} */
-	const notes = [offlineNote(data), understood(data.query, asked, rel)];
+	const notes = [offlineNote(data), understood(data.query, asked, extra?.present ?? null)];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */
@@ -168,7 +170,8 @@ async function english(data, asked) {
 	const blocks = [];
 
 	if (data.entries.length) {
-		blocks.push(...bySpelling(data.entries).map(([word, senses], i) => wordBlock(word, senses, { first: i === 0 })), rel);
+		// Forms and related words belong to the word asked for: its first spelling's timeline.
+		blocks.push(...bySpelling(data.entries).map(([word, senses], i) => wordBlock(word, senses, { first: i === 0, extra: i === 0 ? extra : null })));
 	} else {
 		// Only a form of other words: the roots that have senses, each a headword of its own.
 		const withSenses = roots.filter((r) => (data.root_senses[r] ?? 0) > 0).slice(0, ROOTS_SHOWN);
@@ -179,8 +182,8 @@ async function english(data, asked) {
 		summary = `${t('“{word}” is the {form} of “{root}”.', { word: data.query, form: `${form}${pos ? ` (${pos})` : ''}`, root: rootWord })}${found.length === 1 ? ` ${lead(found[0].query, shown)}` : ''}`;
 		found.forEach((root, n) => {
 			if (root.language !== 'en') return;
-			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true })));
-			blocks.push(related(root));
+			const more = extras(root);
+			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true, extra: i === 0 ? more : null })));
 		});
 	}
 	// A form shows its root's senses, so feedback is about the root (went → go).
@@ -214,12 +217,13 @@ function bySpelling(senses) {
  * The first on a page is the page's h1.
  * @param {string} word
  * @param {import('#shared/types.js').EnglishSense[]} senses
- * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string }} [options]
+ * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string, extra?: Extras | null }} [options]
  *   link: the headword links to its own page; fit: the sense that fits a
- *   phrase, shown first and marked with fitLabel.
+ *   phrase, shown first and marked with fitLabel; extra: forms and related
+ *   words, placed on this word's timeline.
  */
 function wordBlock(word, senses, options = {}) {
-	const { first = false, link = false, fit = null, fitLabel = '' } = options;
+	const { first = false, link = false, fit = null, fitLabel = '', extra = null } = options;
 	const ordered = fit ? [fit, ...senses.filter((s) => s !== fit)] : senses;
 	const name = link ? h('a', { href: definitionHref(word) }, word) : word;
 	return h(
@@ -228,7 +232,7 @@ function wordBlock(word, senses, options = {}) {
 		h('header', { class: 'entry-head' },
 			h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'),
 			h(first ? 'h1' : 'h2', { class: 'headword' }, name)),
-		timeline(groupByType(ordered), 'my', word, fit, fitLabel),
+		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra),
 	);
 }
 
@@ -334,20 +338,43 @@ function groupByType(senses) {
  * @param {string} headword
  * @param {object | null} [fit]  The sense that fits a phrase, marked.
  * @param {string} [fitLabel]
+ * @param {Extras | null} [extra]  Forms (each in its part of speech) and related words (a section of their own).
  */
-function timeline(groups, glossLang, headword, fit = null, fitLabel = '') {
-	return h(
-		'div',
-		{ class: 'timeline' },
-		groups.map(([type, senses]) =>
-			h(
-				'section',
-				{ class: 'pos' },
-				h('h2', { class: 'pos-name' }, posName(type)),
-				h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
-			),
+function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra = null) {
+	/** Forms not yet placed, by part of speech in lower case. */
+	const forms = new Map(extra?.forms ?? []);
+	let formsId = 'forms';
+	/** @param {string} pos */
+	const formsLine = (pos) => {
+		const words = forms.get(pos.toLowerCase());
+		if (!words) return null;
+		forms.delete(pos.toLowerCase());
+		const id = formsId;
+		formsId = '';
+		return h('p', { class: 'pos-forms', id: id || null }, h('span', { class: 'pos-forms-name' }, t('Forms')), ' ', wordLinks(words));
+	};
+	const sections = groups.map(([type, senses]) =>
+		h(
+			'section',
+			{ class: 'pos' },
+			h('h2', { class: 'pos-name' }, posName(type)),
+			formsLine(type),
+			h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 		),
 	);
+	// Forms of a part of speech that has no meanings here (a noun's plural when only the verb is defined) get a section of their own.
+	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, h('h2', { class: 'pos-name' }, posName(pos)), formsLine(pos)));
+	if (extra?.related.length) {
+		sections.push(
+			h(
+				'section',
+				{ class: 'pos pos-related' },
+				h('h2', { class: 'pos-name' }, t('related words')),
+				h('ul', { class: 'related-list' }, extra.related.map(([name, words, id]) => h('li', { id: id ?? null }, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words' }, wordLinks(words))))),
+			),
+		);
+	}
+	return h('div', { class: 'timeline' }, sections);
 }
 
 /**
@@ -392,21 +419,27 @@ function wordLinks(words) {
 }
 
 /**
- * Forms and related words, as a compact list of rows.
- * @param {EnglishResult} data
+ * @typedef {object} Extras  Forms and related words of an entry, for its timeline.
+ * @property {Map<string, string[]>} forms  By part of speech, in lower case.
+ * @property {Array<[string, string[], string | undefined]>} related  Name, words, id a question can point to.
+ * @property {Set<string>} present  Which of forms, synonyms, opposite the entry has.
  */
-function related(data) {
-	/** @type {Array<[string, import('../core/dom.js').Child[]]>} */
-	const rows = [];
-	if (data.forms.length) {
-		/** @type {Map<string, string[]>} */
-		const byPos = new Map();
-		for (const [word, pos] of data.forms) {
-			const list = byPos.get(pos) ?? [];
-			if (!list.includes(word)) list.push(word);
-			byPos.set(pos, list);
-		}
-		rows.push([mark('Forms'), [...byPos].map(([pos, words]) => h('span', { class: 'forms' }, h('em', null, posName(pos)), ' ', wordLinks(words)))]);
+
+/**
+ * Forms by part of speech and related words, placed on the entry's timeline:
+ * each part of speech gets its own forms (noun loves; verb loves, loved,
+ * loving), and the related words a section of their own.
+ * @param {EnglishResult} data
+ * @returns {Extras}
+ */
+function extras(data) {
+	/** @type {Map<string, string[]>} */
+	const forms = new Map();
+	for (const [word, pos] of data.forms) {
+		const key = pos.toLowerCase();
+		const list = forms.get(key) ?? [];
+		if (!list.includes(word)) list.push(word);
+		forms.set(key, list);
 	}
 	/** @type {Array<[string, string[]]>} */
 	const lists = [
@@ -416,12 +449,14 @@ function related(data) {
 		[mark('Opposite'), data.opposite],
 		[mark('Related'), data.related],
 	];
-	for (const [name, words] of lists) if (words.length) rows.push([name, wordLinks(words)]);
 	// "similar word of love" points at #synonyms: Similar answers it when there are no synonyms.
 	/** @type {Record<string, string>} */
 	const ids = { ...FOCUS_ROWS, ...(data.synonyms.length ? {} : { Similar: 'synonyms' }) };
-	if (!rows.length) return null;
-	return h('dl', { class: 'related' }, rows.flatMap(([name, value]) => [h('dt', { id: ids[name] }, t(name)), h('dd', null, value)]));
+	/** @type {Array<[string, string[], string | undefined]>} */
+	const related = lists.filter(([, words]) => words.length).map(([name, words]) => [name, words, ids[name]]);
+	const present = new Set(related.map(([, , id]) => id).filter((id) => id !== undefined));
+	if (forms.size) present.add('forms');
+	return { forms, related, present: /** @type {Set<string>} */ (present) };
 }
 
 /**

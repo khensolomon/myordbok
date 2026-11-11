@@ -404,3 +404,8 @@ export function workspaceMember(id) {
 export function changeMember(id, change) {
 	return postJSON(`/api/workspace/members/${id}`, change);
 }
+
+/** The words searched most this week (found words only), for the home page. @returns {Promise<{ days: number, words: Array<{ lang: 'en' | 'my', term: string }> }>} */
+export function popularWords() {
+	return getJSON('/api/popular');
+}

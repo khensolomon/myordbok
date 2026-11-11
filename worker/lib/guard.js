@@ -35,7 +35,7 @@ const OPEN = new Set(['health', 'auth']);
 /** Routes that read many rows per request, and the contact form. */
 const HEAVY = new Set(['read', 'phrase', 'spelling', 'messages']);
 /** Routes whose answers depend only on the URL and the dictionary. */
-const CACHED = new Set(['lookup', 'suggest', 'read', 'phrase', 'spelling']);
+const CACHED = new Set(['lookup', 'suggest', 'read', 'phrase', 'spelling', 'popular']);
 
 /**
  * Refuses callers other than the app's own pages, and visitors over their

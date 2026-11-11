@@ -79,7 +79,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'Searches are sent to the MyOrdbok server only to find matching words. For each search page the server adds one to a count of that word for that day, noting whether the dictionary had it, so missing words can be added. Nothing about who searched is kept with it, and no search history is kept on the server. Suggestions while typing, numbers and sums are not counted.',
+				'Searches are sent to the MyOrdbok server only to find matching words. For each search page the server adds one to a count of that word for that day, noting whether the dictionary had it, so missing words can be added. Nothing about who searched is kept with it, and no search history is kept on the server. Suggestions while typing, numbers and sums are not counted. The home page lists words several different searches looked for in the past week, drawn from these counts alone.',
 			),
 			h(
 				'p',
@@ -93,6 +93,7 @@ export function view() {
 			h('p', null, 'Some data stays in the browser or app on the device and is never sent to MyOrdbok:'),
 			list(
 				'Settings such as theme, interface language and the analytics choice (local storage).',
+				'The last few searches, shown under the search box on the home page (local storage); “Clear” there removes them.',
 				'Dictionary data kept for offline use (IndexedDB): the word lists, which arrive by themselves after the first visit (about 0.6 MB, not when the browser saves data), and the definitions chosen on the Offline page.',
 			),
 			h('p', null, 'Clearing the site data in the browser, or removing the app, deletes all of it.'),

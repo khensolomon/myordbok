@@ -85,6 +85,25 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   comes from one request, `/api/read`; Myanmar text, written without spaces,
   is split into the dictionary's headwords. The full map is in
   [query.md](query.md).
+- **An answer reads like an entry.** Numbers, sums, shares and the time are
+  laid out on the same timeline as a definition (`app/reader/answer.js`): the
+  answer is the headword, and each section is named for what it answers
+  (number, sum, shares, time, date) where an entry names its part of speech.
+  Each line has a copy button. The side card goes below the answer at every
+  width, since there is nothing to rate or suggest; an entry keeps it in the
+  right column on wide screens.
+- **Forms and related words sit on the entry's timeline.** Forms are shown
+  inside the part of speech they belong to (the noun's forms under the noun,
+  the verb's under the verb); forms of a part of speech the entry has no
+  meanings for get a section of their own. Synonyms, opposites and other
+  related words close the timeline as one more section (`#synonyms`,
+  `#opposite` stay as anchors).
+- **The home page shows recent and popular searches.** Recent searches stay
+  on the device (`mo:recent`, `app/data/recent.js`, twelve at most, cleared
+  there). "Searched most this week" is `/api/popular`: found words searched
+  at least three times in the last seven days, from `search_counts` only,
+  kept at the edge for an hour; rarer words never show, so one person's
+  searches cannot appear.
 - **The API serves the app only.** On beta and production the Worker
   refuses requests that are not from its own pages (`Sec-Fetch-Site`),
   limits each visitor per minute, and answers repeated lookups from the edge
@@ -198,15 +217,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   hosts after the visitor allows it (`app/core/consent.js`); the choice
   stays on the device and can be changed on the privacy page.
 - **Deployment.** Beta and production are Wrangler environments bound to the
-  same three databases. See [deploy.md](deploy.md).
+  same three databases. Every push to `dev` is tested and deployed to beta by
+  GitHub Actions (`.github/workflows/deploy.yml`); production is deployed by
+  hand at cutover. See [deploy.md](deploy.md).
 
 ## Next
 
-1. Google and GitHub sign-in (OAuth with PKCE in the Worker, server-side
-   sessions), the You menu, member roles.
-2. Reactions, comments and suggestions; workspace review queue.
-3. Workspace: edit and review screens over `dict_edits`.
-4. Offline packs: the dataset build as a download, searched with the same
-   lookup code in the browser.
-5. Tauri adapters.
-6. Query: Zawgyi detection, multi-word headwords inside sentences.
+1. Tauri adapters.
+2. Query: Zawgyi detection, multi-word headwords inside sentences.
+3. Myanmar text for About, Privacy and Terms.
+4. Comments on entries.
+5. A simpler data release (one command from build to beta, one to production).
