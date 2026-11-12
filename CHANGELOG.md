@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+94
+
+- Offline copy sealed with a device key; definitions downloads held to a few a day per member; marker entries checker; terms
+
 ## 26.11.11+93
 
 - Settings cards look like the Overview's: the same background, corners and shadow

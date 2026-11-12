@@ -71,6 +71,12 @@ export function view() {
 				'copy, republish or sell the dictionary or a substantial part of it;',
 				'harvest it automatically: scraping, crawling the search, or sending requests in bulk;',
 				'share or republish the offline download; it is for reading on the device it was downloaded to.',
+				'extract the offline download from the device, decrypt it, or work around the limits on downloading it.',
+			),
+			h(
+				'p',
+				null,
+				'The dictionary contains entries and wordings that identify it. Finding them elsewhere is how copies are recognised.',
 			),
 			h(
 				'p',

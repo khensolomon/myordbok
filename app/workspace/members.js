@@ -107,6 +107,8 @@ export async function membersPanes(ctx, root, ago) {
 					h('dd', null, m.seen_at ? ago(m.seen_at) : '—'),
 					h('dt', null, t('Signed in on')),
 					h('dd', null, t('{n} devices', { n: m.sessions })),
+					h('dt', null, t('Offline downloads')),
+					h('dd', null, t('{today} today, {total} in all', { today: num(m.offline.today), total: num(m.offline.total) })),
 				),
 				h(
 					'div',

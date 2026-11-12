@@ -132,6 +132,7 @@ export function view() {
 				'The name, profile picture, account ID and email address that Google or GitHub provides. The email is kept only when the provider has verified it, and is used only to recognise the same person signing in with either provider. It is never used for advertising or newsletters, and never shared.',
 				'A sign-in session, kept in a cookie (__Host-mo_session) for up to 30 days, and during sign-in a short-lived cookie (__Host-mo_oauth) that protects the sign-in itself. Both are required for signing in and used for nothing else.',
 				'Likes, dislikes, comments and suggestions, linked to the account. Comments and accepted suggestions show the account name.',
+				'How many times the account downloaded the offline definitions, today and in all, to hold downloads to a few a day. Admins see these two numbers; nothing else about the downloads is kept.',
 			),
 			h(
 				'p',

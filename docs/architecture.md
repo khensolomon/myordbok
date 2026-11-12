@@ -202,6 +202,17 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   The filtered list downloads as CSV (formula-like cells defused). Ratings
   pages the same way, one kind at a time, the site's ranked not helpful
   first.
+- **The offline copy is sealed, and its download held to a few a day.**
+  Each definition answer is stored in IndexedDB encrypted with AES-GCM under
+  a key the browser makes on that device and keeps non-extractable
+  (`app/data/seal.js`, IndexedDB version 2 adds its `keys` store); storage
+  tools show random bytes, and only the site running there opens them. Word
+  lists stay plain (public through suggestions anyway); answers kept before
+  version 2 stay readable until the next download seals them. This stops a
+  glance, not the owner of the device, who can run the site's code: hence a
+  member downloads definitions at most `offline.daily` times a day
+  (`users.offline_today`, `offline_total`, shown in Members), and marker
+  entries in the data (`scripts/markers.js`) show a copy for what it is.
 - **Switches, not releases.** `settings` (key, JSON value) holds what admins
   start, stop or pause in the workspace (Settings), each read when used
   (`worker/lib/settings.js`): read-only mode (every write but signing in and

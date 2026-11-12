@@ -100,3 +100,19 @@ test('packs: a download is counted as new, or as an update when the app says it 
 	const counts = Object.fromEntries(e.raw.prepare('SELECT name, n FROM usage_counts').all().map((r) => [r.name, r.n]));
 	assert.deepEqual(counts, { 'download.words-en.new': 1, 'download.words-en.update': 1 });
 });
+
+test('packs: a member downloads the definitions offline.daily times a day; word lists are not counted', async () => {
+	const e = env();
+	e.raw.prepare("INSERT INTO settings (key, value) VALUES ('offline.daily', '2')").run();
+	assert.equal((await get(e, '/api/packs/senses-en', 'member')).status, 200);
+	assert.equal((await get(e, '/api/packs/related-en', 'member')).status, 200);
+	assert.equal((await get(e, '/api/packs/senses-my', 'member')).status, 429);
+	assert.equal((await get(e, '/api/packs/words-en', 'member')).status, 200, 'word lists are open');
+	assert.equal((await get(e, '/api/packs/senses-en', 'admin')).status, 200, 'per member');
+	const row = e.raw.prepare('SELECT offline_today, offline_total FROM users WHERE id = 1').get();
+	assert.deepEqual({ ...row }, { offline_today: 2, offline_total: 2 });
+	// Yesterday's count starts over.
+	e.raw.prepare("UPDATE users SET offline_day = '2000-01-01' WHERE id = 1").run();
+	assert.equal((await get(e, '/api/packs/senses-my', 'member')).status, 200);
+	assert.equal(e.raw.prepare('SELECT offline_total FROM users WHERE id = 1').get().offline_total, 3);
+});

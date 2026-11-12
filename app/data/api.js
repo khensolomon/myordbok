@@ -487,6 +487,7 @@ export function workspaceRatings(f, offset = 0) {
  * @property {import('#shared/roles.js').Role} role
  * @property {'active' | 'suspended'} status
  * @property {boolean} insights  Shown the site's statistics.
+ * @property {{ today: number, total: number }} offline  Downloads of the offline definitions.
  * @property {number} created_at
  * @property {number | null} seen_at
  * @property {Array<'google' | 'github'>} providers

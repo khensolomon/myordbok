@@ -40,6 +40,7 @@ export const SETTINGS = {
 		valid: (v) => typeof v === 'string' && /** @type {readonly string[]} */ (ACCESS).includes(v),
 		about: 'Who may download the offline definitions and related words: members or everyone. Word lists are open to all.',
 	},
+	'offline.daily': { fallback: 6, valid: whole(1, 100), about: 'Most downloads of the offline definitions one member makes in a day.' },
 	'offline.words_auto': { fallback: 'on', valid: onOff, about: 'Whether the word lists download by themselves after a first visit.' },
 };
 

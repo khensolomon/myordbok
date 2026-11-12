@@ -19,11 +19,12 @@
  * once a day, when online, a device keeping definitions reports which packs
  * it keeps and that tally. No words and nothing identifying the device.
  */
+import { newSealKey, seal, unseal } from './seal.js';
 import { getJSON, postJSON } from '#platform/http.js';
 import { AppError } from '#shared/errors.js';
 
 const DB_NAME = 'myordbok-offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 /** Stores of answers, by pack id; word lists go to "words", one record per language. */
 const ANSWER_STORES = /** @type {const} */ (['senses-en', 'senses-my', 'related-en']);
 const BATCH = 2000;
@@ -44,11 +45,16 @@ function open() {
 	opening = new Promise((resolve, reject) => {
 		if (typeof indexedDB === 'undefined') return reject(new AppError('unavailable', 'This browser cannot keep the dictionary on the device.'));
 		const req = indexedDB.open(DB_NAME, DB_VERSION);
-		req.onupgradeneeded = () => {
+		req.onupgradeneeded = (e) => {
 			const db = req.result;
-			db.createObjectStore('packs', { keyPath: 'id' });
-			db.createObjectStore('words', { keyPath: 'lang' });
-			for (const name of ANSWER_STORES) db.createObjectStore(name);
+			if (e.oldVersion < 1) {
+				db.createObjectStore('packs', { keyPath: 'id' });
+				db.createObjectStore('words', { keyPath: 'lang' });
+				for (const name of ANSWER_STORES) db.createObjectStore(name);
+			}
+			// Version 2: the key the answers are sealed with (seal.js). Answers kept
+			// before stay readable as they are, until the next download seals them.
+			if (e.oldVersion < 2) db.createObjectStore('keys');
 		};
 		req.onsuccess = () => resolve(req.result);
 		req.onerror = () => reject(req.error ?? new Error('IndexedDB could not be opened'));
@@ -56,6 +62,31 @@ function open() {
 	});
 	opening.catch(() => (opening = null));
 	return opening;
+}
+
+/** @type {Promise<CryptoKey> | null} */
+let sealing = null;
+
+/**
+ * This device's key for the offline answers, made on first use and kept in
+ * IndexedDB as a CryptoKey that cannot be exported (seal.js).
+ * @param {IDBDatabase} db
+ */
+function sealKey(db) {
+	if (!sealing) {
+		sealing = (async () => {
+			const kept = /** @type {CryptoKey | undefined} */ (await done(db.transaction('keys').objectStore('keys').get('answers')));
+			if (kept) return kept;
+			const made = await newSealKey();
+			const tx = db.transaction('keys', 'readwrite');
+			// add, not put: a key made at the same time in another tab is kept, not replaced.
+			tx.objectStore('keys').add(made, 'answers');
+			await finished(tx).catch(() => {});
+			return /** @type {CryptoKey} */ (await done(db.transaction('keys').objectStore('keys').get('answers')));
+		})();
+		sealing.catch(() => (sealing = null));
+	}
+	return sealing;
 }
 
 /**
@@ -161,12 +192,15 @@ export async function install(pack, build, onProgress) {
 	let rest = '';
 	/** @type {Array<[string, unknown]>} */
 	let batch = [];
+	const sealer = await sealKey(db);
 	const flush = async () => {
 		if (!batch.length) return;
+		// Sealed before the transaction opens: it must not wait on anything else.
+		const sealed = await Promise.all(batch.map(async ([key, value]) => /** @type {const} */ ([key, await seal(sealer, value)])));
+		batch = [];
 		const tx = db.transaction(store, 'readwrite');
 		const os = tx.objectStore(store);
-		for (const [key, value] of batch) os.put(value, key);
-		batch = [];
+		for (const [key, value] of sealed) os.put(value, key);
 		await finished(tx);
 	};
 	for (let part = await read(text); part !== null; part = await read(text)) {
@@ -301,11 +335,16 @@ export async function lookupOffline(q, options = {}) {
 	const senses = have.find((p) => p.id === `senses-${lang}`);
 	if (!senses) return null;
 	const key = lang === 'en' ? text.toLowerCase() : text;
-	const answer = await done(db.transaction(`senses-${lang}`).objectStore(`senses-${lang}`).get(key));
+	const key0 = await sealKey(db);
+	const open1 = (/** @type {unknown} */ v) =>
+		unseal(key0, v).catch(() => {
+			throw new AppError('internal', 'The offline copy on this device can no longer be read. Download it again on the Offline page.');
+		});
+	const answer = /** @type {any} */ (await open1(await done(db.transaction(`senses-${lang}`).objectStore(`senses-${lang}`).get(key))));
 	if (!answer) return null;
 	if (options.count !== false) tally(1);
 	if (lang === 'my') return /** @type {any} */ ({ query: text, language: 'my', ...answer, offline: true, build: senses.build });
-	const related = have.some((p) => p.id === 'related-en') ? await done(db.transaction('related-en').objectStore('related-en').get(key)) : null;
+	const related = have.some((p) => p.id === 'related-en') ? /** @type {any} */ (await open1(await done(db.transaction('related-en').objectStore('related-en').get(key)))) : null;
 	return /** @type {any} */ ({ query: text, language: 'en', ...answer, ...NO_RELATED, ...(related ?? {}), offline: true, build: senses.build });
 }
 

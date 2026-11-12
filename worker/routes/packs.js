@@ -6,7 +6,8 @@
  *   GET /api/packs        the build, who may download what, and each pack's
  *                         size and rows; per visitor, never cached
  *   GET /api/packs/{id}   one pack's gzip file; word lists for everyone, the
- *                         others by the offline.access setting
+ *                         others by the offline.access setting, and for a
+ *                         signed-in member at most offline.daily a day
  */
 import { AppError } from '../../shared/errors.js';
 import { buildKey, OPEN_KINDS, PACK_IDS } from '../../shared/packs.js';
@@ -42,6 +43,7 @@ export async function packs(request, env, parts) {
 	const pack = parts.length === 2 && PACK_IDS.includes(id) ? manifest.packs.find((p) => p.id === id) : undefined;
 	if (!pack) throw new AppError('not_found', `No offline pack ${parts.slice(1).join('/')}`);
 	if (!allowed(pack)) throw new AppError('unauthorized', 'Sign in to download the definitions for offline use.');
+	if (member && !OPEN_KINDS.includes(pack.kind)) await countDownload(env, member.id);
 	const object = await env.PACKS.get(`${buildKey(build)}/${pack.file}`);
 	if (!object) throw new AppError('unavailable', `The pack ${pack.id} of build ${build} is listed but missing from storage; upload the packs again (make data-packs).`);
 	return new Response(object.body, {
@@ -54,6 +56,25 @@ export async function packs(request, env, parts) {
 			'x-pack-sha256': pack.sha256,
 		},
 	});
+}
+
+/**
+ * A member's download of definitions, counted and held to offline.daily a
+ * UTC day: enough for a new build and a second device, not for copying
+ * over and over. Counted when the download starts.
+ * @param {Env} env
+ * @param {number} userId
+ */
+async function countDownload(env, userId) {
+	const limit = await getSetting(env, 'offline.daily');
+	const day = new Date().toISOString().slice(0, 10);
+	const row = await env.APP.prepare(
+		`UPDATE users SET offline_today = CASE WHEN offline_day = ?2 THEN offline_today + 1 ELSE 1 END, offline_day = ?2, offline_total = offline_total + 1
+		 WHERE id = ?1 AND (offline_day IS NOT ?2 OR offline_today < ?3) RETURNING offline_today`,
+	)
+		.bind(userId, day, limit)
+		.first();
+	if (!row) throw new AppError('rate_limited', `The offline definitions can be downloaded ${limit} times a day per account. Try again tomorrow.`);
 }
 
 /**

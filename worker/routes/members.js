@@ -54,7 +54,7 @@ async function list(request, env, actor) {
 	if (status && status !== 'active' && status !== 'suspended') throw new AppError('bad_request', 'status must be active or suspended');
 	const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 	const { results } = await env.APP.prepare(
-		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.created_at, u.seen_at,
+		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.offline_day, u.offline_today, u.offline_total, u.created_at, u.seen_at,
 		        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
 		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
 		 FROM users u
@@ -93,6 +93,7 @@ function shape(r, actor) {
 		role,
 		status: r.status,
 		insights: Number(r.insights ?? 0) === 1,
+		offline: { today: r.offline_day === new Date().toISOString().slice(0, 10) ? Number(r.offline_today) : 0, total: Number(r.offline_total ?? 0) },
 		created_at: Number(r.created_at),
 		seen_at: r.seen_at === null ? null : Number(r.seen_at),
 		providers: r.providers ? String(r.providers).split(',') : [],
@@ -111,7 +112,7 @@ async function one(env, actor, id) {
 	const db = env.APP;
 	const row = await db
 		.prepare(
-			`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.created_at, u.seen_at,
+			`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.offline_day, u.offline_today, u.offline_total, u.created_at, u.seen_at,
 			        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
 			        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
 			 FROM users u WHERE u.id = ?1 AND u.id > 0`,

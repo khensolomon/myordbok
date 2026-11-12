@@ -406,3 +406,23 @@ own requests.
 Still to come with sign-in: every route that writes requires the session
 cookie (HttpOnly, Secure, SameSite=Lax) and a matching `Origin` header. A
 native app (Tauri) will need its own way in, as it is not a same-origin page.
+
+## Marker entries
+
+A few entries or wordings that exist only in MyOrdbok make a copy of the
+dictionary recognisable. They belong to the private data build, never to
+this repository: add a handful of invented headwords, or unusual wordings in
+real definitions, to the data, and keep the list of them in a private file
+outside the repository (one per line; `#` starts a note). To check a
+suspected copy, a saved page or dump, or a page on the web:
+
+```bash
+node scripts/markers.js --markers ~/private/myordbok-markers.txt --file suspect.html
+node scripts/markers.js --markers ~/private/myordbok-markers.txt --url https://example.com/word/x
+```
+
+It prints the markers found and exits 3 when any is (0 when none). Keep the
+markers few, plausible and harmless to a reader who meets one, and do not
+change them between builds: a marker only proves something while it is in
+every copy.
+

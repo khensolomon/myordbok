@@ -96,6 +96,11 @@ const GROUPS = [
 					['everyone', mark('Everyone')],
 				],
 			},
+			'offline.daily': {
+				title: mark('Downloads a day'),
+				about: mark('How many times one member may download the offline definitions in a day: enough for a new build and a second device, not for copying over and over. Each member’s count shows in Members.'),
+				number: { min: 1, max: 100, unit: mark('a day') },
+			},
 			'offline.words_auto': { title: mark('Word lists by themselves'), about: mark('Whether the word lists (about 0.6 MB) download by themselves after a first visit, for suggestions offline.'), choices: ON_OFF },
 		},
 	],
