@@ -621,6 +621,12 @@ body[data-route="home"] .site-footer { display: none; }
 	box-sizing: border-box;
 }
 .gloss { margin: 0; font-size: 20px; }
+/* A meaning's wordings, each on its own line: the first beside the
+   meaning's ring, the others with a small one of their own. */
+.gloss-line { display: block; position: relative; }
+.gloss-line + .gloss-line { margin-top: 2px; }
+.gloss-line + .gloss-line::before { content: ""; position: absolute; left: -24px; top: 0.62em; width: 7px; height: 7px; border: 1.5px solid var(--ring); border-radius: 50%; box-sizing: border-box; opacity: 0.8; }
+.mk-note { font-style: italic; font-size: 0.86em; color: var(--muted); }
 /* Forms within their part of speech; related words as the timeline's last section. */
 .pos-forms { margin: 10px 0 0; font-size: 15px; color: var(--ink-2); }
 .pos-forms-name, .related-name { margin-right: 8px; font-size: 13px; color: var(--faint); }
@@ -803,7 +809,8 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.related-list { margin: 14px 16px 6px; gap: 14px; }
 	/* Related words are tapped more than read: a size up, and room between
 	   the lines so a finger finds the word it means. */
-	.related-list li { font-size: 17px; line-height: 1.75; gap: 2px; }
+	.related-list li { font-size: 19px; line-height: 1.8; gap: 2px; }
+	.related-words a { display: inline-block; padding: 1px 0; }
 	.related-list li::before { top: 0.7em; }
 	.related-name, .pos-forms-name { font-size: 13px; }
 	.pos-forms { font-size: 16px; line-height: 1.7; }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+95
+
+- A meaning's wordings on their own lines, split by semicolons; notes in round brackets set apart; related words larger on phones
+
 ## 26.11.12+94
 
 - Offline copy sealed with a device key; definitions downloads held to a few a day per member; marker entries checker; terms

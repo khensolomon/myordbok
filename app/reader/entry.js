@@ -399,7 +399,8 @@ function sense(s, glossLang, headword, fitLabel = '') {
 	return h(
 		'li',
 		{ class: fitLabel ? 'sense sense-fit' : 'sense', 'data-sense-id': 'id' in s && s.id !== undefined ? String(s.id) : null },
-		h('p', { class: 'gloss', lang: glossLang }, fits, kind, renderMarkup(s.sense ?? '', { headword })),
+		// One line for each of the meaning's wordings, as `;` parts them.
+		h('p', { class: 'gloss', lang: glossLang }, fits, kind, splitExamples(s.sense ?? '').map((part) => h('span', { class: 'gloss-line' }, renderMarkup(part, { headword })))),
 		s.example
 			? splitExamples(s.example).map((ex) => h('p', { class: 'example', lang: glossLang === 'my' ? 'en' : 'my' }, renderMarkup(ex, { headword })))
 			: null,

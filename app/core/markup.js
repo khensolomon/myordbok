@@ -28,6 +28,20 @@ function links(words) {
 }
 
 /**
+ * Plain text, with a note in round brackets, "(ie Very few people)", set
+ * apart as a quiet aside.
+ * @param {string} text
+ * @returns {Node}
+ */
+function notes(text) {
+	const parts = text.split(/(\([^()]+\))/);
+	if (parts.length === 1) return document.createTextNode(text);
+	const out = document.createDocumentFragment();
+	parts.forEach((p, i) => p && out.append(i % 2 ? h('span', { class: 'mk-note' }, p) : document.createTextNode(p)));
+	return out;
+}
+
+/**
  * @param {import('#shared/markup.js').Token[]} tokens
  * @param {MarkupOptions} opts
  * @returns {Node[]}
@@ -36,7 +50,7 @@ function render(tokens, opts) {
 	return tokens.map((tk) => {
 		switch (tk.t) {
 			case 'text':
-				return document.createTextNode(opts.headword === undefined ? tk.v : tk.v.replaceAll('~', opts.headword));
+				return notes(opts.headword === undefined ? tk.v : tk.v.replaceAll('~', opts.headword));
 			case 'link':
 				return h('span', { class: 'mk-link' }, links(tk.words));
 			case 'mark':
