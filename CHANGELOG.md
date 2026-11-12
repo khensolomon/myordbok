@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+101
+
+- Support page: Give to MyOrdbok and Other ways to help glide to their part of the page instead of relying on the browser's hash jump
+
 ## 26.11.12+100
 
 - Support: a Support page (/support) linked from the header with a heart, About moved to the footer with Contact; a quiet, dismissible line on the home page (Settings: support.ask); supporters and donations kept by the owner in the workspace (Sponsors), shown publicly only as totals and consenting names; the old sponsor files removed from the repository, with make sponsors-import to move them in once

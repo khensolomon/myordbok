@@ -36,8 +36,8 @@ export async function view() {
 				h(
 					'div',
 					{ class: 'support-actions' },
-					h('a', { class: 'support-primary', href: '#give' }, icon(ICONS.like, 16), t('Give to MyOrdbok')),
-					h('a', { class: 'support-secondary', href: '#help' }, t('Other ways to help')),
+					jump(h('a', { class: 'support-primary', href: '#give' }, icon(ICONS.like, 16), t('Give to MyOrdbok'))),
+					jump(h('a', { class: 'support-secondary', href: '#help' }, t('Other ways to help'))),
 				),
 			),
 			figures && figures.count ? since(figures) : null,
@@ -45,7 +45,7 @@ export async function view() {
 
 		h(
 			'section',
-			{ id: 'give', class: 'support-part' },
+			{ id: 'give', class: 'support-part', tabindex: -1 },
 			head(t('Give'), t('Once or every month, in any amount. You choose whether your name is shown below.')),
 			h(
 				'div',
@@ -57,7 +57,7 @@ export async function view() {
 
 		h(
 			'section',
-			{ id: 'help', class: 'support-part' },
+			{ id: 'help', class: 'support-part', tabindex: -1 },
 			head(t('Other ways to help'), t('Not everyone can give money. The dictionary grows just as much from these.')),
 			h(
 				'div',
@@ -71,6 +71,25 @@ export async function view() {
 
 		figures && figures.years.length ? thanks(figures.years) : null,
 	);
+}
+
+/**
+ * A link to a part of this page glides there, the address keeping the part
+ * (#give) without a new page load: left to the browser, some re-render the
+ * page on the hash change and land where they started.
+ * @param {HTMLAnchorElement} a
+ */
+function jump(a) {
+	a.addEventListener('click', (e) => {
+		const id = a.hash.slice(1);
+		const target = document.getElementById(id);
+		if (!target) return;
+		e.preventDefault();
+		history.replaceState(history.state, '', `#${id}`);
+		target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+		target.focus({ preventScroll: true });
+	});
+	return a;
 }
 
 /**
