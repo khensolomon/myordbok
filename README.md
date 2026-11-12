@@ -59,6 +59,7 @@ two commands, each a dry run unless `APPLY=1` is given (the steps they run,
 make data-beta FILE=…/myordbok.sql APPLY=1      # offline packs → R2, then → myordbok-dataset: beta previews it
 make data-live APPLY=1                          # the same build → myordbok-dictionary, read by production
 make db-migrate-remote APPLY=1                  # app database migrations on Cloudflare
+make restore TABLE=comments WHERE="id = 42"     # rows gone since the weekly backup; APPLY=1 to put them back
 make grant EMAIL=… ROLE=member|editor|admin|owner APPLY=1   # LOCAL=1 for the local database
 ```
 

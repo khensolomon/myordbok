@@ -20,13 +20,14 @@ app/                  client: plain ES modules, JSDoc types, no framework
   static/             logo, icon, app icons, Noto Sans Myanmar (400, 600)
   sw.js               service worker (web build only)
 worker/               Cloudflare Worker: /api routes, static assets
+backup/               Worker myordbok-backup: weekly backup of myordbok-app to R2 (deployed by hand)
 shared/               used by app and worker: errors, roles, validation, version, markup
   query/              reads what was typed: numbers, maths, time, questions
   search/             lookup code copied from the dataset (make dataset-sync)
 assets/db/
   migrations/         app database schema (wrangler migrations)
   seed.dev.sql        sample dictionary: real tables, made-up rows
-scripts/              build, dev server, version, data releases (Node stdlib only)
+scripts/              build, dev server, version, data releases, backups and restore (Node stdlib only)
 tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 ```
 
@@ -296,7 +297,5 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 1. Tauri adapters.
 2. Query: Zawgyi detection, multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.
-4. Backups of the app database (members, suggestions, ratings, comments,
-   messages) to storage outside Cloudflare's own 30-day restore.
-5. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
+4. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
    download link for the fonts.

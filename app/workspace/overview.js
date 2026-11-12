@@ -17,6 +17,7 @@ import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { workspaceOverview } from '../data/api.js';
 import { atLeast } from '#shared/roles.js';
+import { STALE_DAYS } from '#shared/backup.js';
 import { num, posName, shortDate, t } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').Overview} Overview */
@@ -44,7 +45,7 @@ export async function overviewPane(me, health) {
 		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
 		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, Boolean(data.insights)), dictionary(data, health, atLeast(me.role, 'admin')), community(data), data.insights ? offline(data.usage ?? []) : '', editor ? review(data) : '')));
+	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, Boolean(data.insights)), dictionary(data, health, atLeast(me.role, 'admin')), community(data), data.insights ? offline(data.usage ?? []) : '', editor ? review(data) : '', data.backup !== undefined ? backups(data.backup) : '')));
 	return main;
 }
 
@@ -372,6 +373,23 @@ function review(data) {
 			]),
 			disliked(data.disliked ?? []),
 		),
+	);
+}
+
+/**
+ * The newest backup of the app database, for admins: when it was made, and
+ * a warning once the weekly one is late.
+ * @param {NonNullable<Overview['backup']> | null} b
+ */
+function backups(b) {
+	if (b && 'error' in b) return block(t('Backups'), h('p', { class: 'ws-alert', role: 'alert' }, b.error));
+	if (!b) return block(t('Backups'), h('p', { class: 'ws-quiet' }, t('No backup of the app database yet. The weekly one runs on Sunday night; one now: make backup-now APPLY=1')));
+	const days = Math.floor((Date.now() - Date.parse(b.at)) / 86400000);
+	const when = days < 1 ? t('today') : days === 1 ? t('yesterday') : t('{n} days ago', { n: num(days) });
+	return block(
+		t('Backups'),
+		days > STALE_DAYS ? h('p', { class: 'ws-alert', role: 'alert' }, t('The weekly backup is late: the newest is {n} days old. Its runs are in Cloudflare under Workers → Workflows → myordbok-backup.', { n: num(days) })) : '',
+		h('p', { class: 'ws-quiet' }, t('The app database was last backed up {when}, {date}. Backups kept: {n}.', { when, date: shortDate(new Date(b.at), { year: true }), n: num(b.kept) })),
 	);
 }
 

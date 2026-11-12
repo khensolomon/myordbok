@@ -1,0 +1,37 @@
+# myordbok-backup: the weekly backup of myordbok-app (backup/worker.js).
+#
+# Deployed by hand, not by CI: make backup-deploy APPLY=1. It has no address
+# (workers_dev and preview_urls off, no routes); it runs from the cron below
+# or from make backup-now APPLY=1.
+#
+# Secrets, once (docs/deploy.md, Backups):
+#   npx wrangler secret put ACCOUNT_ID -c backup/wrangler.toml
+#   npx wrangler secret put D1_EXPORT_TOKEN -c backup/wrangler.toml
+
+name = "myordbok-backup"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = false
+preview_urls = false
+
+# myordbok-app, as in the app's wrangler.toml (an identifier, not a credential).
+[vars]
+DATABASE_ID = "ea406653-37b8-4a9d-bd00-a646660a20ad"
+
+# Sundays 20:17 UTC: 02:47 on Monday in Myanmar, the quietest hour of the
+# week for readers. The export makes the database briefly slower to answer.
+[triggers]
+crons = ["17 20 * * SUN"]
+
+[[workflows]]
+name = "myordbok-backup"
+binding = "BACKUP"
+class_name = "Backup"
+
+# The one private bucket with every MyOrdbok file; backups under backup/.
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "myordbok"
+
+[observability]
+enabled = true

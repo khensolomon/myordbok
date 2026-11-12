@@ -13,7 +13,8 @@ OUT      ?= exports
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-stats data-packs data-promote edits-export data-switch \
-        grant deploy-beta deploy-production logs-beta release clean
+        grant deploy-beta deploy-production logs-beta release clean \
+        backup-deploy backup-now backup-list backup-pull restore
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -119,6 +120,34 @@ grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|ad
 data-switch: ## Repairs only: point SITE=beta|production at TO=dataset|dictionary [APPLY=1]
 	@test -n "$(SITE)" -a -n "$(TO)" || { echo 'Give SITE=beta|production TO=dataset|dictionary'; exit 1; }
 	$(DATA) switch --env $(SITE) --to $(TO) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+## Backups of myordbok-app (docs/deploy.md, Backups; dry run unless APPLY=1)
+
+BACKUP_CFG := -c backup/wrangler.toml
+BACKUPS    := node --disable-warning=ExperimentalWarning scripts/backup.js
+
+backup-deploy: ## Deploy the weekly backup Worker myordbok-backup [APPLY=1]
+	$(WRANGLER) deploy $(BACKUP_CFG) $(if $(filter 1,$(APPLY)),,--dry-run)
+	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy.'
+
+backup-now: ## Back up myordbok-app now, besides the weekly one [APPLY=1]
+ifeq ($(APPLY),1)
+	$(WRANGLER) workflows trigger myordbok-backup $(BACKUP_CFG)
+	@echo 'Started; it takes a minute or two. Then: make backup-list'
+else
+	@echo 'Dry run. Add APPLY=1 to start a backup now.'
+endif
+
+backup-list: ## The backups kept, newest first (read-only) [LOCAL=1]
+	$(BACKUPS) list $(if $(LOCAL),--local)
+
+backup-pull: ## Copy a backup off Cloudflare: OUT=dir [BACKUP=name, else the newest]
+	@test -n "$(OUT)" || { echo 'Give OUT=dir, outside this repository'; exit 1; }
+	$(BACKUPS) pull --out "$(OUT)" $(if $(BACKUP),--backup "$(BACKUP)") $(if $(LOCAL),--local)
+
+restore: ## Put back rows that are gone: TABLE=… [WHERE="…"] [BACKUP=name|file.sql.gz] [SHOW=n] [APPLY=1] [LOCAL=1]
+	@test -n "$(TABLE)" || { echo 'Give TABLE=name, e.g. TABLE=comments WHERE="id = 42"'; exit 1; }
+	$(BACKUPS) restore --table "$(TABLE)" $(if $(WHERE),--where "$(WHERE)") $(if $(BACKUP),--backup "$(BACKUP)") $(if $(SHOW),--show $(SHOW)) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 ## Deploy (dry run unless APPLY=1)
 

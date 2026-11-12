@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+97
+
+- Weekly backups of the app database to R2 (Worker myordbok-backup, 12 weeks kept), row-by-row restore with make restore, copies off Cloudflare with make backup-pull, and the last backup on the admin Overview
+
 ## 26.11.12+96
 
 - Every MyOrdbok file in one private R2 bucket, myordbok; offline packs under offline/

@@ -41,8 +41,9 @@ import { manageNotices } from './notices.js';
 import { searches } from './searches.js';
 import { moderateComments } from './comments.js';
 import { allSettings, setSetting } from '../lib/settings.js';
+import { BACKUP_INDEX } from '../../shared/backup.js';
 
-/** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv} Env */
+/** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv & { STORAGE?: R2Bucket }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
 
 export const PAGE = 30;
@@ -258,18 +259,40 @@ async function overview(env, member) {
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
 	]);
-	// Unread messages: admins only, as the Inbox is theirs.
-	const unread = atLeast(member.role, 'admin') ? Number(/** @type {{ n: number }} */ (await db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n) : null;
+	// Unread messages and the backups: admins only.
+	const admin = atLeast(member.role, 'admin');
+	const [unread, backup] = admin ? await Promise.all([db.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first().then((r) => Number(/** @type {{ n: number }} */ (r).n)), lastBackup(env)]) : [null, null];
 	return json(
 		{
 			...base,
-			...(unread === null ? {} : { unread }),
+			...(admin ? { unread, backup } : {}),
 			suggestions: Object.fromEntries(edits.map((x) => [String(x.status), Number(x.n)])),
 			members: { roles: Object.fromEntries(members.map((x) => [String(x.role), Number(x.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
 			...statistics,
 		},
 		NO_STORE,
 	);
+}
+
+/**
+ * The newest backup of myordbok-app (backup/worker.js keeps the index), or
+ * null when none has been made. A bucket that cannot be read says so on the
+ * Overview instead of passing for "no backup", without taking the rest of
+ * the Overview down with it.
+ * @param {Env} env
+ * @returns {Promise<{ at: string, name: string, bytes: number, kept: number } | { error: string } | null>}
+ */
+async function lastBackup(env) {
+	if (!env.STORAGE) return { error: 'The R2 binding STORAGE is missing; it is declared in wrangler.toml for each environment.' };
+	try {
+		const object = await env.STORAGE.get(BACKUP_INDEX);
+		if (!object) return null;
+		const index = /** @type {import('../../shared/backup.js').BackupIndex} */ (await object.json());
+		const newest = index.backups[0];
+		return newest ? { at: newest.at, name: newest.name, bytes: newest.bytes, kept: index.backups.length } : null;
+	} catch (err) {
+		return { error: `The backup index could not be read: ${err instanceof Error ? err.message : err}` };
+	}
 }
 
 /** How long the figures every member sees are kept at the edge (seconds). */
