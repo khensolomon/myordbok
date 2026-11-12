@@ -18,6 +18,7 @@ import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
 import { requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
+import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 
 /** @typedef {{ APP: D1Database }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -48,6 +49,7 @@ export async function sendMessage(request, env) {
 	const body = typeof data.body === 'string' ? data.body.normalize('NFC').trim() : '';
 	if (!body) throw new AppError('bad_request', 'Write a message first.');
 	if (body.length > BODY_MAX) throw new AppError('bad_request', `The message is too long: at most ${BODY_MAX} characters.`);
+	refuseZawgyi(body, 'The message');
 	const replyTo = typeof data.reply_to === 'string' ? data.reply_to.trim() : '';
 	if (replyTo && (replyTo.length > 254 || !EMAIL.test(replyTo))) throw new AppError('bad_request', 'The email address does not look right.');
 	const page = typeof data.page === 'string' && data.page.startsWith('/') ? data.page.slice(0, 300) : null;

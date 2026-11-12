@@ -13,6 +13,7 @@
 import { h } from '../core/dom.js';
 import { member } from '../core/member.js';
 import { sendMessage, siteSwitches } from '../data/api.js';
+import { noZawgyi } from '../core/zawgyi.js';
 import { getLang, mark, t } from '../i18n/index.js';
 import { REPOSITORY } from '../core/config.js';
 
@@ -76,6 +77,7 @@ export async function view(ctx) {
 			body.focus();
 			return;
 		}
+		if (!(await noZawgyi([body], result))) return;
 		send.disabled = true;
 		result.textContent = t('Sending…');
 		try {

@@ -9,6 +9,7 @@
 import { h } from '../core/dom.js';
 import { deleteComment, entryComments, postComment } from '../data/api.js';
 import { num, shortDate, t } from '../i18n/index.js';
+import { noZawgyi } from '../core/zawgyi.js';
 
 /** @typedef {import('../data/api.js').EntryComment} EntryComment */
 
@@ -97,8 +98,9 @@ export function commentsSection(lang, word) {
 		const f = h('form', { class: 'comments-write' }, box, h('div', { class: 'comments-actions' }, left, send), out);
 		f.addEventListener('submit', async (e) => {
 			e.preventDefault();
-			send.disabled = true;
 			out.textContent = '';
+			if (!(await noZawgyi([box], out))) return;
+			send.disabled = true;
 			try {
 				const { comment } = await postComment(lang, word, box.value);
 				items = [comment, ...items];

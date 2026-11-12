@@ -4,11 +4,13 @@
  * Headwords that start with the query and have senses, for the search box.
  * Myanmar characters search MY→EN headwords, anything else EN→MY.
  * A range instead of LIKE, so the word index is used and the scan stops at
- * the limit.
+ * the limit. Myanmar that starts no headword and is surely Zawgyi is tried
+ * again in Unicode.
  */
 import { detectLang, normalizeQuery } from '../../shared/validate.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { unicodeIfZawgyi } from '../../shared/zawgyi/index.js';
 
 export const SUGGEST_LIMIT = 10;
 
@@ -31,7 +33,12 @@ export async function suggest(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const lang = detectLang(q);
 	const { dict, db } = await dictionary(env);
-	const words = await startingWith(db, q).catch((err) => {
+	const start = async () => {
+		const words = await startingWith(db, q);
+		const as = lang === 'my' && !words.length ? unicodeIfZawgyi(q) : null;
+		return as ? startingWith(db, as) : words;
+	};
+	const words = await start().catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
 	/** @type {import('../../shared/types.js').Suggestions} */

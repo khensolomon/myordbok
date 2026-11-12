@@ -18,6 +18,7 @@ import { atLeast } from '#shared/roles.js';
 import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
+import { noZawgyi } from '../core/zawgyi.js';
 
 /** @typedef {import('../data/api.js').OwnEdit} OwnEdit */
 /** @typedef {{ likes: number, dislikes: number, mine: number }} Counts */
@@ -211,8 +212,9 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 
 	/** @param {Array<Record<string, unknown>>} list */
 	const send = async (list) => {
-		for (const b of [save, remove]) b.disabled = true;
 		out.className = 'suggest-result';
+		if (!(await noZawgyi([meaning, example, reason], out))) return;
+		for (const b of [save, remove]) b.disabled = true;
 		out.textContent = t('Sending…');
 		try {
 			let status = '';
@@ -284,8 +286,9 @@ async function openAddMeaning(lang, word) {
 		showMine(data.mine);
 		meaning.addEventListener('input', () => (add.disabled = !meaning.value.trim()));
 		add.addEventListener('click', async () => {
-			add.disabled = true;
 			out.className = 'suggest-result';
+			if (!(await noZawgyi([meaning, example, reason], out))) return;
+			add.disabled = true;
 			out.textContent = t('Sending…');
 			try {
 				const { edit } = await suggestEdit({ lang, word, action: 'add', wrte: Number(type.value), sense: meaning.value, exam: example.value, note: reason.value });

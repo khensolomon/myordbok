@@ -95,12 +95,13 @@
 
 /**
  * What a query is, decided by the Worker in one request (/api/read).
- * @typedef {{ q: string, kind: 'entry', result: LookupResult }
+ * @typedef {({ q: string, kind: 'entry', result: LookupResult }
  *   | { q: string, kind: 'phrase', phrase: Phrase }
  *   | { q: string, kind: 'sentence', words: Array<{ text: string, known?: boolean }>, first: LookupResult | null }
- *   | { q: string, kind: 'none', close: string[], starts: string[] }} Reading
+ *   | { q: string, kind: 'none', close: string[], starts: string[] }) & { zawgyi?: { typed: string, as: string } }} Reading
  *   For a sentence, `known` is set for Myanmar words, which are found by
  *   splitting the text into headwords; false marks syllables no headword covers.
+ *   `zawgyi`: the query was typed in Zawgyi and read as `as`, its Unicode (q is `as`).
  */
 
 export {};

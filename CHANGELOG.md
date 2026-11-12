@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+98
+
+- Zawgyi: a Myanmar search typed in Zawgyi is read in Unicode (online, offline and in suggestions) and says so; comments, suggestions and messages offer the Unicode of Zawgyi text and the Worker refuses Zawgyi (Google's myanmar-tools detector and converter, Apache 2.0)
+
 ## 26.11.12+97
 
 - Weekly backups of the app database to R2 (Worker myordbok-backup, 12 weeks kept), row-by-row restore with make restore, copies off Cloudflare with make backup-pull, and the last backup on the admin Overview

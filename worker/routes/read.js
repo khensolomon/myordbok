@@ -11,7 +11,8 @@
  *   none      nothing: headwords one edit away and words starting the same way
  *
  * The browser has already answered numbers, sums and the time, and taken
- * any question off, before it asks this.
+ * any question off, before it asks this. A Myanmar query that finds no
+ * entry and looks like Zawgyi is read again in Unicode (shared/zawgyi).
  */
 import { d1Database, search } from '../../shared/search/search.mjs';
 import statements from '../../shared/search/statements.js';
@@ -23,6 +24,7 @@ import { json } from '../lib/http.js';
 import { readPhrase } from './phrase.js';
 import { closeWords } from './spelling.js';
 import { startingWith } from './suggest.js';
+import { zawgyiReading } from '../../shared/zawgyi/index.js';
 
 /** @typedef {import('../../shared/types.js').LookupResult} LookupResult */
 /** @typedef {import('../../shared/types.js').Reading} Reading */
@@ -61,11 +63,21 @@ function found(result) {
 }
 
 /**
+ * A query, read as typed, or in Unicode when it is Zawgyi.
  * @param {D1Database} db
  * @param {string} q  Normalised.
  * @returns {Promise<Reading>}
  */
-export async function readQuery(db, q) {
+export function readQuery(db, q) {
+	return zawgyiReading(q, (text) => readAsTyped(db, text));
+}
+
+/**
+ * @param {D1Database} db
+ * @param {string} q  Normalised.
+ * @returns {Promise<Reading>}
+ */
+async function readAsTyped(db, q) {
 	const look = (/** @type {string} */ text) => /** @type {Promise<LookupResult>} */ (search(d1Database(db), statements, text));
 	const lang = detectLang(q);
 

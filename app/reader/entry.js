@@ -6,7 +6,9 @@
  * sum, the time or the date is answered here (answer.js) without asking the
  * dictionary; a question around a word ("what is love") moves to the word's
  * own address, keeping the question (asked=) to say how it was read.
- * exact=1 skips the reading and looks up the text as typed.
+ * exact=1 skips the reading and looks up the text as typed. A query typed
+ * in Zawgyi that the dictionary reads in Unicode (shared/zawgyi) moves to the
+ * Unicode word's address, keeping what was typed (zawgyi=) to say so.
  *
  * Senses grouped by part of speech: an open timeline on wide screens and one
  * card per part of speech on phones (CSS decides, the markup is the same).
@@ -37,7 +39,7 @@ import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { entryFeedback } from './contribute.js';
 import { commentsSection } from './comments.js';
-import { addRecent } from '../data/recent.js';
+import { addRecent, removeRecent } from '../data/recent.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -66,8 +68,9 @@ export async function view(ctx) {
 	addRecent(q);
 	const asked = ctx.query.get('asked');
 	const at = ctx.query.get('w');
+	const zawgyi = ctx.query.get('zawgyi');
 
-	if (ctx.query.get('exact') !== '1' && !asked && at === null) {
+	if (ctx.query.get('exact') !== '1' && !asked && !zawgyi && at === null) {
 		const intent = classify(q);
 		if (intent.kind !== 'lookup') return (await import('./answer.js')).answer(intent, q);
 		if (intent.understood) {
@@ -78,15 +81,25 @@ export async function view(ctx) {
 
 	// One request decides what the query is (worker/routes/read.js); offline, the device (read-offline.js).
 	const reading = await read(q);
+	// Typed in Zawgyi: the address, the recent searches and the box get the Unicode.
+	if (reading.zawgyi && !zawgyi) {
+		removeRecent(q);
+		ctx.replace(`${definitionHref(reading.zawgyi.as)}&zawgyi=${encodeURIComponent(q)}`);
+		return h('div');
+	}
+	const said = zawgyi ? [t('Typed in Zawgyi, so searched in Unicode as “{word}”.', { word: q })] : [];
 	/** A phrase, a sentence or nothing read on the device says so, as an entry does. @param {Node} node */
 	const marked = (node) => {
 		const note = offlineNote(reading);
-		if (note && node instanceof HTMLElement) node.prepend(note);
+		if (node instanceof HTMLElement) {
+			if (said.length) node.prepend(h('p', { class: 'entry-note understood' }, said[0]));
+			if (note) node.prepend(note);
+		}
 		return node;
 	};
 	switch (reading.kind) {
 		case 'entry':
-			return (await result(reading.result, asked)) ?? missing(q, { close: [], starts: [] });
+			return (await result(reading.result, asked, said)) ?? missing(q, { close: [], starts: [] });
 		case 'phrase':
 			return marked(phraseView(reading.phrase, asked));
 		case 'sentence':
@@ -102,17 +115,18 @@ export async function view(ctx) {
  * The entry for a lookup, or null when the dictionary has nothing for it.
  * @param {import('#shared/types.js').LookupResult} data
  * @param {string | null} [asked]  The question it was read from.
+ * @param {string[]} [said]  How the query was read (typed in Zawgyi).
  */
-async function result(data, asked) {
+async function result(data, asked, said = []) {
 	if (data.language === 'my') {
 		if (!data.entries.length) return null;
 		const feedback = entryFeedback('my', data.query);
-		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), myanmarHead(data), understood(data.query, asked), timeline(groupByType(data.entries), 'en', data.query));
+		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), myanmarHead(data), understood(data.query, asked, null, said), timeline(groupByType(data.entries), 'en', data.query));
 		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
 		if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('my', data.query));
 		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries));
 	}
-	return english(data, asked);
+	return english(data, asked, said);
 }
 
 /**
@@ -161,14 +175,15 @@ function withAside(article, side) {
 /**
  * @param {EnglishResult} data
  * @param {string | null} [asked]
+ * @param {string[]} [said]
  */
-async function english(data, asked) {
+async function english(data, asked, said = []) {
 	const roots = [...new Set(data.forms_of.map(([root]) => root))];
 	if (!data.entries.length && !roots.length) return null;
 
 	const extra = data.entries.length ? extras(data) : null;
 	/** @type {import('../core/dom.js').Child[]} */
-	const notes = [offlineNote(data), understood(data.query, asked, extra?.present ?? null)];
+	const notes = [offlineNote(data), understood(data.query, asked, extra?.present ?? null, said)];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */

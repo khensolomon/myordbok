@@ -23,6 +23,7 @@ worker/               Cloudflare Worker: /api routes, static assets
 backup/               Worker myordbok-backup: weekly backup of myordbok-app to R2 (deployed by hand)
 shared/               used by app and worker: errors, roles, validation, version, markup
   query/              reads what was typed: numbers, maths, time, questions
+  zawgyi/             Google's Zawgyi detector and converter (Apache 2.0, its own LICENSE)
   search/             lookup code copied from the dataset (make dataset-sync)
 assets/db/
   migrations/         app database schema (wrangler migrations)
@@ -295,7 +296,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 ## Next
 
 1. Tauri adapters.
-2. Query: Zawgyi detection, multi-word headwords inside sentences.
+2. Query: multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.
 4. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
    download link for the fonts.

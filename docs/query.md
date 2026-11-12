@@ -94,6 +94,31 @@ Myanmar is written without spaces between words (`shared/query/segment.js`):
 On the real word list: ကျွန်တော်မြန်မာစာလေ့လာနေပါတယ် → ကျွန်တော် · မြန်မာ · စာ ·
 လေ့လာ · နေ · ပါ · တယ်; ကွန်ပျူတာနည်းပညာ → ကွန်ပျူတာ · နည်းပညာ.
 
+## Zawgyi
+
+Zawgyi is the font hack many Myanmar phones and keyboards still write in:
+the code points of Unicode Myanmar with other meanings and in another
+order. Zawgyi text looks right on a Zawgyi phone and is a different string
+to the dictionary, which is in Unicode. `shared/zawgyi/` holds Google's
+detector and converter (myanmar-tools 1.2.0, Apache 2.0, ported unchanged
+to plain JavaScript); the detector gives the probability that text is
+Zawgyi.
+
+- **Search.** A Myanmar query that finds no entry as typed is read again in
+  Unicode when the probability is 0.5 or more. That reading is kept when it
+  finds an entry, or whatever it finds when the probability is 0.95 or more
+  (surely Zawgyi). A query that finds an entry as typed is never converted:
+  one short word can be valid in both. The page moves to the Unicode word's
+  address (`&zawgyi=` keeps what was typed) and says "Typed in Zawgyi, so
+  searched in Unicode as …"; the search counts and recent searches get the
+  Unicode word. Suggestions while typing try the Unicode of a surely-Zawgyi
+  prefix that starts no headword. The copy on the device reads Zawgyi the
+  same way.
+- **Writing.** Comments, suggestions and messages are never kept in
+  Zawgyi. A form whose text is surely Zawgyi does not send it: it shows the
+  Unicode and a button that puts it in the field, to check and send again
+  (`app/core/zawgyi.js`). The Worker refuses surely-Zawgyi text as well.
+
 ## Display
 
 A headword is always a word as the dataset spells it, never the text
@@ -105,6 +130,5 @@ off, a spelling corrected) is one quiet line above the first headword.
 
 ## Not yet
 
-- Zawgyi text detected and converted.
 - Headwords of several words found inside a sentence ("look after").
 - More phrase patterns, each with its own tests before it is shown.

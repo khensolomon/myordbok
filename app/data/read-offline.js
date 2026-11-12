@@ -16,6 +16,7 @@ import { chunks, groupWords, syllables } from '#shared/query/segment.js';
 import { edits1, spellable } from '#shared/query/spelling.js';
 import { SENTENCE_WORDS, spacedWords } from '#shared/query/words.js';
 import { detectLang } from '#shared/validate.js';
+import { zawgyiReading } from '#shared/zawgyi/index.js';
 import { lookupOffline, sensesBuild, startingWith, tally, wordListOf } from './offline.js';
 
 /** @typedef {import('#shared/types.js').LookupResult} LookupResult */
@@ -120,6 +121,20 @@ async function readPhrase(q) {
  * @returns {Promise<(Reading & { offline: true, build: string }) | null>}
  */
 export async function readOffline(q) {
+	if (!(await sensesBuild(detectLang(q)))) return null;
+	// Zawgyi is read in Unicode here too (shared/zawgyi): the same script, so the same pack.
+	return zawgyiReading(q, async (text) => {
+		const reading = await readAsTyped(text);
+		if (!reading) throw new Error(`No senses on this device for ${text}`);
+		return reading;
+	});
+}
+
+/**
+ * @param {string} q
+ * @returns {Promise<(Reading & { offline: true, build: string }) | null>}
+ */
+async function readAsTyped(q) {
 	const lang = detectLang(q);
 	const build = await sensesBuild(lang);
 	if (!build) return null;

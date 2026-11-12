@@ -16,6 +16,7 @@ import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
 import { getSetting, getSettings } from '../lib/settings.js';
+import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 
 /** @typedef {import('./auth.js').AuthEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -117,7 +118,8 @@ async function post(request, env) {
 }
 
 /**
- * The text as kept: trimmed, at most one blank line in a row.
+ * The text as kept: trimmed, at most one blank line in a row, in Unicode
+ * (never Zawgyi).
  * @param {unknown} value
  */
 export function cleanBody(value) {
@@ -130,6 +132,7 @@ export function cleanBody(value) {
 		.trim();
 	if (body.length < 2) throw new AppError('bad_request', 'Write a little more.');
 	if (body.length > BODY_MAX) throw new AppError('bad_request', `A comment is at most ${BODY_MAX} characters.`);
+	refuseZawgyi(body, 'The comment');
 	return body;
 }
 

@@ -34,6 +34,7 @@ import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { getSetting, requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
+import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 
 /** Longest value a suggestion may carry, in characters. */
 export const MAX_VALUE = 600;
@@ -64,8 +65,11 @@ function headword(word) {
 	return w;
 }
 
+const LABEL = /** @type {Record<string, string>} */ ({ sense: 'The meaning', exam: 'The example', note: 'The reason' });
+
 /**
- * A value as it will travel to the dataset: one line, trimmed, bounded.
+ * A value as it will travel to the dataset: one line, trimmed, bounded, in
+ * Unicode (never Zawgyi).
  * @param {unknown} value
  * @param {string} name
  * @param {{ optional?: boolean }} [options]
@@ -76,6 +80,7 @@ function cleanValue(value, name, options = {}) {
 	const v = value.normalize('NFC').replace(/[\t\r\n]+/g, ' ').trim();
 	if (!v && !options.optional) throw new AppError('bad_request', `${name} cannot be empty`);
 	if (v.length > MAX_VALUE) throw new AppError('bad_request', `${name} is longer than ${MAX_VALUE} characters`);
+	refuseZawgyi(v, LABEL[name] ?? name);
 	return v || null;
 }
 

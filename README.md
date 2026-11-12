@@ -19,7 +19,7 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 | Category        | Details                                                                 |
 |-----------------|-------------------------------------------------------------------------|
 | Definitions     | Meanings grouped by part of speech on a timeline, with each part's forms (`loves, loved, loving`) beside it, and synonyms and opposites |
-| Smart search    | Suggestions while typing, "did you mean", phrases (`king of Norway`) read from their words, sentences one word at a time |
+| Smart search    | Suggestions while typing, "did you mean", phrases (`king of Norway`) read from their words, sentences one word at a time, Myanmar typed in Zawgyi read in Unicode |
 | Answers         | Numbers read in words both ways (`10000`, `၁၀၀၀၀`, `ten thousand`), sums (`x=3/4*12`, `10% of 70`), shares, the time and date, laid out like an entry with copy buttons |
 | Home            | Recent searches (kept on the device) and the words searched most this week |
 | Members         | Sign in with Google or GitHub to rate meanings, suggest corrections and new meanings, and download the definitions for offline use |
@@ -96,6 +96,8 @@ Contributions are welcome!
 ---
 
 *MyOrdbok — Empowering language learning for the Myanmar community.*
+
+The Zawgyi detector and converter in `shared/zawgyi/` are Google's [myanmar-tools](https://github.com/google/myanmar-tools), under the Apache License 2.0 (`shared/zawgyi/LICENSE`).
 
 [appStore]: https://apps.apple.com/us/app/myordbok/id1570959654
 [playStore]: https://play.google.com/store/apps/details?id=com.myordbok.app
