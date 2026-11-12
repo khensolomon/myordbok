@@ -21,3 +21,14 @@ export const ACCESS = Object.freeze(['members', 'everyone']);
 export function buildKey(built) {
 	return built.trim().replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-|-$/g, '');
 }
+
+/**
+ * Where a build's file lives in the bucket: every MyOrdbok file is in the
+ * one bucket "myordbok", the offline packs under offline/ (backups and the
+ * rest beside them in folders of their own).
+ * @param {string} built
+ * @param {string} name  A pack's file, or manifest.json.
+ */
+export function packKey(built, name) {
+	return `offline/${buildKey(built)}/${name}`;
+}

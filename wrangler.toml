@@ -88,11 +88,12 @@ binding = "DICTIONARY"
 database_name = "myordbok-dictionary"
 database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 
-# Offline packs, one folder per dictionary build (scripts/packs.js); one
-# bucket serves every site, each reading the folder of its own build.
+# Every MyOrdbok file, in one private bucket (never public): the offline
+# packs under offline/, one folder per dictionary build (scripts/packs.js);
+# one bucket serves every site, each reading the folder of its own build.
 [[r2_buckets]]
-binding = "PACKS"
-bucket_name = "myordbok-packs"
+binding = "STORAGE"
+bucket_name = "myordbok"
 
 # ---------------------------------------------------------------- beta
 
@@ -134,8 +135,8 @@ database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
 [[env.beta.r2_buckets]]
-binding = "PACKS"
-bucket_name = "myordbok-packs"
+binding = "STORAGE"
+bucket_name = "myordbok"
 
 # ---------------------------------------------------------------- production
 # Deploying this takes over the myordbok.com DNS record from the current
@@ -178,5 +179,5 @@ database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
 [[env.production.r2_buckets]]
-binding = "PACKS"
-bucket_name = "myordbok-packs"
+binding = "STORAGE"
+bucket_name = "myordbok"

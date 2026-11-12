@@ -5,7 +5,7 @@ import { gunzipSync } from 'node:zlib';
 import { buildPacks, manifestOf } from '../scripts/packs.js';
 import { search, sqliteDatabase } from '../shared/search/search.mjs';
 import statements from '../shared/search/statements.js';
-import { buildKey } from '../shared/packs.js';
+import { packKey } from '../shared/packs.js';
 import worker from '../worker/index.js';
 import { MIGRATION, SAMPLE, d1, sqlite } from './helpers/d1.js';
 
@@ -20,8 +20,8 @@ const lines = (id) => gunzipSync(/** @type {any} */ (built.files.find((f) => f.p
 
 /** An R2 bucket in memory, holding the sample's packs. */
 function bucket() {
-	const store = new Map(built.files.map(({ pack, data }) => [`${buildKey(built.built)}/${pack.file}`, data]));
-	store.set(`${buildKey(built.built)}/manifest.json`, Buffer.from(JSON.stringify(manifest)));
+	const store = new Map(built.files.map(({ pack, data }) => [packKey(built.built, pack.file), data]));
+	store.set(packKey(built.built, 'manifest.json'), Buffer.from(JSON.stringify(manifest)));
 	return {
 		async get(key) {
 			const data = store.get(key);
@@ -34,7 +34,7 @@ function env() {
 	const app = sqlite(MIGRATION);
 	app.exec(`INSERT INTO users (id, name, email, role) VALUES (1, 'Mya', 'm@example.com', 'member'), (2, 'Ad', 'a@example.com', 'admin');
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('member')}', 1, unixepoch() + 3600), ('${hash('admin')}', 2, unixepoch() + 3600);`);
-	return { raw: app, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), PACKS: bucket(), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary' };
+	return { raw: app, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), STORAGE: bucket(), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary' };
 }
 
 async function get(e, path, who) {
@@ -85,7 +85,7 @@ test('GET /api/packs: word lists for everyone; definitions for members until an 
 });
 
 test('GET /api/packs without packs for the build says so', async () => {
-	const e = { ...env(), PACKS: { get: async () => null } };
+	const e = { ...env(), STORAGE: { get: async () => null } };
 	const res = await get(e, '/api/packs');
 	assert.equal(res.status, 404);
 	assert.match((await res.json()).error.message, /No offline packs for build/);

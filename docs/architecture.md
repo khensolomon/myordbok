@@ -183,7 +183,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   member sees is kept at the edge for ten minutes.
 - **Offline packs come from the release, not from D1.** `make data-packs`
   (`scripts/packs.js`) runs the same lookup as the Worker over a build, word by
-  word, and writes gzip files to R2 under the build (`myordbok-packs/<build>/`):
+  word, and writes gzip files to R2 under the build (`myordbok/offline/<build>/`, the one private bucket for every MyOrdbok file):
   word lists (everyone), English and Myanmar senses, English related words
   (members, or everyone by the admin setting `offline.access`). The app keeps
   them in IndexedDB (`app/data/offline.js`): word lists by themselves once a

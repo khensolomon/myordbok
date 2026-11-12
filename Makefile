@@ -101,7 +101,7 @@ data-stats: ## A build's statistics → myordbok-app, for the workspace: FILE=�
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
 	$(DATA) stats --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-packs: ## Step: offline packs of a build → R2 myordbok-packs: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
+data-packs: ## Step: offline packs of a build → R2 myordbok/offline/: FILE=… [PACKS_OUT=dir] [APPLY=1] [LOCAL=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
 	node --no-warnings scripts/packs.js --file "$(FILE)" $(if $(PACKS_OUT),--out "$(PACKS_OUT)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 

@@ -19,7 +19,7 @@
  * lower case; every file is gzip. A manifest lists them with sizes, rows and
  * SHA-256. Files live in R2 under the build they come from:
  *
- *   myordbok-packs/<build key>/manifest.json, …/<pack>.<ext>.gz   (shared/packs.js buildKey)
+ *   myordbok/offline/<build key>/manifest.json, …/<pack>.<ext>.gz   (shared/packs.js packKey)
  *
  * so beta and production each find the packs of the build they read, and a
  * promotion needs no new upload.
@@ -39,10 +39,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { search, sqliteDatabase } from '../shared/search/search.mjs';
 import statements from '../shared/search/statements.js';
-import { buildKey, OPEN_KINDS } from '../shared/packs.js';
+import { buildKey, packKey, OPEN_KINDS } from '../shared/packs.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-export const BUCKET = 'myordbok-packs';
+export const BUCKET = 'myordbok';
 
 /**
  * @typedef {object} Pack
@@ -183,7 +183,7 @@ export async function makePacks(file, options = {}) {
 	say(`  total ${size(manifest.packs.reduce((a, p) => a + p.bytes, 0))}`);
 
 	if (!apply) {
-		say(`Dry run: nothing uploaded. Add --apply to upload to R2 ${BUCKET}/${key}/${local ? ' (local)' : ''}.`);
+		say(`Dry run: nothing uploaded. Add --apply to upload to R2 ${BUCKET}/${packKey(built, '')}${local ? ' (local)' : ''}.`);
 		return built;
 	}
 	const where = local ? '--local' : '--remote';
@@ -191,13 +191,13 @@ export async function makePacks(file, options = {}) {
 	for (const name of [...manifest.packs.map((p) => p.file), 'manifest.json']) {
 		const type = name.endsWith('.json') ? 'application/json' : 'application/gzip';
 		try {
-			execFileSync('npx', ['wrangler', 'r2', 'object', 'put', `${BUCKET}/${key}/${name}`, '--file', join(out, name), '--content-type', type, where], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+			execFileSync('npx', ['wrangler', 'r2', 'object', 'put', `${BUCKET}/${packKey(built, name)}`, '--file', join(out, name), '--content-type', type, where], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
 		} catch (err) {
 			const text = String(/** @type {any} */ (err).stderr ?? err);
 			const hint = /bucket.*(not exist|not found)/i.test(text) ? ` Create it once: npx wrangler r2 bucket create ${BUCKET}` : '';
 			throw new Error(`Uploading ${name} failed.${hint}\n${text.trim()}`);
 		}
-		say(`  uploaded ${key}/${name}`);
+		say(`  uploaded ${packKey(built, name)}`);
 	}
 	say(`Packs of build ${built} are in R2 ${BUCKET}${local ? ' (local)' : ''}. Sites reading this build offer them now.`);
 	return built;

@@ -10,14 +10,14 @@
  *                         signed-in member at most offline.daily a day
  */
 import { AppError } from '../../shared/errors.js';
-import { buildKey, OPEN_KINDS, PACK_IDS } from '../../shared/packs.js';
+import { packKey, OPEN_KINDS, PACK_IDS } from '../../shared/packs.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
 import { getSetting } from '../lib/settings.js';
 
 /**
- * @typedef {import('../lib/dict.js').DictEnv & { APP: D1Database, PACKS?: R2Bucket }} Env
+ * @typedef {import('../lib/dict.js').DictEnv & { APP: D1Database, STORAGE?: R2Bucket }} Env
  * @typedef {{ id: string, kind: string, lang: string, file: string, rows: number, bytes: number, sha256: string }} Pack
  */
 
@@ -27,7 +27,7 @@ import { getSetting } from '../lib/settings.js';
  * @param {string[]} parts
  */
 export async function packs(request, env, parts) {
-	if (!env.PACKS) throw new AppError('internal', 'The R2 binding PACKS is missing; it is declared in wrangler.toml for each environment.');
+	if (!env.STORAGE) throw new AppError('internal', 'The R2 binding STORAGE is missing; it is declared in wrangler.toml for each environment.');
 	const { build, manifest } = await currentManifest(env);
 	const [member, access, auto] = await Promise.all([currentMember(request, env), getSetting(env, 'offline.access'), getSetting(env, 'offline.words_auto')]);
 	/** @param {Pack} p */
@@ -44,7 +44,7 @@ export async function packs(request, env, parts) {
 	if (!pack) throw new AppError('not_found', `No offline pack ${parts.slice(1).join('/')}`);
 	if (!allowed(pack)) throw new AppError('unauthorized', 'Sign in to download the definitions for offline use.');
 	if (member && !OPEN_KINDS.includes(pack.kind)) await countDownload(env, member.id);
-	const object = await env.PACKS.get(`${buildKey(build)}/${pack.file}`);
+	const object = await env.STORAGE.get(packKey(build, pack.file));
 	if (!object) throw new AppError('unavailable', `The pack ${pack.id} of build ${build} is listed but missing from storage; upload the packs again (make data-packs).`);
 	return new Response(object.body, {
 		headers: {
@@ -93,9 +93,9 @@ async function currentManifest(env) {
 			})
 	);
 	if (!row) throw new AppError('unavailable', 'The dictionary has no build information.');
-	const object = await /** @type {R2Bucket} */ (env.PACKS).get(`${buildKey(row.value)}/manifest.json`);
+	const object = await /** @type {R2Bucket} */ (env.STORAGE).get(packKey(row.value, 'manifest.json'));
 	if (!object) throw new AppError('not_found', `No offline packs for build ${row.value} yet.`);
 	const manifest = /** @type {{ build: string, packs: Pack[] }} */ (await object.json());
-	if (manifest.build !== row.value) throw new AppError('internal', `The packs under ${buildKey(row.value)} say build ${manifest.build}.`);
+	if (manifest.build !== row.value) throw new AppError('internal', `The packs under ${packKey(row.value, '')} say build ${manifest.build}.`);
 	return { build: row.value, manifest };
 }

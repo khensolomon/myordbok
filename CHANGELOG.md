@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+96
+
+- Every MyOrdbok file in one private R2 bucket, myordbok; offline packs under offline/
+
 ## 26.11.12+95
 
 - A meaning's wordings on their own lines, split by semicolons; notes in round brackets set apart; related words larger on phones

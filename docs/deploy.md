@@ -143,7 +143,7 @@ uploads each build's packs; on their own (a promotion needs none; the packs
 are kept per build):
 
 ```bash
-npx wrangler r2 bucket create myordbok-packs          # once
+npx wrangler r2 bucket create myordbok               # once: every MyOrdbok file, private
 make data-packs FILE=…/build/myordbok.db              # dry run: builds and reports sizes
 make data-packs FILE=…/build/myordbok.db APPLY=1      # uploads to R2
 ```
