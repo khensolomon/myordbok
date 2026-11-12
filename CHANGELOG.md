@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+99
+
+- How a search was read (typed in Zawgyi, a question taken off) goes above the headword, and beside the entry on wide screens, so the language badge and the timeline stay joined; Myanmar headwords a little smaller
+
 ## 26.11.12+98
 
 - Zawgyi: a Myanmar search typed in Zawgyi is read in Unicode (online, offline and in suggestions) and says so; comments, suggestions and messages offer the Unicode of Zawgyi text and the Worker refuses Zawgyi (Google's myanmar-tools detector and converter, Apache 2.0)

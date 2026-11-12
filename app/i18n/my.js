@@ -682,6 +682,7 @@ export const MY = {
 	'Use the Unicode': 'ယူနီကုဒ်ကို သုံးရန်',
 	'Changed to Unicode. Check it, then send it again.': 'ယူနီကုဒ်သို့ ပြောင်းပြီးပါပြီ။ စစ်ဆေးပြီး ထပ်ပို့ပါ။',
 	'This looks like Zawgyi, which the dictionary cannot read. In Unicode it is:': 'ဤစာသည် ဇော်ဂျီ ဖြစ်ပုံရပြီး အဘိဓာန်က ဖတ်၍မရပါ။ ယူနီကုဒ်ဖြင့် −',
+	'Your search': 'သင်၏ ရှာဖွေမှု',
 	Backups: 'အရန်ကူးယူမှုများ',
 	'{n} days ago': 'လွန်ခဲ့သော {n} ရက်က',
 	'No backup of the app database yet. The weekly one runs on Sunday night; one now: make backup-now APPLY=1': 'အက်ပ်ဒေတာဘေ့စ်ကို အရန်မကူးရသေးပါ။ အပတ်စဉ်အရန်ကူးခြင်းသည် တနင်္ဂနွေညတွင် လုပ်ဆောင်သည်။ ယခုချက်ချင်း − make backup-now APPLY=1',

@@ -592,7 +592,7 @@ body[data-route="home"] .site-footer { display: none; }
 }
 .headword { margin: 0; font-size: clamp(34px, 6vw, 48px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
 /* Letter spacing splits Myanmar clusters; Myanmar headwords use the Myanmar font as is. */
-.entry[lang="my"] .headword { font-family: var(--font-my); letter-spacing: 0; line-height: 1.4; }
+.entry[lang="my"] .headword { font-family: var(--font-my); font-size: clamp(30px, 5vw, 40px); letter-spacing: 0; line-height: 1.4; }
 
 /* Wide screens: the open timeline from the current site. */
 .lang-badge { flex-shrink: 0; }
@@ -906,6 +906,13 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 
 /* "Showing love for what is love": above the headwords, quiet. */
 .understood { margin: 0 0 18px; font-size: 15px; }
+/* Wide screens: it is the first card beside the entry instead (.aside-read). */
+.aside-read { display: none; }
+.aside-read .understood { margin: 0; font-size: 14px; color: var(--ink-2); }
+@media (min-width: 1280px) {
+	.entry > .understood { display: none; }
+	.aside-read { display: block; }
+}
 .entry > .entry-note:not(.understood) { margin: 0 0 18px; }
 /* Each spelling found is a headword of its own (God, god). */
 .entry-block + .entry-block { margin-top: 28px; }

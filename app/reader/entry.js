@@ -121,10 +121,12 @@ async function result(data, asked, said = []) {
 	if (data.language === 'my') {
 		if (!data.entries.length) return null;
 		const feedback = entryFeedback('my', data.query);
-		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), myanmarHead(data), understood(data.query, asked, null, said), timeline(groupByType(data.entries), 'en', data.query));
+		// How the query was read goes above the headword, never between it and its timeline.
+		const read = understood(data.query, asked, null, said);
+		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), read, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
 		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
 		if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('my', data.query));
-		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries));
+		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries, read));
 	}
 	return english(data, asked, said);
 }
@@ -183,7 +185,8 @@ async function english(data, asked, said = []) {
 
 	const extra = data.entries.length ? extras(data) : null;
 	/** @type {import('../core/dom.js').Child[]} */
-	const notes = [offlineNote(data), understood(data.query, asked, extra?.present ?? null, said)];
+	const read = understood(data.query, asked, extra?.present ?? null, said);
+	const notes = [offlineNote(data), read];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	if (roots.length) notes.push(formNote(data));
 	/** Senses on the page, for the summary beside it. */
@@ -215,7 +218,7 @@ async function english(data, asked, said = []) {
 	const article = h('article', { class: 'entry', lang: 'en' }, notes, blocks);
 	feedback.wire(article, shown, 'my');
 	if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('en', word));
-	return withAside(article, aside(feedback, summary, shown));
+	return withAside(article, aside(feedback, summary, shown, read));
 }
 
 /**
@@ -276,14 +279,17 @@ function lead(word, senses) {
  * @param {ReturnType<typeof entryFeedback>} feedback
  * @param {string} summary
  * @param {Array<{ type: string, kind?: string }>} senses
+ * @param {HTMLElement | null} [read]  How the query was read (understood): on
+ *   wide screens it moves here, first; CSS shows one of the two places.
  */
-function aside(feedback, summary, senses) {
+function aside(feedback, summary, senses, read) {
 	const kinds = senses.map((s) => s.kind ?? 'Active');
 	const drafts = kinds.filter((k) => k === 'Draft').length;
 	const awaiting = kinds.filter((k) => /awaiting/i.test(k)).length;
 	return h(
 		'aside',
 		{ class: 'entry-aside', 'aria-label': t('About this result') },
+		read ? h('section', { class: 'aside-card aside-read' }, h('h2', null, t('Your search')), /** @type {HTMLElement} */ (read.cloneNode(true))) : null,
 		h(
 			'section',
 			{ class: 'aside-card' },
