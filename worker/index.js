@@ -12,6 +12,7 @@ import { countSearch } from './lib/counts.js';
 import { cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
+import { publicSupport } from './routes/support.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
 import { sendMessage } from './routes/messages.js';
@@ -71,9 +72,9 @@ async function health(env) {
  * @param {Env} env
  */
 async function siteSwitches(env) {
-	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open']);
+	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask']);
 	return json(
-		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on' },
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on' },
 		{ headers: { 'cache-control': 'public, max-age=60' } },
 	);
 }
@@ -141,6 +142,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'notices') return activeNotices(request, env, url);
 		if (parts[0] === 'stats') return publicStats(env);
 		if (parts[0] === 'site') return siteSwitches(env);
+		if (parts[0] === 'support') return publicSupport(env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);

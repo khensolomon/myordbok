@@ -85,6 +85,9 @@ main {
 .site-nav a:hover { text-decoration: none; color: var(--ink); }
 .site-nav a[aria-current="page"] { color: var(--ink); }
 .nav-icon { display: none; }
+/* Support: the heart shows on every screen, in the one warm colour. */
+.site-nav .nav-support { gap: 6px; }
+.site-nav .nav-support .nav-icon { display: block; width: 15px; height: 15px; color: var(--heart); }
 
 .nav-lens,
 .nav-hover {
@@ -201,6 +204,7 @@ main {
 	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--faint); }
 	.site-nav a[aria-current="page"] { color: var(--ink); }
 	.nav-icon { display: block; }
+	.site-nav .nav-support .nav-icon { width: 22px; height: 22px; }
 	.nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
@@ -409,6 +413,14 @@ body[data-route="home"] main#view { max-width: none; }
 .home-remove:hover { background: var(--glass-fill-hover); color: var(--ink); }
 .home-chips a, .home-chips a:lang(my) { line-height: 1.5; }
 .home-chips a:lang(my) { font-family: var(--font-my); }
+/* Support: one quiet line under the lists, hidden with its × for months (home.js). */
+.home-support { display: flex; align-items: center; gap: 10px; justify-self: center; max-width: 100%; margin-top: 18px; padding: 8px 6px 8px 16px; border: 1px solid var(--line-soft); border-radius: 999px; font-size: 14px; color: var(--ink-2); }
+.home-support[hidden] { display: none; }
+.home-support p { margin: 0; }
+.home-support a { font-weight: 600; }
+.home-support-icon { display: inline-flex; color: var(--heart); }
+.home-support-hide { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
+.home-support-hide:hover { background: var(--surface); color: var(--ink); }
 @media (max-width: 640px) {
 	body[data-route="home"] .search-bar { padding-top: 10vh; }
 }
@@ -1012,7 +1024,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 	font-size: 14px;
 	background: var(--ground);
 }
-.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"] { grid-template-columns: 52px minmax(0, 1fr); }
+.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: 52px minmax(0, 1fr); }
 .ws-status { grid-column: 1 / -1; }
 
 /* Rail: icons only, the current one marked by a line and colour. */
@@ -1507,6 +1519,18 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-notice-dot-maintenance { background: #c8711c; }
 .ws-notice-dot-info { background: var(--brand); }
 .ws-notice-dot-celebration { background: #b05bc4; }
+/* Sponsors (sponsors.js): the notices' list and form, with donations under the form. */
+.ws-sponsor-dot-shown { background: var(--heart); }
+.ws-sponsor-dot-hidden { background: var(--node); }
+.ws-donations { display: grid; gap: 18px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
+.ws-donations h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.ws-donation-recurring { align-self: end; min-height: 40px; align-items: center; }
+.ws-donation-recurring input { margin-top: 0; }
+.ws-donation-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ws-donation { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; font-variant-numeric: tabular-nums; }
+.ws-donation-day { width: 110px; flex: none; color: var(--ink-2); }
+.ws-donation strong { width: 90px; flex: none; font-weight: 600; }
+.ws-donation .ws-quiet { flex: 1; margin: 0; }
 .ws-notice-form { display: grid; gap: 14px; }
 .ws-notice-form h2 { margin: 0; }
 .ws-kinds { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1586,7 +1610,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
    site's person menu does. The page scrolls under them, behind a fading
    scrim. Then the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 	.ws { --ws-bar: calc(60px + env(safe-area-inset-top)); }
 	.ws-rail {
 		position: fixed; top: 0; left: 0; right: 0; z-index: 20;
@@ -1732,14 +1756,57 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	color: var(--muted); font-size: 13px; line-height: 1.4;
 }
 .about-figures strong { display: block; font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
-.about-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.about-button {
-	display: inline-flex; align-items: center; height: 40px; padding: 0 16px;
-	border: 0.5px solid var(--glass-edge); border-radius: 999px;
-	background: var(--glass-lens); color: var(--ink); font-weight: 500;
-	box-shadow: var(--glass-shine), var(--glass-lift);
-}
-.about-button:hover { text-decoration: none; filter: brightness(0.98); }
+
+/* ---------------------------------------------------------- support */
+
+/* Support (support.js): why, how to give, other ways to help, thanks. No
+   search bar; the heart is the one warm colour. */
+.support { max-width: 1040px; display: grid; gap: 56px; }
+.support h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.support-hero { display: grid; gap: 40px; align-items: center; }
+@media (min-width: 860px) { .support-hero { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } }
+.support-intro { display: grid; gap: 16px; }
+.support-kicker { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--heart); }
+.support-kicker:lang(my), :lang(my) .support-kicker { letter-spacing: 0; text-transform: none; }
+.support .support-intro h1 { margin: 0; font-size: clamp(30px, 4.5vw, 42px); line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+.support-lead { margin: 0; font-size: 17px; line-height: 1.65; color: var(--ink-2); }
+.support-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.support-primary, .support-secondary { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 999px; font-size: 15px; font-weight: 600; }
+.support-primary { background: var(--link); color: #fff; }
+.support-primary:hover { background: var(--link-hover); color: #fff; text-decoration: none; }
+.support-secondary { background: var(--surface); color: var(--ink); font-weight: 500; }
+.support-secondary:hover { background: var(--surface-hover); text-decoration: none; }
+.support-since { display: grid; gap: 18px; padding: 24px 26px; border: 1px solid var(--line); border-radius: 20px; }
+.support-since h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.support-since dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 0; }
+.support-since dl div { display: flex; flex-direction: column-reverse; gap: 2px; }
+.support-since dd { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.support-since dt { font-size: 14px; color: var(--muted); }
+.support-since p { margin: 0; padding-top: 16px; border-top: 1px solid var(--line-soft); font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.support-part { display: grid; gap: 18px; scroll-margin-top: 24px; }
+.support-head { display: grid; gap: 6px; }
+.support-head p { margin: 0; font-size: 15px; color: var(--muted); }
+.support-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.support-give { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); }
+.support-give:hover { border-color: var(--node); text-decoration: none; }
+.support-give strong { font-size: 17px; }
+.support-give span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.support-give .support-go { margin-top: auto; padding-top: 4px; font-weight: 600; color: var(--link); }
+.support-way { display: flex; gap: 14px; padding: 18px 20px; border: none; border-radius: 16px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; }
+a.support-way:hover, button.support-way:hover { background: var(--surface-hover); text-decoration: none; cursor: pointer; }
+.support-mark { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 11px; background: var(--term-tint); color: var(--link); font-weight: 700; }
+.support-way-text { display: grid; gap: 4px; align-content: start; }
+.support-way-text strong { font-size: 15px; }
+.support-way-text span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.support-years { border-top: 1px solid var(--line); }
+.support-year { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 28px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.support-year h3 { width: 56px; margin: 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.support-year ul { flex: 1; min-width: 220px; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.support-name { display: inline-flex; align-items: center; gap: 7px; padding: 5px 13px 5px 8px; border-radius: 999px; background: var(--surface); font-size: 14px; }
+.support-name img { width: 20px; height: 20px; border-radius: 999px; }
+.support-heart { display: inline-flex; width: 20px; justify-content: center; color: var(--heart); }
+.support-anonymous { padding: 5px 4px; font-size: 14px; color: var(--muted); }
+.support-note { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 
 /* ---------------------------------------------------------- grammar */
 

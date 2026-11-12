@@ -100,7 +100,7 @@ test('sign in, me, sign out', async () => {
 	assert.match(calls.find((c) => c.url.includes('oauth2.googleapis.com')).body, /code_verifier=/);
 
 	const member = await b.me();
-	assert.deepEqual({ ...member, id: undefined }, { id: undefined, name: 'Khen', email: 'khen@example.com', avatar_url: 'https://g/p.png', role: 'member', insights: 0, providers: ['google'] });
+	assert.deepEqual({ ...member, id: undefined }, { id: undefined, name: 'Khen', email: 'khen@example.com', avatar_url: 'https://g/p.png', role: 'member', insights: 0, providers: ['google'], supporter: false });
 	const stored = e.raw.prepare('SELECT id_hash FROM sessions').get().id_hash;
 	assert.notEqual(stored, b.jar.get('__Host-mo_session'), 'only the hash is stored');
 

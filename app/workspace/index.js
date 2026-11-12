@@ -15,6 +15,7 @@
  *   ?s=members       admins and owners: levels and suspending (members.js)
  *   ?s=notices       admins: site notices, scheduled ahead (notices.js)
  *   ?s=settings      admins: site settings (settings.js)
+ *   ?s=sponsors      the owner: supporters and their donations (sponsors.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
  *                    ?return=… goes there once signed in; ?error=… comes back
@@ -45,10 +46,11 @@ import { searchesPanes } from './searches.js';
 import { listBar, listResizer } from './list-bar.js';
 import { commentsPanes } from './comments.js';
 import { noticesPane } from './notices.js';
+import { sponsorsPane } from './sponsors.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
@@ -63,6 +65,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
 	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
+	{ id: 'sponsors', label: mark('Sponsors'), icon: ICONS.like, editor: true, admin: true, owner: true },
 ]);
 
 const FILTERS = /** @type {const} */ ([
@@ -124,7 +127,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -172,6 +175,10 @@ export async function view(ctx) {
 	}
 	if (section === 'notices') {
 		root.append(rail, await noticesPane(ctx, ago), status.node);
+		return root;
+	}
+	if (section === 'sponsors') {
+		root.append(rail, await sponsorsPane(ctx), status.node);
 		return root;
 	}
 	if (section === 'inbox') {
@@ -521,7 +528,7 @@ function progress(status) {
  * @param {{ waiting: number | null, unread?: number }} summary
  */
 function railFor(me, editor, section, summary) {
-	const sections = SECTIONS.filter((s) => ('stats' in s ? seesStatistics(me) : s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
+	const sections = SECTIONS.filter((s) => ('owner' in s ? atLeast(me.role, 'owner') : 'stats' in s ? seesStatistics(me) : s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
 	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? 0) : 0);
 	const badge = (/** @type {string} */ id, /** @type {number} */ count) => (id === 'suggestions' || id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': id, hidden: count ? null : true }, num(count)) : null);
 	const items = sections.map((s) => {

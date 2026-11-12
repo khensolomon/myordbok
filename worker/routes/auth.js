@@ -26,6 +26,7 @@ import { AppError } from '../../shared/errors.js';
 import { json } from '../lib/http.js';
 import { getSetting } from '../lib/settings.js';
 import { base64url, currentMember, endSession, randomToken, readCookie, setCookie, sha256, startSession } from '../lib/session.js';
+import { isSupporter } from './support.js';
 
 /**
  * @typedef {object} AuthEnv
@@ -117,7 +118,7 @@ export async function me(request, env) {
 	const member = await currentMember(request, env);
 	if (!member) return json({ member: null }, { headers: { 'cache-control': 'no-store' } });
 	const { results } = await env.APP.prepare('SELECT provider FROM identities WHERE user_id = ?1 ORDER BY created_at').bind(member.id).all();
-	return json({ member: { ...member, providers: results.map((r) => String(r.provider)) } }, { headers: { 'cache-control': 'no-store' } });
+	return json({ member: { ...member, providers: results.map((r) => String(r.provider)), supporter: await isSupporter(env, member.id) } }, { headers: { 'cache-control': 'no-store' } });
 }
 
 /**

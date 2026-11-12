@@ -12,9 +12,6 @@ import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { englishOnly, t } from '../i18n/index.js';
 
-const PAYPAL = 'https://www.paypal.com/donate/?hosted_button_id=C9PDG3T47WJ26';
-const SPONSORS = 'https://github.com/sponsors/khensolomon';
-
 export function title() {
 	return t('About');
 }
@@ -127,13 +124,8 @@ export async function view() {
 			h(
 				'p',
 				null,
-				'MyOrdbok is free, without advertising. Donations pay for the servers and for further development, and for nothing else.',
-			),
-			h(
-				'p',
-				{ class: 'about-actions' },
-				h('a', { class: 'about-button', href: PAYPAL, rel: 'noopener' }, 'Donate with PayPal'),
-				h('a', { class: 'about-button', href: SPONSORS, rel: 'noopener' }, 'Sponsor on GitHub'),
+				'MyOrdbok is free, without advertising, kept going by readers who give. Gifts pay for the servers and for further development, and for nothing else. ',
+				h('a', { href: '/support' }, 'Support MyOrdbok →'),
 			),
 		),
 

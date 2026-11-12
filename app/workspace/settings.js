@@ -86,6 +86,12 @@ const GROUPS = [
 		},
 	],
 	[
+		mark('Support'),
+		{
+			'support.ask': { title: mark('Invite readers to support'), about: mark('A quiet line on the home page that links to the Support page; each reader can hide it, and members who support MyOrdbok never see it. The Support page and its link stay either way.'), choices: ON_OFF },
+		},
+	],
+	[
 		mark('Offline'),
 		{
 			'offline.access': {

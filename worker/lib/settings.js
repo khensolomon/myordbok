@@ -41,6 +41,7 @@ export const SETTINGS = {
 		about: 'Who may download the offline definitions and related words: members or everyone. Word lists are open to all.',
 	},
 	'offline.daily': { fallback: 6, valid: whole(1, 100), about: 'Most downloads of the offline definitions one member makes in a day.' },
+	'support.ask': { fallback: 'on', valid: onOff, about: 'Whether pages invite readers to support MyOrdbok (a line on the home page). The Support page and its link stay either way; members who support it never see an invitation.' },
 	'offline.words_auto': { fallback: 'on', valid: onOff, about: 'Whether the word lists download by themselves after a first visit.' },
 };
 

@@ -4,12 +4,15 @@
  * body[data-route="home"]); below it, this device's recent searches and the
  * words searched most this week. Recent searches never leave the device;
  * the most searched come from /api/popular (found words only, each searched
- * by several people).
+ * by several people). Last, a quiet line inviting readers to support
+ * MyOrdbok, when Settings asks for it (support.ask), not for members who
+ * support it, and not on a device where it was hidden in the last months.
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
-import { popularWords } from '../data/api.js';
+import { popularWords, siteSwitches } from '../data/api.js';
+import { member } from '../core/member.js';
 import { clearRecent, recentSearches, removeRecent } from '../data/recent.js';
 import { t } from '../i18n/index.js';
 
@@ -25,7 +28,42 @@ export function view() {
 			most.replaceWith(group(t('Searched most this week'), p.words.map((w) => w.term), false));
 		})
 		.catch(() => {});
-	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, mine, most);
+	const ask = h('div', { class: 'home-support', hidden: true });
+	supportLine(ask);
+	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, mine, most, ask);
+}
+
+const HIDDEN_KEY = 'mo:support-hidden';
+/** Hidden on this device for about four months. */
+const HIDDEN_MS = 120 * 86400000;
+
+/**
+ * Shows the line in `box` when it should be.
+ * @param {HTMLElement} box
+ */
+async function supportLine(box) {
+	try {
+		if (Number(localStorage.getItem(HIDDEN_KEY)) > Date.now()) return;
+	} catch {
+		// storage blocked: shown, and hiding lasts this visit
+	}
+	const [site, me] = await Promise.all([siteSwitches(), member().catch(() => null)]);
+	if (!site.support_ask || me?.supporter) return;
+	const hide = h('button', { type: 'button', class: 'home-support-hide', 'aria-label': t('Hide for now'), title: t('Hide for now') }, icon(ICONS.close, 14));
+	hide.addEventListener('click', () => {
+		try {
+			localStorage.setItem(HIDDEN_KEY, String(Date.now() + HIDDEN_MS));
+		} catch {
+			// storage blocked: hidden for this visit
+		}
+		box.remove();
+	});
+	box.replaceChildren(
+		h('span', { class: 'home-support-icon', 'aria-hidden': 'true' }, icon(ICONS.like, 16)),
+		h('p', null, t('Free since 2010, kept going by readers.'), ' ', h('a', { href: '/support' }, t('Support MyOrdbok'))),
+		hide,
+	);
+	box.hidden = false;
 }
 
 /**

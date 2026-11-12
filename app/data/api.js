@@ -374,7 +374,7 @@ export function moderateComment(id, status) {
 
 /**
  * The switches pages follow (worker/lib/settings.js), the same for everyone.
- * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean }>}
+ * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean }>}
  */
 export function siteSwitches() {
 	return getJSON('/api/site');
@@ -594,4 +594,60 @@ export function deleteNotice(id) {
  */
 export function dictionaryStats() {
 	return getJSON('/api/stats');
+}
+
+/**
+ * @typedef {{ count: number, cents: number, since: string | null, years: Array<{ year: string, names: Array<{ name: string, avatar_url: string | null }>, anonymous: number }> }} SupportFigures
+ * @typedef {{ id: number, name: string, shown: boolean, user_id: number | null, member: string | null, note: string | null, count: number, cents: number, first: string | null, last: string | null }} Donor
+ * @typedef {{ id: number, day: string, cents: number, method: string, recurring: boolean }} Donation
+ */
+
+/** @returns {Promise<SupportFigures>} The Support page's totals and the names shown. */
+export function supportFigures() {
+	return getJSON('/api/support');
+}
+
+/** @returns {Promise<{ donors: Donor[], totals: { count: number, cents: number, since: string | null } }>} */
+export function workspaceSponsors() {
+	return getJSON('/api/workspace/sponsors');
+}
+
+/**
+ * @param {number} id
+ * @returns {Promise<{ donor: Donor, donations: Donation[] }>}
+ */
+export function workspaceDonor(id) {
+	return getJSON(`/api/workspace/sponsors/${id}`);
+}
+
+/**
+ * A donor kept: a new one without an id. member: an id or sign-in email, or '' to unlink.
+ * @param {{ name: string, shown: boolean, member: string, note: string }} donor
+ * @param {number | null} id
+ * @returns {Promise<{ donor: Donor, donations: Donation[] }>}
+ */
+export function saveDonor(donor, id) {
+	return postJSON(id ? `/api/workspace/sponsors/${id}` : '/api/workspace/sponsors', donor);
+}
+
+/** @param {number} id */
+export function deleteDonor(id) {
+	return postJSON(`/api/workspace/sponsors/${id}/delete`, {});
+}
+
+/**
+ * @param {number} donorId
+ * @param {{ day: string, amount: string, method: string, recurring: boolean }} donation
+ * @returns {Promise<{ donor: Donor, donations: Donation[] }>}
+ */
+export function addDonation(donorId, donation) {
+	return postJSON(`/api/workspace/sponsors/${donorId}/donations`, donation);
+}
+
+/**
+ * @param {number} id
+ * @returns {Promise<{ donor: Donor, donations: Donation[] }>}
+ */
+export function deleteDonation(id) {
+	return postJSON(`/api/workspace/donations/${id}/delete`, {});
 }

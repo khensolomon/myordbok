@@ -232,6 +232,17 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   Five in ten minutes per member at most; the author deletes their own,
   editors hide or show any in the workspace (Comments), and the admin
   setting `comments.open` closes new ones.
+- **Supporters live in the app database, not in the repository.**
+  `donors` (a name as it may be shown, whether it is shown, an optional
+  member account, the owner's note) and `donations` (day, US cents after
+  fees, method) are kept by the owner in the workspace (Sponsors). The
+  Support page (`/support`, linked from the header with the one warm colour)
+  gets totals and, by year, the names of donors who agreed to be shown, and
+  counts the rest as anonymous (`/api/support`, ten minutes at the edge); no
+  amount is ever beside a name, and no email or payment detail is kept. A
+  quiet line on the home page links to it unless Settings turns it off
+  (`support.ask`), the reader hid it (for four months, on that device), or
+  the member is a linked donor.
 - **Statistics can be shared without a level.** `users.insights` lets an
   admin show a member the Overview's figures, Searches and the whole site's
   ratings, read only (`seesStatistics` in `shared/roles.js`); nothing else

@@ -42,6 +42,7 @@ import { searches } from './searches.js';
 import { moderateComments } from './comments.js';
 import { allSettings, setSetting } from '../lib/settings.js';
 import { BACKUP_INDEX } from '../../shared/backup.js';
+import { manageSponsors } from './support.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv & { STORAGE?: R2Bucket }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -81,6 +82,7 @@ export async function workspace(request, env, parts) {
 	if (what === 'notices' && parts.length <= 4) return manageNotices(request, env, member, id, action);
 	if (what === 'searches' && parts.length <= 3) return searches(request, env, member, id);
 	if (what === 'comments' && parts.length <= 3) return moderateComments(request, env, member, id);
+	if ((what === 'sponsors' || what === 'donations') && parts.length <= 5) return manageSponsors(request, env, member, parts);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {

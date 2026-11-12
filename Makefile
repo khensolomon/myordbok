@@ -14,7 +14,7 @@ OUT      ?= exports
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-stats data-packs data-promote edits-export data-switch \
         grant deploy-beta deploy-production logs-beta release clean \
-        backup-deploy backup-now backup-list backup-pull restore
+        backup-deploy backup-now backup-list backup-pull restore sponsors-import
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -148,6 +148,12 @@ backup-pull: ## Copy a backup off Cloudflare: OUT=dir [BACKUP=name, else the new
 restore: ## Put back rows that are gone: TABLE=… [WHERE="…"] [BACKUP=name|file.sql.gz] [SHOW=n] [APPLY=1] [LOCAL=1]
 	@test -n "$(TABLE)" || { echo 'Give TABLE=name, e.g. TABLE=comments WHERE="id = 42"'; exit 1; }
 	$(BACKUPS) restore --table "$(TABLE)" $(if $(WHERE),--where "$(WHERE)") $(if $(BACKUP),--backup "$(BACKUP)") $(if $(SHOW),--show $(SHOW)) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+## Supporters
+
+sponsors-import: ## Once: the old sponsors.json into myordbok-app (workspace → Sponsors): FILE=… [APPLY=1] [LOCAL=1]
+	@test -n "$(FILE)" || { echo 'Give FILE=path/to/sponsors.json, outside this repository'; exit 1; }
+	node --disable-warning=ExperimentalWarning scripts/sponsors.js import --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 ## Deploy (dry run unless APPLY=1)
 

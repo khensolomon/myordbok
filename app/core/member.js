@@ -15,6 +15,7 @@ import { getJSON, postJSON } from '#platform/http.js';
  * @property {import('#shared/roles.js').Role} role
  * @property {0 | 1} insights  Shown the site's statistics.
  * @property {Array<'google' | 'github'>} providers
+ * @property {boolean} [supporter]  Linked to a donor (workspace Sponsors): never asked to support.
  */
 
 /** @type {Promise<Member | null> | null} */

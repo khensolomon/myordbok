@@ -450,6 +450,29 @@ in to the account (`npx wrangler login`, or `CLOUDFLARE_API_TOKEN` with
 **Account · Workers R2 Storage · Read**). `make restore BACKUP=/path/to/file.sql.gz`
 restores from such a copy.
 
+## Supporters
+
+Supporters and their donations are kept in `myordbok-app` (tables `donors`
+and `donations`, migration 0012) and managed by the owner in the workspace
+under **Sponsors**: add a donor, tick whether their name may be shown on
+the Support page, link their member account by id or sign-in email if they
+have one, and add each donation as it arrives (the amount after fees, in US
+dollars). The Support page shows totals and consenting names only.
+
+The list used to be `docs/sponsors.json` in this repository. To move it in,
+once, from a copy outside the repository:
+
+```bash
+git show <a commit that has it>:docs/sponsors.json > ~/sponsors.json
+make db-migrate-remote APPLY=1                     # migration 0012
+make sponsors-import FILE=~/sponsors.json          # dry run: each donor, shown or anonymous
+make sponsors-import FILE=~/sponsors.json APPLY=1
+rm ~/sponsors.json
+```
+
+A donor marked as consenting whose note says they wish to remain anonymous
+is imported as anonymous; the dry run lists them, to check with each one.
+
 ## Cutover
 
 1. Freeze edits on the Django site, then publish and promote a dictionary

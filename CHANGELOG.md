@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.12+100
+
+- Support: a Support page (/support) linked from the header with a heart, About moved to the footer with Contact; a quiet, dismissible line on the home page (Settings: support.ask); supporters and donations kept by the owner in the workspace (Sponsors), shown publicly only as totals and consenting names; the old sponsor files removed from the repository, with make sponsors-import to move them in once
+
 ## 26.11.12+99
 
 - How a search was read (typed in Zawgyi, a question taken off) goes above the headword, and beside the entry on wide screens, so the language badge and the timeline stay joined; Myanmar headwords a little smaller

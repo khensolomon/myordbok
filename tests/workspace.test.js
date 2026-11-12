@@ -498,7 +498,7 @@ test('settings: switches pause parts of the site at once, and numbers set the li
 	e.raw.exec("UPDATE users SET role = 'admin' WHERE id = 2; UPDATE users SET created_at = unixepoch() - 864000");
 	const set = async (key, value) => assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key, value } })).status, 200, key);
 	const site = async () => (await call(e, '/api/site')).body;
-	assert.deepEqual(await site(), { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true });
+	assert.deepEqual(await site(), { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true, support_ask: true });
 
 	// Read-only: writes wait, the setting itself can be changed back.
 	await set('site.readonly', 'on');
