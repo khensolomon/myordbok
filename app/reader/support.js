@@ -117,8 +117,8 @@ export async function view() {
 		h(
 			'section',
 			{ class: 'support-closing' },
-			h('p', { class: 'support-closing-my', lang: 'my' }, 'ကျေးဇူးတင်ပါတယ်'),
-			h('p', null, t('Thank you, from everyone who keeps MyOrdbok going.')),
+			h('p', { class: 'support-closing-my', lang: 'my' }, 'အားလုံးကို ကျေးဇူးတင်လျက်'),
+			h('p', null, t('With thanks to everyone who keeps MyOrdbok going.')),
 		),
 	);
 }

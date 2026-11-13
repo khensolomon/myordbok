@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+107
+
+- Support page closes with အားလုံးကို ကျေးဇူးတင်လျက် and “With thanks to everyone who keeps MyOrdbok going.”
+
 ## 26.11.13+106
 
 - Settings page works again: the two support settings edited in Sponsors appear as rows linking there, and a test keeps every setting on the page

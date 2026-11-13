@@ -725,7 +725,7 @@ export const MY = {
 	"New words": "စကားလုံးသစ်များ",
 	"New words and corrections in every release.": "ထုတ်ပြန်မှုတိုင်းတွင် စကားလုံးသစ်များနှင့် ပြင်ဆင်ချက်များ။",
 	"Since {year}: {n} gifts, ${amount} after fees. Every dollar goes to the servers and to the dictionary.": "{year} ကတည်းက − အလှူ {n} ကြိမ်၊ ဝန်ဆောင်ခ နုတ်ပြီး ${amount}။ ဒေါ်လာတိုင်းကို ဆာဗာများနှင့် အဘိဓာန်အတွက်သာ သုံးသည်။",
-	"Thank you, from everyone who keeps MyOrdbok going.": "MyOrdbok ကို ဝိုင်းဝန်းထိန်းသိမ်းနေသူ အားလုံးကိုယ်စား ကျေးဇူးတင်ပါသည်။",
+	"With thanks to everyone who keeps MyOrdbok going.": "MyOrdbok ကို ဆက်ရှင်သန်စေသူ အားလုံးအတွက်",
 	"This page has been retired": "ဤစာမျက်နှာကို ရပ်နားလိုက်ပါပြီ",
 	"For years this page listed Myanmar fonts, many from the time before Unicode. Today every phone and computer shows Myanmar in Unicode, and better collections are kept up elsewhere, so the page no longer gave readers much. We took it down to keep MyOrdbok about the dictionary.": "နှစ်ပေါင်းများစွာ ဤစာမျက်နှာတွင် ယူနီကုဒ်မတိုင်မီ ခေတ်ကဖောင့်များ အပါအဝင် မြန်မာဖောင့်များကို စာရင်းပြုထားခဲ့သည်။ ယနေ့ ဖုန်းနှင့် ကွန်ပျူတာတိုင်းတွင် မြန်မာစာကို ယူနီကုဒ်ဖြင့် ပြနိုင်ပြီဖြစ်ပြီး ပိုကောင်းသော စုစည်းမှုများကို အခြားနေရာများတွင် ထိန်းသိမ်းထားကြသဖြင့် ဤစာမျက်နှာက စာဖတ်သူများအတွက် အကျိုးမများတော့ပါ။ MyOrdbok ကို အဘိဓာန်အပေါ် အာရုံစိုက်နိုင်ရန် ဖြုတ်လိုက်ပါသည်။",
 	"Good Myanmar fonts today": "ယနေ့ အသုံးပြုရန် ကောင်းသော မြန်မာဖောင့်များ",
