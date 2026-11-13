@@ -79,23 +79,31 @@ export async function view() {
 
 		h(
 			'section',
-			{ id: 'give', class: 'support-part', tabindex: -1 },
-			head(t('Give'), t('Once or every month, in any amount. You choose whether your name is shown among the thanks below.')),
+			{ id: 'give', class: 'support-part support-give-part', tabindex: -1 },
 			h(
 				'div',
-				{ class: 'support-uses' },
-				use(ICONS.download, t('Servers'), t('Fast for everyone, and the dictionary on your phone without a connection.')),
-				use(ICONS.check, t('Careful meanings'), t('Meanings read and corrected by people who speak Myanmar.')),
-				use(ICONS.suggest, t('New words'), t('New words and corrections in every release.')),
+				{ class: 'support-give-why' },
+				head(t('Give'), t('Once or every month, in any amount. You choose whether your name is shown among the thanks below.')),
+				h(
+					'div',
+					{ class: 'support-uses' },
+					use(ICONS.download, t('Servers'), t('Fast for everyone, and the dictionary on your phone without a connection.')),
+					use(ICONS.check, t('Careful meanings'), t('Meanings read and corrected by people who speak Myanmar.')),
+					use(ICONS.suggest, t('New words'), t('New words and corrections in every release.')),
+				),
 			),
 			h(
 				'div',
-				{ class: 'support-cards support-give-cards' },
-				giveCard('PayPal', t('Card or PayPal account, once or monthly.'), t('Give with PayPal'), GIVE.paypal),
-				giveCard('GitHub Sponsors', t('For developers: a monthly sponsorship shown on GitHub.'), t('Sponsor on GitHub'), GIVE.github),
+				{ class: 'support-give-how' },
+				h(
+					'div',
+					{ class: 'support-cards support-give-cards' },
+					giveCard('PayPal', t('Card or PayPal account, once or monthly.'), t('Give with PayPal'), GIVE.paypal),
+					giveCard('GitHub Sponsors', t('For developers: a monthly sponsorship shown on GitHub.'), t('Sponsor on GitHub'), GIVE.github),
+				),
+				figures?.monthly_cost ? h('p', { class: 'support-cost' }, t('Running MyOrdbok costs about ${amount} a month.', { amount: num(figures.monthly_cost) })) : null,
+				figures && figures.count ? h('p', { class: 'support-note' }, t('Since {year}: {n} gifts, ${amount} after fees. Every dollar goes to the servers and to the dictionary.', { year: figures.since ?? String(BEGAN), n: num(figures.count), amount: num(Math.round(figures.cents / 100)) })) : null,
 			),
-			figures?.monthly_cost ? h('p', { class: 'support-cost' }, t('Running MyOrdbok costs about ${amount} a month.', { amount: num(figures.monthly_cost) })) : null,
-			figures && figures.count ? h('p', { class: 'support-note' }, t('Since {year}: {n} gifts, ${amount} after fees. Every dollar goes to the servers and to the dictionary.', { year: figures.since ?? String(BEGAN), n: num(figures.count), amount: num(Math.round(figures.cents / 100)) })) : null,
 		),
 
 		h(

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+108
+
+- Support page uses the available width (up to 1600px) and lays itself out by its own width: four steps and four ways to help side by side on wide screens, two on tablets, one on phones; Give in two columns; thanks in two columns; paragraphs keep a readable line length
+
 ## 26.11.13+107
 
 - Support page closes with အားလုံးကို ကျေးဇူးတင်လျက် and “With thanks to everyone who keeps MyOrdbok going.”
