@@ -68,6 +68,7 @@ export const SETTINGS = {
 		valid: supportLines,
 		about: 'The lines of the home page’s invitation, one shown at a time and a different one each visit; edited in Sponsors.',
 	},
+	'support.monthly_cost': { fallback: 0, valid: whole(0, 100000), about: 'What running MyOrdbok costs a month, in whole US dollars, shown on the Support page; 0 shows no cost line. Edited in Sponsors.' },
 	'support.ask': { fallback: 'on', valid: onOff, about: 'Whether pages invite readers to support MyOrdbok (a line on the home page). The Support page and its link stay either way; members who support it never see an invitation.' },
 	'offline.words_auto': { fallback: 'on', valid: onOff, about: 'Whether the word lists download by themselves after a first visit.' },
 };

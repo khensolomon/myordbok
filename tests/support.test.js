@@ -73,6 +73,7 @@ test('sponsors: donors and donations; the public page shows totals and consentin
 			{ year: '2025', names: [{ name: 'NaS', avatar_url: null }], anonymous: 1 },
 			{ year: '2024', names: [], anonymous: 1 },
 		],
+		monthly_cost: null,
 	});
 	assert.ok(!JSON.stringify(page.body).includes('S. S.'), 'an anonymous name never leaves the workspace');
 	assert.ok(!JSON.stringify(page.body).includes('asked to be listed'), 'notes never leave the workspace');
@@ -104,4 +105,12 @@ test('support.lines: the lines of the home invitation, checked before they are k
 		assert.equal((await set(bad)).status, 400, JSON.stringify(bad).slice(0, 40));
 	}
 	assert.equal((await call(e, '/api/workspace/settings', { who: 'member', body: { key: 'support.lines', value: [{ en: 'x' }] } })).status, 403);
+});
+
+test('support.monthly_cost: hidden until the owner gives it', async () => {
+	const e = env();
+	assert.equal((await call(e, '/api/support')).body.monthly_cost, null);
+	assert.equal((await call(e, '/api/workspace/settings', { who: 'owner', body: { key: 'support.monthly_cost', value: 45 } })).status, 200);
+	assert.equal((await call(e, '/api/support')).body.monthly_cost, 45);
+	assert.equal((await call(e, '/api/workspace/settings', { who: 'owner', body: { key: 'support.monthly_cost', value: 12.5 } })).status, 400);
 });

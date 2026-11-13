@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+105
+
+- Support page, truthfully: 16 years free (not ad-free); How it came about tells of the advertising years (2012–2015), removed because they got in the way of reading, and readers taking their place; a running-cost line the owner fills in in Sponsors once the figure is known, hidden until then
+
 ## 26.11.13+104
 
 - Myanmar fonts page retired: out of the menu, /myanmar-fonts says why with good fonts elsewhere and a way to give feedback; Support page redesigned as something readers keep together: centred hero with the dictionary in figures, how it came about, what gifts pay for, and a closing thank-you in Myanmar

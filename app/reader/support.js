@@ -4,9 +4,11 @@
  *
  *   hero       the invitation, and what it sustains: the dictionary in
  *              figures (/api/stats) and the years it has been free
- *   story      how it came about: one person's evenings, then readers,
- *              then the reader on this page
- *   gifts      what a gift pays for, and the two ways to give
+ *   story      how it came about: one person's evenings, a few years of
+ *              advertising that got in the way of reading and was removed,
+ *              readers in its place, then the reader on this page
+ *   gifts      what a gift pays for, what running it costs a month (once
+ *              the owner gives the figure in Sponsors), and the two ways to give
  *   help       ways to help without money
  *   thanks     everyone who has given, by year (/api/support: totals, and
  *              names only with consent, never an amount beside a name)
@@ -57,7 +59,7 @@ export async function view() {
 				dict ? figure(num(dict.en.headwords), t('English words')) : null,
 				dict ? figure(num(dict.my.headwords), t('Myanmar words')) : null,
 				dict ? figure(num(dict.en.senses + dict.my.senses), t('meanings')) : null,
-				figure(num(years), t('years free, without advertising')),
+				figure(num(years), t('years free')),
 			),
 		),
 
@@ -68,8 +70,9 @@ export async function view() {
 			h(
 				'ol',
 				{ class: 'support-steps' },
-				step(String(BEGAN), t('It began with one person'), t('A Myanmar dictionary that was free and easy to use did not exist, so it was written: word by word, in evenings and holidays.')),
-				step(t('Since then'), t('It grew with its readers'), t('Readers suggested meanings, rated them, reported mistakes and told others. Some gave, and their gifts kept it online.')),
+				step(String(BEGAN), t('It began with one person'), t('A Myanmar dictionary that was free and easy to use did not exist, so it was written: word by word, in free evenings and holidays.')),
+				step('2012–2015', t('Advertising tried, and removed'), t('For a few years, advertising helped pay for the servers. It got in the way of reading, especially for readers in Myanmar, who often saw blank gaps instead of meanings. So it was taken down.')),
+				step(t('Since then'), t('Readers took its place'), t('Gifts from readers keep the servers running, and readers who suggest and correct keep the dictionary growing.')),
 				step(t('Today'), t('It goes on with you'), t('Every visit, every suggestion and every gift keeps it alive for the next person who needs a word.')),
 			),
 		),
@@ -91,6 +94,7 @@ export async function view() {
 				giveCard('PayPal', t('Card or PayPal account, once or monthly.'), t('Give with PayPal'), GIVE.paypal),
 				giveCard('GitHub Sponsors', t('For developers: a monthly sponsorship shown on GitHub.'), t('Sponsor on GitHub'), GIVE.github),
 			),
+			figures?.monthly_cost ? h('p', { class: 'support-cost' }, t('Running MyOrdbok costs about ${amount} a month.', { amount: num(figures.monthly_cost) })) : null,
 			figures && figures.count ? h('p', { class: 'support-note' }, t('Since {year}: {n} gifts, ${amount} after fees. Every dollar goes to the servers and to the dictionary.', { year: figures.since ?? String(BEGAN), n: num(figures.count), amount: num(Math.round(figures.cents / 100)) })) : null,
 		),
 

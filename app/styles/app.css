@@ -1525,6 +1525,9 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-notice-dot-celebration { background: #b05bc4; }
 /* Sponsors (sponsors.js): the notices' list and form, with donations under the form. */
 .ws-sponsor-dot-shown { background: var(--heart); }
+.ws-cost-form { display: flex; align-items: center; gap: 8px; }
+.ws-cost-form input { box-sizing: border-box; width: 110px; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--ink); font: 400 14px/1.5 var(--font-ui); }
+.ws-cost-form .ws-primary { flex: none; width: auto; margin-left: auto; }
 .ws-sponsor-side { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .ws-support-lines h2 { margin: 0 0 6px; }
 .ws-support-lines > .ws-quiet { margin: 0 0 14px; font-size: 13px; line-height: 1.55; }
@@ -1805,7 +1808,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .support-head { display: grid; gap: 6px; }
 .support-head p { max-width: 62ch; margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
 
-.support-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.support-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
 .support-steps li { position: relative; display: grid; gap: 6px; align-content: start; padding: 22px 22px 22px 24px; border-radius: 18px; border: 1px solid var(--line); }
 .support-steps li::before { content: ""; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px; background: var(--heart); opacity: 0.55; }
 .support-steps li:last-child { background: var(--heart-tint); border-color: transparent; }
@@ -1821,6 +1824,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .support-use strong { font-size: 15px; }
 .support-use > span:last-child { font-size: 14px; line-height: 1.5; color: var(--muted); }
 
+.support-cost { margin: 0; font-size: 16px; font-weight: 600; }
 .support-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .support-give { display: flex; flex-direction: column; gap: 8px; padding: 24px; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
 .support-give:hover { border-color: var(--node); text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(23, 32, 43, 0.08); }

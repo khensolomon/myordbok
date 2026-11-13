@@ -3,7 +3,8 @@
  * Supporters (tables donors and donations, migration 0012): the public
  * Support page's figures, and the owner's list in the workspace (Sponsors).
  *
- *   GET  /api/support                                   totals and the names shown, by year;
+ *   GET  /api/support                                   totals and the names shown, by year, and
+ *                                                       the monthly running cost when the owner gave one;
  *                                                       kept at the edge for ten minutes
  *   GET  /api/workspace/sponsors                        every donor with their totals, owner
  *   GET  /api/workspace/sponsors/{id}                   one donor and their donations
@@ -20,6 +21,7 @@
 import { AppError } from '../../shared/errors.js';
 import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
+import { getSetting } from '../lib/settings.js';
 
 /** @typedef {import('./auth.js').AuthEnv} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -36,13 +38,14 @@ const CENTS_MAX = 10_000_000;
  * @param {Env} env
  */
 export async function publicSupport(env) {
-	const [totals, rows] = await Promise.all([
+	const [totals, rows, cost] = await Promise.all([
 		env.APP.prepare('SELECT count(*) AS n, coalesce(sum(cents), 0) AS cents, min(day) AS first FROM donations').first(),
 		env.APP.prepare(
 			`SELECT substr(d.day, 1, 4) AS year, o.id, o.name, o.shown, u.avatar_url FROM donations d
 			 JOIN donors o ON o.id = d.donor_id LEFT JOIN users u ON u.id = o.user_id AND u.status = 'active'
 			 GROUP BY year, o.id ORDER BY year DESC, o.name COLLATE NOCASE`,
 		).all(),
+		getSetting(env, 'support.monthly_cost'),
 	]);
 	const t = /** @type {{ n: number, cents: number, first: string | null }} */ (totals);
 	/** @type {Map<string, { year: string, names: Array<{ name: string, avatar_url: string | null }>, anonymous: number }>} */
@@ -54,7 +57,7 @@ export async function publicSupport(env) {
 		if (Number(r.shown)) y.names.push({ name: String(r.name), avatar_url: r.avatar_url ? String(r.avatar_url) : null });
 		else y.anonymous++;
 	}
-	return json({ count: Number(t.n), cents: Number(t.cents), since: t.first ? t.first.slice(0, 4) : null, years: [...years.values()] }, { cache: 600 });
+	return json({ count: Number(t.n), cents: Number(t.cents), since: t.first ? t.first.slice(0, 4) : null, years: [...years.values()], monthly_cost: Number(cost) || null }, { cache: 600 });
 }
 
 /**

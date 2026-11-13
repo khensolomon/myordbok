@@ -598,7 +598,7 @@ export function dictionaryStats() {
 }
 
 /**
- * @typedef {{ count: number, cents: number, since: string | null, years: Array<{ year: string, names: Array<{ name: string, avatar_url: string | null }>, anonymous: number }> }} SupportFigures
+ * @typedef {{ count: number, cents: number, since: string | null, years: Array<{ year: string, names: Array<{ name: string, avatar_url: string | null }>, anonymous: number }>, monthly_cost: number | null }} SupportFigures
  * @typedef {{ id: number, name: string, shown: boolean, user_id: number | null, member: string | null, note: string | null, count: number, cents: number, first: string | null, last: string | null }} Donor
  * @typedef {{ id: number, day: string, cents: number, method: string, recurring: boolean }} Donation
  */

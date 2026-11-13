@@ -6,8 +6,9 @@
  * shown on the Support page, their member account, a private note, and
  * their donations, with a form to add one.
  *
- * Under the list, the lines of the home page's invitation (setting
- * support.lines): one shows at a time, another on each visit.
+ * Under the list, what running MyOrdbok costs a month (support.monthly_cost,
+ * shown on the Support page once given), and the lines of the home page's
+ * invitation (setting support.lines): one shows at a time, another on each visit.
  *
  * Nobody is shown on the Support page without their consent, and the page
  * never puts an amount beside a name. No email or payment detail is kept
@@ -48,12 +49,13 @@ export async function sponsorsPane(ctx) {
 	const editor = h('section', { class: 'ws-card ws-notice-editor', 'aria-label': t('Donor') });
 	const fresh = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary ws-new' }, t('New donor')));
 	const linesCard = h('section', { class: 'ws-card ws-support-lines', 'aria-label': t('On the home page') });
+	const costCard = h('section', { class: 'ws-card ws-support-lines', 'aria-label': t('Running cost') });
 	main.append(
 		h(
 			'div',
 			{ class: 'ws-work' },
 			h('header', { class: 'ws-ov-head ws-notices-head' }, h('h1', null, t('Sponsors')), totals, fresh),
-			h('div', { class: 'ws-notices-grid' }, h('div', { class: 'ws-sponsor-side' }, list, linesCard), editor),
+			h('div', { class: 'ws-notices-grid' }, h('div', { class: 'ws-sponsor-side' }, list, costCard, linesCard), editor),
 		),
 	);
 
@@ -108,7 +110,7 @@ export async function sponsorsPane(ctx) {
 	};
 
 	fresh.addEventListener('click', () => choose(null, true));
-	await Promise.all([load(), homeLines(linesCard)]);
+	await Promise.all([load(), homeLines(linesCard), runningCost(costCard)]);
 	const asked = Number(ctx.query.get('id'));
 	await choose(donors.some((d) => d.id === asked) ? asked : (donors[0]?.id ?? null));
 	return main;
@@ -327,5 +329,44 @@ async function homeLines(card) {
 		h('p', { class: 'ws-quiet' }, t('One line shows at a time under the lists, a different one on each visit, followed by “Support MyOrdbok”. Readers can hide it for a few months; supporters never see it.'), ' ', ask.value === 'on' ? '' : h('strong', null, t('It is turned off in Settings now.'))),
 		rows,
 		h('div', { class: 'ws-notice-actions' }, save, add, out),
+	);
+}
+
+/**
+ * What running MyOrdbok costs a month, for the Support page; empty or 0
+ * shows no cost line there.
+ * @param {HTMLElement} card
+ */
+async function runningCost(card) {
+	const { settings } = await siteSettings();
+	const cost = settings.find((s) => s.key === 'support.monthly_cost');
+	if (!cost) throw new Error('The Worker has no support.monthly_cost setting.');
+	const input = /** @type {HTMLInputElement} */ (h('input', { type: 'number', min: 0, max: 100000, step: 1, inputmode: 'numeric', value: Number(cost.value) ? String(cost.value) : '', placeholder: t('Not shown yet'), 'aria-label': t('US dollars a month') }));
+	const out = h('p', { class: 'ws-result', role: 'status' });
+	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'ws-primary' }, t('Save')));
+	const form = h('form', { class: 'ws-cost-form', novalidate: true }, h('span', { 'aria-hidden': 'true' }, '$'), input, h('span', { class: 'ws-quiet' }, t('a month')), save);
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const text = input.value.trim();
+		const value = text === '' ? 0 : Number(text);
+		if (!Number.isInteger(value) || value < 0 || value > 100000) {
+			out.textContent = t('A whole number of dollars, or empty to show none.');
+			return;
+		}
+		save.disabled = true;
+		out.textContent = t('Saving…');
+		try {
+			await updateSetting('support.monthly_cost', value);
+			out.textContent = value ? t('Saved. The Support page shows it within ten minutes.') : t('Saved. The Support page shows no cost.');
+		} catch (err) {
+			out.textContent = err instanceof Error ? err.message : String(err);
+		}
+		save.disabled = false;
+	});
+	card.replaceChildren(
+		h('h2', null, t('Running cost')),
+		h('p', { class: 'ws-quiet' }, t('What MyOrdbok costs a month, in US dollars: shown on the Support page as “Running MyOrdbok costs about $… a month”. Leave it empty until the figure is known.')),
+		form,
+		out,
 	);
 }
