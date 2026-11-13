@@ -130,17 +130,6 @@ export function view() {
 		),
 
 		part(
-			'Myanmar fonts',
-			h(
-				'p',
-				null,
-				'The ',
-				h('a', { href: '/myanmar-fonts' }, 'Myanmar fonts'),
-				' page describes older Myanmar fonts, many made before Unicode, for study and research into how Myanmar script was displayed. MyOrdbok does not own these fonts. Their licences differ; for any use beyond study, permission belongs with each font’s owner.',
-			),
-		),
-
-		part(
 			'Availability and liability',
 			h(
 				'p',

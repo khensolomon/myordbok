@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+104
+
+- Myanmar fonts page retired: out of the menu, /myanmar-fonts says why with good fonts elsewhere and a way to give feedback; Support page redesigned as something readers keep together: centred hero with the dictionary in figures, how it came about, what gifts pay for, and a closing thank-you in Myanmar
+
 ## 26.11.13+103
 
 - make data-release: approved workspace edits through the dataset's own scripts, build and search checks, a diff and one question, then commit, push and beta; the Overview shows editors what waits for a release

@@ -52,7 +52,7 @@ export function guide() {
 			{ class: 'guide-tips' },
 			h('p', { class: 'guide-keys' }, h('kbd', null, '/'), ' ', t('or'), ' ', h('kbd', null, 'Ctrl K'), ' ', t('puts the cursor in the search box from anywhere.')),
 			h('p', null, t('Signed-in members can keep the definitions on the device and look words up offline.')),
-			h('p', null, t('Also here:'), ' ', h('a', { href: '/grammar' }, t('Myanmar grammar')), ' · ', h('a', { href: '/myanmar-fonts' }, t('Myanmar fonts'))),
+			h('p', null, t('Also here:'), ' ', h('a', { href: '/grammar' }, t('Myanmar grammar'))),
 		),
 	);
 	dictionaryStats()
