@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+111
+
+- Support page figures: light weight, black on light and white on dark, with a soft neutral glow
+
 ## 26.11.13+110
 
 - Support page figures in the logo blue with a matching glow (a lighter blue in dark mode), instead of dark text with a glow
