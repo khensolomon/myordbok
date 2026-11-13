@@ -6,14 +6,14 @@ databases, each with one fixed role:
 | Database | Binding | Holds | Changed by |
 |---|---|---|---|
 | `myordbok-app` | `APP` | members, sign-in, reactions, comments, workspace edits, which dictionary database each site reads; backed up weekly ([Backups](#backups)) | the app; migrations in `assets/db/migrations` |
-| `myordbok-dataset` | `DATASET` | the newest dictionary build; beta previews it | `make data-publish` |
-| `myordbok-dictionary` | `DICTIONARY` | the dictionary production readers get | `make data-promote` |
+| `myordbok-beta` | `BETA` | the newest dictionary build; beta previews it | `make data-publish` |
+| `myordbok-live` | `LIVE` | the dictionary live readers get | `make data-promote` |
 
 | Environment | Domain | Deployed from | Reads the dictionary from |
 |---|---|---|---|
-| local | localhost | `make api` | the local `myordbok-dictionary`: the public sample, or a build loaded by hand |
-| beta | beta.myordbok.com | every push to `dev` | `myordbok-dataset` |
-| production | myordbok.com | push to `master`, once switched on | `myordbok-dictionary` (`myordbok-dataset` only while a promotion runs) |
+| local | localhost | `make api` | the local `myordbok-live`: the public sample, or a build loaded by hand |
+| beta | beta.myordbok.com | every push to `dev` | `myordbok-beta` |
+| live | myordbok.com | push to `master`, once switched on | `myordbok-live` (`myordbok-beta` only while a promotion runs) |
 
 Both sites are bound to all three databases; `dict_release` in
 `myordbok-app` records which dictionary database each one reads.
@@ -36,7 +36,7 @@ Until cutover, myordbok.com keeps serving the previous Django site and
 
 One command creates whichever of the three databases are missing (existing
 ones are reused) and writes their ids into `wrangler.toml` for the top level,
-beta and production:
+beta and live:
 
 ```bash
 npx wrangler login          # once, in a browser
@@ -54,11 +54,11 @@ make db-migrate-remote APPLY=1
 ```
 
 Finally release the first dictionary: publish it to beta and promote it to
-production (see [Dictionary releases](#dictionary-releases)). Until then the
+live (see [Dictionary releases](#dictionary-releases)). Until then the
 API answers lookups with "No dictionary has been released to beta" (or
-production).
+live).
 
-Beta and production share `myordbok-app`, so every migration must keep
+Beta and live share `myordbok-app`, so every migration must keep
 working with the code currently on both. Add columns and tables; remove or
 rename only after both environments run code that no longer needs them.
 
@@ -83,14 +83,14 @@ In the repository, **Settings → Environments**:
 1. Create environment **beta**:
    - Deployment branches: selected branches, `dev` only.
    - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
-2. Create environment **production**:
+2. Create environment **live**:
    - Deployment branches: `master` only.
-   - Required reviewers: the maintainer (each production deploy waits for
+   - Required reviewers: the maintainer (each live deploy waits for
      approval).
    - The same two secrets.
 
 Then **Settings → Secrets and variables → Actions → Variables**: leave
-`PRODUCTION_ENABLED` unset until cutover.
+`LIVE_ENABLED` unset until cutover.
 
 Recommended under **Settings → Branches**: protect `master` (no force push,
 no deletion, status check "Test and build" must pass).
@@ -108,9 +108,9 @@ make deploy-beta APPLY=1    # real deploy from this machine
 ## Sign-in
 
 Google and GitHub sign-in (`worker/routes/auth.js`). One GitHub OAuth App
-serves beta, production and local development (localhost is one of its
+serves beta, live and local development (localhost is one of its
 callbacks), so its secret is also in the maintainer's `.dev.vars`. One Google
-OAuth client serves beta and production, and a separate one local
+OAuth client serves beta and live, and a separate one local
 development.
 
 | Provider | Callback URLs registered |
@@ -126,7 +126,7 @@ Client ids are public and live in `wrangler.toml` (`GITHUB_CLIENT_ID`,
 ```bash
 npx wrangler secret put GITHUB_CLIENT_SECRET --env beta
 npx wrangler secret put GOOGLE_CLIENT_SECRET --env beta
-# the same with --env production at cutover
+# the same with --env live at cutover
 ```
 
 Locally: `make db-migrate` (the local app database needs 0002 too), copy
@@ -191,8 +191,8 @@ make api                    # terminal 1: worker + local D1 on :8787
 make dev                    # terminal 2: app on :8000
 ```
 
-Locally the Worker reads the local `myordbok-dictionary`
-(`DICT_DB = "dictionary"` in `wrangler.toml`). `make db-reset` fills it with
+Locally the Worker reads the local `myordbok-live`
+(`DICT_DB = "live"` in `wrangler.toml`). `make db-reset` fills it with
 the public sample from `assets/db/seed.dev.sql`: a few made-up entries in the
 real tables. For the real dictionary on the local machine:
 
@@ -238,7 +238,7 @@ live Django site until then.
 The dictionary is built from the TSV files of the private dataset
 (`khensolomon/lai`, branch `dataset`, folder `myordbok/`). The TSV files are
 the source of truth; D1 only ever receives a complete build, never a partial
-change. A build reaches readers in two steps: beta first, then production.
+change. A build reaches readers in two steps: beta first, then live.
 
 ```bash
 # In the dataset checkout
@@ -247,9 +247,9 @@ python3 scripts/db_build.py --apply          # build/myordbok.sql, 75 search che
 # Here
 make data-status                                                  # the build in each database, who reads it
 make data-beta FILE=../lai/myordbok/build/myordbok.sql            # dry run
-make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # packs → R2, then → myordbok-dataset; beta previews it
+make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1    # packs → R2, then → myordbok-beta; beta previews it
 # check beta.myordbok.com
-make data-live APPLY=1                                            # the same build → myordbok-dictionary; production gets it
+make data-live APPLY=1                                            # the same build → myordbok-live; live gets it
 ```
 
 **data-beta** uploads the build's offline packs first, so beta never lists a
@@ -260,32 +260,32 @@ after it went to beta: a rebuilt file goes through beta again. `FILE=…`
 names another file, which must still be the build beta previews. The steps
 also run on their own: `data-packs`, `data-publish`, `data-promote`.
 
-**Publish** imports the build into `myordbok-dataset` (`--file` replaces every
+**Publish** imports the build into `myordbok-beta` (`--file` replaces every
 table), checks each table against the row counts the build wrote into
 `meta`, points beta at it, and marks workspace edits the build now contains as
-merged. Production is not touched; a failed import only affects beta.
+merged. Live is not touched; a failed import only affects beta.
 
-**Promote** takes the build beta previews to production without a moment
+**Promote** takes the build beta previews to live without a moment
 where readers have nothing to read:
 
-1. Production reads `myordbok-dataset`, which holds the same build, and the
-   command waits 35 seconds until no Worker still reads `myordbok-dictionary`.
-2. The build is imported into `myordbok-dictionary` and checked.
-3. Production reads `myordbok-dictionary` again (within 30 seconds).
+1. Live reads `myordbok-beta`, which holds the same build, and the
+   command waits 35 seconds until no Worker still reads `myordbok-live`.
+2. The build is imported into `myordbok-live` and checked.
+3. Live reads `myordbok-live` again (within 30 seconds).
 
 The file must be the build beta previews; any other is refused. If a
-promotion stops part way (network, a failed check), production simply keeps
-reading `myordbok-dataset`, and nothing new can be published until the same
+promotion stops part way (network, a failed check), live simply keeps
+reading `myordbok-beta`, and nothing new can be published until the same
 `make data-promote … APPLY=1` is run again and finishes. `make data-status`
 says when that is the case.
 
 **Rollback** is a release of the previous build: build it from the earlier
-dataset commit, publish, check beta, promote. For an emergency on production
-alone, D1 Time Travel restores `myordbok-dictionary` to a moment before the
-promotion (`npx wrangler d1 time-travel restore myordbok-dictionary
+dataset commit, publish, check beta, promote. For an emergency on live
+alone, D1 Time Travel restores `myordbok-live` to a moment before the
+promotion (`npx wrangler d1 time-travel restore myordbok-live
 --timestamp=… --env beta`); the dictionary is unavailable while it restores.
 
-`make data-switch SITE=beta|production TO=dataset|dictionary` points one site
+`make data-switch SITE=beta|live TO=beta|live` points one site
 at one database by hand, for repairs only.
 
 When the dataset changes its lookup code (`search/search.mjs`,
@@ -309,7 +309,7 @@ released like any other change.
 make data-release                    # dry run: the edits, conflicts, and each dataset script without --apply
 make data-release APPLY=1            # applies, builds, shows the diff, asks, then commits, pushes and publishes to beta
 # check beta.myordbok.com
-make data-live APPLY=1               # production, as for any release
+make data-live APPLY=1               # live, as for any release
 ```
 
 `DATASET=` names the dataset checkout's `myordbok` folder (default
@@ -317,7 +317,7 @@ make data-live APPLY=1               # production, as for any release
 `origin/dataset`. The release (`scripts/data-release.js`):
 
 1. exports the approved edits into the dataset scripts' input files,
-   checked against what production readers see (conflicts stay in the
+   checked against what live readers see (conflicts stay in the
    workspace, with the reason);
 2. runs each file through its dataset script, first without `--apply`;
 3. applies them, writes a CHANGELOG entry in the dataset's style, and runs
@@ -331,9 +331,9 @@ make data-live APPLY=1               # production, as for any release
 
 The dataset changes only through its own scripts; the release runs them in
 order and writes nothing else but the CHANGELOG entry. Releasing needs
-production to have the build beta previews, as exporting does. The
+live to have the build beta previews, as exporting does. The
 workspace Overview shows editors how many approved edits wait, and when beta
-is ahead of production.
+is ahead of live.
 
 ### Step by step
 
@@ -357,7 +357,7 @@ to run each one:
 | `med_new.tsv`, `med_more.tsv` | `scripts/med_add.py`, `… --existing` |
 
 Before writing, each edit's old value is compared with
-`myordbok-dictionary`, what production readers see; the export waits while
+`myordbok-live`, what live readers see; the export waits while
 beta previews a build that is not promoted yet. An edit whose old value no
 longer matches (the sense changed since)
 becomes a `conflict` with the reason, instead of a patch line the dataset
@@ -365,7 +365,7 @@ script would reject. Successive edits of one field are joined into one line.
 
 After the dataset scripts apply the files, commit the dataset, build, publish
 and promote as above; the publish marks the edits `merged`. Beta shows an
-approved edit from that publish on, production from the promotion.
+approved edit from that publish on, live from the promotion.
 
 `OUT` must be outside this repository (the default `exports/` is ignored by
 git), because exported files hold dataset text.
@@ -510,18 +510,52 @@ rm ~/sponsors.json
 A donor marked as consenting whose note says they wish to remain anonymous
 is imported as anonymous; the dry run lists them, to check with each one.
 
+## Moving to the beta and live names (once)
+
+The dictionary databases were first named `myordbok-dataset` and
+`myordbok-dictionary`, and the live site `production`. D1 cannot rename a
+database, so the move creates the new ones, fills them, and retires the old
+ones once beta reads the new. `myordbok-app` keeps its name and its data.
+
+```bash
+make data-setup                     # dry run: myordbok-beta and myordbok-live missing, the old two retired
+make data-setup APPLY=1             # creates them, writes their ids into wrangler.toml
+make db-migrate-remote APPLY=1      # 0013: dict_release under the beta and live names
+make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1
+make data-live APPLY=1
+make data-status                    # myordbok-beta ← beta, myordbok-live ← live, same build
+git commit -am "Database ids for myordbok-beta and myordbok-live" && git push
+```
+
+The commit with the new ids goes to `dev`; beta then deploys bound to the new
+databases. Until then the beta already deployed reads `myordbok-dictionary`,
+which holds the same build. Once beta.myordbok.com answers from
+`myordbok-beta` (`/api/health` names the database):
+
+```bash
+npx wrangler d1 delete myordbok-dataset
+npx wrangler d1 delete myordbok-dictionary
+make data-sample                    # the local myordbok-live starts empty (new id)
+```
+
+In GitHub, the environment **production** and the variable
+`PRODUCTION_ENABLED` become **live** and `LIVE_ENABLED` (same branch rule,
+reviewers and secrets). A Worker named `myordbok`, if one was ever created
+by `wrangler secret put --env production`, has no route and can be deleted;
+its secrets go to `myordbok-live` with `--env live` at cutover.
+
 ## Cutover
 
 1. Freeze edits on the Django site, then publish and promote a dictionary
    build made from the final dataset.
-2. In GitHub, set the variable `PRODUCTION_ENABLED` to `true`.
+2. In GitHub, set the variable `LIVE_ENABLED` to `true`.
 3. In Cloudflare DNS, delete the `myordbok.com` record that points to the
    Django site (the Worker creates its own).
-4. `make release APPLY=1`. The production job waits for approval, then
+4. `make release APPLY=1`. The live job waits for approval, then
    deploys to myordbok.com.
 5. Keep the Django site running read-only for a few weeks as a fallback.
 
-Rollback: **Workers & Pages → myordbok → Deployments** lists every
+Rollback: **Workers & Pages → myordbok-live → Deployments** lists every
 version; any earlier one can be promoted again from there.
 
 ## Analytics
@@ -549,7 +583,7 @@ separated in reports by hostname. Settings worth checking in the GA property:
 
 ### The API
 
-The API serves the app, not the public. On beta and production
+The API serves the app, not the public. On beta and live
 (`API_GUARD = "1"` in `wrangler.toml`; `worker/lib/guard.js`):
 
 - **Own pages only.** A request must carry `Sec-Fetch-Site: same-origin`,

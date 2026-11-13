@@ -56,8 +56,8 @@ two commands, each a dry run unless `APPLY=1` is given (the steps they run,
 `data-packs`, `data-publish` and `data-promote`, also run on their own):
 
 ```bash
-make data-beta FILE=…/myordbok.sql APPLY=1      # offline packs → R2, then → myordbok-dataset: beta previews it
-make data-live APPLY=1                          # the same build → myordbok-dictionary, read by production
+make data-beta FILE=…/myordbok.sql APPLY=1      # offline packs → R2, then → myordbok-beta: beta previews it
+make data-live APPLY=1                          # the same build → myordbok-live, read by live
 make db-migrate-remote APPLY=1                  # app database migrations on Cloudflare
 make data-release APPLY=1                       # approved workspace edits → dataset → build → (your yes) → beta
 make restore TABLE=comments WHERE="id = 42"     # rows gone since the weekly backup; APPLY=1 to put them back
@@ -65,8 +65,8 @@ make grant EMAIL=… ROLE=member|editor|admin|owner APPLY=1   # LOCAL=1 for the 
 ```
 
 Every push to `dev` is tested and deployed to beta by GitHub Actions.
-`make release APPLY=1` fast-forwards `master` to `dev`; production is deployed
-with `make deploy-production APPLY=1` once it replaces the current site.
+`make release APPLY=1` fast-forwards `master` to `dev`; live is deployed
+with `make deploy-live APPLY=1` once it replaces the current site.
 Versions are `yy.mm.dd+N` (`make version NOTE="…" APPLY=1`). `make` lists
 every command; deployment, branches and releases are described in
 [docs/deploy.md](docs/deploy.md).

@@ -35,7 +35,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 ## Decisions
 
 - **No build step in development.** Browsers load the source modules
-  directly. The production build only adds content hashes, an import map from
+  directly. The live build only adds content hashes, an import map from
   original to hashed paths, modulepreload links and the precache list.
 - **Platform through the import map.** App code imports `#platform/…` and
   `#shared/…`. The build maps `#platform/` to `platform/web/` or
@@ -53,9 +53,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   repository holds only a made-up sample in the same tables.
 - **Three databases, each with one fixed role.** `myordbok-app` holds
   everything the app writes. The dictionary is only ever imported whole:
-  every build lands in `myordbok-dataset` first, where beta previews it, and
-  is then promoted into `myordbok-dictionary`, which production reads. While
-  a promotion imports, production reads `myordbok-dataset` (the same build),
+  every build lands in `myordbok-beta` first, where beta previews it, and
+  is then promoted into `myordbok-live`, which live reads. While
+  a promotion imports, live reads `myordbok-beta` (the same build),
   so readers never wait; `dict_release` records which database each site
   reads. The names say what each database is at any moment, which is why
   this was chosen over two interchangeable copies.
@@ -111,7 +111,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   at least three times in the last seven days, from `search_counts` only,
   kept at the edge for an hour; rarer words never show, so one person's
   searches cannot appear.
-- **The API serves the app only.** On beta and production the Worker
+- **The API serves the app only.** On beta and live the Worker
   refuses requests that are not from its own pages (`Sec-Fetch-Site`),
   limits each visitor per minute, and answers repeated lookups from the edge
   cache (`worker/lib/guard.js`; docs/deploy.md, The API).
@@ -299,9 +299,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Analytics only with consent.** Google Analytics loads on the public
   hosts after the visitor allows it (`app/core/consent.js`); the choice
   stays on the device and can be changed on the privacy page.
-- **Deployment.** Beta and production are Wrangler environments bound to the
+- **Deployment.** Beta and live are Wrangler environments bound to the
   same three databases. Every push to `dev` is tested and deployed to beta by
-  GitHub Actions (`.github/workflows/deploy.yml`); production is deployed by
+  GitHub Actions (`.github/workflows/deploy.yml`); live is deployed by
   hand at cutover. See [deploy.md](deploy.md).
 
 ## Next

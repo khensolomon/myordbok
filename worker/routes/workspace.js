@@ -260,7 +260,7 @@ async function overview(env, member) {
 		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
-		// The build each site reads (scripts/data.js): beta ahead of production means a release waits for its promotion.
+		// The build each site reads (scripts/data.js): beta ahead of live means a release waits for its promotion.
 		rows(db, 'SELECT env, build FROM dict_release'),
 	]);
 	// Unread messages and the backups: admins only.

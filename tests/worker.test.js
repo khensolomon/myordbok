@@ -6,20 +6,20 @@ import { MIGRATION, SAMPLE, d1, sqlite } from './helpers/d1.js';
 
 const assets = { fetch: async () => new Response('asset') };
 
-/** Local setup: the sample in myordbok-dictionary, pinned by DICT_DB. */
+/** Local setup: the sample in myordbok-live, pinned by DICT_DB. */
 function localEnv(vars = {}) {
-	return { APP: d1(sqlite(MIGRATION)), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: assets, DICT_DB: 'dictionary', ...vars };
+	return { APP: d1(sqlite(MIGRATION)), BETA: d1(sqlite()), LIVE: d1(sqlite(SAMPLE)), ASSETS: assets, DICT_DB: 'live', ...vars };
 }
 
 /**
  * A site that reads what dict_release says.
- * @param {'beta' | 'production'} env
+ * @param {'beta' | 'live'} env
  * @param {string} [reads]  dict_release.reads for that site; none when omitted.
  */
 function siteEnv(env, reads) {
 	const app = sqlite(MIGRATION);
 	if (reads) app.prepare("INSERT INTO dict_release (env, reads, build, switched_by) VALUES (?, ?, 'sample', 'test')").run(env, reads);
-	return { APP: d1(app), DATASET: d1(sqlite(SAMPLE)), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: env, DICT_DB: '' };
+	return { APP: d1(app), BETA: d1(sqlite(SAMPLE)), LIVE: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: env, DICT_DB: '' };
 }
 
 /** @param {string} path @param {any} env @param {RequestInit} [init] */
@@ -34,7 +34,7 @@ async function call(path, env, init) {
 
 beforeEach(() => resetChoiceCache());
 
-test('beta API responses carry noindex, production ones do not', async () => {
+test('beta API responses carry noindex, live ones do not', async () => {
 	assert.equal((await call('/api/health', localEnv({ NOINDEX: '1' }))).robots, 'noindex');
 	assert.equal((await call('/api/nope', localEnv({ NOINDEX: '1' }))).robots, 'noindex');
 	assert.equal((await call('/api/health', localEnv())).robots, null);
@@ -49,41 +49,41 @@ test('health reports the version and the dictionary database in use', async () =
 	assert.equal(res.status, 200);
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
 	const { rows, ...dictionary } = res.body.dictionary;
-	assert.deepEqual(dictionary, { database: 'myordbok-dictionary', built: 'sample', source: 'sample' });
+	assert.deepEqual(dictionary, { database: 'myordbok-live', built: 'sample', source: 'sample' });
 	assert.equal(rows.emd_sense, 24);
 	assert.equal(rows.mya_word, 5);
 });
 
 test('each site reads the database dict_release names', async () => {
-	assert.equal((await call('/api/health', siteEnv('beta', 'dataset'))).body.dictionary.database, 'myordbok-dataset');
+	assert.equal((await call('/api/health', siteEnv('beta', 'beta'))).body.dictionary.database, 'myordbok-beta');
 	resetChoiceCache();
-	assert.equal((await call('/api/health', siteEnv('production', 'dictionary'))).body.dictionary.database, 'myordbok-dictionary');
+	assert.equal((await call('/api/health', siteEnv('live', 'live'))).body.dictionary.database, 'myordbok-live');
 	resetChoiceCache();
-	// During a promotion production reads the dataset, which holds the same build.
-	const promoting = siteEnv('production', 'dataset');
-	assert.equal((await call('/api/health', promoting)).body.dictionary.database, 'myordbok-dataset');
+	// During a promotion live reads myordbok-beta, which holds the same build.
+	const promoting = siteEnv('live', 'beta');
+	assert.equal((await call('/api/health', promoting)).body.dictionary.database, 'myordbok-beta');
 	assert.equal((await call('/api/lookup?q=love', promoting)).body.entries.length, 4);
 });
 
 test('with no release, the API says so instead of guessing', async () => {
-	const health = await call('/api/health', siteEnv('production'));
+	const health = await call('/api/health', siteEnv('live'));
 	assert.equal(health.status, 503);
-	assert.match(health.body.error, /No dictionary has been released to production; run make data-promote/);
+	assert.match(health.body.error, /No dictionary has been released to live; run make data-promote/);
 	const lookup = await call('/api/lookup?q=love', siteEnv('beta'));
 	assert.equal(lookup.status, 503);
 	assert.match(lookup.body.error.message, /run make data-publish/);
 });
 
 test('an empty dictionary database says how to fill it', async () => {
-	const env = localEnv({ DICTIONARY: d1(sqlite()) });
+	const env = localEnv({ LIVE: d1(sqlite()) });
 	for (const path of ['/api/suggest?q=lo', '/api/lookup?q=love']) {
 		const res = await call(path, env);
 		assert.equal(res.status, 503);
-		assert.match(res.body.error.message, /myordbok-dictionary is empty \(no such table: \w+\); locally: make data-sample/);
+		assert.match(res.body.error.message, /myordbok-live is empty \(no such table: \w+\); locally: make data-sample/);
 	}
 	const health = await call('/api/health', env);
 	assert.equal(health.status, 503);
-	assert.match(health.body.error, /myordbok-dictionary is empty/);
+	assert.match(health.body.error, /myordbok-live is empty/);
 });
 
 test('lookup: senses, forms, synonyms and opposites', async () => {
@@ -239,10 +239,10 @@ test('guard: own pages only, a limit per visitor, open health; off without API_G
 	}
 });
 
-test('wrangler.toml: beta and production turn the guard on with their own limits', async () => {
+test('wrangler.toml: beta and live turn the guard on with their own limits', async () => {
 	const { readFile } = await import('node:fs/promises');
 	const toml = await readFile(new URL('../wrangler.toml', import.meta.url), 'utf8');
-	for (const env of ['beta', 'production']) {
+	for (const env of ['beta', 'live']) {
 		assert.match(toml, new RegExp(`\\[env\\.${env}\\][^]*?API_GUARD = "1"`), `${env} guard`);
 		for (const name of ['RATE_LOOKUP', 'RATE_HEAVY']) assert.match(toml, new RegExp(`\\[\\[env\\.${env}\\.ratelimits\\]\\]\\nname = "${name}"`), `${env} ${name}`);
 	}
@@ -250,10 +250,39 @@ test('wrangler.toml: beta and production turn the guard on with their own limits
 	assert.equal(new Set(ids).size, ids.length, 'each environment counts on its own');
 });
 
-test('wrangler.toml: production is the Worker named myordbok; the local top level is not', async () => {
+test('wrangler.toml: live is the Worker named myordbok-live; the local top level is not', async () => {
 	const { readFile } = await import('node:fs/promises');
 	const toml = await readFile(new URL('../wrangler.toml', import.meta.url), 'utf8');
 	assert.match(toml, /^name = "myordbok-local"$/m);
 	assert.match(toml, /\[env\.beta\]\nname = "myordbok-beta"/);
-	assert.match(toml, /\[env\.production\]\nname = "myordbok"\n/);
+	assert.match(toml, /\[env\.live\]\nname = "myordbok-live"\n/);
+});
+
+test('migration 0013: dict_release keeps its rows under the beta and live names', async () => {
+	const { readdirSync, readFileSync } = await import('node:fs');
+	const dir = new URL('../assets/db/migrations/', import.meta.url);
+	const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+	const at = files.indexOf('0013_beta_live.sql');
+	assert.ok(at > 0, 'migration 0013 exists');
+	const app = sqlite(files.slice(0, at).map((f) => readFileSync(new URL(f, dir), 'utf8')).join('\n'));
+	app.exec(`INSERT INTO dict_release (env, reads, build, switched_by) VALUES ('beta', 'dataset', 'b2', 'k'), ('production', 'dictionary', 'b1', 'k')`);
+	app.exec(readFileSync(new URL(files[at], dir), 'utf8'));
+	assert.deepEqual(
+		app.prepare('SELECT env, reads, build FROM dict_release ORDER BY env').all().map((r) => ({ ...r })),
+		[
+			{ env: 'beta', reads: 'beta', build: 'b2' },
+			{ env: 'live', reads: 'live', build: 'b1' },
+		],
+	);
+	assert.throws(() => app.exec("INSERT INTO dict_release (env, reads, build, switched_by) VALUES ('production', 'live', 'x', 'k')"), /CHECK/);
+});
+
+test('an unknown value in dict_release fails with how to fix it', async () => {
+	const app = sqlite(MIGRATION);
+	app.exec("PRAGMA ignore_check_constraints = ON; INSERT INTO dict_release (env, reads, build, switched_by) VALUES ('beta', 'dataset', 'b', 'k')");
+	resetChoiceCache();
+	const health = await call('/api/health', { APP: d1(app), BETA: d1(sqlite(SAMPLE)), LIVE: d1(sqlite(SAMPLE)), ASSETS: assets, ENV_NAME: 'beta', DICT_DB: '' });
+	assert.equal(health.status, 503);
+	assert.match(health.body.error, /reads "dataset", expected "beta" or "live"; apply the migrations \(make db-migrate-remote\)/);
+	resetChoiceCache();
 });

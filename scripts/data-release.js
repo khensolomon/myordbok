@@ -5,7 +5,7 @@
  *   1. checks   the dataset checkout is on its branch, clean and up to date
  *   2. edits    approved workspace edits → the dataset scripts' input files
  *               (scripts/data.js prepareExport), checked against what
- *               production readers see; conflicts are listed
+ *               live readers see; conflicts are listed
  *   3. dry run  each file through its dataset script without --apply
  *   ── a dry run (no --apply) stops here ──
  *   4. apply    each file through its script with --apply, then a CHANGELOG
@@ -183,7 +183,7 @@ export async function release(o) {
 	else {
 		for (const [name, f] of Object.entries(plan.files)) log(`   ${name}: ${f.rows.length} line(s)`);
 		for (const c of plan.conflicts) log(`   conflict, left in the workspace: edit ${c.id}: ${c.reason}`);
-		log(`   Checked against ${built}, what production readers see.`);
+		log(`   Checked against ${built}, what live readers see.`);
 	}
 
 	const tmp = mkdtempSync(join(tmpdir(), 'myordbok-release-'));

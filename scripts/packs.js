@@ -21,7 +21,7 @@
  *
  *   myordbok/offline/<build key>/manifest.json, …/<pack>.<ext>.gz   (shared/packs.js packKey)
  *
- * so beta and production each find the packs of the build they read, and a
+ * so beta and live each find the packs of the build they read, and a
  * promotion needs no new upload.
  *
  *   node scripts/packs.js --file BUILD.db|BUILD.sql [--out DIR] [--apply] [--local]

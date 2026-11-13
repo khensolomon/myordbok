@@ -1,10 +1,10 @@
 # Test every push and pull request; deploy from the two long-lived branches.
 #
 #   dev     → beta.myordbok.com   (every push)
-#   master  → myordbok.com        (only once repository variable PRODUCTION_ENABLED is "true")
+#   master  → myordbok.com        (only once repository variable LIVE_ENABLED is "true")
 #
 # Database migrations are never applied here: the D1 database is shared by
-# beta and production, so they are applied by hand (make db-migrate-remote).
+# beta and live, so they are applied by hand (make db-migrate-remote).
 
 name: Test and deploy
 
@@ -65,13 +65,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-  production:
-    name: Deploy production
+  live:
+    name: Deploy live
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.PRODUCTION_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.LIVE_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: live
       url: https://myordbok.com
     steps:
       - uses: actions/checkout@v7
@@ -89,7 +89,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Secret CLOUDFLARE_ACCOUNT_ID is not set (see docs/deploy.md)"; exit 1; }
       - run: npm run build
       - name: Deploy
-        run: npx wrangler deploy --env production
+        run: npx wrangler deploy --env live
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

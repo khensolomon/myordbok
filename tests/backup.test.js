@@ -149,7 +149,7 @@ test('overview: admins see the newest backup, others nothing; an unreadable buck
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('admin')}', 1, unixepoch() + 3600), ('${hash('editor')}', 2, unixepoch() + 3600);`);
 	const index = { updated: '2026-11-15T20:18:00Z', keep: KEEP, keep_days: KEEP_DAYS, backups: [{ name: '2026-11-15-2017', key: backupKey('2026-11-15-2017'), bytes: 3009, at: '2026-11-15T20:17:00.000Z' }, { name: '2026-11-08-2017', key: backupKey('2026-11-08-2017'), bytes: 2990, at: '2026-11-08T20:17:00.000Z' }] };
 	const dict = sqlite(SAMPLE);
-	const env = (STORAGE) => ({ APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(dict), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary', STORAGE });
+	const env = (STORAGE) => ({ APP: d1(app), BETA: d1(sqlite()), LIVE: d1(dict), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'live', STORAGE });
 	const overview = async (e, who) => (await (await worker.fetch(new Request(`${SITE}/api/workspace/overview`, { headers: { origin: SITE, cookie: `__Host-mo_session=${who}` } }), e)).json());
 
 	const kept = env({ get: async (key) => (key === BACKUP_INDEX ? { json: async () => index } : null) });

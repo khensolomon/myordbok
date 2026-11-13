@@ -35,7 +35,7 @@ import { getSetting, getSettings } from './lib/settings.js';
  *   NOINDEX?: string,
  * }} Env
  * NOINDEX is "1" on beta: every API response tells search engines not to index.
- * API_GUARD is "1" on beta and production: own pages only, rate limits, edge
+ * API_GUARD is "1" on beta and live: own pages only, rate limits, edge
  * cache (worker/lib/guard.js).
  */
 

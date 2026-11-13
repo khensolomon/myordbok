@@ -6,7 +6,7 @@
 -- same lookup code runs on both; `make dataset-sync` checks that they still
 -- match.
 --
--- Loaded into the local myordbok-dictionary by `make data-sample`.
+-- Loaded into the local myordbok-live by `make data-sample`.
 
 DROP TABLE IF EXISTS type_word;
 CREATE TABLE type_word (id INTEGER, name TEXT, shortname TEXT, PRIMARY KEY (id));

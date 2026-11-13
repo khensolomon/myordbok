@@ -104,7 +104,7 @@ test('the app database refuses edit values that cannot travel as TSV', () => {
 /** Fresh databases, a runner over them, and a log. */
 function setupRelease() {
 	const dir = mkdtempSync(join(tmpdir(), 'myordbok-data-'));
-	const dbs = { APP: sqlite(MIGRATION), DATASET: sqlite(), DICTIONARY: sqlite() };
+	const dbs = { APP: sqlite(MIGRATION), BETA: sqlite(), LIVE: sqlite() };
 	/** @type {string[]} */
 	const out = [];
 	return { dir, dbs, db: runner(dbs), out, log: (/** @type {string} */ s) => out.push(s) };
@@ -119,29 +119,29 @@ test('a build file names its build', () => {
 	assert.equal(buildOfFile('SELECT 1;'), null);
 });
 
-test('release cycle: publish to beta, promote to production, export, merge', async () => {
+test('release cycle: publish to beta, promote to live, export, merge', async () => {
 	const { dir, dbs, db, out, log } = setupRelease();
 	const first = join(dir, 'first.sql');
 	writeFileSync(first, SAMPLE);
 
-	// Publish: the dataset gets the build, beta previews it, production is untouched.
+	// Publish: myordbok-beta gets the build, beta previews it, live is untouched.
 	publish(db, first, true, log);
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample' });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample' });
 	// …and its statistics are kept for the workspace.
 	const kept = JSON.parse(dbs.APP.prepare("SELECT stats FROM build_stats WHERE build = 'sample'").get().stats);
-	assert.equal(kept.en.senses, dbs.DATASET.prepare('SELECT count(*) AS n FROM emd_sense').get().n);
-	assert.equal(kept.my.headwords, dbs.DATASET.prepare('SELECT count(DISTINCT wrid) AS n FROM med_sense').get().n);
+	assert.equal(kept.en.senses, dbs.BETA.prepare('SELECT count(*) AS n FROM emd_sense').get().n);
+	assert.equal(kept.my.headwords, dbs.BETA.prepare('SELECT count(DISTINCT wrid) AS n FROM med_sense').get().n);
 	assert.ok(kept.en.pos.Noun > 0);
 
-	// Promote: production ends on the dictionary, holding the same build.
+	// Promote: live ends on myordbok-live, holding the same build.
 	await promote(db, first, true, log, { waitMs: 0 });
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample', production: 'dictionary sample' });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample', live: 'live sample' });
 	out.length = 0;
 	status(db, log);
-	assert.match(out[0], /^myordbok-dictionary  build sample, source sample  ← production$/);
-	assert.match(out[1], /^myordbok-dataset     build sample, source sample  ← beta$/);
+	assert.match(out[0], /^myordbok-beta  build sample, source sample  ← beta$/);
+	assert.match(out[1], /^myordbok-live  build sample, source sample  ← live$/);
 
-	// Studio edits, approved, exported against what production readers see.
+	// Studio edits, approved, exported against what live readers see.
 	dbs.APP.exec(`INSERT INTO users (id, name, role) VALUES (1, 'Editor', 'editor');
 		INSERT INTO dict_edits (user_id, dict, action, sense_id, field, old_value, new_value, word, status, created_at) VALUES
 		(1, 'emd', 'edit', 7, 'exam', 'a glass of water', 'a glass of cold water', 'water', 'approved', 1),
@@ -160,43 +160,43 @@ test('release cycle: publish to beta, promote to production, export, merge', asy
 	publish(db, next, true, log);
 	assert.deepEqual(states(), ['merged', 'merged', 'conflict']);
 	assert.equal(dbs.APP.prepare('SELECT merged_source FROM dict_exports').get()?.merged_source, 'sample-2');
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample-2', production: 'dictionary sample' });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample-2', live: 'live sample' });
 
-	// Exporting waits until production has what beta previews.
-	await assert.rejects(exportEdits(db, dir, false, log), /Beta previews build sample-2, production has sample/);
+	// Exporting waits until live has what beta previews.
+	await assert.rejects(exportEdits(db, dir, false, log), /Beta previews build sample-2, live has sample/);
 	// Promoting needs the build beta previews, not an older file.
 	await assert.rejects(promote(db, first, true, log, { waitMs: 0 }), /holds build sample, beta previews sample-2/);
 	await promote(db, next, true, log, { waitMs: 0 });
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample-2', production: 'dictionary sample-2' });
-	assert.equal(dbs.DICTIONARY.prepare("SELECT exam FROM emd_sense WHERE id = 7").get()?.exam, 'a cup of water');
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample-2', live: 'live sample-2' });
+	assert.equal(dbs.LIVE.prepare("SELECT exam FROM emd_sense WHERE id = 7").get()?.exam, 'a cup of water');
 });
 
-test('a promotion that stops half way leaves production on the dataset, and can be finished', async () => {
+test('a promotion that stops half way leaves live on myordbok-beta, and can be finished', async () => {
 	const { dir, dbs, db, log } = setupRelease();
 	const good = join(dir, 'good.sql');
 	writeFileSync(good, SAMPLE);
 	publish(db, good, true, log);
 
-	// The import into the dictionary fails: production keeps reading the dataset.
+	// The import into myordbok-live fails: live keeps reading myordbok-beta.
 	const broken = runner(dbs);
 	broken.file = (binding, path) => {
-		if (binding === 'DICTIONARY') throw new Error('network gone');
+		if (binding === 'LIVE') throw new Error('network gone');
 		dbs[binding].exec(readFileSync(path, 'utf8'));
 	};
 	await assert.rejects(promote(broken, good, true, log, { waitMs: 0 }), /network gone/);
-	assert.equal(readsOf(dbs.APP).production, 'dataset sample');
+	assert.equal(readsOf(dbs.APP).live, 'beta sample');
 
 	// Nothing new is published until the promotion is finished.
 	assert.throws(() => publish(db, good, true, log), /a promotion did not finish/);
 	await promote(db, good, true, log, { waitMs: 0 });
-	assert.equal(readsOf(dbs.APP).production, 'dictionary sample');
+	assert.equal(readsOf(dbs.APP).live, 'live sample');
 });
 
 test('publish refuses an incomplete build and leaves the sites alone', () => {
 	const { dir, dbs, db, log } = setupRelease();
 	const broken = join(dir, 'broken.sql');
 	writeFileSync(broken, SAMPLE.replace("('rows.eng_word', '29')", "('rows.eng_word', '30')"));
-	assert.throws(() => publish(db, broken, true, log), /myordbok-dataset failed its checks:\n  eng_word: 29 rows, meta says 30/);
+	assert.throws(() => publish(db, broken, true, log), /myordbok-beta failed its checks:\n  eng_word: 29 rows, meta says 30/);
 	assert.equal(dbs.APP.prepare('SELECT count(*) AS n FROM dict_release').get()?.n, 0);
 });
 
@@ -204,39 +204,39 @@ test('switch points one site at one database, for repairs', () => {
 	const { dir, dbs, db, log } = setupRelease();
 	const file = join(dir, 'b.sql');
 	writeFileSync(file, SAMPLE);
-	assert.throws(() => switchSite(db, 'production', 'dictionary', true, log), /myordbok-dictionary holds no build/);
+	assert.throws(() => switchSite(db, 'live', 'live', true, log), /myordbok-live holds no build/);
 	publish(db, file, true, log);
-	switchSite(db, 'production', 'dataset', true, log);
-	assert.equal(readsOf(dbs.APP).production, 'dataset sample');
+	switchSite(db, 'live', 'beta', true, log);
+	assert.equal(readsOf(dbs.APP).live, 'beta sample');
 });
 
 test('database ids: placeholders and non-ids are refused, setup fills every environment', () => {
 	// wrangler.toml as shipped before setup: every id a placeholder.
 	const toml = setDatabaseIds(readFileSync(join(import.meta.dirname, '..', 'wrangler.toml'), 'utf8'), {
 		APP: '00000000-0000-0000-0000-000000000001',
-		DATASET: '00000000-0000-0000-0000-000000000002',
-		DICTIONARY: '00000000-0000-0000-0000-000000000003',
+		BETA: '00000000-0000-0000-0000-000000000002',
+		LIVE: '00000000-0000-0000-0000-000000000003',
 	});
 	assert.equal(badDatabaseIds(toml).length, 3);
 	assert.deepEqual(
-		badDatabaseIds('[[d1_databases]]\nbinding = "DATASET"\ndatabase_name = "myordbok-dataset"\ndatabase_id = "<id of dataset>"\n'),
-		['DATASET (myordbok-dataset): "<id of dataset>"'],
+		badDatabaseIds('[[d1_databases]]\nbinding = "BETA"\ndatabase_name = "myordbok-beta"\ndatabase_id = "<id of beta>"\n'),
+		['BETA (myordbok-beta): "<id of beta>"'],
 	);
 	const ids = {
 		APP: '11111111-2222-3333-4444-555555555555',
-		DATASET: '66666666-7777-8888-9999-000000000000',
-		DICTIONARY: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+		BETA: '66666666-7777-8888-9999-000000000000',
+		LIVE: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
 	};
 	const filled = setDatabaseIds(toml, ids);
 	assert.deepEqual(badDatabaseIds(filled), []);
 	for (const id of Object.values(ids)) assert.equal(filled.split(id).length - 1, 3);
-	assert.equal(setDatabaseIds(filled.replaceAll(ids.DATASET, '<id of dataset>'), ids), filled);
-	assert.throws(() => setDatabaseIds(toml, { DATASET: 'nope' }), /Not a database id/);
+	assert.equal(setDatabaseIds(filled.replaceAll(ids.BETA, '<id of beta>'), ids), filled);
+	assert.throws(() => setDatabaseIds(toml, { BETA: 'nope' }), /Not a database id/);
 });
 
 test('grant: a role by sign-in email, dry run first, recorded', async () => {
 	const { grant } = await import('../scripts/data.js');
-	const dbs = { APP: sqlite(MIGRATION), DATASET: sqlite(), DICTIONARY: sqlite() };
+	const dbs = { APP: sqlite(MIGRATION), BETA: sqlite(), LIVE: sqlite() };
 	dbs.APP.exec("INSERT INTO users (name, email) VALUES ('Khen', 'khen@example.com')");
 	const db = runner(dbs);
 	const lines = [];
@@ -257,7 +257,7 @@ test('grant: a level the database does not know yet says which migrations to app
 	const before = readdirSync(dir).filter((f) => f.endsWith('.sql') && f < '0007').sort().map((f) => readFileSync(join(dir, f), 'utf8')).join('\n');
 	const app = sqlite(before);
 	app.exec("INSERT INTO users (id, name, email) VALUES (1, 'K', 'k@example.com')");
-	const db = runner({ APP: app, DATASET: sqlite(), DICTIONARY: sqlite() });
+	const db = runner({ APP: app, BETA: sqlite(), LIVE: sqlite() });
 	assert.throws(() => grant(db, 'k@example.com', 'owner', true, () => {}), /does not know the level "owner" yet\. Apply the migrations first: make db-migrate/);
 });
 
@@ -279,14 +279,14 @@ test('release in two commands: beta (packs first, then publish), live from the r
 
 	await releaseBeta(db, file, true, log, { packs, remember });
 	assert.deepEqual(order, ['packs none'], 'the packs are up before beta reads the build');
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample' });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample' });
 	assert.equal(JSON.parse(readFileSync(remember, 'utf8')).built, 'sample');
 
-	// The file changed after it went to beta: production is refused.
+	// The file changed after it went to beta: live is refused.
 	writeFileSync(file, `${SAMPLE}\n-- rebuilt`);
 	await assert.rejects(releaseLive(db, null, true, log, { remember, waitMs: 0 }), /changed since it went to beta/);
 	writeFileSync(file, SAMPLE);
 	out.length = 0;
 	await releaseLive(db, null, true, log, { remember, waitMs: 0 });
-	assert.deepEqual(readsOf(dbs.APP), { beta: 'dataset sample', production: 'dictionary sample' });
+	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample', live: 'live sample' });
 });

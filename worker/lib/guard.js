@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Who may use the API, how often, and which answers come from the edge
- * cache. On when API_GUARD is "1" (beta and production); local development
+ * cache. On when API_GUARD is "1" (beta and live); local development
  * and the tests run without it unless they set it.
  *
  * 1. Own pages only. Browsers send Sec-Fetch-Site, which a web page cannot

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+113
+
+- Beta and live: the dictionary databases become myordbok-beta and myordbok-live, the live site and its Worker live and myordbok-live, in code, commands and docs (migration 0013)
+
 ## 26.11.13+112
 
 - Workspace: sections that do not fit go under ⋯ with a count; the phone menu scrolls; a dot on the person button shows online or offline

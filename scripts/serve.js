@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Development server, Node standard library only. Serves the source directly
- * (no build step) with the same URLs as production:
+ * (no build step) with the same URLs as live:
  *
  *   /            → app/           (index.html for any app route: deep links)
  *   /shared/…    → shared/

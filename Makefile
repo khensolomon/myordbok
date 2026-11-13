@@ -12,8 +12,8 @@ OUT      ?= exports
 
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
-        version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-stats data-packs data-promote edits-export data-switch \
-        grant deploy-beta deploy-production logs-beta release clean \
+        version dataset-sync db-status db-migrate-remote data-setup data-status data-beta data-live data-publish data-stats data-packs data-promote edits-export data-switch \
+        grant deploy-beta deploy-live logs-beta logs-live release clean \
         backup-deploy backup-now backup-list backup-pull restore sponsors-import data-release
 
 help: ## List the commands
@@ -33,12 +33,12 @@ api: build ## Worker + local D1 on :8787 (builds dist/web first)
 db-migrate: ## Create or update the local app database
 	$(WRANGLER) d1 migrations apply $(APP) --local
 
-data-sample: ## Load the sample dictionary into the local myordbok-dictionary
-	$(WRANGLER) d1 execute DICTIONARY --local --yes --file assets/db/seed.dev.sql
+data-sample: ## Load the sample dictionary into the local myordbok-live
+	$(WRANGLER) d1 execute LIVE --local --yes --file assets/db/seed.dev.sql
 
-data-local: ## Load a real build into the local myordbok-dictionary: FILE=…/build/myordbok.sql
+data-local: ## Load a real build into the local myordbok-live: FILE=…/build/myordbok.sql
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
-	$(WRANGLER) d1 execute DICTIONARY --local --yes --file "$(FILE)"
+	$(WRANGLER) d1 execute LIVE --local --yes --file "$(FILE)"
 
 db-reset: ## Delete the local databases, then migrate and load the sample
 	rm -rf .wrangler/state/v3/d1
@@ -49,7 +49,7 @@ db-reset: ## Delete the local databases, then migrate and load the sample
 test: ## Run the test suite
 	npm test
 
-build: ## Production build → dist/web
+build: ## Live build → dist/web
 	node scripts/build.js
 
 build-beta: ## Beta build → dist/web, marked noindex
@@ -76,12 +76,12 @@ ifeq ($(APPLY),1)
 	$(WRANGLER) d1 migrations apply $(APP) --remote --env beta
 else
 	$(WRANGLER) d1 migrations list $(APP) --remote --env beta
-	@echo 'Dry run. Add APPLY=1 to apply. This database also serves production.'
+	@echo 'Dry run. Add APPLY=1 to apply. This database also serves live.'
 endif
 
 ## Dictionary data (dry run unless APPLY=1; LOCAL=1 for the local databases)
 
-data-setup: ## Create the three databases if missing, write their ids into wrangler.toml [APPLY=1]
+data-setup: ## Create myordbok-app, myordbok-beta and myordbok-live if missing, write their ids into wrangler.toml [APPLY=1]
 	$(DATA) setup $(if $(filter 1,$(APPLY)),--apply)
 
 data-status: ## The build in each dictionary database, what each site reads, edits by status
@@ -91,10 +91,10 @@ data-beta: ## Release a build to beta: offline packs, then publish with statisti
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
 	$(DATA) beta --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-live: ## Promote the build beta previews to production (the file data-beta used) [FILE=…] [APPLY=1]
+data-live: ## Promote the build beta previews to live (the file data-beta used) [FILE=…] [APPLY=1]
 	$(DATA) live $(if $(FILE),--file "$(FILE)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-publish: ## Step: a build → myordbok-dataset, checked; beta previews it: FILE=… [APPLY=1]
+data-publish: ## Step: a build → myordbok-beta, checked; beta previews it: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql'; exit 1; }
 	$(DATA) publish --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
@@ -106,7 +106,7 @@ data-packs: ## Step: offline packs of a build → R2 myordbok/offline/: FILE=…
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.db (or .sql)'; exit 1; }
 	node --no-warnings scripts/packs.js --file "$(FILE)" $(if $(PACKS_OUT),--out "$(PACKS_OUT)") $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-promote: ## Step: the build beta previews → myordbok-dictionary for production: FILE=… [APPLY=1]
+data-promote: ## Step: the build beta previews → myordbok-live for live: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql (the build beta previews)'; exit 1; }
 	$(DATA) promote --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
@@ -120,8 +120,8 @@ grant: ## Give a member a role by sign-in email: EMAIL=… ROLE=member|editor|ad
 	@test -n "$(EMAIL)" -a -n "$(ROLE)" || { echo 'Give EMAIL=address ROLE=member|editor|admin|owner'; exit 1; }
 	$(DATA) grant --email "$(EMAIL)" --role $(ROLE) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
-data-switch: ## Repairs only: point SITE=beta|production at TO=dataset|dictionary [APPLY=1]
-	@test -n "$(SITE)" -a -n "$(TO)" || { echo 'Give SITE=beta|production TO=dataset|dictionary'; exit 1; }
+data-switch: ## Repairs only: point SITE=beta|live at TO=beta|live [APPLY=1]
+	@test -n "$(SITE)" -a -n "$(TO)" || { echo 'Give SITE=beta|live TO=beta|live'; exit 1; }
 	$(DATA) switch --env $(SITE) --to $(TO) $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 ## Backups of myordbok-app (docs/deploy.md, Backups; dry run unless APPLY=1)
@@ -165,13 +165,16 @@ deploy-beta: test ## Build and deploy beta.myordbok.com [APPLY=1]
 	$(WRANGLER) deploy --env beta $(if $(filter 1,$(APPLY)),,--dry-run)
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy.'
 
-deploy-production: test ## Build and deploy myordbok.com — cutover only [APPLY=1]
+deploy-live: test ## Build and deploy myordbok.com — cutover only [APPLY=1]
 	node scripts/build.js
-	$(WRANGLER) deploy --env production $(if $(filter 1,$(APPLY)),,--dry-run)
+	$(WRANGLER) deploy --env live $(if $(filter 1,$(APPLY)),,--dry-run)
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy. This replaces the live site.'
 
-logs-beta: ## Stream live logs from beta
+logs-beta: ## Stream the logs of beta as they happen
 	$(WRANGLER) tail --env beta
+
+logs-live: ## Stream the logs of live as they happen
+	$(WRANGLER) tail --env live
 
 ## Release
 

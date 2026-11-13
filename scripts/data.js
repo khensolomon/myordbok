@@ -5,12 +5,12 @@
  *
  * Three D1 databases, each with one fixed role:
  *
- *   myordbok-app         APP         what the app writes: members, reactions,
- *                                    comments, workspace edits, which database each
- *                                    site reads (dict_release)
- *   myordbok-dataset     DATASET     every new build lands here first; beta
- *                                    reads it, so beta previews the next release
- *   myordbok-dictionary  DICTIONARY  what production readers get
+ *   myordbok-app   APP   what the app writes: members, reactions, comments,
+ *                        workspace edits, which database each site reads
+ *                        (dict_release); shared by beta and live
+ *   myordbok-beta  BETA  every new build lands here first; beta reads it,
+ *                        so beta previews the next release
+ *   myordbok-live  LIVE  what live readers get
  *
  * The dataset (TSV, private repository) is the source of truth. The app never
  * writes to the dictionary: workspace edits wait in dict_edits, are exported
@@ -22,7 +22,7 @@
  *   beta    --file BUILD.sql    the offline packs to R2, then publish (beta
  *                               previews the build, with its statistics); the
  *                               file is remembered for live
- *   live    [--file BUILD.sql]  promote the build beta previews to production,
+ *   live    [--file BUILD.sql]  promote the build beta previews to live,
  *                               from the remembered file, refused if the file
  *                               changed since
  *
@@ -32,16 +32,16 @@
  *                               their ids into wrangler.toml (once)
  *   status                      the build in each database, what each site reads,
  *                               edits by status
- *   publish --file BUILD.sql    import into myordbok-dataset, check it, beta
+ *   publish --file BUILD.sql    import into myordbok-beta, check it, beta
  *                               previews it, mark merged edits
- *   promote --file BUILD.sql    the build beta previews goes to production:
- *                               production reads myordbok-dataset while the same
- *                               build is imported into myordbok-dictionary and
- *                               checked, then reads myordbok-dictionary again
+ *   promote --file BUILD.sql    the build beta previews goes to live:
+ *                               live reads myordbok-beta while the same
+ *                               build is imported into myordbok-live and
+ *                               checked, then reads myordbok-live again
  *   stats   --file BUILD        a build's statistics → myordbok-app (build_stats),
  *                               shown in the workspace; publish does it too
  *   export  --out DIR           approved edits → TSV files for the dataset scripts
- *   switch  --env beta|production --to dataset|dictionary
+ *   switch  --env beta|live --to beta|live
  *                               point one site at one database (repairs only)
  *   grant   --email ADDRESS --role member|editor|admin|owner
  *                               give a member a role, by the email they signed
@@ -68,7 +68,7 @@ import { pathToFileURL } from 'node:url';
 
 const NULL = '\\N';
 const CRLF = '\r\n';
-const ENVS = /** @type {const} */ (['beta', 'production']);
+const ENVS = /** @type {const} */ (['beta', 'live']);
 /** IDs per IN (…) list, to keep each command well under argument limits. */
 const CHUNK = 400;
 /** The database_id values wrangler.toml ships with, before `make data-setup`. */
@@ -78,14 +78,17 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Every D1 database, by binding. */
 export const DATABASES = Object.freeze({
 	APP: 'myordbok-app',
-	DATASET: 'myordbok-dataset',
-	DICTIONARY: 'myordbok-dictionary',
+	BETA: 'myordbok-beta',
+	LIVE: 'myordbok-live',
 });
 
-/** @typedef {'dataset' | 'dictionary'} Dict  One of the two dictionary databases. */
+/** Former names of the dictionary databases: `setup` says when they can go. */
+const RETIRED = ['myordbok-dataset', 'myordbok-dictionary'];
+
+/** @typedef {'beta' | 'live'} Dict  One of the two dictionary databases. */
 
 /** Binding of each dictionary database. */
-const BINDING = /** @type {const} */ ({ dataset: 'DATASET', dictionary: 'DICTIONARY' });
+const BINDING = /** @type {const} */ ({ beta: 'BETA', live: 'LIVE' });
 
 /**
  * How long a Worker may keep using the database it read before a switch
@@ -104,7 +107,7 @@ function d1Blocks(toml) {
 /**
  * Bindings whose database_id is a placeholder or not a UUID at all.
  * @param {string} toml
- * @returns {string[]}  e.g. ["DATASET (myordbok-dataset): 00000000-…"], once per binding.
+ * @returns {string[]}  e.g. ["BETA (myordbok-beta): 00000000-…"], once per binding.
  */
 export function badDatabaseIds(toml) {
 	const found = new Set();
@@ -453,7 +456,7 @@ function metaOf(db, dict) {
 /**
  * Which database each site reads.
  * @param {Runner} db
- * @returns {Partial<Record<'beta' | 'production', { reads: Dict, build: string, switched_at: number, switched_by: string }>>}
+ * @returns {Partial<Record<'beta' | 'live', { reads: Dict, build: string, switched_at: number, switched_by: string }>>}
  */
 function siteReads(db) {
 	return Object.fromEntries(db.query('APP', 'SELECT env, reads, build, switched_at, switched_by FROM dict_release').map((r) => [String(r.env), /** @type {any} */ (r)]));
@@ -461,7 +464,7 @@ function siteReads(db) {
 
 /**
  * @param {Runner} db
- * @param {'beta' | 'production'} env
+ * @param {'beta' | 'live'} env
  * @param {Dict} dict
  * @param {string} build
  */
@@ -552,14 +555,14 @@ function existingWords(db, dict, lang, words) {
 }
 
 /**
- * Refuses to go on while production reads myordbok-dataset, which only
+ * Refuses to go on while live reads myordbok-beta, which only
  * happens when a promotion stopped half way.
  * @param {Runner} db
  */
 function requirePromotionFinished(db) {
-	if (siteReads(db).production?.reads === 'dataset') {
+	if (siteReads(db).live?.reads === 'beta') {
 		throw new Error(
-			`Production reads ${DATABASES.DATASET}: a promotion did not finish. ` +
+			`Live reads ${DATABASES.BETA}: a promotion did not finish. ` +
 				'Run make data-promote FILE=… APPLY=1 with the build beta previews to finish it.',
 		);
 	}
@@ -569,19 +572,19 @@ function requirePromotionFinished(db) {
 
 /**
  * The approved edits as the dataset's input files, checked against what
- * production readers see; changes nothing. Shared by `export` and by
+ * live readers see; changes nothing. Shared by `export` and by
  * scripts/data-release.js.
  * @param {Runner} db
  * @returns {{ built: string, edits: Edit[], plan: ExportPlan }}
  */
 export function prepareExport(db) {
 	requirePromotionFinished(db);
-	const live = metaOf(db, 'dictionary');
-	if (!live?.built) throw new Error(`${DATABASES.DICTIONARY} holds no build yet; publish and promote one first`);
-	const preview = metaOf(db, 'dataset');
+	const live = metaOf(db, 'live');
+	if (!live?.built) throw new Error(`${DATABASES.LIVE} holds no build yet; publish and promote one first`);
+	const preview = metaOf(db, 'beta');
 	if (preview?.built && preview.built !== live.built) {
 		throw new Error(
-			`Beta previews build ${preview.built}, production has ${live.built}. ` +
+			`Beta previews build ${preview.built}, live has ${live.built}. ` +
 				'Promote it first (make data-promote), so edits are checked against what readers see.',
 		);
 	}
@@ -595,8 +598,8 @@ export function prepareExport(db) {
 	const plan = edits.length
 		? planExport(
 				edits,
-				{ emd: currentRows(db, 'dictionary', 'emd', ids('emd')), med: currentRows(db, 'dictionary', 'med', ids('med')) },
-				{ emd: existingWords(db, 'dictionary', 'emd', words('emd')), med: existingWords(db, 'dictionary', 'med', words('med')) },
+				{ emd: currentRows(db, 'live', 'emd', ids('emd')), med: currentRows(db, 'live', 'med', ids('med')) },
+				{ emd: existingWords(db, 'live', 'emd', words('emd')), med: existingWords(db, 'live', 'med', words('med')) },
 			)
 		: { files: {}, exported: [], conflicts: [] };
 	return { built: live.built, edits, plan };
@@ -668,7 +671,7 @@ export async function exportEdits(db, out, apply, log) {
 	for (const [name, f] of Object.entries(plan.files)) log(`${name}: ${f.rows.length} line(s)`);
 	for (const c of plan.conflicts) log(`conflict: edit ${c.id}: ${c.reason}`);
 	if (!apply) {
-		log(`Dry run against ${DATABASES.DICTIONARY}, build ${built} (${db.where}). Add --apply to write the files and mark the edits.`);
+		log(`Dry run against ${DATABASES.LIVE}, build ${built} (${db.where}). Add --apply to write the files and mark the edits.`);
 		return;
 	}
 	let dir = '';
@@ -684,7 +687,7 @@ export async function exportEdits(db, out, apply, log) {
 }
 
 /**
- * A build goes into myordbok-dataset and beta previews it.
+ * A build goes into myordbok-beta and beta previews it.
  * @param {Runner} db
  * @param {string} file
  * @param {boolean} apply
@@ -695,20 +698,20 @@ export function publish(db, file, apply, log) {
 	requirePromotionFinished(db);
 	const built = buildOfFile(readFileSync(file, 'utf8'));
 	if (!built) throw new Error(`${file} has no ('built', …) row in meta; is it a dataset build?`);
-	const before = metaOf(db, 'dataset');
-	log(`${DATABASES.DATASET}: build ${before?.built ?? '(empty)'} → ${built} (${db.where}). Beta will preview it; production is not touched.`);
+	const before = metaOf(db, 'beta');
+	log(`${DATABASES.BETA}: build ${before?.built ?? '(empty)'} → ${built} (${db.where}). Beta will preview it; live is not touched.`);
 	if (!apply) {
 		log('Dry run. Add --apply to import, check, and show it on beta.');
 		return;
 	}
 
-	log(`Importing ${file} into ${DATABASES.DATASET} …`);
-	db.file(BINDING.dataset, file);
-	const meta = checkImport(db, 'dataset');
-	log(`${DATABASES.DATASET} holds build ${meta.built} (source ${meta.source ?? '?'}); every table matches its count.`);
-	point(db, 'beta', 'dataset', meta.built);
+	log(`Importing ${file} into ${DATABASES.BETA} …`);
+	db.file(BINDING.beta, file);
+	const meta = checkImport(db, 'beta');
+	log(`${DATABASES.BETA} holds build ${meta.built} (source ${meta.source ?? '?'}); every table matches its count.`);
+	point(db, 'beta', 'beta', meta.built);
 	log(`Beta previews it (within 30 seconds). Check https://beta.myordbok.com, then: make data-promote FILE=${file} APPLY=1`);
-	markMerged(db, 'dataset', meta.built, log);
+	markMerged(db, 'beta', meta.built, log);
 	writeStats(db, file, true, log);
 }
 
@@ -738,8 +741,8 @@ export function writeStats(db, file, apply, log) {
 }
 
 /**
- * The build beta previews goes to production, without a moment where
- * production has nothing to read.
+ * The build beta previews goes to live, without a moment where
+ * live has nothing to read.
  * @param {Runner} db
  * @param {string} file  The same build that was published.
  * @param {boolean} apply
@@ -749,46 +752,46 @@ export function writeStats(db, file, apply, log) {
 export async function promote(db, file, apply, log, opts = {}) {
 	const waitMs = opts.waitMs ?? SWITCH_WAIT_MS;
 	if (!existsSync(file)) throw new Error(`${file} not found`);
-	const preview = metaOf(db, 'dataset');
-	if (!preview?.built) throw new Error(`${DATABASES.DATASET} holds no build; run make data-publish first`);
+	const preview = metaOf(db, 'beta');
+	if (!preview?.built) throw new Error(`${DATABASES.BETA} holds no build; run make data-publish first`);
 	const built = buildOfFile(readFileSync(file, 'utf8'));
 	if (built !== preview.built) {
 		throw new Error(`${file} holds build ${built ?? '(none)'}, beta previews ${preview.built}. Promote the build beta previews.`);
 	}
-	const live = metaOf(db, 'dictionary');
+	const live = metaOf(db, 'live');
 	const reads = siteReads(db);
-	if (live?.built === built && reads.production?.reads === 'dictionary') {
-		log(`Production already has build ${built}. Nothing to do.`);
+	if (live?.built === built && reads.live?.reads === 'live') {
+		log(`Live already has build ${built}. Nothing to do.`);
 		return;
 	}
-	log(`Production: build ${live?.built ?? '(none)'} → ${built} (${db.where}).`);
-	log(`  1. production reads ${DATABASES.DATASET}, which holds this build`);
-	log(`  2. the build is imported into ${DATABASES.DICTIONARY} and checked`);
-	log(`  3. production reads ${DATABASES.DICTIONARY} again`);
+	log(`Live: build ${live?.built ?? '(none)'} → ${built} (${db.where}).`);
+	log(`  1. live reads ${DATABASES.BETA}, which holds this build`);
+	log(`  2. the build is imported into ${DATABASES.LIVE} and checked`);
+	log(`  3. live reads ${DATABASES.LIVE} again`);
 	if (!apply) {
 		log('Dry run. Add --apply to promote.');
 		return;
 	}
 
-	if (reads.production?.reads !== 'dataset') {
-		point(db, 'production', 'dataset', preview.built);
-		log(`1. Production reads ${DATABASES.DATASET}.`);
+	if (reads.live?.reads !== 'beta') {
+		point(db, 'live', 'beta', preview.built);
+		log(`1. Live reads ${DATABASES.BETA}.`);
 		if (waitMs > 0) {
-			log(`   Waiting ${Math.round(waitMs / 1000)} s until no Worker reads ${DATABASES.DICTIONARY} …`);
+			log(`   Waiting ${Math.round(waitMs / 1000)} s until no Worker reads ${DATABASES.LIVE} …`);
 			await sleep(waitMs);
 		}
 	} else {
-		log(`1. Production already reads ${DATABASES.DATASET} (an earlier promotion stopped here).`);
+		log(`1. Live already reads ${DATABASES.BETA} (an earlier promotion stopped here).`);
 	}
 
-	log(`2. Importing ${file} into ${DATABASES.DICTIONARY} …`);
-	db.file(BINDING.dictionary, file);
-	const meta = checkImport(db, 'dictionary');
-	if (meta.built !== preview.built) throw new Error(`${DATABASES.DICTIONARY} holds build ${meta.built} after the import, expected ${preview.built}`);
-	log(`   ${DATABASES.DICTIONARY} holds build ${meta.built}; every table matches its count.`);
+	log(`2. Importing ${file} into ${DATABASES.LIVE} …`);
+	db.file(BINDING.live, file);
+	const meta = checkImport(db, 'live');
+	if (meta.built !== preview.built) throw new Error(`${DATABASES.LIVE} holds build ${meta.built} after the import, expected ${preview.built}`);
+	log(`   ${DATABASES.LIVE} holds build ${meta.built}; every table matches its count.`);
 
-	point(db, 'production', 'dictionary', meta.built);
-	log(`3. Production reads ${DATABASES.DICTIONARY} again (within 30 seconds). Done.`);
+	point(db, 'live', 'live', meta.built);
+	log(`3. Live reads ${DATABASES.LIVE} again (within 30 seconds). Done.`);
 }
 
 /**
@@ -823,9 +826,9 @@ export async function releaseBeta(db, file, apply, log, opts = {}) {
 	if (!apply) {
 		log('Release to beta, step by step:');
 		log('  1. offline packs of the build → R2 (built and uploaded, the manifest last)');
-		log('  2. publish: the build → myordbok-dataset, checked; beta previews it; statistics kept');
+		log('  2. publish: the build → myordbok-beta, checked; beta previews it; statistics kept');
 		publish(db, file, false, log);
-		log(`Then: make data-live APPLY=1 promotes it to production.`);
+		log(`Then: make data-live APPLY=1 promotes it to live.`);
 		return;
 	}
 	log('1. Offline packs');
@@ -838,7 +841,7 @@ export async function releaseBeta(db, file, apply, log, opts = {}) {
 }
 
 /**
- * Production gets the build beta previews, from the file remembered by
+ * Live gets the build beta previews, from the file remembered by
  * `beta` (or the one given), refused when that file changed since.
  * @param {Runner} db
  * @param {string | null} given
@@ -854,7 +857,7 @@ export async function releaseLive(db, given, apply, log, opts = {}) {
 	if (!file) throw new Error(`No build was released to beta from this machine (${remember} is missing). Run make data-beta FILE=… first, or give FILE=…`);
 	if (!existsSync(file)) throw new Error(`${file} is gone since it went to beta; give FILE=… for the build beta previews`);
 	if (kept && kept.file === file && sha256Of(file) !== kept.sha256) {
-		throw new Error(`${file} changed since it went to beta (build ${kept.built}). Release it to beta again (make data-beta) before production.`);
+		throw new Error(`${file} changed since it went to beta (build ${kept.built}). Release it to beta again (make data-beta) before live.`);
 	}
 	await promote(db, file, apply, log, opts.waitMs === undefined ? {} : { waitMs: opts.waitMs });
 }
@@ -903,7 +906,7 @@ function markMerged(db, dict, built, log) {
  * Points one site at one database. Repairs only: publish and promote do this
  * themselves.
  * @param {Runner} db
- * @param {'beta' | 'production'} env
+ * @param {'beta' | 'live'} env
  * @param {Dict} dict
  * @param {boolean} apply
  * @param {(line: string) => void} log
@@ -932,7 +935,7 @@ export function switchSite(db, env, dict, apply, log) {
 export function status(db, log) {
 	const reads = siteReads(db);
 	/** @type {Dict[]} */
-	const dicts = ['dictionary', 'dataset'];
+	const dicts = ['beta', 'live'];
 	const width = Math.max(...dicts.map((d) => nameOf(d).length));
 	/** @type {Record<string, string>} */
 	const builds = {};
@@ -942,8 +945,8 @@ export function status(db, log) {
 		const readers = ENVS.filter((env) => reads[env]?.reads === dict);
 		log(`${nameOf(dict).padEnd(width)}  ${meta?.built ? `build ${meta.built}, source ${meta.source ?? '?'}` : 'empty'}${readers.length ? `  ← ${readers.join(', ')}` : ''}`);
 	}
-	if (reads.production?.reads === 'dataset') log('A promotion did not finish: run make data-promote FILE=… APPLY=1.');
-	else if (builds.dataset && builds.dataset !== builds.dictionary) log('Beta previews a build production does not have yet: make data-promote FILE=… APPLY=1 when it looks right.');
+	if (reads.live?.reads === 'beta') log('A promotion did not finish: run make data-promote FILE=… APPLY=1.');
+	else if (builds.beta && builds.beta !== builds.live) log('Beta previews a build live does not have yet: make data-promote FILE=… APPLY=1 when it looks right.');
 	const counts = db.query('APP', 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status ORDER BY status');
 	log(`edits: ${counts.length ? counts.map((r) => `${r.status} ${r.n}`).join(', ') : 'none'}`);
 }
@@ -977,6 +980,8 @@ function setup(apply, log) {
 	for (const name of Object.values(DATABASES)) {
 		log(`${name}: ${missing.includes(name) ? (apply ? 'creating' : 'missing, would be created') : 'exists'}`);
 	}
+	const retired = databases.filter((d) => RETIRED.includes(d.name));
+	for (const d of retired) log(`${d.name}: retired (the names before myordbok-beta and myordbok-live); delete it once both sites read the new databases: npx wrangler d1 delete ${d.name}`);
 	if (!apply) {
 		log('Dry run. Add APPLY=1 to create what is missing and write the ids into wrangler.toml.');
 		return;
@@ -1001,7 +1006,7 @@ function setup(apply, log) {
 		return;
 	}
 	writeFileSync(WRANGLER_TOML, after);
-	log('Wrote the ids into wrangler.toml (top level, beta, production). Commit it: ids are not secrets.');
+	log('Wrote the ids into wrangler.toml (top level, beta, live). Commit it: ids are not secrets.');
 }
 
 /**
@@ -1075,9 +1080,9 @@ async function main() {
 			return promote(db, fileArg('promote'), apply, log, local ? { waitMs: 0 } : {});
 		case 'switch': {
 			const env = option(args, '--env');
-			if (env !== 'beta' && env !== 'production') throw new Error('Give --env beta or --env production');
+			if (env !== 'beta' && env !== 'live') throw new Error('Give --env beta or --env live');
 			const to = option(args, '--to');
-			if (to !== 'dataset' && to !== 'dictionary') throw new Error('Give --to dataset or --to dictionary');
+			if (to !== 'beta' && to !== 'live') throw new Error('Give --to beta or --to live');
 			return switchSite(db, env, to, apply, log);
 		}
 		case 'grant':

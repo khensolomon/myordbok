@@ -1,34 +1,33 @@
 # Cloudflare Worker: serves the built app (dist/web) and the /api routes.
 #
 # Environments (each deploys as its own Worker with its own domain):
-#   Worker names: myordbok-local (never deployed), myordbok-beta, myordbok
+#   Worker names: myordbok-local (never deployed), myordbok-beta, myordbok-live
 #   (top level)   local development only: `wrangler dev --local`
 #   beta          beta.myordbok.com — deployed from the dev branch
-#   production    myordbok.com      — deployed from master, switched on at cutover
+#   live          myordbok.com      — deployed from master, switched on at cutover
 #
 # Bindings and routes are not inherited by environments, so each one
 # declares its own. Both sites use the same three D1 databases:
 #
-#   APP         myordbok-app         what the app writes: members, sign-in,
-#                                    reactions, comments, studio edits, and which
-#                                    dictionary database each site reads
-#                                    (assets/db/migrations). Migrations must stay
-#                                    backward compatible: beta can run newer code
-#                                    against the data production reads.
-#   DATASET     myordbok-dataset     every new dictionary build lands here first;
-#                                    beta reads it, so beta previews the next release
-#   DICTIONARY  myordbok-dictionary  the dictionary production readers get
+#   APP   myordbok-app   what the app writes: members, sign-in, reactions,
+#                        comments, workspace edits, and which dictionary
+#                        database each site reads (assets/db/migrations).
+#                        Migrations must stay backward compatible: beta can
+#                        run newer code against the data live reads.
+#   BETA  myordbok-beta  every new dictionary build lands here first; beta
+#                        reads it, so beta previews the next release
+#   LIVE  myordbok-live  the dictionary live readers get
 #
 # Builds come from the private dataset; `make data-publish` and
 # `make data-promote` move them (docs/deploy.md, Dictionary releases). The site
 # reads the database dict_release names; DICT_DB overrides that, and local
-# development pins it to "dictionary".
+# development pins it to "live".
 #
 # database_id values are identifiers, not credentials. Remote access needs a
 # Cloudflare API token or login for the owning account; local commands never
 # touch them. `make data-setup APPLY=1` creates the databases and fills them in.
 
-# The top level is never deployed. Its name differs from production's, so a
+# The top level is never deployed. Its name differs from live's, so a
 # deploy without --env makes a separate, domain-less Worker instead of
 # overwriting myordbok.com with local settings.
 name = "myordbok-local"
@@ -44,16 +43,16 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/api/*"]
 
-# Local development reads the local myordbok-dictionary (make data-sample).
-# API_GUARD is off here; beta and production turn it on (worker/lib/guard.js).
+# Local development reads the local myordbok-live (make data-sample).
+# API_GUARD is off here; beta and live turn it on (worker/lib/guard.js).
 #
 # Sign-in (worker/routes/auth.js): client ids are public and live here; the
-# secrets do not. Beta and production: `npx wrangler secret put
+# secrets do not. Beta and live: `npx wrangler secret put
 # GITHUB_CLIENT_SECRET --env beta` (and GOOGLE_CLIENT_SECRET, and --env
-# production). Local: .dev.vars (see .dev.vars.example), which overrides these.
+# live). Local: .dev.vars (see .dev.vars.example), which overrides these.
 [vars]
-DICT_DB = "dictionary"
-# The GitHub app is the same as beta's and production's (localhost is one of
+DICT_DB = "live"
+# The GitHub app is the same as beta's and live's (localhost is one of
 # its callbacks); its secret goes in .dev.vars.
 GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a"
 GOOGLE_CLIENT_ID = "75095486220-gknegpg2ba3jnkjtat8a54i3gpkor15m.apps.googleusercontent.com"
@@ -79,14 +78,14 @@ database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
 [[d1_databases]]
-binding = "DATASET"
-database_name = "myordbok-dataset"
-database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
+binding = "BETA"
+database_name = "myordbok-beta"
+database_id = "00000000-0000-0000-0000-000000000002"
 
 [[d1_databases]]
-binding = "DICTIONARY"
-database_name = "myordbok-dictionary"
-database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
+binding = "LIVE"
+database_name = "myordbok-live"
+database_id = "00000000-0000-0000-0000-000000000003"
 
 # Every MyOrdbok file, in one private bucket (never public): the offline
 # packs under offline/, one folder per dictionary build (scripts/packs.js);
@@ -123,14 +122,14 @@ database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
 [[env.beta.d1_databases]]
-binding = "DATASET"
-database_name = "myordbok-dataset"
-database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
+binding = "BETA"
+database_name = "myordbok-beta"
+database_id = "00000000-0000-0000-0000-000000000002"
 
 [[env.beta.d1_databases]]
-binding = "DICTIONARY"
-database_name = "myordbok-dictionary"
-database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
+binding = "LIVE"
+database_name = "myordbok-live"
+database_id = "00000000-0000-0000-0000-000000000003"
 
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
@@ -138,46 +137,46 @@ database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
 binding = "STORAGE"
 bucket_name = "myordbok"
 
-# ---------------------------------------------------------------- production
+# ---------------------------------------------------------------- live
 # Deploying this takes over the myordbok.com DNS record from the current
 # Django site. CI only deploys it when the repository variable
-# PRODUCTION_ENABLED is "true" (see docs/deploy.md, Cutover).
+# LIVE_ENABLED is "true" (see docs/deploy.md, Cutover).
 
-[env.production]
-name = "myordbok"
+[env.live]
+name = "myordbok-live"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
-vars = { ENV_NAME = "production", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
+vars = { ENV_NAME = "live", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
 
-[[env.production.ratelimits]]
+[[env.live.ratelimits]]
 name = "RATE_LOOKUP"
 namespace_id = "1201"
 simple = { limit = 120, period = 60 }
 
-[[env.production.ratelimits]]
+[[env.live.ratelimits]]
 name = "RATE_HEAVY"
 namespace_id = "1202"
 simple = { limit = 40, period = 60 }
 
-[[env.production.d1_databases]]
+[[env.live.d1_databases]]
 binding = "APP"
 database_name = "myordbok-app"
 database_id = "ea406653-37b8-4a9d-bd00-a646660a20ad"
 migrations_dir = "assets/db/migrations"
 
-[[env.production.d1_databases]]
-binding = "DATASET"
-database_name = "myordbok-dataset"
-database_id = "a989cd47-3618-4af7-9e74-8c597cb610ea"
+[[env.live.d1_databases]]
+binding = "BETA"
+database_name = "myordbok-beta"
+database_id = "00000000-0000-0000-0000-000000000002"
 
-[[env.production.d1_databases]]
-binding = "DICTIONARY"
-database_name = "myordbok-dictionary"
-database_id = "c680ffdb-bb5f-402e-8969-29086c39d835"
+[[env.live.d1_databases]]
+binding = "LIVE"
+database_name = "myordbok-live"
+database_id = "00000000-0000-0000-0000-000000000003"
 
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
-[[env.production.r2_buckets]]
+[[env.live.r2_buckets]]
 binding = "STORAGE"
 bucket_name = "myordbok"

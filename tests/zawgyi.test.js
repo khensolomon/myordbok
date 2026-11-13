@@ -63,7 +63,7 @@ function env() {
 	const app = sqlite(MIGRATION);
 	app.exec(`INSERT INTO users (id, name, role) VALUES (1, 'Mya', 'member');
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('member')}', 1, unixepoch() + 3600);`);
-	return { APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: { fetch: async () => new Response('') }, DICT_DB: 'dictionary' };
+	return { APP: d1(app), BETA: d1(sqlite()), LIVE: d1(sqlite(SAMPLE)), ASSETS: { fetch: async () => new Response('') }, DICT_DB: 'live' };
 }
 
 /** @param {any} e @param {string} path @param {any} [body] */

@@ -1,6 +1,6 @@
 {
 	"name": "myordbok",
-	"version": "26.11.13+112",
+	"version": "26.11.13+113",
 	"description": "a comprehensive online Myanmar dictionary",
 	"keywords": [
 		"myordbok",
@@ -21,7 +21,7 @@
 		"dev": "node scripts/serve.js",
 		"dev:api": "node scripts/build.js && wrangler dev --local --port 8787",
 		"db:migrate": "wrangler d1 migrations apply myordbok-app --local",
-		"data:sample": "wrangler d1 execute DICTIONARY --local --yes --file assets/db/seed.dev.sql",
+		"data:sample": "wrangler d1 execute LIVE --local --yes --file assets/db/seed.dev.sql",
 		"build": "node scripts/build.js",
 		"build:beta": "node scripts/build.js --noindex",
 		"build:tauri": "node scripts/build.js --target tauri",

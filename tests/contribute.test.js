@@ -12,7 +12,7 @@ function env() {
 	app.exec(`INSERT INTO users (id, name, email, role) VALUES (1, 'Member', 'm@example.com', 'member'), (2, 'Editor', 'e@example.com', 'editor');
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('member-token')}', 1, unixepoch() + 3600), ('${hash('editor-token')}', 2, unixepoch() + 3600);`);
 	const dict = sqlite(SAMPLE);
-	return { raw: app, rawDict: dict, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(dict), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'dictionary' };
+	return { raw: app, rawDict: dict, APP: d1(app), BETA: d1(sqlite()), LIVE: d1(dict), ASSETS: { fetch: () => new Response('') }, DICT_DB: 'live' };
 }
 
 /**

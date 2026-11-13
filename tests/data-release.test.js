@@ -53,10 +53,10 @@ print('75 search checks passed')
 	return { repo, dataset };
 }
 
-/** Databases with the sample build on beta and production, and approved edits. */
+/** Databases with the sample build on beta and live, and approved edits. */
 function databases() {
 	const dir = mkdtempSync(join(tmpdir(), 'myordbok-rel-'));
-	const dbs = { APP: sqlite(MIGRATION), DATASET: sqlite(), DICTIONARY: sqlite() };
+	const dbs = { APP: sqlite(MIGRATION), BETA: sqlite(), LIVE: sqlite() };
 	const db = runner(dbs);
 	const file = join(dir, 'sample.sql');
 	writeFileSync(file, SAMPLE);

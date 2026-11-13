@@ -12,7 +12,7 @@ function env() {
 	const app = sqlite(MIGRATION);
 	app.exec(`INSERT INTO users (id, name, email, role, avatar_url) VALUES (1, 'Owner', 'o@example.com', 'owner', NULL), (2, 'Ad', 'a@example.com', 'admin', NULL), (3, 'Mya', 'm@example.com', 'member', 'https://g/m.png');
 		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('owner')}', 1, unixepoch() + 3600), ('${hash('admin')}', 2, unixepoch() + 3600), ('${hash('member')}', 3, unixepoch() + 3600);`);
-	return { raw: app, APP: d1(app), DATASET: d1(sqlite()), DICTIONARY: d1(sqlite(SAMPLE)), ASSETS: { fetch: async () => new Response('') }, DICT_DB: 'dictionary' };
+	return { raw: app, APP: d1(app), BETA: d1(sqlite()), LIVE: d1(sqlite(SAMPLE)), ASSETS: { fetch: async () => new Response('') }, DICT_DB: 'live' };
 }
 
 async function call(e, path, { who, body } = {}) {

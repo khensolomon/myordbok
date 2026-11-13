@@ -685,9 +685,9 @@ export const MY = {
 	"{n} more sections, some waiting": "နောက်ထပ်အပိုင်း {n} ခု၊ အချို့ စောင့်နေသည်",
 	"{n} more sections": "နောက်ထပ်အပိုင်း {n} ခု",
 	// Releases
-	"Beta previews a new build ({beta}); production still has {production}.": "Beta တွင် build အသစ် ({beta}) ကို အစမ်းပြနေသည်၊ production တွင် {production} ကို ဆက်သုံးနေဆဲ။",
+	"Beta previews a new build ({beta}); live still has {live}.": "Beta တွင် build အသစ် ({beta}) ကို အစမ်းပြနေသည်၊ live တွင် {live} ကို ဆက်သုံးနေဆဲ။",
 	"After a look at beta:": "Beta ကို စစ်ပြီးနောက် −",
-	"Once production has the build on beta:": "Beta ရှိ build ကို production သို့ ရောက်ပြီးနောက် −",
+	"Once live has the build on beta:": "Beta ရှိ build ကို live သို့ ရောက်ပြီးနောက် −",
 	"To release:": "ထုတ်ပြန်ရန် −",
 	"Nothing waits: every approved edit is in the dictionary readers see.": "စောင့်နေသည် မရှိပါ − အတည်ပြုထားသော ပြင်ဆင်ချက်တိုင်း စာဖတ်သူများ မြင်ရသော အဘိဓာန်တွင် ပါပြီ။",
 	"Next release": "နောက်ထုတ်ပြန်မှု",
