@@ -1807,7 +1807,7 @@ body[data-route="support"] main#view { max-width: none; }
 .support-secondary:hover { text-decoration: none; transform: translateY(-1px); }
 .support-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; width: 100%; max-width: 1200px; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
 .support-figures div { display: flex; flex-direction: column-reverse; gap: 2px; }
-.support-figures dd { margin: 0; font-size: clamp(26px, 1.1rem + 1.6vw, 44px); font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--ink); text-shadow: 0 0 18px color-mix(in srgb, var(--brand) 45%, transparent), 0 2px 6px color-mix(in srgb, var(--brand) 18%, transparent); }
+.support-figures dd { margin: 0; font-size: clamp(26px, 1.1rem + 1.6vw, 44px); font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--figure); text-shadow: 0 0 22px color-mix(in srgb, var(--figure) 40%, transparent), 0 0 2px color-mix(in srgb, var(--figure) 25%, transparent); }
 .support-figures dt { font-size: clamp(13px, 0.75rem + 0.15vw, 15px); color: var(--muted); }
 
 .support-part { display: grid; gap: 20px; scroll-margin-top: 24px; outline: none; }

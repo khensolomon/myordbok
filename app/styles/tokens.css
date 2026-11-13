@@ -56,6 +56,8 @@
 	/* Support: the one warm colour, for the heart and its link only. */
 	--heart: #b4234a;
 	--heart-tint: rgba(214, 51, 92, 0.08);
+	/* The logo blue as a figure's colour; lighter on dark grounds. */
+	--figure: #318ed7;
 	/* Header links: the page you are on, and the pointer. Barely there. */
 	--nav-current: rgba(118, 128, 142, 0.075);
 	--nav-hover: rgba(118, 128, 142, 0.045);
@@ -110,6 +112,7 @@
 	--term-tint: rgba(109, 179, 242, 0.18);
 	--heart: #f08aa5;
 	--heart-tint: rgba(240, 138, 165, 0.12);
+	--figure: #6db3f2;
 	--nav-current: rgba(150, 165, 185, 0.1);
 	--nav-hover: rgba(150, 165, 185, 0.06);
 	--glass-shine: 0 0 #0000;
@@ -150,6 +153,7 @@
 		--term-tint: rgba(109, 179, 242, 0.18);
 		--heart: #f08aa5;
 		--heart-tint: rgba(240, 138, 165, 0.12);
+		--figure: #6db3f2;
 		--nav-current: rgba(150, 165, 185, 0.1);
 		--nav-hover: rgba(150, 165, 185, 0.06);
 		--glass-shine: 0 0 #0000;

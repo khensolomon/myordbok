@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+110
+
+- Support page figures in the logo blue with a matching glow (a lighter blue in dark mode), instead of dark text with a glow
+
 ## 26.11.13+109
 
 - Support page: the full available width inside the usual gutters, type that grows with the screen without getting small on phones, a soft logo-blue glow on the figures, and the logo blue on the steps' edge and the closing thank-you
