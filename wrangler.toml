@@ -80,12 +80,12 @@ migrations_dir = "assets/db/migrations"
 [[d1_databases]]
 binding = "BETA"
 database_name = "myordbok-beta"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "3aecf3de-2dd2-44a1-9cec-e15f2b721450"
 
 [[d1_databases]]
 binding = "LIVE"
 database_name = "myordbok-live"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "cefe0933-6df6-4796-9570-9bd48bcf2d27"
 
 # Every MyOrdbok file, in one private bucket (never public): the offline
 # packs under offline/, one folder per dictionary build (scripts/packs.js);
@@ -124,12 +124,12 @@ migrations_dir = "assets/db/migrations"
 [[env.beta.d1_databases]]
 binding = "BETA"
 database_name = "myordbok-beta"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "3aecf3de-2dd2-44a1-9cec-e15f2b721450"
 
 [[env.beta.d1_databases]]
 binding = "LIVE"
 database_name = "myordbok-live"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "cefe0933-6df6-4796-9570-9bd48bcf2d27"
 
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
@@ -168,12 +168,12 @@ migrations_dir = "assets/db/migrations"
 [[env.live.d1_databases]]
 binding = "BETA"
 database_name = "myordbok-beta"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "3aecf3de-2dd2-44a1-9cec-e15f2b721450"
 
 [[env.live.d1_databases]]
 binding = "LIVE"
 database_name = "myordbok-live"
-database_id = "00000000-0000-0000-0000-000000000003"
+database_id = "cefe0933-6df6-4796-9570-9bd48bcf2d27"
 
 # Offline packs, one folder per dictionary build (scripts/packs.js); one
 # bucket serves every site, each reading the folder of its own build.
