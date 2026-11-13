@@ -680,6 +680,10 @@ export const MY = {
 	'Use the Unicode': 'ယူနီကုဒ်ကို သုံးရန်',
 	'Changed to Unicode. Check it, then send it again.': 'ယူနီကုဒ်သို့ ပြောင်းပြီးပါပြီ။ စစ်ဆေးပြီး ထပ်ပို့ပါ။',
 	'This looks like Zawgyi, which the dictionary cannot read. In Unicode it is:': 'ဤစာသည် ဇော်ဂျီ ဖြစ်ပုံရပြီး အဘိဓာန်က ဖတ်၍မရပါ။ ယူနီကုဒ်ဖြင့် −',
+	// Workspace rail
+	"More sections": "အခြားအပိုင်းများ",
+	"{n} more sections, some waiting": "နောက်ထပ်အပိုင်း {n} ခု၊ အချို့ စောင့်နေသည်",
+	"{n} more sections": "နောက်ထပ်အပိုင်း {n} ခု",
 	// Releases
 	"Beta previews a new build ({beta}); production still has {production}.": "Beta တွင် build အသစ် ({beta}) ကို အစမ်းပြနေသည်၊ production တွင် {production} ကို ဆက်သုံးနေဆဲ။",
 	"After a look at beta:": "Beta ကို စစ်ပြီးနောက် −",

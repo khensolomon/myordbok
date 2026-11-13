@@ -10,6 +10,7 @@ import { initLang, t } from './i18n/index.js';
 import { member } from './core/member.js';
 import { initMenu } from './core/menu.js';
 import { followTheme } from './core/prefs.js';
+import { followOnline } from './core/online.js';
 import { initNav } from './core/nav.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
@@ -78,6 +79,7 @@ if (!(you instanceof HTMLAnchorElement)) throw new Error('index.html is missing 
 const blankFace = you.innerHTML;
 initMenu(you);
 followTheme();
+followOnline();
 document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
 	you.setAttribute('aria-label', m ? t('Account: {name}', { name: m.name }) : t('Account: sign in'));

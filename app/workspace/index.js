@@ -564,7 +564,7 @@ function railFor(me, editor, section, summary) {
 	const setOpen = (/** @type {boolean} */ open) => {
 		panel.hidden = !open;
 		button.setAttribute('aria-expanded', String(open));
-		if (open) /** @type {HTMLElement | null} */ (panel.querySelector('[aria-current="page"]') ?? panel.querySelector('a'))?.focus();
+		if (open) /** @type {HTMLElement | null} */ (panel.querySelector('[aria-current="page"]') ?? panel.querySelector('a'))?.focus({ preventScroll: true });
 	};
 	button.addEventListener('click', () => setOpen(panel.hidden));
 	panel.addEventListener('click', (e) => {
@@ -583,17 +583,105 @@ function railFor(me, editor, section, summary) {
 		}
 	});
 
-	return h(
+	const more = railMore(sections, items, countOf);
+	const rail = h(
 		'nav',
 		{ class: 'ws-rail', 'aria-label': t('Workspace') },
 		// On phones the logo and the section's name share a glass capsule; elsewhere the wrapper is invisible (display: contents).
 		h('span', { class: 'ws-rail-head' }, h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })), h('span', { class: 'ws-rail-title' }, current)),
 		items,
+		more.node,
 		h('span', { class: 'ws-rail-gap' }),
 		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face()),
 		button,
 		panel,
 	);
+	more.watch(rail);
+	return rail;
+}
+
+/**
+ * The rail on a desktop: the sections keep their height, and the ones that
+ * do not fit go under ⋯ at the end, with their number on it; the current
+ * section always stays in the rail. ⋯ opens them beside the rail, with
+ * their names and waiting counts. A taller window brings them back.
+ * @param {typeof SECTIONS[number][]} sections
+ * @param {HTMLElement[]} items  The rail's links, in the order of sections.
+ * @param {(id: string) => number} countOf
+ */
+function railMore(sections, items, countOf) {
+	const count = h('span', { class: 'ws-more-count' });
+	const button = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-rail-item ws-rail-more', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': 'ws-rail-more', title: t('More sections') }, h('span', { 'aria-hidden': 'true' }, '⋯'), count));
+	const panel = h('div', { class: 'ws-rail-panel', id: 'ws-rail-more', hidden: true });
+	const node = h('div', { class: 'ws-rail-more-wrap', hidden: true }, button, panel);
+	/** @type {number[]} */
+	let away = [];
+
+	const close = () => {
+		panel.hidden = true;
+		button.setAttribute('aria-expanded', 'false');
+		document.removeEventListener('pointerdown', outside, true);
+	};
+	const outside = (/** @type {Event} */ e) => {
+		if (!node.contains(/** @type {Node} */ (e.target))) close();
+	};
+	button.addEventListener('click', () => {
+		if (!panel.hidden) return close();
+		panel.replaceChildren(
+			...away.map((i) => {
+				const s = sections[i];
+				const n = countOf(s.id);
+				return h('a', { href: `/workspace?s=${s.id}` }, icon(s.icon, 18), h('span', null, t(s.label)), n ? h('span', { class: 'ws-badge' }, num(n)) : '');
+			}),
+		);
+		const r = button.getBoundingClientRect();
+		panel.style.left = `${Math.round(r.right + 10)}px`;
+		panel.style.top = `${Math.round(Math.max(8, Math.min(r.top - 6, innerHeight - 8 - away.length * 42 - 12)))}px`;
+		panel.hidden = false;
+		button.setAttribute('aria-expanded', 'true');
+		document.addEventListener('pointerdown', outside, true);
+		/** @type {HTMLElement | null} */ (panel.querySelector('a'))?.focus();
+	});
+	panel.addEventListener('keydown', (e) => {
+		if (e.key !== 'Escape') return;
+		close();
+		button.focus();
+	});
+	panel.addEventListener('click', (e) => {
+		if (/** @type {HTMLElement} */ (e.target).closest('a')) close();
+	});
+
+	/** @param {HTMLElement} rail */
+	const fit = (rail) => {
+		// Phones show the sections in their own menu, not in the rail.
+		if (!rail.clientHeight || getComputedStyle(items[0] ?? rail).display === 'none') return;
+		items.forEach((el) => (el.hidden = false));
+		node.hidden = true;
+		away = [];
+		if (rail.scrollHeight <= rail.clientHeight) return close();
+		node.hidden = false;
+		for (let i = items.length - 1; i >= 0 && rail.scrollHeight > rail.clientHeight; i--) {
+			if (items[i].getAttribute('aria-current') === 'page') continue;
+			items[i].hidden = true;
+			away.unshift(i);
+		}
+		count.textContent = num(away.length);
+		const waiting = away.reduce((n, i) => n + countOf(sections[i].id), 0);
+		button.classList.toggle('ws-rail-more-waiting', waiting > 0);
+		button.setAttribute('aria-label', waiting ? t('{n} more sections, some waiting', { n: away.length }) : t('{n} more sections', { n: away.length }));
+		if (!panel.hidden) close();
+	};
+	return {
+		node,
+		/** @param {HTMLElement} rail */
+		watch(rail) {
+			let frame = 0;
+			new ResizeObserver(() => {
+				cancelAnimationFrame(frame);
+				frame = requestAnimationFrame(() => fit(rail));
+			}).observe(rail);
+		},
+	};
 }
 
 /**

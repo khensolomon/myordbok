@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+112
+
+- Workspace: sections that do not fit go under ⋯ with a count; the phone menu scrolls; a dot on the person button shows online or offline
+
 ## 26.11.13+111
 
 - Support page figures: light weight, black on light and white on dark, with a soft neutral glow

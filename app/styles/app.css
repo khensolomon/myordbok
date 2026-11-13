@@ -182,8 +182,17 @@ main {
 	background: var(--chrome);
 	-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 	box-shadow: var(--chrome-shadow);
-	color: var(--muted); overflow: hidden;
+	color: var(--muted); position: relative;
 }
+/* The connection dot (app/core/online.js): green online, grey offline. */
+.you::after, .ws-rail > .ws-rail-face::after, .ws-menu-button .ws-rail-face::after {
+	content: ""; position: absolute; right: -1px; bottom: -1px; z-index: 1;
+	width: 10px; height: 10px; border-radius: 50%;
+	background: var(--online); box-shadow: 0 0 0 2px var(--ground);
+	transition: background-color 0.3s ease;
+}
+html[data-online="false"] :is(.you, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { background: var(--offline); }
+html:not([data-online]) :is(.you, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { display: none; }
 .you img, .you .you-initial { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 .you .you-initial { display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font: 700 14px/1 var(--font-ui); }
 .you[aria-current="page"], body[data-route="account"] .you, .you[aria-expanded="true"] { color: var(--ink); border-color: var(--brand); }
@@ -1028,7 +1037,23 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-status { grid-column: 1 / -1; }
 
 /* Rail: icons only, the current one marked by a line and colour. */
-.ws-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-right: 1px solid var(--line-soft); }
+.ws-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-right: 1px solid var(--line-soft); min-height: 0; overflow: hidden; }
+/* Sections that do not fit the rail's height go under ⋯ (index.js railMore). */
+.ws-rail > *, .ws-rail-more-wrap > * { flex-shrink: 0; }
+.ws-rail-item[hidden], .ws-rail-more-wrap[hidden] { display: none; }
+.ws-rail-more-wrap { display: contents; }
+.ws-rail-more { border: none; background: none; cursor: pointer; font: 700 18px/1 var(--font-ui); letter-spacing: 1px; }
+.ws-rail-more[aria-expanded="true"] { color: var(--ink); background: var(--surface); }
+.ws-more-count { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--muted); color: var(--ground); font: 600 10px/16px var(--font-ui); letter-spacing: 0; text-align: center; }
+.ws-rail-more-waiting .ws-more-count { background: var(--brand); color: #fff; }
+.ws-rail-panel:not([hidden]) {
+	position: fixed; z-index: 40; display: grid; min-width: 200px; padding: 6px;
+	border: 1px solid var(--line); border-radius: 14px; background: var(--ground);
+	box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
+}
+.ws-rail-panel a { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 10px; color: var(--ink-2); font-size: 14px; text-decoration: none; }
+.ws-rail-panel a:hover, .ws-rail-panel a:focus-visible { background: var(--surface); color: var(--ink); }
+.ws-rail-panel .ws-badge { position: static; margin-left: auto; }
 .ws-logo { display: block; width: 28px; height: 28px; margin-bottom: 10px; }
 .ws-logo img { display: block; width: 28px; height: 28px; }
 .ws-rail-item { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--muted); border-radius: 10px; }
@@ -1096,9 +1121,9 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .contact-github p { margin: 0 0 8px; color: var(--ink-2); }
 .contact-small { font-size: 14px; color: var(--muted); }
 .ws-rail-gap { flex: 1; }
-.ws-rail-face { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--surface); color: var(--brand); font-size: 12px; font-weight: 600; text-decoration: none; }
+.ws-rail-face { position: relative; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface); color: var(--brand); font-size: 12px; font-weight: 600; text-decoration: none; }
 .ws-rail-face[aria-current="page"] { outline: 2px solid var(--brand); outline-offset: 2px; }
-.ws-rail-face img { width: 100%; height: 100%; object-fit: cover; }
+.ws-rail-face img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 
 /* Text typed in Zawgyi, before it is sent (app/core/zawgyi.js): its Unicode, and a button to use it. */
 .zawgyi-offer { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 4px; padding: 10px 12px; border-radius: 10px; background: var(--term-tint); color: var(--ink); font-size: 14px; line-height: 1.5; }
@@ -1633,7 +1658,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 		flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
 		padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
 		border: none; background: none; pointer-events: none;
-		isolation: isolate;
+		isolation: isolate; overflow: visible;
 	}
 	.ws-rail > * { pointer-events: auto; }
 	.ws-rail::before {
@@ -1663,6 +1688,8 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	.ws-menu:not([hidden]) {
 		display: grid; position: absolute; top: calc(100% + 2px); right: 10px; z-index: 30;
 		width: min(300px, calc(100vw - 24px)); padding: 6px 0;
+		/* Never taller than the screen: the sections scroll, the person and the way back stay. */
+		max-height: calc(100dvh - 84px); grid-template-rows: auto minmax(0, 1fr) auto;
 		border: 1px solid var(--line); border-radius: 16px; background: var(--ground); color: var(--ink);
 		box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
 	}
@@ -1677,6 +1704,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	.ws-menu-who span:not(.ws-rail-face) { font-size: 12px; color: var(--muted); }
 	.ws-menu-face { width: 38px; height: 38px; font-size: 15px; flex: none; }
 	.ws-menu-list { display: grid; padding: 4px 6px; border-top: 1px solid var(--line-soft); }
+	.ws-menu-list:first-of-type { overflow-y: auto; overscroll-behavior: contain; align-content: start; }
 	.ws-menu-list a { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; }
 	.ws-menu-list a:hover, .ws-menu-list a:focus-visible { background: var(--surface); color: var(--ink); }
 	.ws-menu-list a[aria-current="page"] { background: var(--term-tint); color: var(--brand); font-weight: 600; }
