@@ -28,15 +28,22 @@ shared/               used by app and worker: errors, roles, validation, version
 assets/db/
   migrations/         app database schema (wrangler migrations)
   seed.dev.sql        sample dictionary: real tables, made-up rows
-scripts/              build, dev server, version, data releases, backups and restore (Node stdlib only)
+scripts/              build, dev server, version, data releases, backups and restore (Node stdlib; esbuild to minify)
 tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 ```
 
 ## Decisions
 
 - **No build step in development.** Browsers load the source modules
-  directly. The live build only adds content hashes, an import map from
-  original to hashed paths, modulepreload links and the precache list.
+  directly. The build minifies each file, adds content hashes, an import map
+  from original to hashed paths, modulepreload links and the precache list.
+- **Minified, one file at a time.** Comments, spaces and local names go
+  (esbuild, a build-time tool only; the one exception to Node's standard
+  library in `scripts/`). Each file stays its own module, so hashing, the
+  import map and page-by-page loading are unchanged; it saves about 30% of
+  what readers download. Each file has a source map beside it that carries
+  the code as written, never precached. `--no-minify` builds the files as
+  written, for debugging.
 - **Platform through the import map.** App code imports `#platform/…` and
   `#shared/…`. The build maps `#platform/` to `platform/web/` or
   `platform/tauri/`; there are no runtime platform checks. A missing Tauri

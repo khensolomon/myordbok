@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+114
+
+- Smaller downloads: the build minifies every script and stylesheet (about 30% less to download), with source maps for debugging
+
 ## 26.11.13+113
 
 - Beta and live: the dictionary databases become myordbok-beta and myordbok-live, the live site and its Worker live and myordbok-live, in code, commands and docs (migration 0013)

@@ -49,8 +49,8 @@ db-reset: ## Delete the local databases, then migrate and load the sample
 test: ## Run the test suite
 	npm test
 
-build: ## Live build → dist/web
-	node scripts/build.js
+build: ## Live build → dist/web, minified (NOMINIFY=1 keeps the files as written)
+	node scripts/build.js $(if $(NOMINIFY),--no-minify)
 
 build-beta: ## Beta build → dist/web, marked noindex
 	node scripts/build.js --noindex
@@ -166,7 +166,7 @@ deploy-beta: test ## Build and deploy beta.myordbok.com [APPLY=1]
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy.'
 
 deploy-live: test ## Build and deploy myordbok.com — cutover only [APPLY=1]
-	node scripts/build.js
+	node scripts/build.js $(if $(NOMINIFY),--no-minify)
 	$(WRANGLER) deploy --env live $(if $(filter 1,$(APPLY)),,--dry-run)
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy. This replaces the live site.'
 

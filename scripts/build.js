@@ -1,13 +1,18 @@
 // @ts-check
 /**
- * Builds the client into dist/<target> with Node's standard library only.
+ * Builds the client into dist/<target>: Node's standard library, plus
+ * esbuild to minify (a build-time tool only; nothing of it is shipped).
  *
  *   node scripts/build.js                  web build (PWA, service worker)
  *   node scripts/build.js --noindex        web build for beta: X-Robots-Tag noindex on every file
  *   node scripts/build.js --target tauri   Tauri build (no service worker)
+ *   node scripts/build.js --no-minify      any of these with the files as written, for debugging
  *
- * Steps: copy app/ and shared/, write the grammar content (scripts/grammar-data.js)
- * to /data/grammar/, add a content hash to every .js and .css file,
+ * Steps: copy app/ and shared/, minify every .js and .css file (comments,
+ * spaces and local names; each file on its own, so modules stay modules)
+ * with a source map beside it, write the grammar content
+ * (scripts/grammar-data.js) to /data/grammar/, add a content hash to every
+ * .js and .css file,
  * write an import map from the original paths to the hashed ones (so source
  * imports never change), add modulepreload links, and for the web target fill
  * the service worker's precache list. Workspace code is never precached.
@@ -16,6 +21,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { transform } from 'esbuild';
 import { GRAMMAR_DIR, grammarFiles } from './grammar-data.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -51,14 +57,33 @@ function replaceOnce(text, pattern, replacement, what) {
 }
 
 /**
+ * A file minified, with its source map. The map carries the source itself,
+ * so the browser's tools show the code as written without fetching it.
+ * @param {string} code
+ * @param {string} url  Its public path before hashing, named in the map.
+ * @returns {Promise<{ code: string, map: string }>}
+ */
+export async function minify(code, url) {
+	const loader = url.endsWith('.css') ? 'css' : 'js';
+	try {
+		// No target: the syntax is kept as written, only made shorter.
+		const out = await transform(code, { loader, minify: true, sourcemap: 'external', sourcefile: url, legalComments: 'inline', charset: 'utf8' });
+		return { code: out.code, map: out.map };
+	} catch (err) {
+		throw new Error(`build: cannot minify ${url}: ${err instanceof Error ? err.message : err}`);
+	}
+}
+
+/**
  * @param {object} options
  * @param {'web' | 'tauri'} options.target
  * @param {string} [options.out]
  * @param {string} [options.root]
  * @param {boolean} [options.noindex]  Ask search engines not to index (beta).
  * @param {string} [options.grammar]  Grammar source folder (tests use a fixture).
+ * @param {boolean} [options.minify]  Minify .js and .css (default); off to debug.
  */
-export async function build({ target, out, root = ROOT, noindex = false, grammar = GRAMMAR_DIR }) {
+export async function build({ target, out, root = ROOT, noindex = false, grammar = GRAMMAR_DIR, minify: small = true }) {
 	if (!TARGETS.includes(target)) throw new Error(`build: unknown target "${target}" (expected ${TARGETS.join(' or ')})`);
 	const app = join(root, 'app');
 	const shared = join(root, 'shared');
@@ -95,14 +120,23 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 	for (const file of files) {
 		const ext = extname(file.url);
 		let url = file.url;
-		const data = await readFile(file.from);
+		/** @type {Buffer | string} */
+		let data = await readFile(file.from);
+		/** @type {string | null} */
+		let map = null;
 		if ((ext === '.js' || ext === '.css') && file.url !== '/sw.js') {
-			url = `${file.url.slice(0, -ext.length)}.${hash8(data)}${ext}`;
+			if (small) ({ code: data, map } = await minify(data.toString('utf8'), file.url));
+			url = `${file.url.slice(0, -ext.length)}.${hash8(Buffer.from(data))}${ext}`;
 			hashed.set(file.url, url);
 		}
 		if (file.url === '/index.html' || file.url === '/sw.js') continue; // written below
 		const dest = join(dist, ...url.split('/').filter(Boolean));
 		await mkdir(dirname(dest), { recursive: true });
+		if (map) {
+			const name = `${url.split('/').pop()}.map`;
+			data += ext === '.css' ? `/*# sourceMappingURL=${name} */\n` : `//# sourceMappingURL=${name}\n`;
+			await writeFile(`${dest}.map`, map);
+		}
 		await writeFile(dest, data);
 	}
 
@@ -152,12 +186,14 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 	}
 
 	if (target === 'web') {
-		const all = (await walk(dist)).filter((f) => f !== '_headers');
+		// Source maps are for the browser's tools only: never precached.
+		const all = (await walk(dist)).filter((f) => f !== '_headers' && !f.endsWith('.map'));
 		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/'));
 		const version = `${pkg.version}-${hash8(Buffer.from(precache.join('\n')))}`;
 		let sw = await readFile(join(app, 'sw.js'), 'utf8');
 		sw = replaceOnce(sw, /const VERSION = 'dev';/, `const VERSION = ${JSON.stringify(version)};`, 'VERSION in sw.js');
 		sw = replaceOnce(sw, /const PRECACHE = \[\];/, `const PRECACHE = ${JSON.stringify(precache)};`, 'PRECACHE in sw.js');
+		if (small) sw = (await minify(sw, '/sw.js')).code;
 		await writeFile(join(dist, 'sw.js'), sw);
 	}
 
@@ -169,7 +205,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
 	const i = process.argv.indexOf('--target');
 	const target = /** @type {'web' | 'tauri'} */ (i > -1 ? process.argv[i + 1] : 'web');
 	const noindex = process.argv.includes('--noindex');
-	build({ target, noindex })
+	build({ target, noindex, minify: !process.argv.includes('--no-minify') })
 		.then(({ dist, count, hashed }) => console.log(`build: ${target} → ${relative(ROOT, dist).split(sep).join('/')} (${count} files, ${hashed} hashed)`))
 		.catch((err) => {
 			console.error(err.message);

@@ -1,6 +1,6 @@
 {
 	"name": "myordbok",
-	"version": "26.11.13+113",
+	"version": "26.11.13+114",
 	"description": "a comprehensive online Myanmar dictionary",
 	"keywords": [
 		"myordbok",
@@ -29,6 +29,7 @@
 		"version:next": "node scripts/version.js"
 	},
 	"devDependencies": {
+		"esbuild": "0.28.2",
 		"wrangler": "^4.160.0"
 	},
 	"repository": {
