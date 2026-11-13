@@ -1525,6 +1525,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-notice-dot-celebration { background: #b05bc4; }
 /* Sponsors (sponsors.js): the notices' list and form, with donations under the form. */
 .ws-sponsor-dot-shown { background: var(--heart); }
+.ws-set-where { font-size: 14px; font-weight: 600; white-space: nowrap; }
 .ws-cost-form { display: flex; align-items: center; gap: 8px; }
 .ws-cost-form input { box-sizing: border-box; width: 110px; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--ink); font: 400 14px/1.5 var(--font-ui); }
 .ws-cost-form .ws-primary { flex: none; width: auto; margin-left: auto; }

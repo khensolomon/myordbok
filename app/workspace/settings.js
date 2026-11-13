@@ -11,7 +11,8 @@ import { mark, shortDate, t } from '../i18n/index.js';
 import { fitLinks } from './list-bar.js';
 
 /**
- * @typedef {{ title: string, about: string, choices?: Array<[string, string]>, number?: { min: number, max: number, unit: string, zero?: string } }} Known
+ * @typedef {{ title: string, about: string, choices?: Array<[string, string]>, number?: { min: number, max: number, unit: string, zero?: string }, where?: { href: string, label: string } }} Known
+ *   where: a setting edited on another page of the workspace; the row links there.
  */
 
 const ON_OFF = /** @type {Array<[string, string]>} */ ([
@@ -88,6 +89,8 @@ const GROUPS = [
 	[
 		mark('Support'),
 		{
+			'support.monthly_cost': { title: mark('Running cost'), about: mark('What MyOrdbok costs a month, shown on the Support page once given.'), where: { href: '/workspace?s=sponsors', label: mark('Edit in Sponsors') } },
+			'support.lines': { title: mark('Lines of the home invitation'), about: mark('The lines the home page shows, one at a time, a different one each visit.'), where: { href: '/workspace?s=sponsors', label: mark('Edit in Sponsors') } },
 			'support.ask': { title: mark('Invite readers to support'), about: mark('A quiet line on the home page that links to the Support page; each reader can hide it, and members who support MyOrdbok never see it. The Support page and its link stay either way.'), choices: ON_OFF },
 		},
 	],
@@ -173,7 +176,8 @@ export async function settingsPane() {
 function row(s, k, onChange) {
 	const note = h('span', { class: 'ws-set-note', role: 'status' });
 	const when = h('span', { class: 'ws-set-when' }, s.updated_at ? t('Changed {date}', { date: shortDate(new Date(s.updated_at * 1000), { year: true }) }) : t('The default'));
-	const dot = h('span', { class: 'ws-set-dot', title: t('Not the default'), hidden: s.value === s.fallback });
+	const same = (/** @type {unknown} */ a, /** @type {unknown} */ b) => JSON.stringify(a) === JSON.stringify(b);
+	const dot = h('span', { class: 'ws-set-dot', title: t('Not the default'), hidden: same(s.value, s.fallback) });
 	/** Saves a value; the control shows it once the site has it. @param {unknown} v @param {() => void} undo */
 	const save = async (v, undo) => {
 		note.textContent = t('Saving…');
@@ -184,7 +188,7 @@ function row(s, k, onChange) {
 			note.textContent = t('Saved');
 			note.classList.add('ws-set-ok');
 			when.textContent = t('Changed {date}', { date: shortDate(new Date(), { year: true }) });
-			dot.hidden = v === s.fallback;
+			dot.hidden = same(v, s.fallback);
 			onChange(s.key, v);
 			setTimeout(() => note.textContent === t('Saved') && (note.textContent = ''), 2500);
 		} catch (err) {
@@ -193,7 +197,7 @@ function row(s, k, onChange) {
 			undo();
 		}
 	};
-	const control = k.number ? numberControl(s, k, save) : toggleable(k) ? toggleControl(s, k, save) : choiceControl(s, k, save);
+	const control = k.where ? h('a', { class: 'ws-set-where', href: k.where.href }, `${t(k.where.label)} →`) : k.number ? numberControl(s, k, save) : toggleable(k) ? toggleControl(s, k, save) : choiceControl(s, k, save);
 	return h(
 		'div',
 		{ class: 'ws-set' },

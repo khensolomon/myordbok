@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+106
+
+- Settings page works again: the two support settings edited in Sponsors appear as rows linking there, and a test keeps every setting on the page
+
 ## 26.11.13+105
 
 - Support page, truthfully: 16 years free (not ad-free); How it came about tells of the advertising years (2012–2015), removed because they got in the way of reading, and readers taking their place; a running-cost line the owner fills in in Sponsors once the figure is known, hidden until then

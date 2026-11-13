@@ -560,3 +560,11 @@ test('settings: new accounts paused, searches not counted, the home list off or 
 	put('home.popular', 'off');
 	assert.deepEqual(await words(), []);
 });
+
+test('settings: every setting the Worker knows has a row on the Settings page', async () => {
+	const { SETTINGS } = await import('../worker/lib/settings.js');
+	const { readFileSync } = await import('node:fs');
+	const page = readFileSync(new URL('../app/workspace/settings.js', import.meta.url), 'utf8');
+	const missing = Object.keys(SETTINGS).filter((key) => !page.includes(`'${key}':`));
+	assert.deepEqual(missing, [], 'add a row (or a where: link) in app/workspace/settings.js');
+});

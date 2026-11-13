@@ -689,6 +689,10 @@ export const MY = {
 	"Next release": "နောက်ထုတ်ပြန်မှု",
 	"{n} approved edits wait for the next release.": "အတည်ပြုထားသော ပြင်ဆင်ချက် {n} ခု နောက်ထုတ်ပြန်မှုကို စောင့်နေသည်။",
 	// Support and Sponsors
+	"What MyOrdbok costs a month, shown on the Support page once given.": "MyOrdbok ၏ တစ်လစရိတ်၊ ထည့်ပြီးမှ ပံ့ပိုးမှုစာမျက်နှာတွင် ပြမည်။",
+	"Edit in Sponsors": "ပံ့ပိုးသူများတွင် ပြင်ရန်",
+	"Lines of the home invitation": "ပင်မစာမျက်နှာ ဖိတ်ခေါ်စာကြောင်းများ",
+	"The lines the home page shows, one at a time, a different one each visit.": "ပင်မစာမျက်နှာတွင် တစ်ကြိမ်လျှင် တစ်ကြောင်း၊ ဝင်ကြည့်တိုင်း မတူသော စာကြောင်းများ။",
 	"A Myanmar dictionary that was free and easy to use did not exist, so it was written: word by word, in free evenings and holidays.": "အခမဲ့ဖြစ်ပြီး သုံးရလွယ်သော မြန်မာ အဘိဓာန် မရှိခဲ့သဖြင့် အားလပ်ချိန် ညနေများနှင့် အားလပ်ရက်များတွင် စကားလုံးတစ်လုံးချင်း ရေးသားခဲ့သည်။",
 	"Advertising tried, and removed": "ကြော်ငြာ စမ်းခဲ့ပြီး ဖြုတ်လိုက်သည်",
 	"For a few years, advertising helped pay for the servers. It got in the way of reading, especially for readers in Myanmar, who often saw blank gaps instead of meanings. So it was taken down.": "နှစ်အနည်းငယ်ကြာ ကြော်ငြာက ဆာဗာစရိတ်ကို ကူညီပေးခဲ့သည်။ သို့သော် စာဖတ်ရာတွင် အနှောင့်အယှက်ဖြစ်ခဲ့ပြီး အထူးသဖြင့် မြန်မာနိုင်ရှိ စာဖတ်သူများမှာ အဓိပ္ပာယ်အစား ကွက်လပ်များကိုသာ မကြာခဏ မြင်ခဲ့ရသည်။ ထို့ကြောင့် ဖြုတ်လိုက်သည်။",
