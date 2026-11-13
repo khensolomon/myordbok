@@ -9,6 +9,23 @@ import { ACCESS } from '../../shared/packs.js';
 import { AppError } from '../../shared/errors.js';
 
 const onOff = (/** @type {unknown} */ v) => v === 'on' || v === 'off';
+
+/** Lines of the home page's invitation: 1 to 12, each English (1–140) and, if given, Myanmar (up to 200). */
+export const SUPPORT_LINES_MAX = 12;
+const supportLines = (/** @type {unknown} */ v) =>
+	Array.isArray(v) &&
+	v.length >= 1 &&
+	v.length <= SUPPORT_LINES_MAX &&
+	v.every(
+		(l) =>
+			l !== null &&
+			typeof l === 'object' &&
+			Object.keys(l).every((k) => k === 'en' || k === 'my') &&
+			typeof l.en === 'string' &&
+			l.en.trim().length >= 1 &&
+			l.en.length <= 140 &&
+			(l.my === undefined || (typeof l.my === 'string' && l.my.length <= 200)),
+	);
 /** @param {number} min @param {number} max */
 const whole = (min, max) => (/** @type {unknown} */ v) => Number.isInteger(v) && /** @type {number} */ (v) >= min && /** @type {number} */ (v) <= max;
 
@@ -41,6 +58,16 @@ export const SETTINGS = {
 		about: 'Who may download the offline definitions and related words: members or everyone. Word lists are open to all.',
 	},
 	'offline.daily': { fallback: 6, valid: whole(1, 100), about: 'Most downloads of the offline definitions one member makes in a day.' },
+	'support.lines': {
+		fallback: [
+			{ en: 'Free since 2010, kept going by readers.', my: '၂၀၁၀ ကတည်းက အခမဲ့၊ စာဖတ်သူများက ဆက်လက်ရှင်သန်စေသည်။' },
+			{ en: 'No advertising, no paywall: readers keep MyOrdbok free.', my: 'ကြော်ငြာမရှိ၊ ငွေပေးစရာမလို − စာဖတ်သူများက MyOrdbok ကို အခမဲ့ ဆက်ရှိစေသည်။' },
+			{ en: 'Built by one person, kept running by readers like you.', my: 'လူတစ်ဦးတည်း တည်ဆောက်ပြီး သင့်လို စာဖတ်သူများက ဆက်လည်ပတ်စေသည်။' },
+			{ en: 'Found what you needed? Help keep it free for the next reader.', my: 'လိုချင်တာ တွေ့ပြီလား။ နောက်စာဖတ်သူအတွက် အခမဲ့ ဆက်ရှိအောင် ကူညီပါ။' },
+		],
+		valid: supportLines,
+		about: 'The lines of the home page’s invitation, one shown at a time and a different one each visit; edited in Sponsors.',
+	},
 	'support.ask': { fallback: 'on', valid: onOff, about: 'Whether pages invite readers to support MyOrdbok (a line on the home page). The Support page and its link stay either way; members who support it never see an invitation.' },
 	'offline.words_auto': { fallback: 'on', valid: onOff, about: 'Whether the word lists download by themselves after a first visit.' },
 };

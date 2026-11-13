@@ -94,3 +94,14 @@ test('support.ask: the switch pages follow', async () => {
 	assert.equal((await call(e, '/api/workspace/settings', { who: 'owner', body: { key: 'support.ask', value: 'off' } })).status, 200);
 	assert.equal((await call(e, '/api/site')).body.support_ask, false);
 });
+
+test('support.lines: the lines of the home invitation, checked before they are kept', async () => {
+	const e = env();
+	const set = (value) => call(e, '/api/workspace/settings', { who: 'owner', body: { key: 'support.lines', value } });
+	assert.equal((await set([{ en: 'Readers keep it free.', my: 'စာဖတ်သူများ' }, { en: 'Thank you.' }])).status, 200);
+	assert.deepEqual((await call(e, '/api/site')).body.support_lines, [{ en: 'Readers keep it free.', my: 'စာဖတ်သူများ' }, { en: 'Thank you.' }]);
+	for (const bad of [[], [{ en: '' }], [{ my: 'only Myanmar' }], [{ en: 'x'.repeat(141) }], [{ en: 'ok', extra: 1 }], Array.from({ length: 13 }, () => ({ en: 'a' })), 'one line']) {
+		assert.equal((await set(bad)).status, 400, JSON.stringify(bad).slice(0, 40));
+	}
+	assert.equal((await call(e, '/api/workspace/settings', { who: 'member', body: { key: 'support.lines', value: [{ en: 'x' }] } })).status, 403);
+});

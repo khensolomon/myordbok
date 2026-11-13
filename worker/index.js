@@ -72,9 +72,9 @@ async function health(env) {
  * @param {Env} env
  */
 async function siteSwitches(env) {
-	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask']);
+	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask', 'support.lines']);
 	return json(
-		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on' },
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'] },
 		{ headers: { 'cache-control': 'public, max-age=60' } },
 	);
 }

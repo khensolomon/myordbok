@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+102
+
+- Home invitation: the owner writes its lines in Sponsors (English and Myanmar, up to 12; setting support.lines), the home page shows a different one each visit, and the line sits centred
+
 ## 26.11.12+101
 
 - Support page: Give to MyOrdbok and Other ways to help glide to their part of the page instead of relying on the browser's hash jump

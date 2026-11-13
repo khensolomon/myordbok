@@ -5,7 +5,7 @@
  * words searched most this week. Recent searches never leave the device;
  * the most searched come from /api/popular (found words only, each searched
  * by several people). Last, a quiet line inviting readers to support
- * MyOrdbok, when Settings asks for it (support.ask), not for members who
+ * MyOrdbok (one of the lines the owner writes in Sponsors, another each visit), when Settings asks for it (support.ask), not for members who
  * support it, and not on a device where it was hidden in the last months.
  */
 import { h, icon } from '../core/dom.js';
@@ -14,7 +14,7 @@ import { definitionHref } from '../core/routes.js';
 import { popularWords, siteSwitches } from '../data/api.js';
 import { member } from '../core/member.js';
 import { clearRecent, recentSearches, removeRecent } from '../data/recent.js';
-import { t } from '../i18n/index.js';
+import { getLang, t } from '../i18n/index.js';
 
 const MYANMAR = /[က-႟]/;
 
@@ -60,10 +60,35 @@ async function supportLine(box) {
 	});
 	box.replaceChildren(
 		h('span', { class: 'home-support-icon', 'aria-hidden': 'true' }, icon(ICONS.like, 16)),
-		h('p', null, t('Free since 2010, kept going by readers.'), ' ', h('a', { href: '/support' }, t('Support MyOrdbok'))),
+		h('p', null, pickLine(site.support_lines), ' ', h('a', { href: '/support' }, t('Support MyOrdbok'))),
 		hide,
 	);
 	box.hidden = false;
+}
+
+const LAST_KEY = 'mo:support-line';
+
+/**
+ * One of the lines the owner wrote (Sponsors), in the interface language
+ * when it has that, and not the one shown last on this device.
+ * @param {Array<{ en: string, my?: string }>} lines
+ */
+function pickLine(lines) {
+	let last = -1;
+	try {
+		last = Number(localStorage.getItem(LAST_KEY) ?? -1);
+	} catch {
+		// storage blocked: any line
+	}
+	const choices = lines.map((_, i) => i).filter((i) => i !== last || lines.length === 1);
+	const at = choices[Math.floor(Math.random() * choices.length)];
+	try {
+		localStorage.setItem(LAST_KEY, String(at));
+	} catch {
+		// storage blocked: the next one may repeat
+	}
+	const line = lines[at];
+	return getLang() === 'my' && line.my ? line.my : line.en;
 }
 
 /**

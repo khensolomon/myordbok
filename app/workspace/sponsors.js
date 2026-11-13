@@ -6,12 +6,15 @@
  * shown on the Support page, their member account, a private note, and
  * their donations, with a form to add one.
  *
+ * Under the list, the lines of the home page's invitation (setting
+ * support.lines): one shows at a time, another on each visit.
+ *
  * Nobody is shown on the Support page without their consent, and the page
  * never puts an amount beside a name. No email or payment detail is kept
  * here; a member's account is linked by its id or sign-in email.
  */
 import { h } from '../core/dom.js';
-import { addDonation, deleteDonation, deleteDonor, saveDonor, workspaceDonor, workspaceSponsors } from '../data/api.js';
+import { addDonation, deleteDonation, deleteDonor, saveDonor, siteSettings, updateSetting, workspaceDonor, workspaceSponsors } from '../data/api.js';
 import { mark, num, shortDate, t, tn } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').Donor} Donor */
@@ -44,12 +47,13 @@ export async function sponsorsPane(ctx) {
 	const list = h('div', { class: 'ws-notice-list' });
 	const editor = h('section', { class: 'ws-card ws-notice-editor', 'aria-label': t('Donor') });
 	const fresh = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary ws-new' }, t('New donor')));
+	const linesCard = h('section', { class: 'ws-card ws-support-lines', 'aria-label': t('On the home page') });
 	main.append(
 		h(
 			'div',
 			{ class: 'ws-work' },
 			h('header', { class: 'ws-ov-head ws-notices-head' }, h('h1', null, t('Sponsors')), totals, fresh),
-			h('div', { class: 'ws-notices-grid' }, list, editor),
+			h('div', { class: 'ws-notices-grid' }, h('div', { class: 'ws-sponsor-side' }, list, linesCard), editor),
 		),
 	);
 
@@ -104,7 +108,7 @@ export async function sponsorsPane(ctx) {
 	};
 
 	fresh.addEventListener('click', () => choose(null, true));
-	await load();
+	await Promise.all([load(), homeLines(linesCard)]);
 	const asked = Number(ctx.query.get('id'));
 	await choose(donors.some((d) => d.id === asked) ? asked : (donors[0]?.id ?? null));
 	return main;
@@ -253,4 +257,75 @@ function donations(d, list, done) {
 	});
 
 	return h('div', { class: 'ws-donations' }, form, list.length ? h('div', null, h('h3', null, t('Donations')), h('ul', { class: 'ws-donation-list' }, rows)) : h('p', { class: 'ws-quiet' }, t('No donations yet.')));
+}
+
+/** The most lines, as the Worker allows (worker/lib/settings.js). */
+const LINES_MAX = 12;
+
+/**
+ * The home page's invitation: its lines, edited and saved together.
+ * @param {HTMLElement} card
+ */
+async function homeLines(card) {
+	const { settings } = await siteSettings();
+	const lines = settings.find((s) => s.key === 'support.lines');
+	const ask = settings.find((s) => s.key === 'support.ask');
+	if (!lines || !ask) throw new Error('The Worker has no support.lines or support.ask setting.');
+	const rows = h('ol', { class: 'ws-support-rows' });
+	const out = h('p', { class: 'ws-result', role: 'status' });
+	const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-link-button' }, t('Add a line')));
+	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary' }, t('Save the lines')));
+
+	/** @param {{ en: string, my?: string }} line */
+	const row = (line) => {
+		const en = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 140, value: line.en, placeholder: t('In English'), 'aria-label': t('In English') }));
+		const my = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 200, value: line.my ?? '', placeholder: t('In Myanmar (optional)'), 'aria-label': t('In Myanmar (optional)'), lang: 'my' }));
+		const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-link-button', 'aria-label': t('Remove this line') }, t('Remove')));
+		const li = h('li', { class: 'ws-support-row' }, en, my, remove);
+		remove.addEventListener('click', () => {
+			li.remove();
+			count();
+		});
+		return li;
+	};
+	const count = () => {
+		const n = rows.children.length;
+		add.disabled = n >= LINES_MAX;
+		for (const b of rows.querySelectorAll('li button')) /** @type {HTMLButtonElement} */ (b).disabled = n <= 1;
+	};
+	rows.append(.../** @type {Array<{ en: string, my?: string }>} */ (lines.value).map(row));
+	count();
+	add.addEventListener('click', () => {
+		const li = row({ en: '' });
+		rows.append(li);
+		count();
+		/** @type {HTMLInputElement} */ (li.querySelector('input'))?.focus();
+	});
+	save.addEventListener('click', async () => {
+		const value = [...rows.children].map((li) => {
+			const [en, my] = /** @type {HTMLInputElement[]} */ ([...li.querySelectorAll('input')]);
+			return my.value.trim() ? { en: en.value.trim(), my: my.value.trim() } : { en: en.value.trim() };
+		});
+		const empty = value.findIndex((l) => !l.en);
+		if (empty >= 0) {
+			out.textContent = t('Every line needs its English.');
+			/** @type {HTMLInputElement} */ (rows.children[empty].querySelector('input')).focus();
+			return;
+		}
+		save.disabled = true;
+		out.textContent = t('Saving…');
+		try {
+			await updateSetting('support.lines', value);
+			out.textContent = t('Saved. The home page shows them within a minute.');
+		} catch (err) {
+			out.textContent = err instanceof Error ? err.message : String(err);
+		}
+		save.disabled = false;
+	});
+	card.replaceChildren(
+		h('h2', null, t('On the home page')),
+		h('p', { class: 'ws-quiet' }, t('One line shows at a time under the lists, a different one on each visit, followed by “Support MyOrdbok”. Readers can hide it for a few months; supporters never see it.'), ' ', ask.value === 'on' ? '' : h('strong', null, t('It is turned off in Settings now.'))),
+		rows,
+		h('div', { class: 'ws-notice-actions' }, save, add, out),
+	);
 }
