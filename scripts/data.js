@@ -568,12 +568,13 @@ function requirePromotionFinished(db) {
 // ---------------------------------------------------------------- commands
 
 /**
+ * The approved edits as the dataset's input files, checked against what
+ * production readers see; changes nothing. Shared by `export` and by
+ * scripts/data-release.js.
  * @param {Runner} db
- * @param {string} out
- * @param {boolean} apply
- * @param {(line: string) => void} log
+ * @returns {{ built: string, edits: Edit[], plan: ExportPlan }}
  */
-export async function exportEdits(db, out, apply, log) {
+export function prepareExport(db) {
 	requirePromotionFinished(db);
 	const live = metaOf(db, 'dictionary');
 	if (!live?.built) throw new Error(`${DATABASES.DICTIONARY} holds no build yet; publish and promote one first`);
@@ -587,51 +588,99 @@ export async function exportEdits(db, out, apply, log) {
 	const edits = /** @type {Edit[]} */ (
 		/** @type {unknown} */ (db.query('APP', "SELECT id, dict, action, sense_id, field, old_value, new_value, word, data, created_at FROM dict_edits WHERE status = 'approved' ORDER BY created_at, id"))
 	);
-	if (!edits.length) {
-		log('No approved edits to export.');
-		return;
-	}
 	/** @param {'emd' | 'med'} lang */
 	const ids = (lang) => edits.filter((e) => e.dict === lang && e.sense_id !== null).map((e) => Number(e.sense_id));
 	/** @param {'emd' | 'med'} lang */
 	const words = (lang) => edits.filter((e) => e.dict === lang && e.action === 'add').map((e) => e.word);
-	const plan = planExport(
-		edits,
-		{ emd: currentRows(db, 'dictionary', 'emd', ids('emd')), med: currentRows(db, 'dictionary', 'med', ids('med')) },
-		{ emd: existingWords(db, 'dictionary', 'emd', words('emd')), med: existingWords(db, 'dictionary', 'med', words('med')) },
-	);
+	const plan = edits.length
+		? planExport(
+				edits,
+				{ emd: currentRows(db, 'dictionary', 'emd', ids('emd')), med: currentRows(db, 'dictionary', 'med', ids('med')) },
+				{ emd: existingWords(db, 'dictionary', 'emd', words('emd')), med: existingWords(db, 'dictionary', 'med', words('med')) },
+			)
+		: { files: {}, exported: [], conflicts: [] };
+	return { built: live.built, edits, plan };
+}
 
-	for (const [name, f] of Object.entries(plan.files)) log(`${name}: ${f.rows.length} line(s)`);
-	for (const c of plan.conflicts) log(`conflict: edit ${c.id}: ${c.reason}`);
-	if (!apply) {
-		log(`Dry run against ${DATABASES.DICTIONARY}, build ${live.built} (${db.where}). Add --apply to write the files and mark the edits.`);
-		return;
-	}
+/** The dataset script for each export file, in the order they run. */
+export const EXPORT_SCRIPTS = Object.freeze({
+	'emd_patch.tsv': ['scripts/emd_edit.py'],
+	'emd_new.tsv': ['scripts/emd_add.py'],
+	'emd_more.tsv': ['scripts/emd_add.py', '--existing'],
+	'med_patch.tsv': ['scripts/med_edit.py'],
+	'med_new.tsv': ['scripts/med_add.py'],
+	'med_more.tsv': ['scripts/med_add.py', '--existing'],
+});
 
+/**
+ * Writes the plan's files into dir, in the dataset's TSV format.
+ * @param {ExportPlan} plan
+ * @param {string} dir
+ * @returns {Promise<string[]>}  The files written, in EXPORT_SCRIPTS order.
+ */
+export async function writeExport(plan, dir) {
+	await mkdir(dir, { recursive: true });
+	const names = Object.keys(EXPORT_SCRIPTS).filter((name) => name in plan.files);
+	for (const name of names) await writeFile(join(dir, name), tsv(plan.files[name].header, plan.files[name].rows));
+	return names;
+}
+
+/**
+ * Records an export and moves its edits on: exported (or conflict, with
+ * the reason). `between` runs once the export has its number and before
+ * any edit is marked, so a failure there leaves every edit approved.
+ * @param {Runner} db
+ * @param {ExportPlan} plan
+ * @param {(exportId: number) => Promise<void> | void} [between]
+ * @returns {Promise<number>}  The export's number.
+ */
+export async function recordExport(db, plan, between) {
 	const counts = Object.fromEntries(Object.entries(plan.files).map(([name, f]) => [name, f.rows.length]));
 	const [created] = db.query('APP', `INSERT INTO dict_exports (created_by, counts) VALUES (${sqlValue(operator())}, ${sqlValue(JSON.stringify(counts))}) RETURNING id`);
 	const exportId = Number(created.id);
-	const dir = resolve(out, `export-${String(exportId).padStart(4, '0')}`);
-	await mkdir(dir, { recursive: true });
-	for (const [name, f] of Object.entries(plan.files)) await writeFile(join(dir, name), tsv(f.header, f.rows));
-
+	try {
+		await between?.(exportId);
+	} catch (err) {
+		db.query('APP', `DELETE FROM dict_exports WHERE id = ${exportId}`);
+		throw err;
+	}
 	for (let i = 0; i < plan.exported.length; i += CHUNK) {
 		db.query('APP', `UPDATE dict_edits SET status = 'exported', export_id = ${exportId} WHERE id IN (${idList(plan.exported.slice(i, i + CHUNK))})`);
 	}
 	for (const c of plan.conflicts) {
 		db.query('APP', `UPDATE dict_edits SET status = 'conflict', review_note = ${sqlValue(c.reason)} WHERE id = ${c.id}`);
 	}
+	return exportId;
+}
+
+/**
+ * @param {Runner} db
+ * @param {string} out
+ * @param {boolean} apply
+ * @param {(line: string) => void} log
+ */
+export async function exportEdits(db, out, apply, log) {
+	const { built, edits, plan } = prepareExport(db);
+	if (!edits.length) {
+		log('No approved edits to export.');
+		return;
+	}
+	for (const [name, f] of Object.entries(plan.files)) log(`${name}: ${f.rows.length} line(s)`);
+	for (const c of plan.conflicts) log(`conflict: edit ${c.id}: ${c.reason}`);
+	if (!apply) {
+		log(`Dry run against ${DATABASES.DICTIONARY}, build ${built} (${db.where}). Add --apply to write the files and mark the edits.`);
+		return;
+	}
+	let dir = '';
+	/** @type {string[]} */
+	let names = [];
+	await recordExport(db, plan, async (exportId) => {
+		dir = resolve(out, `export-${String(exportId).padStart(4, '0')}`);
+		names = await writeExport(plan, dir);
+	});
 	log(`Wrote ${dir}. In the dataset, run each file through its script (dry run first):`);
-	const how = {
-		'emd_patch.tsv': 'scripts/emd_edit.py',
-		'emd_new.tsv': 'scripts/emd_add.py',
-		'emd_more.tsv': 'scripts/emd_add.py --existing',
-		'med_patch.tsv': 'scripts/med_edit.py',
-		'med_new.tsv': 'scripts/med_add.py',
-		'med_more.tsv': 'scripts/med_add.py --existing',
-	};
-	for (const name of Object.keys(plan.files)) log(`  python3 ${how[/** @type {keyof how} */ (name)]} ${join(dir, name)}`);
-	log('Then build (scripts/db_build.py --apply) and run make data-publish FILE=…/build/myordbok.sql.');
+	for (const name of names) log(`  python3 ${EXPORT_SCRIPTS[/** @type {keyof typeof EXPORT_SCRIPTS} */ (name)].join(' ')} ${join(dir, name)}`);
+	log('Then build (scripts/db_build.py --apply) and run make data-beta FILE=…/build/myordbok.sql. Or all of it: make data-release.');
 }
 
 /**

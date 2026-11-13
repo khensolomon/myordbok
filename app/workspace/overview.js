@@ -18,7 +18,7 @@ import { definitionHref } from '../core/routes.js';
 import { workspaceOverview } from '../data/api.js';
 import { atLeast } from '#shared/roles.js';
 import { STALE_DAYS } from '#shared/backup.js';
-import { num, posName, shortDate, t } from '../i18n/index.js';
+import { num, posName, shortDate, t, tn } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').Overview} Overview */
 /** @typedef {import('../data/api.js').DictStats} DictStats */
@@ -373,7 +373,30 @@ function review(data) {
 			]),
 			disliked(data.disliked ?? []),
 		),
+		nextRelease(data),
 	);
+}
+
+/**
+ * Where approved edits stand on their way to readers:
+ * waiting for a release, or on beta and waiting for production.
+ * (scripts/data-release.js)
+ * @param {Overview} data
+ */
+function nextRelease(data) {
+	const sug = data.suggestions ?? {};
+	// Admins run releases; editors see where things stand.
+	const runs = atLeast(data.role, 'admin');
+	const waiting = sug.approved ?? 0;
+	const beta = data.builds?.beta;
+	const production = data.builds?.production;
+	const ahead = beta && production && beta !== production;
+	/** @type {Node[]} */
+	const lines = [];
+	if (ahead) lines.push(h('p', null, t('Beta previews a new build ({beta}); production still has {production}.', { beta, production }), runs ? [' ', t('After a look at beta:'), ' ', h('code', null, 'make data-live APPLY=1')] : ''));
+	if (waiting) lines.push(h('p', null, tn('{n} approved edit waits for the next release.', '{n} approved edits wait for the next release.', waiting), runs ? [' ', ahead ? t('Once production has the build on beta:') : t('To release:'), ' ', h('code', null, 'make data-release APPLY=1')] : ''));
+	if (!lines.length) lines.push(h('p', { class: 'ws-quiet' }, t('Nothing waits: every approved edit is in the dictionary readers see.')));
+	return h('section', { class: 'ws-card ws-release' }, h('h2', null, t('Next release')), ...lines);
 }
 
 /**

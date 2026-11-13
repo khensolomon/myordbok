@@ -300,7 +300,44 @@ make dataset-sync DATASET=../lai/myordbok APPLY=1    # writes shared/search/
 ## Workspace edits
 
 Corrections, additions and deletions made in the workspace never touch the
-dictionary tables. Each is a row in `dict_edits` (`myordbok-app`) and moves
+dictionary tables; they reach readers through the dataset, built and
+released like any other change.
+
+### One command: make data-release
+
+```bash
+make data-release                    # dry run: the edits, conflicts, and each dataset script without --apply
+make data-release APPLY=1            # applies, builds, shows the diff, asks, then commits, pushes and publishes to beta
+# check beta.myordbok.com
+make data-live APPLY=1               # production, as for any release
+```
+
+`DATASET=` names the dataset checkout's `myordbok` folder (default
+`../lai/myordbok`); it must be on branch `dataset`, clean, and not behind
+`origin/dataset`. The release (`scripts/data-release.js`):
+
+1. exports the approved edits into the dataset scripts' input files,
+   checked against what production readers see (conflicts stay in the
+   workspace, with the reason);
+2. runs each file through its dataset script, first without `--apply`;
+3. applies them, writes a CHANGELOG entry in the dataset's style, and runs
+   `scripts/db_build.py --apply` with its search checks;
+4. shows the dataset's diff and asks **Commit to the dataset, push and
+   publish to beta?** A no, or any failure up to here, puts the dataset back
+   as it was and marks no edit;
+5. on yes: commits (`Workspace edits, export NNNN: …`) and pushes the
+   dataset, marks the edits exported, builds again so the build names that
+   commit, and runs the same steps as `make data-beta`.
+
+The dataset changes only through its own scripts; the release runs them in
+order and writes nothing else but the CHANGELOG entry. Releasing needs
+production to have the build beta previews, as exporting does. The
+workspace Overview shows editors how many approved edits wait, and when beta
+is ahead of production.
+
+### Step by step
+
+The steps also run on their own. Each edit is a row in `dict_edits` (`myordbok-app`) and moves
 through: `pending` → `approved` or `rejected` by an editor → `exported` →
 `merged` (or `conflict`).
 

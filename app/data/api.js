@@ -268,6 +268,7 @@ export function withdrawEdit(id) {
  * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]  Editors and admins.
  * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]  Editors and admins.
  * @property {number} [unread]  New messages in the Inbox; admins only.
+ * @property {{ beta?: string, production?: string }} [builds]  The build each site reads; editors.
  * @property {{ at: string, name: string, bytes: number, kept: number } | { error: string } | null} [backup]  The newest backup of the app database; admins only.
  * @property {boolean} [insights]  Shown the site's statistics (editors and up, or by an admin's choice).
  * @property {Array<{ day: string, name: string, n: number }>} [usage]  Offline use, two weeks of counters; editors and admins.

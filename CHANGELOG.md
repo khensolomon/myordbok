@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+103
+
+- make data-release: approved workspace edits through the dataset's own scripts, build and search checks, a diff and one question, then commit, push and beta; the Overview shows editors what waits for a release
+
 ## 26.11.13+102
 
 - Home invitation: the owner writes its lines in Sponsors (English and Myanmar, up to 12; setting support.lines), the home page shows a different one each visit, and the line sits centred

@@ -682,6 +682,14 @@ export const MY = {
 	'Use the Unicode': 'ယူနီကုဒ်ကို သုံးရန်',
 	'Changed to Unicode. Check it, then send it again.': 'ယူနီကုဒ်သို့ ပြောင်းပြီးပါပြီ။ စစ်ဆေးပြီး ထပ်ပို့ပါ။',
 	'This looks like Zawgyi, which the dictionary cannot read. In Unicode it is:': 'ဤစာသည် ဇော်ဂျီ ဖြစ်ပုံရပြီး အဘိဓာန်က ဖတ်၍မရပါ။ ယူနီကုဒ်ဖြင့် −',
+	// Releases
+	"Beta previews a new build ({beta}); production still has {production}.": "Beta တွင် build အသစ် ({beta}) ကို အစမ်းပြနေသည်၊ production တွင် {production} ကို ဆက်သုံးနေဆဲ။",
+	"After a look at beta:": "Beta ကို စစ်ပြီးနောက် −",
+	"Once production has the build on beta:": "Beta ရှိ build ကို production သို့ ရောက်ပြီးနောက် −",
+	"To release:": "ထုတ်ပြန်ရန် −",
+	"Nothing waits: every approved edit is in the dictionary readers see.": "စောင့်နေသည် မရှိပါ − အတည်ပြုထားသော ပြင်ဆင်ချက်တိုင်း စာဖတ်သူများ မြင်ရသော အဘိဓာန်တွင် ပါပြီ။",
+	"Next release": "နောက်ထုတ်ပြန်မှု",
+	"{n} approved edits wait for the next release.": "အတည်ပြုထားသော ပြင်ဆင်ချက် {n} ခု နောက်ထုတ်ပြန်မှုကို စောင့်နေသည်။",
 	// Support and Sponsors
 	"Add a line": "စာကြောင်း ထည့်ရန်",
 	"Save the lines": "စာကြောင်းများ သိမ်းရန်",

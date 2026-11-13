@@ -1193,6 +1193,10 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-facts dt { color: var(--muted); }
 .ws-facts dd { margin: 0; }
 .ws-account .ws-secondary { flex: none; margin-top: 12px; }
+.ws-release { margin-top: 16px; display: grid; gap: 8px; }
+.ws-release h2 { margin: 0; }
+.ws-release p { margin: 0; font-size: 14px; line-height: 1.6; }
+.ws-release code { padding: 1px 6px; border-radius: 6px; background: var(--surface); font-size: 13px; }
 .ws-alert { margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; background: var(--term-tint); color: var(--ink); }
 .ws-danger-zone { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
 .ws-danger-zone summary { cursor: pointer; color: var(--muted); font-size: 13px; }

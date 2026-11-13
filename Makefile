@@ -14,7 +14,7 @@ OUT      ?= exports
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-publish data-stats data-packs data-promote edits-export data-switch \
         grant deploy-beta deploy-production logs-beta release clean \
-        backup-deploy backup-now backup-list backup-pull restore sponsors-import
+        backup-deploy backup-now backup-list backup-pull restore sponsors-import data-release
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -109,6 +109,9 @@ data-packs: ## Step: offline packs of a build → R2 myordbok/offline/: FILE=…
 data-promote: ## Step: the build beta previews → myordbok-dictionary for production: FILE=… [APPLY=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/build/myordbok.sql (the build beta previews)'; exit 1; }
 	$(DATA) promote --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
+
+data-release: ## Approved edits → dataset scripts → build → (your yes) commit → beta: DATASET=../lai/myordbok [APPLY=1]
+	node --disable-warning=ExperimentalWarning scripts/data-release.js --dataset "$(or $(DATASET),../lai/myordbok)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
 edits-export: ## Approved workspace edits → dataset patch files in OUT=… [APPLY=1]
 	$(DATA) export --out "$(OUT)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)

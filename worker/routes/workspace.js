@@ -256,10 +256,12 @@ async function overview(env, member) {
 	const statistics = { usage: usage.map((u) => ({ day: String(u.day), name: String(u.name), n: Number(u.n) })), disliked: (await currentSenses(env, ratedDown)).slice(0, 5) };
 	if (!isEditor(member)) return json({ ...base, ...statistics }, NO_STORE);
 
-	const [edits, members, joined] = await Promise.all([
+	const [edits, members, joined, sites] = await Promise.all([
 		rows(db, 'SELECT status, count(*) AS n FROM dict_edits GROUP BY status'),
 		rows(db, "SELECT role, count(*) AS n FROM users WHERE id > 0 AND status = 'active' GROUP BY role"),
 		db.prepare('SELECT count(*) AS n FROM users WHERE id > 0 AND created_at >= unixepoch() - 7 * 86400').first(),
+		// The build each site reads (scripts/data.js): beta ahead of production means a release waits for its promotion.
+		rows(db, 'SELECT env, build FROM dict_release'),
 	]);
 	// Unread messages and the backups: admins only.
 	const admin = atLeast(member.role, 'admin');
@@ -270,6 +272,7 @@ async function overview(env, member) {
 			...(admin ? { unread, backup } : {}),
 			suggestions: Object.fromEntries(edits.map((x) => [String(x.status), Number(x.n)])),
 			members: { roles: Object.fromEntries(members.map((x) => [String(x.role), Number(x.n)])), joinedWeek: Number(/** @type {{ n: number }} */ (joined).n) },
+			builds: Object.fromEntries(sites.map((x) => [String(x.env), String(x.build)])),
 			...statistics,
 		},
 		NO_STORE,
