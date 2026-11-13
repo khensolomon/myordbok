@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.13+109
+
+- Support page: the full available width inside the usual gutters, type that grows with the screen without getting small on phones, a soft logo-blue glow on the figures, and the logo blue on the steps' edge and the closing thank-you
+
 ## 26.11.13+108
 
 - Support page uses the available width (up to 1600px) and lays itself out by its own width: four steps and four ways to help side by side on wide screens, two on tablets, one on phones; Give in two columns; thanks in two columns; paragraphs keep a readable line length

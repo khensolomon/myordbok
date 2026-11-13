@@ -1777,12 +1777,13 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 
 /* Support (support.js): an invitation to keep MyOrdbok going together. No
    search bar; the heart is the one warm colour. */
-/* The page takes the width it is given (up to 1600px) and lays its parts
-   out by the width of the page itself (container queries), while text keeps
-   a readable measure. */
+/* The page takes the whole width, inside the same gutters as every page,
+   and lays its parts out by its own width (container queries). Type grows
+   with the screen and never drops below a comfortable size; paragraphs
+   keep a readable measure. */
 body[data-route="support"] main#view { max-width: none; }
-.support { max-width: 1600px; margin-inline: auto; display: grid; gap: clamp(48px, 6vw, 80px); container-type: inline-size; container-name: support; }
-.support h2 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.support { display: grid; gap: clamp(48px, 6vw, 88px); container-type: inline-size; container-name: support; }
+.support h2 { margin: 0; font-size: clamp(22px, 1.2rem + 0.8vw, 32px); font-weight: 700; letter-spacing: -0.01em; }
 
 .support-hero {
 	position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 16px;
@@ -1795,48 +1796,48 @@ body[data-route="support"] main#view { max-width: none; }
 .support-badge { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 999px; background: var(--ground); color: var(--heart); box-shadow: 0 6px 20px rgba(180, 35, 74, 0.14); }
 .support-kicker { margin: 4px 0 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--heart); }
 .support-kicker:lang(my), :lang(my) .support-kicker { letter-spacing: 0; text-transform: none; }
-.support .support-hero h1 { max-width: 16ch; margin: 0; font-size: clamp(32px, 5.2vw, 52px); line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; }
+.support .support-hero h1 { max-width: 16ch; margin: 0; font-size: clamp(34px, 1.4rem + 3.4vw, 76px); line-height: 1.1; font-weight: 700; letter-spacing: -0.025em; }
 :lang(my) .support .support-hero h1 { max-width: 22ch; line-height: 1.5; letter-spacing: 0; }
-.support-lead { max-width: 60ch; margin: 0; font-size: 17px; line-height: 1.7; color: var(--ink-2); }
+.support-lead { max-width: 62ch; margin: 0; font-size: clamp(17px, 0.95rem + 0.35vw, 22px); line-height: 1.7; color: var(--ink-2); }
 .support-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 .support-primary, .support-secondary { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; font-size: 15px; font-weight: 600; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .support-primary { background: var(--link); color: #fff; box-shadow: 0 6px 18px rgba(31, 111, 178, 0.25); }
 .support-primary:hover { background: var(--link-hover); color: #fff; text-decoration: none; transform: translateY(-1px); }
 .support-secondary { background: var(--ground); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(23, 32, 43, 0.06); }
 .support-secondary:hover { text-decoration: none; transform: translateY(-1px); }
-.support-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; width: 100%; max-width: 980px; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
+.support-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; width: 100%; max-width: 1200px; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
 .support-figures div { display: flex; flex-direction: column-reverse; gap: 2px; }
-.support-figures dd { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-.support-figures dt { font-size: 13px; color: var(--muted); }
+.support-figures dd { margin: 0; font-size: clamp(26px, 1.1rem + 1.6vw, 44px); font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--ink); text-shadow: 0 0 18px color-mix(in srgb, var(--brand) 45%, transparent), 0 2px 6px color-mix(in srgb, var(--brand) 18%, transparent); }
+.support-figures dt { font-size: clamp(13px, 0.75rem + 0.15vw, 15px); color: var(--muted); }
 
 .support-part { display: grid; gap: 20px; scroll-margin-top: 24px; outline: none; }
 .support-head { display: grid; gap: 6px; }
-.support-head p { max-width: 62ch; margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.support-head p { max-width: 62ch; margin: 0; font-size: clamp(15px, 0.85rem + 0.25vw, 18px); line-height: 1.6; color: var(--muted); }
 
 .support-steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
 @container support (min-width: 560px) { .support-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container support (min-width: 1000px) { .support-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .support-steps li { position: relative; display: grid; gap: 6px; align-content: start; padding: 22px 22px 22px 24px; border-radius: 18px; border: 1px solid var(--line); }
-.support-steps li::before { content: ""; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px; background: var(--heart); opacity: 0.55; }
+.support-steps li::before { content: ""; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px; background: var(--brand); opacity: 0.55; }
 .support-steps li:last-child { background: var(--heart-tint); border-color: transparent; }
 .support-steps li:last-child::before { opacity: 1; }
 .support-step-when { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--heart); }
 :lang(my) .support-step-when { letter-spacing: 0; text-transform: none; }
-.support-steps strong { font-size: 17px; }
-.support-steps li > span:last-child { font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+.support-steps strong { font-size: clamp(17px, 0.95rem + 0.3vw, 21px); }
+.support-steps li > span:last-child { font-size: clamp(14px, 0.8rem + 0.25vw, 17px); line-height: 1.6; color: var(--ink-2); }
 
 .support-uses { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .support-use { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; gap: 2px 12px; align-items: start; }
 .support-use .support-mark { grid-row: 1 / 3; }
-.support-use strong { font-size: 15px; }
-.support-use > span:last-child { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.support-use strong { font-size: clamp(15px, 0.85rem + 0.25vw, 18px); }
+.support-use > span:last-child { font-size: clamp(14px, 0.8rem + 0.2vw, 16px); line-height: 1.5; color: var(--muted); }
 
 .support-cost { margin: 0; font-size: 16px; font-weight: 600; }
 .support-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .support-give { display: flex; flex-direction: column; gap: 8px; padding: 24px; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
 .support-give:hover { border-color: var(--node); text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(23, 32, 43, 0.08); }
-.support-give strong { font-size: 18px; }
-.support-give span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.support-give strong { font-size: clamp(18px, 1rem + 0.35vw, 22px); }
+.support-give span { font-size: clamp(14px, 0.8rem + 0.2vw, 16px); line-height: 1.5; color: var(--muted); }
 .support-give .support-go { margin-top: auto; padding-top: 6px; font-weight: 600; color: var(--link); }
 .support-ways { grid-template-columns: minmax(0, 1fr); }
 @container support (min-width: 600px) { .support-ways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -1855,22 +1856,22 @@ body[data-route="support"] main#view { max-width: none; }
 a.support-way:hover, button.support-way:hover { background: var(--surface-hover); text-decoration: none; cursor: pointer; }
 .support-mark { flex: none; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: var(--term-tint); color: var(--link); }
 .support-way-text { display: grid; gap: 4px; align-content: start; }
-.support-way-text strong { font-size: 15px; }
-.support-way-text span { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.support-way-text strong { font-size: clamp(15px, 0.85rem + 0.25vw, 18px); }
+.support-way-text span { font-size: clamp(14px, 0.8rem + 0.2vw, 16px); line-height: 1.5; color: var(--muted); }
 
 .support-years { border-top: 1px solid var(--line); }
 .support-year { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 28px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .support-year h3 { width: 56px; margin: 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .support-year ul { flex: 1; min-width: 220px; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.support-name { display: inline-flex; align-items: center; gap: 7px; padding: 5px 13px 5px 8px; border-radius: 999px; background: var(--surface); font-size: 14px; }
+.support-name { display: inline-flex; align-items: center; gap: 7px; padding: 5px 13px 5px 8px; border-radius: 999px; background: var(--surface); font-size: clamp(14px, 0.8rem + 0.2vw, 16px); }
 .support-name img { width: 20px; height: 20px; border-radius: 999px; }
 .support-heart { display: inline-flex; width: 20px; justify-content: center; color: var(--heart); }
 .support-anonymous { padding: 5px 4px; font-size: 14px; color: var(--muted); }
 .support-note { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
 
 .support-closing { display: grid; justify-items: center; gap: 6px; padding: 8px 0 24px; text-align: center; }
-.support-closing p { margin: 0; color: var(--ink-2); }
-.support-closing .support-closing-my { font-family: var(--font-my); font-size: clamp(30px, 5vw, 44px); line-height: 1.6; color: var(--heart); }
+.support-closing p { margin: 0; font-size: clamp(15px, 0.85rem + 0.3vw, 19px); color: var(--ink-2); }
+.support-closing .support-closing-my { font-family: var(--font-my); font-size: clamp(30px, 1.2rem + 3vw, 64px); line-height: 1.6; color: var(--brand); }
 
 /* ---------------------------------------------------------- retired pages */
 
