@@ -67,7 +67,7 @@ async function list(request, env, url) {
 	const [member, open] = await Promise.all([currentMember(request, env), getSetting(env, 'comments.open')]);
 	if (open === 'hidden') return json({ open: false, hidden: true, signedIn: member !== null, comments: [] }, NO_STORE);
 	const { results } = await env.APP.prepare(
-		`SELECT c.id, c.body, c.created_at, c.user_id, u.name, u.avatar_url FROM comments c JOIN users u ON u.id = c.user_id
+		`SELECT c.id, c.body, c.created_at, c.user_id, u.name, u.avatar_url, u.role FROM comments c JOIN users u ON u.id = c.user_id
 		 WHERE c.lang = ?1 AND c.word = ?2 AND c.status = 'visible' AND u.status = 'active' ORDER BY c.created_at DESC, c.id DESC LIMIT ?3`,
 	)
 		.bind(lang, word, SHOWN)
@@ -77,7 +77,9 @@ async function list(request, env, url) {
 			open: open === 'on',
 			hidden: open === 'hidden',
 			signedIn: member !== null,
-			comments: results.map((r) => ({ id: Number(r.id), body: r.body, at: Number(r.created_at), name: r.name, avatar_url: r.avatar_url, own: member !== null && Number(r.user_id) === member.id })),
+			// Who is writing, for the face beside the form.
+			me: member && { name: member.name, avatar_url: member.avatar_url },
+			comments: results.map((r) => ({ id: Number(r.id), body: r.body, at: Number(r.created_at), name: r.name, avatar_url: r.avatar_url, editor: isEditor(r.role), own: member !== null && Number(r.user_id) === member.id })),
 		},
 		NO_STORE,
 	);
@@ -114,8 +116,15 @@ async function post(request, env) {
 	const row = /** @type {{ id: number, created_at: number }} */ (
 		await env.APP.prepare('INSERT INTO comments (user_id, lang, word, body) VALUES (?1, ?2, ?3, ?4) RETURNING id, created_at').bind(member.id, lang, word, body).first()
 	);
-	return json({ comment: { id: Number(row.id), body, at: Number(row.created_at), name: member.name, avatar_url: member.avatar_url, own: true } }, NO_STORE);
+	return json({ comment: { id: Number(row.id), body, at: Number(row.created_at), name: member.name, avatar_url: member.avatar_url, editor: isEditor(member.role), own: true } }, NO_STORE);
 }
+
+/**
+ * Whether a comment's author edits the dictionary (editor, admin or owner):
+ * the entry marks their comments, so a reader sees an answer from the team.
+ * @param {unknown} role
+ */
+const isEditor = (role) => role === 'editor' || role === 'admin' || role === 'owner';
 
 /**
  * The text as kept: trimmed, at most one blank line in a row, in Unicode

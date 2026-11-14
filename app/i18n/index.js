@@ -247,6 +247,27 @@ export function shortDate(date, options = {}) {
 }
 
 /**
+ * How long ago: "just now", "5 min ago", "2 h ago", "yesterday", "3 days ago"
+ * within a week, the date after that; short: "5 m", "2 h", "3 d".
+ * @param {number} seconds  Unix time.
+ * @param {boolean} [short]
+ */
+export function ago(seconds, short = false) {
+	const diff = Date.now() / 1000 - seconds;
+	if (short) {
+		if (diff < 3600) return t('{n} m', { n: Math.max(1, Math.floor(diff / 60)) });
+		if (diff < 86400) return t('{n} h', { n: Math.floor(diff / 3600) });
+		return t('{n} d', { n: Math.floor(diff / 86400) });
+	}
+	if (diff < 60) return t('just now');
+	if (diff < 3600) return t('{n} min ago', { n: Math.floor(diff / 60) });
+	if (diff < 86400) return t('{n} h ago', { n: Math.floor(diff / 3600) });
+	if (diff < 172800) return t('yesterday');
+	if (diff < 7 * 86400) return t('{n} days ago', { n: Math.floor(diff / 86400) });
+	return shortDate(new Date(seconds * 1000), { year: true });
+}
+
+/**
  * @param {string} text
  * @param {Record<string, string | number>} vars
  */

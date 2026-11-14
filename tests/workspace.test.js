@@ -454,6 +454,13 @@ test('comments: members post plain text on an entry, delete their own; editors h
 	const seen = (await call(e, '/api/comments?lang=en&word=love', { who: 'member' })).body;
 	assert.deepEqual([seen.open, seen.signedIn, seen.comments.map((c) => [c.body.slice(0, 4), c.own])], [true, true, [['Nice', false], ['Also', true]]]);
 	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.signedIn, false);
+	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.me, null);
+	assert.equal(seen.me.name, 'Mya', 'the face beside the form');
+	assert.equal(posted.editor, false);
+	const reply = (await call(e, '/api/comments', { who: 'editor', body: { lang: 'en', word: 'love', body: 'Added, thanks.' } })).body.comment;
+	assert.equal(reply.editor, true, 'an answer from the team is marked');
+	assert.deepEqual((await call(e, '/api/comments?lang=en&word=love')).body.comments.map((c) => c.editor), [true, false, false]);
+	await call(e, `/api/comments/${reply.id}/delete`, { who: 'editor', method: 'POST' });
 
 	// Moderation: editors only; hidden comments leave the entry.
 	assert.equal((await call(e, '/api/workspace/comments', { who: 'member' })).status, 403);

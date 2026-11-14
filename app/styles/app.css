@@ -697,31 +697,50 @@ mark { background: none; color: inherit; font-weight: 600; }
 body[data-ratings-off] .thumb:not(.sense-edit) { display: none; }
 body[data-suggestions-off] .sense-edit, body[data-suggestions-off] .aside-suggest { display: none; }
 .comments { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
-.comments-title { margin: 0 0 14px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.comments-title { margin: 0 0 16px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .comments-title:lang(my), :lang(my) > .comments-title { text-transform: none; letter-spacing: 0; }
 .comments-count { font-weight: 500; }
-.comments-note { margin: 0 0 14px; font-size: 14px; color: var(--ink-2); }
-.comments-write { display: grid; gap: 8px; margin-bottom: 18px; }
-.comments-input { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--glass-solid); color: var(--ink); font: 15px/1.5 var(--font-ui); resize: none; overflow: hidden; }
-.comments-input:focus { outline: none; border-color: var(--guide); }
-.comments-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.comments-left { font-size: 12px; color: var(--muted); }
-.comments-send { height: 34px; padding: 0 18px; border: none; border-radius: 999px; background: var(--brand); color: #fff; font: 600 14px var(--font-ui); cursor: pointer; }
+.comments-note { margin: 0 0 18px; font-size: 14px; color: var(--ink-2); }
+
+/* The form: one quiet line beside the writer's face, opening when written in. */
+.comments-compose { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; margin-bottom: 24px; }
+.comments-write { display: grid; gap: 8px; min-width: 0; }
+.comments-input { display: block; text-overflow: ellipsis; box-sizing: border-box; width: 100%; min-height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass-solid); color: var(--ink); font: 15px/22px var(--font-ui); resize: none; overflow: hidden; transition: border-color .15s ease, border-radius .15s ease, box-shadow .15s ease; }
+.comments-input::placeholder { color: var(--muted); }
+.comments-input:hover { border-color: color-mix(in srgb, var(--brand) 35%, var(--line)); }
+.comments-compose.is-open .comments-input { min-height: 84px; padding: 10px 14px; border-radius: 14px; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent); outline: none; }
+.comments-signin { display: flex; align-items: center; color: var(--muted); text-decoration: none; }
+.comments-signin:hover, .comments-signin:focus-visible { color: var(--brand); }
+.comments-actions { display: none; align-items: center; justify-content: flex-end; gap: 8px; }
+.comments-compose.is-open .comments-actions { display: flex; }
+.comments-left { margin-right: auto; font-size: 12px; color: var(--muted); }
+.comments-cancel, .comments-send { height: 34px; padding: 0 16px; border-radius: 999px; font: 600 14px var(--font-ui); cursor: pointer; }
+.comments-cancel { border: none; background: none; color: var(--ink-2); }
+.comments-cancel:hover { background: var(--line-soft); }
+.comments-send { border: none; background: var(--brand); color: #fff; }
 .comments-send:disabled { opacity: 0.4; cursor: default; }
 .comments-result { margin: 0; font-size: 13px; color: #b23a2c; }
 .comments-result:empty { display: none; }
-.comments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
-.comments-empty { font-size: 14px; color: var(--muted); }
+
+/* The comments. */
+.comments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
 .comment { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
 .comment-face { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 .comment-initial { display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font: 700 13px var(--font-ui); }
-.comment-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 2px; font: 14px/1.4 var(--font-ui); }
+.comment-nobody { display: flex; align-items: center; justify-content: center; background: var(--line-soft); color: var(--muted); }
+.comment-main { min-width: 0; }
+.comment-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0 0 3px; font: 14px/1.4 var(--font-ui); }
 .comment-head strong { color: var(--ink); font-weight: 600; }
+.comment-editor { padding: 1px 8px; border-radius: 999px; background: var(--term-tint); color: var(--brand); font: 600 11px/1.6 var(--font-ui); }
 .comment-head time { font-size: 12px; color: var(--muted); }
-.comment-delete { margin-left: auto; border: none; background: none; padding: 0; color: var(--muted); font: 12px var(--font-ui); cursor: pointer; }
-.comment-delete:hover { color: #b23a2c; }
+.comment-delete { margin-left: auto; border: none; background: none; padding: 0; color: var(--muted); font: 12px var(--font-ui); cursor: pointer; opacity: 0; transition: opacity .15s ease; }
+.comment:hover .comment-delete, .comment-delete:focus-visible, .comment-delete.is-asking { opacity: 1; }
+.comment-delete:hover, .comment-delete.is-asking { color: #b23a2c; }
+@media (hover: none) { .comment-delete { opacity: 1; } }
 .comment-body { margin: 0; white-space: pre-wrap; overflow-wrap: break-word; font: 15px/1.6 var(--font-ui); color: var(--ink-2); }
 .comment-body:lang(my), .comments :lang(my) { font-family: var(--font-my); }
+.comments-more { margin: 16px 0 0 44px; padding: 0; border: none; background: none; color: var(--brand); font: 600 14px var(--font-ui); cursor: pointer; }
+.comments-more:hover { text-decoration: underline; }
 /* Large screens: each part of speech's line (the one with the circle) starts
    under the left edge of the search box; the outer line stays under the
    language badge. The timeline's margin (15.5px) and border (1px) are

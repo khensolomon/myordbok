@@ -32,7 +32,7 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { atLeast, seesStatistics } from '#shared/roles.js';
-import { list, mark, num, posName, shortDate, t, tx } from '../i18n/index.js';
+import { ago, list, mark, num, posName, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
@@ -852,21 +852,3 @@ function errorNote(err) {
 	return h('p', { class: 'ws-result', role: 'alert' }, err instanceof Error ? err.message : String(err));
 }
 
-/**
- * "5 min ago", "yesterday", or the date; short: "5 m", "2 h", "3 d".
- * @param {number} seconds  Unix time.
- * @param {boolean} [short]
- */
-function ago(seconds, short = false) {
-	const diff = Date.now() / 1000 - seconds;
-	if (short) {
-		if (diff < 3600) return t('{n} m', { n: Math.max(1, Math.floor(diff / 60)) });
-		if (diff < 86400) return t('{n} h', { n: Math.floor(diff / 3600) });
-		return t('{n} d', { n: Math.floor(diff / 86400) });
-	}
-	if (diff < 60) return t('just now');
-	if (diff < 3600) return t('{n} min ago', { n: Math.floor(diff / 60) });
-	if (diff < 86400) return t('{n} h ago', { n: Math.floor(diff / 3600) });
-	if (diff < 172800) return t('yesterday');
-	return shortDate(new Date(seconds * 1000), { year: true });
-}

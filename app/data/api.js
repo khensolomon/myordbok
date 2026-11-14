@@ -322,7 +322,7 @@ export function searchedWord(lang, term) {
 }
 
 /**
- * @typedef {{ id: number, body: string, at: number, name: string, avatar_url: string | null, own: boolean }} EntryComment
+ * @typedef {{ id: number, body: string, at: number, name: string, avatar_url: string | null, editor: boolean, own: boolean }} EntryComment
  * @typedef {{ id: number, lang: 'en' | 'my', word: string, body: string, at: number, status: 'visible' | 'hidden', author: string, author_id: number }} ModeratedComment
  */
 
@@ -330,7 +330,7 @@ export function searchedWord(lang, term) {
  * An entry's comments, newest first.
  * @param {'en' | 'my'} lang
  * @param {string} word
- * @returns {Promise<{ open: boolean, hidden?: boolean, signedIn: boolean, comments: EntryComment[] }>}
+ * @returns {Promise<{ open: boolean, hidden?: boolean, signedIn: boolean, me?: { name: string, avatar_url: string | null } | null, comments: EntryComment[] }>}
  */
 export function entryComments(lang, word) {
 	return getJSON(`/api/comments?${new URLSearchParams({ lang, word })}`);

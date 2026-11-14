@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.14+115
+
+- Comments on entries: a quiet one-line form beside your face that opens when written in, with Cancel and Ctrl+Enter; an Editor mark on answers from the team; times as 1 h ago or yesterday; the newest five, then Show all
+
 ## 26.11.13+114
 
 - Smaller downloads: the build minifies every script and stylesheet (about 30% less to download), with source maps for debugging
