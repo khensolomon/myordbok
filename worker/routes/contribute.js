@@ -10,7 +10,9 @@
  *
  * A sense's reactions count only while its meaning is the one they were
  * given for (sense_reactions.text_hash), so a corrected meaning starts with
- * none.
+ * none. The meaning is the one readers see: the build with the live edits
+ * over it, so a rating given to a live correction stays with it through
+ * the release.
  *   GET  /api/senses?lang=en&word=love      senses with ids, part-of-speech
  *                                           list and the member's open
  *                                           suggestions (signed in only)
@@ -153,7 +155,8 @@ async function countsFor(env, lang, word, memberId) {
 		.catch((err) => {
 			throw explainDictError(err, dict, env);
 		});
-	const pairs = await Promise.all(list.map(async (s) => [Number(s.id), await textHash(String(s.sense ?? ''))]));
+	const shown = (await liveLayer(env)).senses(lang === 'en' ? 'emd' : 'med', /** @type {any[]} */ (list));
+	const pairs = await Promise.all(shown.map(async (s) => [Number(s.id), await textHash(String(s.sense ?? ''))]));
 	/** @type {Record<string, Counts>} */
 	const senses = {};
 	if (pairs.length) {
@@ -189,7 +192,7 @@ async function react(request, env) {
 		const senseId = Number(data.sense_id);
 		if (!Number.isInteger(senseId)) throw new AppError('bad_request', 'sense_id must be a sense id');
 		const { dict, db } = await dictionary(env);
-		const row = /** @type {{ word: string, sense: string | null } | null} */ (
+		const stored = /** @type {{ id: number, word: string, sense: string | null, exam: string | null } | null} */ (
 			await db
 				.prepare(ONE_SENSE[lang])
 				.bind(senseId)
@@ -198,6 +201,8 @@ async function react(request, env) {
 					throw explainDictError(err, dict, env);
 				})
 		);
+		// The meaning rated is the one readers see.
+		const [row] = stored ? (await liveLayer(env)).senses(dictName, [stored]) : [];
 		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
 		if (value === 0) {
 			await env.APP.prepare('DELETE FROM sense_reactions WHERE user_id = ?1 AND dict = ?2 AND sense_id = ?3').bind(member.id, dictName, senseId).run();
@@ -328,11 +333,25 @@ export async function suggestEdit(request, env) {
 		// As readers see it now: a live edit may have changed or deleted it.
 		const [row] = stored ? (await liveLayer(env)).senses(dictName, [stored]) : [];
 		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
+		// An approved change that is not live is not in what readers see, so a
+		// new one would be made against text about to change, and the release
+		// would find the two in conflict.
+		const field = action === 'delete' ? null : String(data.field);
+		const waits = /** @type {{ id: number } | null} */ (
+			await env.APP.prepare(
+				`SELECT id FROM dict_edits WHERE dict = ?1 AND sense_id = ?2 AND status IN ('approved', 'exported') AND live_at IS NULL
+				   AND (action = 'delete' OR ?3 IS NULL OR field = ?3) ORDER BY id LIMIT 1`,
+			)
+				.bind(dictName, senseId, field)
+				.first()
+		);
+		if (waits) {
+			throw new AppError('conflict', `A change to this meaning is approved and waits for the next release (suggestion ${waits.id}). It can be changed again once an admin makes that one live, or after the release.`);
+		}
 		if (action === 'delete') {
 			change = { senseId, field: 'delete', oldValue: row.word, newValue: null, data: null, word: row.word };
 		} else {
-			const field = String(data.field);
-			if (!EDITABLE.includes(field)) throw new AppError('bad_request', `field must be one of ${EDITABLE.join(', ')}`);
+			if (!field || !EDITABLE.includes(field)) throw new AppError('bad_request', `field must be one of ${EDITABLE.join(', ')}`);
 			const oldValue = /** @type {string | null} */ (row[/** @type {'sense' | 'exam'} */ (field)] ?? null);
 			const newValue = cleanValue(data.value, field, { optional: field === 'exam' });
 			if ((newValue ?? '') === (oldValue ?? '')) throw new AppError('bad_request', 'The suggestion is the same as the current text');

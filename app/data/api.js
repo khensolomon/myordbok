@@ -196,7 +196,8 @@ export function suggestEdit(suggestion) {
  * @property {string} word
  * @property {{ wrte: number, sense: string, exam: string | null } | null} data
  * @property {string} status
- * @property {boolean} live  Shown to readers now, before the release that carries it.
+ * @property {boolean} live  Made live: shown to readers before the release that carries it.
+ * @property {boolean | null} showing  A live edit readers see; false: the meaning changed first. null: not live, or an addition.
  * @property {string | null} live_by  Who made it live.
  * @property {number | null} live_at
  * @property {string | null} note
@@ -217,7 +218,7 @@ export function workspaceSummary() {
 
 /**
  * @param {{ status?: string, mine?: boolean, before?: number }} options
- * @returns {Promise<{ edits: WorkspaceEdit[], more: boolean, role: string }>}
+ * @returns {Promise<{ edits: WorkspaceEdit[], more: boolean, role: string, live_on: boolean }>}
  */
 export function workspaceEdits(options) {
 	const q = new URLSearchParams({ status: options.status ?? 'pending' });

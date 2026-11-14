@@ -220,7 +220,7 @@ export async function view(ctx) {
 		history.replaceState(history.state, '', url);
 		root.toggleAttribute('data-open', true);
 		status.word(e.word);
-		renderItem(e, { work, inspector, editor, admin, section, back: () => root.removeAttribute('data-open'), done: (next) => afterDecision(next) });
+		renderItem(e, { work, inspector, editor, admin, liveOn, section, back: () => root.removeAttribute('data-open'), done: (next) => afterDecision(next) });
 	};
 	/**
 	 * After a decision: the row shows its new status; in the Waiting list it
@@ -249,10 +249,13 @@ export async function view(ctx) {
 
 	/** @type {number | undefined} */
 	let before;
+	/** Whether live edits are switched on (Settings); told with each page of the list. */
+	let liveOn = true;
 	const load = async () => {
 		more.disabled = true;
 		const page = await workspaceEdits({ status: filter, mine: section === 'contributions', before });
 		const start = items.length;
+		liveOn = page.live_on;
 		items = items.concat(page.edits);
 		before = page.edits.at(-1)?.id;
 		more.hidden = !page.more;
@@ -367,7 +370,7 @@ function rowButton(e, section, onOpen) {
 /**
  * The work area and inspector for one suggestion.
  * @param {Edit} e
- * @param {{ work: HTMLElement, inspector: HTMLElement, editor: boolean, admin: boolean, section: Section, back: () => void, done: (e: Edit) => void }} o
+ * @param {{ work: HTMLElement, inspector: HTMLElement, editor: boolean, admin: boolean, liveOn: boolean, section: Section, back: () => void, done: (e: Edit) => void }} o
  */
 function renderItem(e, o) {
 	const lang = e.dict === 'emd' ? 'en' : 'my';
@@ -473,7 +476,7 @@ function renderItem(e, o) {
 			approve.disabled = decline.disabled = true;
 			try {
 				const { edit } = await reviewEdit(e.id, decision, note.value);
-				o.done({ ...e, status: edit.status, live: edit.live, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null, reviewer: 'you', review_note: note.value || null, reviewed_at: Date.now() / 1000 });
+				o.done({ ...e, status: edit.status, live: edit.live, showing: null, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null, reviewer: 'you', review_note: note.value || null, reviewed_at: Date.now() / 1000 });
 			} catch (err) {
 				approve.disabled = decline.disabled = false;
 				out.textContent = err instanceof Error ? err.message : String(err);
@@ -511,15 +514,26 @@ function renderItem(e, o) {
 		// Live: readers see it now. Admins and owners switch it; editors see where it stands.
 		const live = isLive(e);
 		const who = e.live_by === 'you' ? t('you') : e.live_by;
-		const state = live ? (who && e.live_at ? t('Readers see it now. Made live by {who}, {when}.', { who, when: ago(e.live_at) }) : t('Readers see it now.')) : t('Not live: readers see it after the next release.');
-		const box = h('section', { class: 'ws-box' }, h('h2', null, t('On the site')), h('p', { class: live ? 'ws-live-state' : null }, state));
+		// Made live is not always seen: the switch may be off, or the meaning changed first.
+		const seen = live && o.liveOn && e.showing !== false;
+		const state = !live
+			? t('Not live: readers see it after the next release.')
+			: !o.liveOn
+				? t('Made live, but live edits are switched off in Settings: readers see it after the next release.')
+				: e.showing === false
+					? t('Made live, but readers do not see it: the meaning changed first. The next release will report a conflict.')
+					: who && e.live_at
+						? t('Readers see it now. Made live by {who}, {when}.', { who, when: ago(e.live_at) })
+						: t('Readers see it now.');
+		const box = h('section', { class: 'ws-box' }, h('h2', null, t('On the site')), h('p', { class: seen ? 'ws-live-state' : null }, state));
 		if (o.admin) {
 			const turn = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: live ? 'ws-secondary' : 'ws-primary' }, live ? t('Take off the site') : t('Make live')));
 			turn.addEventListener('click', async () => {
 				turn.disabled = true;
 				try {
 					const { edit } = await liveEdit(e.id, !live);
-					o.done({ ...e, live: edit.live, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null });
+					// showing: not known until the list is read again; null claims nothing false.
+					o.done({ ...e, live: edit.live, showing: null, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null });
 				} catch (err) {
 					turn.disabled = false;
 					out.textContent = err instanceof Error ? err.message : String(err);

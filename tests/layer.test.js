@@ -201,3 +201,71 @@ test('live: a full layer takes no more until a release', async () => {
 	// An editor's own does not need room: it is not live.
 	assert.equal((await call(e, '/api/edits', { who: 'editor', body: { lang: 'en', word: 'love', action: 'delete', sense_id: 4 } })).status, 201);
 });
+
+test('live: ratings belong to the meaning readers see, through the release', async () => {
+	const e = env();
+	const rate = (who, value) => call(e, '/api/reactions', { who, body: { lang: 'en', word: 'love', sense_id: 2, value } });
+	const counts = async () => (resetLayerCache(), (await call(e, '/api/reactions?lang=en&word=love')).body.senses['2'] ?? null);
+	await rate('member', -1);
+	assert.equal((await counts()).dislikes, 1);
+
+	// Corrected live: the new meaning starts with none; the dislike was for the old one.
+	const a = await suggest(e, 'admin', { action: 'edit', sense_id: 2, field: 'sense', value: 'ရည်းစား' });
+	assert.equal(await counts(), null);
+	await rate('editor', 1);
+	assert.deepEqual(await counts(), { likes: 1, dislikes: 0, mine: 0 });
+
+	// The release carries it into the build: the rating stays with the meaning.
+	e.rawDict.exec("UPDATE emd_sense SET sense = 'ရည်းစား' WHERE id = 2");
+	e.raw.exec(`UPDATE dict_edits SET status = 'merged', merged_in = 'sample' WHERE id = ${a.id}`);
+	assert.deepEqual(await counts(), { likes: 1, dislikes: 0, mine: 0 });
+});
+
+test('live: a meaning with an approved change waiting for the release is not changed under it', async () => {
+	const e = env();
+	const edit = (who, body) => call(e, '/api/edits', { who, body: { lang: 'en', word: 'love', ...body } });
+	// An editor's own: approved, not live, so readers and forms still show the old text.
+	const first = (await edit('editor', { action: 'edit', sense_id: 4, field: 'sense', value: 'အလွန်ကြိုက်သည်' })).body.edit;
+	assert.deepEqual(first, { id: first.id, status: 'approved', live: false });
+
+	const again = await edit('member', { action: 'edit', sense_id: 4, field: 'sense', value: 'ကြိုက်သည်' });
+	assert.equal(again.status, 409);
+	assert.match(again.body.error.message, new RegExp(`waits for the next release \\(suggestion ${first.id}\\)`));
+	assert.equal((await edit('admin', { action: 'delete', sense_id: 4 })).status, 409, 'nor removed');
+	assert.equal((await edit('member', { action: 'edit', sense_id: 4, field: 'exam', value: 'I love it.' })).status, 201, 'its other field is free');
+	assert.equal((await edit('member', { action: 'edit', sense_id: 3, field: 'sense', value: 'မြတ်နိုးသည်' })).status, 201, 'and so are other meanings');
+
+	// Made live, it is what readers see, and the next change follows it.
+	await call(e, `/api/workspace/edits/${first.id}/live`, { who: 'admin', body: { live: true } });
+	const next = await edit('member', { action: 'edit', sense_id: 4, field: 'sense', value: 'ကြိုက်သည်' });
+	assert.equal(next.status, 201);
+	assert.equal(e.raw.prepare('SELECT old_value FROM dict_edits WHERE id = ?').get(next.body.edit.id).old_value, 'အလွန်ကြိုက်သည်');
+});
+
+test('live: the workspace says whether readers really see a live edit', async () => {
+	const e = env();
+	const a = await suggest(e, 'admin', { action: 'edit', sense_id: 2, field: 'sense', value: 'ရည်းစား' });
+	const b = await suggest(e, 'admin', { action: 'delete', sense_id: 4 });
+	const c = await suggest(e, 'editor', { action: 'edit', sense_id: 1, field: 'exam', value: 'love of country' });
+	const list = async () => {
+		resetLayerCache();
+		const { body } = await call(e, '/api/workspace/edits?status=approved', { who: 'editor' });
+		return { on: body.live_on, showing: Object.fromEntries(body.edits.map((x) => [x.id, x.showing])) };
+	};
+	assert.deepEqual(await list(), { on: true, showing: { [a.id]: true, [b.id]: true, [c.id]: null } });
+
+	// The dataset changed the meaning first: live in name only, a conflict to come.
+	e.rawDict.exec("UPDATE emd_sense SET sense = 'changed in the dataset' WHERE id = 2");
+	assert.deepEqual((await list()).showing, { [a.id]: false, [b.id]: true, [c.id]: null });
+
+	// Switched off: nothing live shows, and the list says the switch is off.
+	await call(e, '/api/workspace/settings', { who: 'admin', body: { key: 'edits.live', value: 'off' } });
+	assert.deepEqual(await list(), { on: false, showing: { [a.id]: false, [b.id]: false, [c.id]: null } });
+});
+
+test('live: the layer is read through its own indexes, however many edits were ever merged', async () => {
+	const { LIVE_EDITS } = await import('../worker/lib/layer.js');
+	const plan = sqlite(MIGRATION).prepare(`EXPLAIN QUERY PLAN ${LIVE_EDITS}`).all('sample').map((r) => r.detail).join('\n');
+	assert.match(plan, /USING INDEX dict_edits_live\b/);
+	assert.match(plan, /USING INDEX dict_edits_live_merged \(merged_in>\?\)/);
+});

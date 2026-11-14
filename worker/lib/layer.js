@@ -29,11 +29,15 @@ export const LAYER_TTL_MS = 30_000;
 /** Most edits the layer holds; making another live is refused until a release (worker/routes/workspace.js). */
 export const LAYER_MAX = 2000;
 
-/** Edits that are live for a site reading the build ?1. */
-export const LIVE_EDITS = `SELECT id, dict, action, sense_id, field, old_value, new_value, word, data FROM dict_edits
+/**
+ * Edits that are live for a site reading the build ?1.
+ */
+// Each half names its index (migration 0014): left to itself the planner
+// takes the status index and reads every merged edit there ever was.
+export const LIVE_EDITS = `SELECT id, dict, action, sense_id, field, old_value, new_value, word, data FROM dict_edits INDEXED BY dict_edits_live
 		WHERE live_at IS NOT NULL AND status IN ('approved', 'exported')
 	UNION ALL
-	SELECT id, dict, action, sense_id, field, old_value, new_value, word, data FROM dict_edits
+	SELECT id, dict, action, sense_id, field, old_value, new_value, word, data FROM dict_edits INDEXED BY dict_edits_live_merged
 		WHERE live_at IS NOT NULL AND status = 'merged' AND merged_in > ?1
 	ORDER BY id LIMIT ${LAYER_MAX * 2 + 1}`;
 

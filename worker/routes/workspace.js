@@ -43,7 +43,7 @@ import { members } from './members.js';
 import { manageNotices } from './notices.js';
 import { searches } from './searches.js';
 import { moderateComments } from './comments.js';
-import { allSettings, setSetting } from '../lib/settings.js';
+import { allSettings, getSetting, setSetting } from '../lib/settings.js';
 import { BACKUP_INDEX } from '../../shared/backup.js';
 import { manageSponsors } from './support.js';
 
@@ -165,14 +165,26 @@ async function list(request, env, member) {
 		}
 	}
 
+	/**
+	 * Whether readers see a live edit: false when the meaning changed first
+	 * (the release will find a conflict); null when not live, or an addition.
+	 * @param {Record<string, unknown>} e
+	 */
+	const showing = (e) => {
+		if (e.live_at === null || e.sense_id === null || (e.status !== 'approved' && e.status !== 'exported')) return null;
+		const now = current[`${e.dict}:${e.sense_id}`];
+		if (e.action === 'delete') return now === undefined;
+		return now !== undefined && (now[e.field === 'exam' ? 'exam' : 'sense'] ?? '') === (e.new_value ?? '');
+	};
 	const edits = page.map((e) => ({
 		...e,
 		data: e.data ? JSON.parse(String(e.data)) : null,
 		own: e.user_id === member.id,
 		live: e.live_at !== null,
+		showing: showing(e),
 		current: e.sense_id === null ? null : ((e.live_at !== null ? built : current)[`${e.dict}:${e.sense_id}`] ?? null),
 	}));
-	return json({ edits, more: results.length > PAGE, role: member.role }, NO_STORE);
+	return json({ edits, more: results.length > PAGE, role: member.role, live_on: (await getSetting(env, 'edits.live')) === 'on' }, NO_STORE);
 }
 
 /**

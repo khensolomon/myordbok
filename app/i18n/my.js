@@ -606,6 +606,8 @@ export const MY = {
 	'Not live: readers see it after the next release.': 'မဖော်ပြသေးပါ − နောက် release ပြီးမှ စာဖတ်သူများ မြင်ရမည်။',
 	'Take off the site': 'ဝဘ်ဆိုက်မှ ဖယ်ရန်',
 	'Make live': 'ယခု ဖော်ပြရန်',
+	'Made live, but live edits are switched off in Settings: readers see it after the next release.': 'ဖော်ပြရန် သတ်မှတ်ထားသော်လည်း Settings တွင် တိုက်ရိုက်ပြင်ဆင်ချက်များကို ပိတ်ထားသည် − နောက် release ပြီးမှ စာဖတ်သူများ မြင်ရမည်။',
+	'Made live, but readers do not see it: the meaning changed first. The next release will report a conflict.': 'ဖော်ပြရန် သတ်မှတ်ထားသော်လည်း စာဖတ်သူများ မမြင်ရပါ − အဓိပ္ပာယ်က ဦးစွာ ပြောင်းသွားသည်။ နောက် release တွင် ကွဲလွဲမှုအဖြစ် ပြမည်။',
 	'Taken off, it still reaches the dictionary with the next release.': 'ဖယ်လိုက်သော်လည်း နောက် release နှင့်အတူ အဘိဓာန်သို့ ရောက်မည်။',
 	'Readers see it within a few minutes, before the release.': 'release မတိုင်မီ မိနစ်အနည်းငယ်အတွင်း စာဖတ်သူများ မြင်ရမည်။',
 	'Show all {n} comments': 'မှတ်ချက် {n} ခုလုံးကို ပြရန်',
