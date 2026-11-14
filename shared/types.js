@@ -10,6 +10,7 @@
 /**
  * One English → Myanmar sense.
  * @typedef {object} EnglishSense
+ * @property {number} [id]     emd_sense.id; absent on a sense only the live layer has.
  * @property {string} word     Headword spelling the sense belongs to.
  * @property {string} type     Part of speech name, e.g. "Noun".
  * @property {string} kind     Review state or label, e.g. "Active", "Draft",
@@ -43,6 +44,7 @@
 /**
  * One Myanmar → English sense.
  * @typedef {object} MyanmarSense
+ * @property {number} [id]     med_sense.id; absent on a sense only the live layer has.
  * @property {string} type
  * @property {string} sense    English gloss, with dataset markup.
  * @property {string | null} example  `~` stands for the headword.

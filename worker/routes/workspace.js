@@ -10,6 +10,8 @@
  *                                             each with the sense as the dictionary has it now
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
+ *   POST /api/workspace/edits/{id}/live          { live: true | false }  admins: show an approved
+ *                                                edit to readers now, or take it off again
  *   GET  /api/workspace/searches[/word]          every word searched, for editors (searches.js)
  *   GET  /api/workspace/comments                 comments to moderate, for editors (comments.js)
  *   GET  /api/workspace/overview                 figures for the home board: the whole
@@ -34,6 +36,7 @@ import { AppError } from '../../shared/errors.js';
 import { atLeast, seesStatistics } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { liveLayer, requireLayerRoom, resetLayerCache } from '../lib/layer.js';
 import { currentMember, endSession } from '../lib/session.js';
 import { inbox } from './messages.js';
 import { members } from './members.js';
@@ -88,6 +91,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'POST' && what === 'edits' && parts.length === 4 && /^\d+$/.test(id)) {
 		if (action === 'review') return review(request, env, member, Number(id));
 		if (action === 'withdraw') return withdraw(env, member, Number(id));
+		if (action === 'live') return makeLive(request, env, member, Number(id));
 	}
 	throw new AppError('not_found', `No API route for ${request.method} ${new URL(request.url).pathname}`);
 }
@@ -124,9 +128,9 @@ async function list(request, env, member) {
 
 	const { results } = await env.APP.prepare(
 		`SELECT e.id, e.dict, e.action, e.sense_id, e.field, e.old_value, e.new_value, e.word, e.data, e.source,
-		        e.status, e.note, e.review_note, e.created_at, e.reviewed_at, e.user_id,
-		        u.name AS author, r.name AS reviewer
-		 FROM dict_edits e JOIN users u ON u.id = e.user_id LEFT JOIN users r ON r.id = e.reviewed_by
+		        e.status, e.note, e.review_note, e.created_at, e.reviewed_at, e.user_id, e.live_at,
+		        u.name AS author, r.name AS reviewer, l.name AS live_by
+		 FROM dict_edits e JOIN users u ON u.id = e.user_id LEFT JOIN users r ON r.id = e.reviewed_by LEFT JOIN users l ON l.id = e.live_by
 		 WHERE (?1 = 'all' OR e.status = ?1) AND (?2 = 0 OR e.user_id = ?3) AND (?4 = 0 OR e.id < ?4)
 		 ORDER BY e.id DESC LIMIT ?5`,
 	)
@@ -134,13 +138,18 @@ async function list(request, env, member) {
 		.all();
 	const page = results.slice(0, PAGE);
 
-	// Each sense as it is now, so a reviewer sees whether the dictionary moved on.
+	// Each sense as it is now, so a reviewer sees whether the dictionary moved
+	// on: as readers see it (the build with the live edits over it), or, for
+	// an edit that is live itself, as the build holds it.
 	/** @type {Record<string, Record<string, unknown>>} */
 	const current = {};
+	/** @type {Record<string, Record<string, unknown>>} */
+	const built = {};
 	const ids = { emd: new Set(), med: new Set() };
 	for (const e of page) if (e.sense_id !== null) ids[/** @type {'emd' | 'med'} */ (e.dict)].add(Number(e.sense_id));
 	if (ids.emd.size || ids.med.size) {
 		const { dict, db } = await dictionary(env);
+		const layer = await liveLayer(env);
 		for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
 			if (!ids[name].size) continue;
 			const { results: rows } = await db
@@ -150,7 +159,9 @@ async function list(request, env, member) {
 				.catch((err) => {
 					throw explainDictError(err, dict, env);
 				});
-			for (const r of rows) current[`${name}:${r.id}`] = { word: r.word, type: r.type, sense: r.sense, exam: r.exam };
+			const pick = (/** @type {Record<string, unknown>} */ r) => ({ word: r.word, type: r.type, sense: r.sense, exam: r.exam });
+			for (const r of rows) built[`${name}:${r.id}`] = pick(r);
+			for (const r of layer.senses(name, /** @type {any[]} */ (rows))) current[`${name}:${r.id}`] = pick(r);
 		}
 	}
 
@@ -158,7 +169,8 @@ async function list(request, env, member) {
 		...e,
 		data: e.data ? JSON.parse(String(e.data)) : null,
 		own: e.user_id === member.id,
-		current: e.sense_id === null ? null : (current[`${e.dict}:${e.sense_id}`] ?? null),
+		live: e.live_at !== null,
+		current: e.sense_id === null ? null : ((e.live_at !== null ? built : current)[`${e.dict}:${e.sense_id}`] ?? null),
 	}));
 	return json({ edits, more: results.length > PAGE, role: member.role }, NO_STORE);
 }
@@ -175,16 +187,51 @@ async function review(request, env, member, id) {
 	const decision = data?.decision;
 	if (decision !== 'approve' && decision !== 'reject') throw new AppError('bad_request', 'decision must be approve or reject');
 	const note = typeof data?.note === 'string' ? data.note.replace(/[\t\r\n]+/g, ' ').trim().slice(0, 600) || null : null;
-	const row = /** @type {{ id: number, status: string } | null} */ (
+	// An admin's or owner's approval makes it live; an editor's leaves it for the release.
+	const live = decision === 'approve' && atLeast(member.role, 'admin');
+	if (live) await requireLayerRoom(env);
+	const row = /** @type {{ id: number, status: string, live: number } | null} */ (
 		await env.APP.prepare(
-			`UPDATE dict_edits SET status = ?2, reviewed_by = ?3, reviewed_at = unixepoch(), review_note = ?4
-			 WHERE id = ?1 AND status = 'pending' RETURNING id, status`,
+			`UPDATE dict_edits SET status = ?2, reviewed_by = ?3, reviewed_at = unixepoch(), review_note = ?4,
+			        live_by = CASE WHEN ?5 = 1 THEN ?3 END, live_at = CASE WHEN ?5 = 1 THEN unixepoch() END
+			 WHERE id = ?1 AND status = 'pending' RETURNING id, status, live_at IS NOT NULL AS live`,
 		)
-			.bind(id, decision === 'approve' ? 'approved' : 'rejected', member.id, note)
+			.bind(id, decision === 'approve' ? 'approved' : 'rejected', member.id, note, live ? 1 : 0)
 			.first()
 	);
 	if (!row) await notWaiting(env, id);
-	return json({ edit: row }, NO_STORE);
+	if (live) resetLayerCache();
+	return json({ edit: { ...row, live: Boolean(row?.live) } }, NO_STORE);
+}
+
+/**
+ * Shows an approved edit to readers now, or takes it off again; it reaches
+ * the dataset with the next release either way.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ * @param {number} id
+ */
+async function makeLive(request, env, member, id) {
+	if (!atLeast(member.role, 'admin')) throw new AppError('forbidden', 'Only admins and owners make an edit live.');
+	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
+	if (typeof data?.live !== 'boolean') throw new AppError('bad_request', 'live must be true or false');
+	if (data.live) await requireLayerRoom(env);
+	const row = /** @type {{ id: number, status: string, live: number } | null} */ (
+		await env.APP.prepare(
+			`UPDATE dict_edits SET live_by = CASE WHEN ?2 = 1 THEN ?3 END, live_at = CASE WHEN ?2 = 1 THEN unixepoch() END
+			 WHERE id = ?1 AND status IN ('approved', 'exported') RETURNING id, status, live_at IS NOT NULL AS live`,
+		)
+			.bind(id, data.live ? 1 : 0, member.id)
+			.first()
+	);
+	if (!row) {
+		const now = /** @type {{ status: string } | null} */ (await env.APP.prepare('SELECT status FROM dict_edits WHERE id = ?1').bind(id).first());
+		if (!now) throw new AppError('not_found', `There is no suggestion ${id}.`);
+		throw new AppError('conflict', `Suggestion ${id} is ${now.status}; only an approved one that no release holds yet can be made live or taken off.`);
+	}
+	resetLayerCache();
+	return json({ edit: { ...row, live: Boolean(row.live) } }, NO_STORE);
 }
 
 /**
@@ -430,6 +477,7 @@ async function deleteAccount(request, env, member) {
 		db.prepare("DELETE FROM dict_edits WHERE user_id = ?1 AND status = 'pending'").bind(id),
 		db.prepare('UPDATE dict_edits SET user_id = 0 WHERE user_id = ?1').bind(id),
 		db.prepare('UPDATE dict_edits SET reviewed_by = 0 WHERE reviewed_by = ?1').bind(id),
+		db.prepare('UPDATE dict_edits SET live_by = 0 WHERE live_by = ?1').bind(id),
 		db.prepare('UPDATE role_grants SET granted_by = 0 WHERE granted_by = ?1').bind(id),
 		db.prepare('DELETE FROM role_grants WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM reactions WHERE user_id = ?1').bind(id),

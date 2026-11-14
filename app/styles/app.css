@@ -2070,3 +2070,8 @@ body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var
 	background: var(--glass-fill); box-shadow: var(--glass-shine);
 }
 .in-short h2 { margin-top: 14px !important; font-size: 13px !important; letter-spacing: 0.02em; text-transform: uppercase; color: var(--faint); }
+
+/* Workspace: an edit that readers see now, ahead of the release. */
+.ws-row-live { margin-left: 8px; padding: 0 7px; border-radius: 999px; background: color-mix(in srgb, var(--online) 16%, transparent); color: var(--online); font: 600 11px/1.7 var(--font-ui); }
+.ws-row-live::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--online); vertical-align: 1px; }
+.ws-live-state { color: var(--online); font-weight: 600; }

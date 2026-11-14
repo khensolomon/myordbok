@@ -53,6 +53,11 @@ const GROUPS = [
 		mark('Contributions'),
 		{
 			'suggestions.open': { title: mark('Suggestions'), about: mark('Whether members may suggest changes to entries.'), choices: OPEN_CLOSED },
+			'edits.live': {
+				title: mark('Live edits'),
+				about: mark('On: an edit an admin or owner approves is shown to readers within minutes, before the next data release. Off: readers get the release alone; edits made live are kept and show again when turned on.'),
+				choices: ON_OFF,
+			},
 			'ratings.open': { title: mark('Ratings'), about: mark('Whether readers may rate entries and meanings. Off hides the thumbs; ratings already given stay.'), choices: ON_OFF },
 			'comments.open': {
 				title: mark('Comments'),

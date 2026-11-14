@@ -159,6 +159,7 @@ export function react(lang, word, value, senseId) {
  * @property {string | null} new_value
  * @property {string | null} data
  * @property {string} status
+ * @property {boolean} live  Shown to readers now, before the release that carries it.
  * @property {string | null} review_note
  */
 
@@ -175,7 +176,7 @@ export function editableSenses(lang, word) {
 
 /**
  * @param {Record<string, unknown>} suggestion  See worker/routes/contribute.js.
- * @returns {Promise<{ edit: { id: number, status: string } }>}
+ * @returns {Promise<{ edit: { id: number, status: string, live: boolean } }>}
  */
 export function suggestEdit(suggestion) {
 	return postJSON('/api/edits', suggestion);
@@ -195,6 +196,9 @@ export function suggestEdit(suggestion) {
  * @property {string} word
  * @property {{ wrte: number, sense: string, exam: string | null } | null} data
  * @property {string} status
+ * @property {boolean} live  Shown to readers now, before the release that carries it.
+ * @property {string | null} live_by  Who made it live.
+ * @property {number | null} live_at
  * @property {string | null} note
  * @property {string | null} review_note
  * @property {number} created_at
@@ -229,6 +233,16 @@ export function workspaceEdits(options) {
  */
 export function reviewEdit(id, decision, note) {
 	return postJSON(`/api/workspace/edits/${id}/review`, { decision, note });
+}
+
+/**
+ * Shows an approved edit to readers now, or takes it off again (admins).
+ * @param {number} id
+ * @param {boolean} live
+ * @returns {Promise<{ edit: { id: number, status: string, live: boolean } }>}
+ */
+export function liveEdit(id, live) {
+	return postJSON(`/api/workspace/edits/${id}/live`, { live });
 }
 
 /** @param {number} id */

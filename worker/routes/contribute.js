@@ -21,9 +21,12 @@
  *
  * Changes are never written to the dictionary: they wait in dict_edits and
  * reach it through the dataset (docs/deploy.md, Studio edits). The value an
- * edit replaces is read here from the dictionary, not taken from the
- * request, so the export can tell when the dataset has moved on. A member's
- * suggestion waits for review; an editor's or admin's own is approved.
+ * edit replaces is read here, not taken from the request: from the
+ * dictionary with the live edits over it (worker/lib/layer.js), so the
+ * export can tell when the dataset has moved on, and an edit of a meaning
+ * that is live follows the one before it. A member's suggestion waits for
+ * review; an editor's own is approved and waits for the release; an
+ * admin's or owner's own is approved and live at once.
  *
  * Writes need a session and a same-origin request (worker/index.js checks
  * Origin; worker/lib/guard.js checks Sec-Fetch-Site).
@@ -32,6 +35,7 @@ import { AppError } from '../../shared/errors.js';
 import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { liveLayer, requireLayerRoom, resetLayerCache } from '../lib/layer.js';
 import { getSetting, requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
 import { refuseZawgyi } from '../../shared/zawgyi/index.js';
@@ -263,14 +267,16 @@ export async function senses(request, env) {
 		throw explainDictError(err, dict, env);
 	});
 	const { results: mine } = await env.APP.prepare(
-		`SELECT id, action, sense_id, field, old_value, new_value, data, status, note, review_note, created_at
+		`SELECT id, action, sense_id, field, old_value, new_value, data, status, note, review_note, created_at, live_at IS NOT NULL AS live
 		 FROM dict_edits WHERE user_id = ?1 AND dict = ?2 AND word = ?3 COLLATE NOCASE
 		   AND status IN ('pending', 'approved', 'exported', 'rejected', 'conflict')
 		 ORDER BY created_at DESC LIMIT 50`,
 	)
 		.bind(member.id, lang === 'en' ? 'emd' : 'med', word)
 		.all();
-	return json({ lang, word, senses: list.results, types: types.results, mine, role: member.role }, NO_STORE);
+	const layer = await liveLayer(env);
+	const shown = layer.senses(lang === 'en' ? 'emd' : 'med', /** @type {any[]} */ (list.results));
+	return json({ lang, word, senses: shown, types: types.results, mine: mine.map((m) => ({ ...m, live: Boolean(m.live) })), role: member.role }, NO_STORE);
 }
 
 /**
@@ -318,7 +324,9 @@ export async function suggestEdit(request, env) {
 	} else {
 		const senseId = Number(data.sense_id);
 		if (!Number.isInteger(senseId)) throw new AppError('bad_request', 'sense_id must be a sense id');
-		const row = /** @type {{ id: number, word: string, sense: string | null, exam: string | null } | null} */ (await read(ONE_SENSE[lang], senseId));
+		const stored = /** @type {{ id: number, word: string, sense: string | null, exam: string | null } | null} */ (await read(ONE_SENSE[lang], senseId));
+		// As readers see it now: a live edit may have changed or deleted it.
+		const [row] = stored ? (await liveLayer(env)).senses(dictName, [stored]) : [];
 		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
 		if (action === 'delete') {
 			change = { senseId, field: 'delete', oldValue: row.word, newValue: null, data: null, word: row.word };
@@ -332,11 +340,14 @@ export async function suggestEdit(request, env) {
 		}
 	}
 
-	const row = /** @type {{ id: number, status: string }} */ (
+	// An admin's or owner's own change is live at once; an editor's waits for the release.
+	const live = atLeast(member.role, 'admin');
+	if (live) await requireLayerRoom(env);
+	const row = /** @type {{ id: number, status: string, live: number }} */ (
 		await env.APP.prepare(
-			`INSERT INTO dict_edits (user_id, dict, action, sense_id, field, old_value, new_value, word, data, source, status, note, reviewed_by, reviewed_at)
-			 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, CASE WHEN ?13 IS NULL THEN NULL ELSE unixepoch() END)
-			 RETURNING id, status`,
+			`INSERT INTO dict_edits (user_id, dict, action, sense_id, field, old_value, new_value, word, data, source, status, note, reviewed_by, reviewed_at, live_by, live_at)
+			 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, CASE WHEN ?13 IS NULL THEN NULL ELSE unixepoch() END, ?14, CASE WHEN ?14 IS NULL THEN NULL ELSE unixepoch() END)
+			 RETURNING id, status, live_at IS NOT NULL AS live`,
 		)
 			.bind(
 				member.id,
@@ -352,8 +363,10 @@ export async function suggestEdit(request, env) {
 				editor ? 'approved' : 'pending',
 				note,
 				editor ? member.id : null,
+				live ? member.id : null,
 			)
 			.first()
 	);
-	return json({ edit: row }, { status: 201, ...NO_STORE });
+	if (live) resetLayerCache();
+	return json({ edit: { ...row, live: Boolean(row.live) } }, { status: 201, ...NO_STORE });
 }

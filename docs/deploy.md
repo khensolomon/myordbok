@@ -300,8 +300,34 @@ make dataset-sync DATASET=../lai/myordbok APPLY=1    # writes shared/search/
 ## Workspace edits
 
 Corrections, additions and deletions made in the workspace never touch the
-dictionary tables; they reach readers through the dataset, built and
+dictionary tables; they reach the dictionary through the dataset, built and
 released like any other change.
+
+### Live edits
+
+An approved edit can be shown to readers before that release: the Worker
+lays it over the build when an entry is read (`worker/lib/layer.js`,
+migration 0014). The dataset stays the source, and the release below is
+unchanged; the layer only covers the wait.
+
+- **Who.** An admin's or owner's approval makes an edit live, as does their
+  own change. An editor's approval, or own change, waits for the release; an
+  admin can make it live from Suggestions (**Make live**), or take a live
+  one off again (**Take off the site**).
+- **When readers see it.** Within about five minutes: the layer is read
+  again every 30 seconds, and an answer is cached for up to five minutes.
+- **When it leaves the layer.** Once the build a site reads contains it.
+  Live keeps showing it from the layer between `make data-beta` and
+  `make data-live`. An edit the release finds in conflict leaves at once.
+- **Safe by construction.** An edit applies only where the build still
+  holds the text it was made against, the rule the release follows, so a
+  build that already has it, or a dataset that moved on, is shown as built.
+- **Limits.** The copy on a device, the search suggestions and the
+  statistics follow the release: a headword only the layer has opens when
+  searched in full, but is not suggested while typing. At most 2,000 edits
+  are live at once; a release empties the layer.
+- **Switch.** Settings → Contributions → **Live edits** off shows the build
+  alone; edits stay marked and show again when it is turned on.
 
 ### One command: make data-release
 

@@ -34,6 +34,16 @@ const STATUS = {
 };
 
 /**
+ * What a sent change says back.
+ * @param {string} status
+ * @param {boolean} live
+ */
+function sentMessage(status, live) {
+	if (live) return t('Live. Readers see it within a few minutes.');
+	return status === 'approved' ? t('Approved. It reaches the dictionary with the next release.') : t('Sent. An editor will review it.');
+}
+
+/**
  * Opens a path in the app, through the router.
  * @param {string} path
  */
@@ -218,8 +228,9 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 		out.textContent = t('Sending…');
 		try {
 			let status = '';
-			for (const item of list) status = (await suggestEdit({ lang, word, note: reason.value, sense_id: id, ...item })).edit.status;
-			out.textContent = status === 'approved' ? t('Approved. It reaches the dictionary with the next release.') : t('Sent. An editor will review it.');
+			let live = false;
+			for (const item of list) ({ status, live } = (await suggestEdit({ lang, word, note: reason.value, sense_id: id, ...item })).edit);
+			out.textContent = sentMessage(status, live);
 			cancel.textContent = t('Close');
 		} catch (err) {
 			out.className = 'suggest-result suggest-failed';
@@ -280,7 +291,7 @@ async function openAddMeaning(lang, word) {
 		const mineHead = h('h3', null, t('Your suggestions for this word'));
 		/** @param {OwnEdit[]} list */
 		const showMine = (list) => {
-			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, STATUS[e.status] ? t(STATUS[e.status]) : e.status), ' ', describe(e, data.senses))));
+			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, e.live && (e.status === 'approved' || e.status === 'exported') ? t('live now') : STATUS[e.status] ? t(STATUS[e.status]) : e.status), ' ', describe(e, data.senses))));
 			mineHead.hidden = !list.length;
 		};
 		showMine(data.mine);
@@ -292,7 +303,7 @@ async function openAddMeaning(lang, word) {
 			out.textContent = t('Sending…');
 			try {
 				const { edit } = await suggestEdit({ lang, word, action: 'add', wrte: Number(type.value), sense: meaning.value, exam: example.value, note: reason.value });
-				out.textContent = edit.status === 'approved' ? t('Approved. It reaches the dictionary with the next release.') : t('Sent. An editor will review it.');
+				out.textContent = sentMessage(edit.status, edit.live);
 				meaning.value = example.value = reason.value = '';
 				showMine((await editableSenses(lang, word)).mine);
 			} catch (err) {
@@ -302,7 +313,7 @@ async function openAddMeaning(lang, word) {
 			}
 		});
 		body.replaceChildren(
-			h('p', { class: 'aside-quiet suggest-intro' }, atLeast(data.role, 'editor') ? t('As an editor, your addition is approved at once and reaches the dictionary with the next release.') : t('An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.')),
+			h('p', { class: 'aside-quiet suggest-intro' }, atLeast(data.role, 'admin') ? t('As an admin, your addition is live at once: readers see it within a few minutes.') : atLeast(data.role, 'editor') ? t('As an editor, your addition is approved at once and reaches the dictionary with the next release.') : t('An editor reviews each suggestion before it reaches the dictionary. To change an existing meaning, use ✎ beside it.')),
 			h('label', null, t('Part of speech'), type),
 			h('label', null, t('Meaning'), meaning),
 			h('label', null, t('Example'), example),

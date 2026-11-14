@@ -160,6 +160,8 @@ test('release cycle: publish to beta, promote to live, export, merge', async () 
 	publish(db, next, true, log);
 	assert.deepEqual(states(), ['merged', 'merged', 'conflict']);
 	assert.equal(dbs.APP.prepare('SELECT merged_source FROM dict_exports').get()?.merged_source, 'sample-2');
+	// The build that merged them, so a site on an older build keeps a live edit in its layer.
+	assert.deepEqual(dbs.APP.prepare('SELECT merged_in FROM dict_edits ORDER BY id').all().map((r) => r.merged_in), ['sample-2', 'sample-2', null]);
 	assert.deepEqual(readsOf(dbs.APP), { beta: 'beta sample-2', live: 'live sample' });
 
 	// Exporting waits until live has what beta previews.

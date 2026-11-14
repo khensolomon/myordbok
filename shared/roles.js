@@ -4,8 +4,10 @@
  * below it: member < editor < admin < owner.
  *
  *   member   rates, suggests, comments
- *   editor   reviews suggestions; own changes are approved at once
- *   admin    the Inbox, site settings; makes members editors and back
+ *   editor   reviews suggestions; own changes are approved at once, and
+ *            reach readers with the next data release
+ *   admin    the Inbox, site settings; makes members editors and back;
+ *            an edit an admin approves, or makes, is live for readers at once
  *   owner    everything; gives and takes every level, admin and owner too
  *
  * The Worker checks these on every write, reading the role from D1; the app

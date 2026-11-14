@@ -46,6 +46,11 @@ export const SETTINGS = {
 	'comments.daily': { fallback: 30, valid: whole(1, 500), about: 'Most comments one member posts in a day.' },
 	'comments.newcomer': { fallback: 3, valid: whole(0, 100), about: 'Most comments an account posts on its first day; 0: none until a day has passed.' },
 	'suggestions.open': { fallback: 'on', valid: onOff, about: 'Whether members may suggest changes to entries.' },
+	'edits.live': {
+		fallback: 'on',
+		valid: onOff,
+		about: 'Whether edits an admin or owner approved are shown to readers at once, before the data release that carries them; off shows the release alone.',
+	},
 	'ratings.open': { fallback: 'on', valid: onOff, about: 'Whether readers may rate entries and meanings; off hides the thumbs.' },
 	'contact.open': { fallback: 'on', valid: onOff, about: 'Whether the contact form takes messages.' },
 	'searches.count': { fallback: 'on', valid: onOff, about: 'Whether search pages are counted (search_counts).' },

@@ -59,7 +59,7 @@ test('workspace: review once, by an editor; withdraw by the author while waiting
 	assert.equal((await call(e, `/api/workspace/edits/${a.id}/review`, { who: 'member', body: { decision: 'approve' } })).status, 403);
 	assert.equal((await call(e, `/api/workspace/edits/${a.id}/review`, { who: 'editor', body: { decision: 'maybe' } })).status, 400);
 	const ok = await call(e, `/api/workspace/edits/${a.id}/review`, { who: 'editor', body: { decision: 'reject', note: 'still\\nused' } });
-	assert.deepEqual(ok.body.edit, { id: a.id, status: 'rejected' });
+	assert.deepEqual(ok.body.edit, { id: a.id, status: 'rejected', live: false });
 	const row = e.raw.prepare('SELECT reviewed_by, review_note FROM dict_edits WHERE id = ?').get(a.id);
 	assert.deepEqual({ ...row }, { reviewed_by: 2, review_note: 'still\\nused' });
 	const again = await call(e, `/api/workspace/edits/${a.id}/review`, { who: 'editor', body: { decision: 'approve' } });

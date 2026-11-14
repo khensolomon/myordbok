@@ -37,6 +37,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **No build step in development.** Browsers load the source modules
   directly. The build minifies each file, adds content hashes, an import map
   from original to hashed paths, modulepreload links and the precache list.
+- **Live edits over the build.** The dictionary tables are only ever
+  written by a data release. An edit an admin or owner approved is laid
+  over the build as an entry is read (`shared/layer.js`,
+  `worker/lib/layer.js`), held per isolate for 30 seconds so a lookup
+  costs no extra query, until a release carries it into the dataset.
 - **Minified, one file at a time.** Comments, spaces and local names go
   (esbuild, a build-time tool only; the one exception to Node's standard
   library in `scripts/`). Each file stays its own module, so hashing, the

@@ -21,6 +21,7 @@ import { SENTENCE_WORDS, spacedWords } from '../../shared/query/words.js';
 import { detectLang, normalizeQuery } from '../../shared/validate.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { liveLayer } from '../lib/layer.js';
 import { readPhrase } from './phrase.js';
 import { closeWords } from './spelling.js';
 import { startingWith } from './suggest.js';
@@ -66,26 +67,32 @@ function found(result) {
  * A query, read as typed, or in Unicode when it is Zawgyi.
  * @param {D1Database} db
  * @param {string} q  Normalised.
+ * @param {Over} [over]  Live edits laid over each lookup (worker/lib/layer.js).
  * @returns {Promise<Reading>}
  */
-export function readQuery(db, q) {
-	return zawgyiReading(q, (text) => readAsTyped(db, text));
+export function readQuery(db, q, over = asBuilt) {
+	return zawgyiReading(q, (text) => readAsTyped(db, text, over));
 }
+
+/** @typedef {<T extends LookupResult>(result: T) => T} Over */
+/** @type {Over} */
+const asBuilt = (result) => result;
 
 /**
  * @param {D1Database} db
  * @param {string} q  Normalised.
+ * @param {Over} over
  * @returns {Promise<Reading>}
  */
-async function readAsTyped(db, q) {
-	const look = (/** @type {string} */ text) => /** @type {Promise<LookupResult>} */ (search(d1Database(db), statements, text));
+async function readAsTyped(db, q, over) {
+	const look = (/** @type {string} */ text) => /** @type {Promise<LookupResult>} */ (search(d1Database(db), statements, text)).then(over);
 	const lang = detectLang(q);
 
 	const result = await look(q);
 	if (found(result)) return { q, kind: 'entry', result };
 
 	if (lang === 'en') {
-		const phrase = await readPhrase(db, q);
+		const phrase = await readPhrase(db, q, over);
 		if (phrase.parts.some((p) => p.sense)) return { q, kind: 'phrase', phrase };
 	}
 
@@ -116,7 +123,8 @@ async function readAsTyped(db, q) {
 export async function read(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const { dict, db } = await dictionary(env);
-	const body = await readQuery(db, q).catch((err) => {
+	const layer = await liveLayer(env);
+	const body = await readQuery(db, q, layer.apply).catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
 	return json(body, { cache: 300 });

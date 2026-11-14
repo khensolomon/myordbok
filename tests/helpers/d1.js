@@ -6,6 +6,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { resetLayerCache } from '../../worker/lib/layer.js';
 
 export const ROOT = join(import.meta.dirname, '..', '..');
 /** Every app migration, in order, as wrangler applies them. */
@@ -29,6 +30,9 @@ export function sqlite(sql) {
  * @returns {any}
  */
 export function d1(db) {
+	// A new binding is a new environment: the Worker's per-isolate layer of
+	// live edits (worker/lib/layer.js) starts empty, as in a new isolate.
+	resetLayerCache();
 	return {
 		prepare(/** @type {string} */ sql) {
 			// D1 reports SQL errors when the statement runs, not when it is prepared.

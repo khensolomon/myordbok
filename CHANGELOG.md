@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.14+116
+
+- Live edits: an edit an admin or owner approves is shown to readers within minutes, laid over the build until the next data release carries it; Make live and Take off the site in Suggestions; a Live edits switch in Settings (migration 0014)
+
 ## 26.11.14+115
 
 - Comments on entries: a quiet one-line form beside your face that opens when written in, with Cancel and Ctrl+Enter; an Editor mark on answers from the team; times as 1 h ago or yesterday; the newest five, then Show all

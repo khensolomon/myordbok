@@ -13,6 +13,7 @@ import { bestSense, composeMyanmar, isProper, planPhrase } from '../../shared/qu
 import { normalizeQuery } from '../../shared/validate.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { liveLayer } from '../lib/layer.js';
 import { closeWords } from './spelling.js';
 
 /** @typedef {import('../../shared/types.js').EnglishSense} EnglishSense */
@@ -24,7 +25,8 @@ import { closeWords } from './spelling.js';
 export async function phrase(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
 	const { dict, db } = await dictionary(env);
-	const body = await readPhrase(db, q).catch((err) => {
+	const layer = await liveLayer(env);
+	const body = await readPhrase(db, q, layer.apply).catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
 	return json(body, { cache: 300 });
@@ -33,13 +35,14 @@ export async function phrase(url, env) {
 /**
  * @param {D1Database} db
  * @param {string} q  Normalised.
+ * @param {(result: any) => any} [over]  Live edits laid over each lookup (worker/lib/layer.js).
  * @returns {Promise<import('../../shared/types.js').Phrase>}
  */
-export async function readPhrase(db, q) {
+export async function readPhrase(db, q, over = (result) => result) {
 	const plan = planPhrase(q);
 	if (!plan) return { q, pattern: null, myanmar: null, parts: [] };
 	const database = d1Database(db);
-	const look = (/** @type {string} */ word) => /** @type {Promise<any>} */ (search(database, statements, word));
+	const look = (/** @type {string} */ word) => /** @type {Promise<any>} */ (search(database, statements, word)).then(over);
 
 	/** @param {string} term */
 	const resolve = async (term) => {

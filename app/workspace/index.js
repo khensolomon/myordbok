@@ -35,7 +35,7 @@ import { atLeast, seesStatistics } from '#shared/roles.js';
 import { ago, list, mark, num, posName, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
-import { deleteAccount, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
+import { deleteAccount, liveEdit, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
 import { inboxPanes } from './inbox.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
@@ -220,7 +220,7 @@ export async function view(ctx) {
 		history.replaceState(history.state, '', url);
 		root.toggleAttribute('data-open', true);
 		status.word(e.word);
-		renderItem(e, { work, inspector, editor, section, back: () => root.removeAttribute('data-open'), done: (next) => afterDecision(next) });
+		renderItem(e, { work, inspector, editor, admin, section, back: () => root.removeAttribute('data-open'), done: (next) => afterDecision(next) });
 	};
 	/**
 	 * After a decision: the row shows its new status; in the Waiting list it
@@ -231,7 +231,7 @@ export async function view(ctx) {
 		const i = items.findIndex((x) => x.id === changed.id);
 		if (i < 0) return;
 		items[i] = changed;
-		if (filter === 'pending') {
+		if (filter === 'pending' && changed.status !== 'pending') {
 			items.splice(i, 1);
 			rows[i].closest('li')?.remove();
 			rows.splice(i, 1);
@@ -243,6 +243,7 @@ export async function view(ctx) {
 			}
 		} else {
 			rows[i].replaceWith((rows[i] = rowButton(changed, section, () => open(i))));
+			open(i);
 		}
 	};
 
@@ -337,6 +338,12 @@ export async function view(ctx) {
 }
 
 /**
+ * Shown to readers now, ahead of the release.
+ * @param {Edit} e
+ */
+const isLive = (e) => e.live && (e.status === 'approved' || e.status === 'exported');
+
+/**
  * @param {Edit} e
  * @param {Section} section
  * @param {() => void} onOpen
@@ -344,12 +351,13 @@ export async function view(ctx) {
 function rowButton(e, section, onOpen) {
 	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove') : e.field === 'exam' ? t('Example') : t('Meaning');
 	const by = section === 'suggestions' ? (e.own ? t('you') : e.author) : STATUS[e.status] ? t(STATUS[e.status]) : e.status;
+	const live = isLive(e) ? h('span', { class: 'ws-row-live' }, t('Live')) : null;
 	const b = /** @type {HTMLButtonElement} */ (
 		h(
 			'button',
 			{ type: 'button', class: 'ws-row', 'aria-current': 'false' },
 			h('span', { class: 'ws-row-top' }, h('span', { class: 'ws-row-word', lang: e.dict === 'emd' ? 'en' : 'my' }, e.word), h('span', { class: 'ws-row-time' }, ago(e.created_at, true))),
-			h('span', { class: 'ws-row-sub' }, `${what} · ${by}`),
+			h('span', { class: 'ws-row-sub' }, `${what} · ${by}`, live),
 		)
 	);
 	b.addEventListener('click', onOpen);
@@ -359,7 +367,7 @@ function rowButton(e, section, onOpen) {
 /**
  * The work area and inspector for one suggestion.
  * @param {Edit} e
- * @param {{ work: HTMLElement, inspector: HTMLElement, editor: boolean, section: Section, back: () => void, done: (e: Edit) => void }} o
+ * @param {{ work: HTMLElement, inspector: HTMLElement, editor: boolean, admin: boolean, section: Section, back: () => void, done: (e: Edit) => void }} o
  */
 function renderItem(e, o) {
 	const lang = e.dict === 'emd' ? 'en' : 'my';
@@ -465,7 +473,7 @@ function renderItem(e, o) {
 			approve.disabled = decline.disabled = true;
 			try {
 				const { edit } = await reviewEdit(e.id, decision, note.value);
-				o.done({ ...e, status: edit.status, reviewer: 'you', review_note: note.value || null, reviewed_at: Date.now() / 1000 });
+				o.done({ ...e, status: edit.status, live: edit.live, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null, reviewer: 'you', review_note: note.value || null, reviewed_at: Date.now() / 1000 });
 			} catch (err) {
 				approve.disabled = decline.disabled = false;
 				out.textContent = err instanceof Error ? err.message : String(err);
@@ -480,6 +488,7 @@ function renderItem(e, o) {
 				h('h2', null, t('Decision')),
 				h('label', { class: 'ws-field' }, t('Note for {who} (optional)', { who: e.author }), note),
 				h('div', { class: 'ws-buttons' }, approve, decline),
+				h('p', { class: 'ws-quiet' }, o.admin ? t('Approving makes it live: readers see it within a few minutes.') : t('Approved, it waits for the next release; an admin can make it live sooner.')),
 				out,
 				h('p', { class: 'ws-quiet ws-keys' }, t('A approve · D decline · J K next, previous')),
 			),
@@ -498,6 +507,27 @@ function renderItem(e, o) {
 			}
 		});
 		parts.push(h('section', { class: 'ws-box' }, withdraw, h('p', { class: 'ws-quiet' }, t('Possible while it waits for review.')), out));
+	} else if ((e.status === 'approved' || e.status === 'exported') && o.editor && o.section === 'suggestions') {
+		// Live: readers see it now. Admins and owners switch it; editors see where it stands.
+		const live = isLive(e);
+		const who = e.live_by === 'you' ? t('you') : e.live_by;
+		const state = live ? (who && e.live_at ? t('Readers see it now. Made live by {who}, {when}.', { who, when: ago(e.live_at) }) : t('Readers see it now.')) : t('Not live: readers see it after the next release.');
+		const box = h('section', { class: 'ws-box' }, h('h2', null, t('On the site')), h('p', { class: live ? 'ws-live-state' : null }, state));
+		if (o.admin) {
+			const turn = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: live ? 'ws-secondary' : 'ws-primary' }, live ? t('Take off the site') : t('Make live')));
+			turn.addEventListener('click', async () => {
+				turn.disabled = true;
+				try {
+					const { edit } = await liveEdit(e.id, !live);
+					o.done({ ...e, live: edit.live, live_by: edit.live ? 'you' : null, live_at: edit.live ? Date.now() / 1000 : null });
+				} catch (err) {
+					turn.disabled = false;
+					out.textContent = err instanceof Error ? err.message : String(err);
+				}
+			});
+			box.append(h('div', { class: 'ws-buttons' }, turn), h('p', { class: 'ws-quiet' }, live ? t('Taken off, it still reaches the dictionary with the next release.') : t('Readers see it within a few minutes, before the release.')), out);
+		}
+		parts.push(box);
 	}
 	o.inspector.replaceChildren(...parts);
 }

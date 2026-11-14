@@ -891,7 +891,8 @@ function markMerged(db, dict, built, log) {
 		}
 	}
 	for (let i = 0; i < merged.length; i += CHUNK) {
-		db.query('APP', `UPDATE dict_edits SET status = 'merged' WHERE id IN (${idList(merged.slice(i, i + CHUNK))})`);
+		// merged_in: a site still reading an older build keeps a live edit in its layer (worker/lib/layer.js).
+		db.query('APP', `UPDATE dict_edits SET status = 'merged', merged_in = ${sqlValue(built)} WHERE id IN (${idList(merged.slice(i, i + CHUNK))})`);
 	}
 	db.query(
 		'APP',
