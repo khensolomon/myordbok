@@ -123,8 +123,12 @@ function cloudflare(deps) {
 		});
 		const data = /** @type {any} */ (await res.json().catch(() => null));
 		if (!res.ok || !data?.success) {
-			const why = data?.errors?.map((/** @type {{ code: number, message: string }} */ e) => `${e.message} (${e.code})`).join('; ') || `HTTP ${res.status}`;
-			throw new Error(`Cloudflare ${method} ${path}: ${why}`);
+			/** @param {Array<{ code: number, message: string, error_chain?: any[] }> | undefined} list @returns {string} */
+			const told = (list) => (list ?? []).map((e) => `${e.message} (${e.code})${e.error_chain?.length ? `: ${told(e.error_chain)}` : ''}`).join('; ');
+			const why = told(data?.errors) || `HTTP ${res.status}`;
+			// 6003 is Cloudflare not taking the token for one at all, before any permission is looked at.
+			const hint = /\(6003\)/.test(why) ? `\nCUTOVER_TOKEN (${token.length} characters) is not in the form of an API token: the value shown once after Create token, not the token's name or id and not the Global API Key. Set it again; Roll in the token list gives a new value.` : '';
+			throw new Error(`Cloudflare ${method} ${path}: ${why}${hint}`);
 		}
 		return data.result;
 	};
@@ -235,10 +239,11 @@ export async function check(deps) {
 		}
 		let now = '';
 		try {
-			now = deps.run('gh', ['variable', 'get', 'LIVE_ENABLED']).trim();
+			// Through the API: `gh variable get` is missing from earlier versions of gh.
+			now = deps.run('gh', ['api', 'repos/{owner}/{repo}/actions/variables/LIVE_ENABLED', '--jq', '.value']).trim();
 		} catch (err) {
 			// Not set yet is as good as false; anything else is a failure.
-			if (!/not found|404/i.test(message(err))) throw err;
+			if (!/HTTP 404/.test(message(err))) throw err;
 		}
 		return `the environment live exists; LIVE_ENABLED is ${now ? `"${now}"` : 'not set'}`;
 	});

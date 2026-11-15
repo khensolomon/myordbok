@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+125
+
+- Cutover: reads LIVE_ENABLED through the API (earlier gh versions); says what Cloudflare's 6003 means
+
 ## 26.11.15+124
 
 - Cutover: clearer messages for a badly pasted token and a missing GitHub environment

@@ -64,11 +64,11 @@ function standIn(over = {}) {
 				if (!world.neverAnswers) world.liveVersion = '1.2.3';
 				return '';
 			}
-			if (line.startsWith('gh api')) return 'live\n';
-			if (line === 'gh variable get LIVE_ENABLED') {
-				if (world.variable === null) throw new Error('gh variable get LIVE_ENABLED failed (exit 1):\nvariable LIVE_ENABLED was not found');
+			if (line.startsWith('gh api repos/{owner}/{repo}/actions/variables/LIVE_ENABLED')) {
+				if (world.variable === null) throw new Error('gh api failed (exit 1):\n{"message":"Not Found"}gh: Not Found (HTTP 404)');
 				return `${world.variable}\n`;
 			}
+			if (line.startsWith('gh api')) return 'live\n';
 			if (line.startsWith('gh variable set LIVE_ENABLED --body ')) return (world.variable = args[4]), did.push(`LIVE_ENABLED=${args[4]}`), '';
 			throw new Error(`The stand-in has no ${line}`);
 		},
