@@ -242,6 +242,23 @@ export function reviewEdit(id, decision, note) {
 }
 
 /**
+ * @typedef {{ lang: 'en' | 'my', word: string, edits: number, at: number, pending: number, live: number, waiting: number }} StudioWord
+ *   A word that has edits: how many, the newest one's time, and how many wait for review, are live, or wait for the release.
+ */
+
+/**
+ * The studio's list: words that have edits, newest first (editors).
+ * @param {{ show: string, q: string }} f  show: edited, waiting or live.
+ * @param {number} offset
+ * @returns {Promise<{ words: StudioWord[], more: boolean, counts: { edited: number, waiting: number, live: number } }>}
+ */
+export function studioWords(f, offset) {
+	const p = new URLSearchParams({ show: f.show, offset: String(offset) });
+	if (f.q) p.set('q', f.q);
+	return getJSON(`/api/workspace/studio?${p}`);
+}
+
+/**
  * Shows an approved edit to readers now, or takes it off again (admins).
  * @param {number} id
  * @param {boolean} live

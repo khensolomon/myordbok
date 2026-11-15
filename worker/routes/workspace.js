@@ -9,6 +9,8 @@
  *                                             suggestions, newest first, 30 at a time;
  *                                             each with the sense as the dictionary has it now
  *   POST /api/workspace/edits/{id}/review        { decision: 'approve' | 'reject', note? }  editors
+ *   GET  /api/workspace/studio?show=&q=&offset=  editors: the words that have edits, newest first,
+ *                                                for the studio's list
  *   POST /api/workspace/edits/{id}/withdraw      the author, while it waits for review
  *   POST /api/workspace/edits/{id}/live          { live: true | false }  admins: show an approved
  *                                                edit to readers now, or take it off again
@@ -79,6 +81,7 @@ export async function workspace(request, env, parts) {
 	if (request.method === 'GET' && what === 'summary' && parts.length === 2) return summary(env, member);
 	if (request.method === 'GET' && what === 'edits' && parts.length === 2) return list(request, env, member);
 	if (request.method === 'GET' && what === 'overview' && parts.length === 2) return overview(env, member);
+	if (request.method === 'GET' && what === 'studio' && parts.length === 2) return studioWords(request, env, member);
 	if (what === 'messages' && parts.length <= 3) return inbox(request, env, member, id);
 	if (what === 'settings' && parts.length === 2) return settings(request, env, member);
 	if (what === 'members' && parts.length <= 3) return members(request, env, member, id);
@@ -94,6 +97,56 @@ export async function workspace(request, env, parts) {
 		if (action === 'live') return makeLive(request, env, member, Number(id));
 	}
 	throw new AppError('not_found', `No API route for ${request.method} ${new URL(request.url).pathname}`);
+}
+
+const STUDIO_PAGE = 50;
+/** The studio's lists: every edited word, those with edits no release holds yet, those with live edits. */
+const STUDIO_SHOWS = /** @type {Record<string, string>} */ ({
+	edited: '1',
+	waiting: "status IN ('pending', 'approved', 'exported')",
+	live: "live_at IS NOT NULL AND status IN ('approved', 'exported')",
+});
+
+/**
+ * Words that have edits, newest edit first, each with how its edits stand.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {Member} member
+ */
+async function studioWords(request, env, member) {
+	if (!isEditor(member)) throw new AppError('forbidden', 'The studio is for editors.');
+	const p = new URL(request.url).searchParams;
+	const show = p.get('show') ?? 'edited';
+	if (!STUDIO_SHOWS[show]) throw new AppError('bad_request', `show must be one of ${Object.keys(STUDIO_SHOWS).join(', ')}`);
+	const q = (p.get('q') ?? '').normalize('NFC').trim();
+	const offset = Number(p.get('offset') ?? 0);
+	if (!Number.isInteger(offset) || offset < 0) throw new AppError('bad_request', 'offset must be a whole number, 0 or more');
+	const live = "live_at IS NOT NULL AND status IN ('approved', 'exported')";
+	const [{ results }, counts] = await Promise.all([
+		env.APP.prepare(
+			`SELECT dict, min(word) AS word, count(*) AS edits, max(created_at) AS at,
+			        coalesce(sum(status = 'pending'), 0) AS pending, coalesce(sum(${live}), 0) AS live,
+			        coalesce(sum(status IN ('approved', 'exported') AND live_at IS NULL), 0) AS waiting
+			 FROM dict_edits WHERE ${STUDIO_SHOWS[show]} AND (?1 = '' OR word LIKE ?2 ESCAPE '\\')
+			 GROUP BY dict, lower(word) ORDER BY at DESC, word LIMIT ?3 OFFSET ?4`,
+		)
+			.bind(q, `${likeEscape(q)}%`, STUDIO_PAGE + 1, offset)
+			.all(),
+		env.APP.prepare(
+			`SELECT count(DISTINCT dict || ':' || lower(word)) AS edited,
+			        count(DISTINCT CASE WHEN ${STUDIO_SHOWS.waiting} THEN dict || ':' || lower(word) END) AS waiting,
+			        count(DISTINCT CASE WHEN ${live} THEN dict || ':' || lower(word) END) AS live
+			 FROM dict_edits`,
+		).first(),
+	]);
+	return json(
+		{
+			words: results.slice(0, STUDIO_PAGE).map((r) => ({ lang: r.dict === 'emd' ? 'en' : 'my', word: r.word, edits: Number(r.edits), at: Number(r.at), pending: Number(r.pending), live: Number(r.live), waiting: Number(r.waiting) })),
+			more: results.length > STUDIO_PAGE,
+			counts: { edited: Number(counts?.edited ?? 0), waiting: Number(counts?.waiting ?? 0), live: Number(counts?.live ?? 0) },
+		},
+		NO_STORE,
+	);
 }
 
 /**

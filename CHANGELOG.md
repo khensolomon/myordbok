@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+118
+
+- Studio laid out like Suggestions: a list of edited words with filter and search (any dictionary word can be opened), the sheet in the middle, the word's figures and history beside it
+
 ## 26.11.15+117
 
 - Studio in the workspace: one word with every meaning on a sheet; change the text, example, part of speech and status, add or remove meanings, and see the word's history

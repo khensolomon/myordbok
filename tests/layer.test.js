@@ -323,3 +323,28 @@ test('the studio’s history: one word’s edits, with part of speech and status
 	assert.equal((await call(e, '/api/senses?lang=en&word=love&fresh=1', { who: 'member' })).body.senses[1].kind, 'Idiom', 'and cannot ask for it anew');
 	assert.equal((await call(e, '/api/senses?lang=en&word=love&fresh=1', { who: 'editor' })).body.senses[1].kind, 'Draft');
 });
+
+test('the studio’s list: words that have edits, by how their edits stand, searched by prefix', async () => {
+	const e = env();
+	await suggest(e, 'member', { action: 'edit', sense_id: 1, field: 'exam', value: 'love of country' });
+	await suggest(e, 'admin', { action: 'edit', sense_id: 2, field: 'sense', value: 'ရည်းစား' });
+	await call(e, '/api/edits', { who: 'editor', body: { lang: 'en', word: 'Water', action: 'edit', sense_id: 7, field: 'exam', value: 'a cup of water' } });
+	await call(e, '/api/edits', { who: 'admin', body: { lang: 'my', word: 'ချစ်', action: 'edit', sense_id: 2, field: 'sense', value: 'to <love>' } });
+	e.raw.exec("UPDATE dict_edits SET created_at = unixepoch() - 100 + id; INSERT INTO dict_edits (user_id, dict, action, word, data, status, created_at) VALUES (1, 'emd', 'add', 'go', '{}', 'merged', 1)");
+	const list = async (q) => (await call(e, `/api/workspace/studio?${q}`, { who: 'editor' })).body;
+
+	const all = await list('');
+	assert.deepEqual(all.words.map((w) => [w.lang, w.word, w.edits, w.pending, w.live, w.waiting]), [
+		['my', 'ချစ်', 1, 0, 1, 0],
+		['en', 'water', 1, 0, 0, 1],
+		['en', 'love', 2, 1, 1, 0],
+		['en', 'go', 1, 0, 0, 0],
+	]);
+	assert.deepEqual(all.counts, { edited: 4, waiting: 3, live: 2 });
+	assert.deepEqual((await list('show=waiting')).words.map((w) => w.word), ['ချစ်', 'water', 'love']);
+	assert.deepEqual((await list('show=live')).words.map((w) => w.word), ['ချစ်', 'love']);
+	assert.deepEqual((await list('q=LO')).words.map((w) => w.word), ['love']);
+	assert.deepEqual((await list('q=100%25')).words, [], 'the text is a prefix, not a pattern');
+	assert.equal((await call(e, '/api/workspace/studio?show=everything', { who: 'editor' })).status, 400);
+	assert.equal((await call(e, '/api/workspace/studio', { who: 'member' })).status, 403);
+});

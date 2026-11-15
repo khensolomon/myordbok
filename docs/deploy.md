@@ -305,7 +305,9 @@ released like any other change.
 
 ### The studio
 
-Workspace → **Studio** (editors, admins, owners) opens one headword with
+Workspace → **Studio** (editors, admins, owners) lists the words that have
+edits (all, those no release holds yet, those live), and searching it adds
+the dictionary's own words, so any word can be opened. A word opens with
 every meaning on a sheet: its part of speech, its status or label (every
 row of `type_sense`), its text and its example can be changed, the meaning
 removed, and a new one added. Save sends each change as an edit, the same

@@ -15,7 +15,7 @@
  *   ?s=members       admins and owners: levels and suspending (members.js)
  *   ?s=notices       admins: site notices, scheduled ahead (notices.js)
  *   ?s=settings      admins: site settings (settings.js)
- *   ?s=studio        editors: one word with every meaning open to change (studio.js)
+ *   ?s=studio        editors: the words that have edits, and one word with every meaning open to change (studio.js)
  *   ?s=sponsors      the owner: supporters and their donations (sponsors.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
@@ -48,7 +48,7 @@ import { listBar, listResizer } from './list-bar.js';
 import { commentsPanes } from './comments.js';
 import { noticesPane } from './notices.js';
 import { sponsorsPane } from './sponsors.js';
-import { studioPane } from './studio.js';
+import { studioPanes } from './studio.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
@@ -185,7 +185,8 @@ export async function view(ctx) {
 		return root;
 	}
 	if (section === 'studio') {
-		root.append(rail, await studioPane(ctx, me.role), status.node);
+		root.append(rail, ...(await studioPanes(ctx, root, me.role)), status.node);
+		resizable();
 		return root;
 	}
 	if (section === 'inbox') {
