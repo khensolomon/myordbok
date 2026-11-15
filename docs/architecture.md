@@ -186,7 +186,10 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   checks every `t()` against `my.js` (missing, unused, placeholders). The
   device's language decides until the header's language button is used
   (`mo:lang`); `<html lang>` is set before the first paint and the page
-  reloads on a change. In Myanmar, numbers and dates use Myanmar digits and
+  reloads on a change. While `MYANMAR_OPEN` is false (`app/i18n/index.js`)
+  the Myanmar interface is paused for review: readers get English and no
+  language choice; `?ui=my` on any address turns it on for one device,
+  `?ui=en` off. In Myanmar, numbers and dates use Myanmar digits and
   parts of speech their Myanmar names. Dictionary content is never
   translated. About, Privacy and Terms stay in English for now, with a
   notice; server messages are translated by error code for the generic ones.

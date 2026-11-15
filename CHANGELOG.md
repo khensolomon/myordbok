@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+123
+
+- The Myanmar interface is paused for review: English for every reader; ?ui=my turns it on for a reviewer's device
+
 ## 26.11.15+122
 
 - Sitemap and robots.txt; the crawler sentence keeps the first 2 meanings of each part of speech; make cutover and cutover-undo

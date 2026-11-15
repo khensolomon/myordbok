@@ -19,9 +19,25 @@
  * device's languages put Myanmar first, else English. The line in
  * index.html's <head> sets <html lang> before the first paint; setLang()
  * reloads the page so every view is built again in the new language.
+ *
+ * While MYANMAR_OPEN is false the Myanmar interface is paused for review:
+ * every reader gets English, whatever the device or an earlier choice says,
+ * and the menu offers no language. A reviewer opens any page with ?ui=my,
+ * which turns Myanmar on for that device (mo:lang-review) until ?ui=en or
+ * English is picked in the menu.
  */
 
+/**
+ * Whether the Myanmar interface is offered to readers. To open it: true
+ * here, and `open=true` in the line in app/index.html's <head>
+ * (tests/i18n.test.js holds the two together).
+ */
+export const MYANMAR_OPEN = false;
+
 const KEY = 'mo:lang';
+const REVIEW_KEY = 'mo:lang-review';
+/** The address word a reviewer turns the paused language on and off with. */
+export const REVIEW_PARAM = 'ui';
 export const LANGS = /** @type {const} */ (['en', 'my']);
 /** @typedef {typeof LANGS[number]} Lang */
 
@@ -32,6 +48,7 @@ let catalog = null;
 
 /** @returns {Lang} The language chosen on this device, or the device's own. */
 export function chosenLang() {
+	if (!MYANMAR_OPEN) return reviewing() ? 'my' : 'en';
 	try {
 		const saved = localStorage.getItem(KEY);
 		if (saved === 'en' || saved === 'my') return saved;
@@ -39,6 +56,30 @@ export function chosenLang() {
 		// storage blocked: the device's language decides
 	}
 	return deviceLang();
+}
+
+/**
+ * Whether this device reviews the paused language; ?ui=my or ?ui=en in the
+ * address sets it first, and is then taken out of the address.
+ */
+function reviewing() {
+	const url = new URL(location.href);
+	const asked = url.searchParams.get(REVIEW_PARAM);
+	if (asked === 'my' || asked === 'en') {
+		try {
+			if (asked === 'my') localStorage.setItem(REVIEW_KEY, '1');
+			else localStorage.removeItem(REVIEW_KEY);
+		} catch (err) {
+			throw new Error(`The language could not be saved on this device: ${err instanceof Error ? err.message : String(err)}`);
+		}
+		url.searchParams.delete(REVIEW_PARAM);
+		history.replaceState(history.state, '', url);
+	}
+	try {
+		return localStorage.getItem(REVIEW_KEY) === '1';
+	} catch {
+		return false;
+	}
 }
 
 /** @returns {Lang} */
@@ -69,7 +110,11 @@ export async function initLang(which = chosenLang()) {
  */
 export function setLang(next) {
 	try {
-		if (next === deviceLang()) localStorage.removeItem(KEY);
+		if (!MYANMAR_OPEN) {
+			// Paused: the only choice is a reviewer's, back to English or on again.
+			if (next === 'my') localStorage.setItem(REVIEW_KEY, '1');
+			else localStorage.removeItem(REVIEW_KEY);
+		} else if (next === deviceLang()) localStorage.removeItem(KEY);
 		else localStorage.setItem(KEY, next);
 	} catch (err) {
 		throw new Error(`The language could not be saved on this device: ${err instanceof Error ? err.message : String(err)}`);

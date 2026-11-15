@@ -26,7 +26,7 @@ import { member, signInHref, signOut } from './member.js';
 import { getTheme, setTheme } from './prefs.js';
 import { workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
-import { getLang, num, setLang, t } from '../i18n/index.js';
+import { MYANMAR_OPEN, getLang, num, setLang, t } from '../i18n/index.js';
 
 /** @typedef {import('./member.js').Member} Member */
 
@@ -201,7 +201,9 @@ function choiceRow(label, choices, current, choose) {
 	return h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, label), group);
 }
 
+/** The language choice; while Myanmar is paused, only a reviewer in Myanmar has one (app/i18n/index.js). */
 function languageRow() {
+	if (!MYANMAR_OPEN && getLang() !== 'my') return null;
 	return choiceRow(
 		t('Language'),
 		[

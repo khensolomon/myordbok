@@ -8,8 +8,8 @@
 	<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 	<meta name="theme-color" content="#0d1116" media="(prefers-color-scheme: dark)">
 	<!-- A theme chosen on this device applies before the first paint (app/core/prefs.js). -->
-	<!-- So is the interface language: chosen here, else the device's (app/i18n/index.js). -->
-	<script>try{var t=localStorage.getItem('mo:theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}try{var l=localStorage.getItem('mo:lang');if(l!=='en'&&l!=='my'){l=(navigator.languages||[navigator.language]).filter(function(x){return /^(my|en)\b/i.test(x)})[0]||'en';l=/^my/i.test(l)?'my':'en'}document.documentElement.lang=l}catch(e){}</script>
+	<!-- So is the interface language: chosen here, else the device's; while open=false, English but for a reviewer (app/i18n/index.js). -->
+	<script>try{var t=localStorage.getItem('mo:theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}try{var open=false,l=open?localStorage.getItem('mo:lang'):localStorage.getItem('mo:lang-review')==='1'?'my':'en';if(l!=='en'&&l!=='my'){l=(navigator.languages||[navigator.language]).filter(function(x){return /^(my|en)\b/i.test(x)})[0]||'en';l=/^my/i.test(l)?'my':'en'}document.documentElement.lang=l}catch(e){}</script>
 	<link rel="manifest" href="/manifest.webmanifest">
 	<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">

@@ -2,7 +2,7 @@
 
 ## PWA rewrite
 
-- [x] Myanmar interface language
+- [x] Myanmar interface language (paused for review: `MYANMAR_OPEN` in app/i18n/index.js; reviewers add `?ui=my` to any address)
 - [ ] Myanmar text of About, Privacy and Terms (drafted for review)
 - [ ] Offline: phrases and sentences on the device; a Myanmar thesaurus pack
 - [ ] Myanmar text of the sums' messages (shared/query)

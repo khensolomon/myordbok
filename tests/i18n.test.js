@@ -43,3 +43,39 @@ test('every icon named as text exists: a section, a card or a guide names its ic
 	assert.ok(named.length >= 4, 'the guide names its icons');
 	assert.deepEqual(named.filter((n) => !(n in ICONS)), []);
 });
+
+test('the Myanmar interface is open or paused in both places at once', async () => {
+	const { readFileSync } = await import('node:fs');
+	const { MYANMAR_OPEN } = await import('../app/i18n/index.js');
+	const head = /var open=(true|false),/.exec(readFileSync(`${root}app/index.html`, 'utf8'));
+	assert.ok(head, 'app/index.html: the line in <head> holds var open=true or var open=false');
+	assert.equal(head[1], String(MYANMAR_OPEN), 'app/index.html says open=… and app/i18n/index.js MYANMAR_OPEN the other; change both');
+});
+
+test('paused: English for every device; ?ui=my turns Myanmar on for a reviewer, ?ui=en off', async () => {
+	const { MYANMAR_OPEN, chosenLang } = await import('../app/i18n/index.js');
+	if (MYANMAR_OPEN) return;
+	const store = new Map([['mo:lang', 'my']]);
+	const g = /** @type {any} */ (globalThis);
+	const before = { location: g.location, localStorage: g.localStorage, history: g.history, navigator: Object.getOwnPropertyDescriptor(g, 'navigator') };
+	Object.defineProperty(g, 'navigator', { configurable: true, value: { languages: ['my-MM'], language: 'my-MM' } });
+	g.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) };
+	g.history = { state: null, replaceState: (_s, _t, url) => (g.location = { href: String(url) }) };
+	try {
+		g.location = { href: 'https://myordbok.com/definition?q=love' };
+		assert.equal(chosenLang(), 'en', 'a Myanmar device with an earlier choice of Myanmar still gets English');
+		g.location = { href: 'https://myordbok.com/definition?q=love&ui=my' };
+		assert.equal(chosenLang(), 'my');
+		assert.equal(g.location.href, 'https://myordbok.com/definition?q=love', 'the word leaves the address');
+		assert.equal(chosenLang(), 'my', 'and stays on this device');
+		g.location = { href: 'https://myordbok.com/?ui=en' };
+		assert.equal(chosenLang(), 'en');
+		g.location = { href: 'https://myordbok.com/workspace/searches?lang=my' };
+		assert.equal(chosenLang(), 'en', 'the workspace filter ?lang= is not the switch');
+	} finally {
+		g.location = before.location;
+		g.localStorage = before.localStorage;
+		g.history = before.history;
+		if (before.navigator) Object.defineProperty(g, 'navigator', before.navigator);
+	}
+});
