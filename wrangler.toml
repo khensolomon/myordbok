@@ -42,8 +42,9 @@ binding = "ASSETS"
 # Unknown app paths get index.html, so deep links like /definition?q=love work.
 not_found_handling = "single-page-application"
 # The Worker answers the API, the definition page (it writes what the page is
-# about into it: worker/routes/page.js) and the earlier site's addresses.
-run_worker_first = ["/api/*", "/definition", "/dictionary", "/dictionary/*", "/cookie-policy", "/health"]
+# about into it: worker/routes/page.js), robots.txt and the sitemap
+# (worker/routes/sitemap.js), and the earlier site's addresses.
+run_worker_first = ["/api/*", "/definition", "/robots.txt", "/sitemap.xml", "/sitemap/*", "/dictionary", "/dictionary/*", "/cookie-policy", "/health"]
 
 # Local development reads the local myordbok-live (make data-sample).
 # API_GUARD is off here; beta and live turn it on (worker/lib/guard.js).

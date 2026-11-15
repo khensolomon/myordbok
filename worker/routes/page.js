@@ -110,7 +110,7 @@ async function pageFor(env, url) {
 /**
  * GET /definition.
  * @param {Request} request
- * @param {PageEnv & { ENV_NAME?: string }} env
+ * @param {PageEnv & { NOINDEX?: string }} env  NOINDEX is "1" on beta.
  * @returns {Promise<Response>}
  */
 export async function definitionPage(request, env) {
@@ -122,7 +122,7 @@ export async function definitionPage(request, env) {
 	headers.delete('content-length');
 	headers.delete('etag');
 	// Beta is never indexed, whatever a page says of itself.
-	if (env.ENV_NAME === 'beta') headers.set('x-robots-tag', 'noindex');
+	if (env.NOINDEX === '1') headers.set('x-robots-tag', 'noindex');
 	const html = await shell.text();
 	const asItIs = () => new Response(html, { status: 200, headers });
 	try {

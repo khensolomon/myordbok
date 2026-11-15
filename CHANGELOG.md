@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+122
+
+- Sitemap and robots.txt; the crawler sentence keeps the first 2 meanings of each part of speech; make cutover and cutover-undo
+
 ## 26.11.15+121
 
 - The definition page says what it is about before any script runs: a title, a description and one sentence of the first meanings, for search engines and link previews; one address per headword, 404 for no entry, the API's rate limit; the earlier site's addresses redirected

@@ -321,8 +321,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   stays on the device and can be changed on the privacy page.
 - **Deployment.** Beta and live are Wrangler environments bound to the
   same three databases. Every push to `dev` is tested and deployed to beta by
-  GitHub Actions (`.github/workflows/deploy.yml`); live is deployed by
-  hand at cutover. See [deploy.md](deploy.md).
+  GitHub Actions (`.github/workflows/deploy.yml`); live is first deployed by
+  `make cutover`, then by each release to `master`. See [deploy.md](deploy.md).
 
 ## Next
 

@@ -3,18 +3,18 @@
  * An entry in one sentence, for the page a search engine or a link preview
  * reads before any script runs (worker/routes/page.js):
  *
- *   “love” in Myanmar (noun, verb): ချစ်ခြင်း, ချစ်ခင်မှု, ချစ်သူ, ချစ်သည်
+ *   “love” in Myanmar (noun, verb): ချစ်ခြင်း, ချစ်ခင်မှု, ချစ်သူ, ချစ်သည်, အလွန်နှစ်သက်သည်
  *
  * Enough to say what the page is about, and no more: the parts of speech
  * are named once, and the meanings follow as one run of words, the first
- * few of each part, without labels, examples, order within a part or any
+ * two of each part, without labels, examples, order within a part or any
  * mark of where one meaning ends. The entry itself comes from the API, to
  * the app's own pages only (worker/lib/guard.js).
  */
 import { parseMarkup, splitExamples } from './markup.js';
 
 /** Meanings read from each part of speech. */
-export const SUMMARY_SENSES = 5;
+export const SUMMARY_SENSES = 2;
 /** Words or short phrases in the sentence, at most. */
 export const SUMMARY_GLOSSES = 12;
 /** The sentence's meanings, in characters, at most. */

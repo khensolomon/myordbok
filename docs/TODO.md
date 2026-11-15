@@ -17,7 +17,8 @@
 - [ ] Offline copies take live edits at check-in (today they follow the release)
 - [ ] Search suggestions for headwords only the live layer has
 - [ ] Tauri adapters (http, boot, and a storage adapter for the offline data); the Tauri mobile apps are to replace the Flutter apps on the App Store and Google Play
-- [ ] Cutover: `make cutover` and its undo (docs/deploy.md, Cutover)
-- [ ] A sitemap of the headwords, rebuilt with each data release; robots.txt naming it
+- [x] Cutover: `make cutover` and its undo (docs/deploy.md, Cutover)
+- [ ] The cutover itself, after a dry run against the real accounts
+- [x] A sitemap of the headwords, following each data release; robots.txt naming it
 - [ ] CI secrets
 - [ ] LICENSE: copyright holder's name

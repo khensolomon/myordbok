@@ -91,7 +91,8 @@ and both end the same way: beta first, then live.
 | take a backup now | `make backup-now APPLY=1` | [Backups](#backups) |
 | watch the logs | `make logs-beta`, `make logs-live` | |
 | release code to live (after cutover) | `make release APPLY=1` | [Branches and releases](#branches-and-releases) |
-| replace the Django site | the steps in order | [Cutover](#cutover) |
+| replace the Django site | `make cutover`, then with `APPLY=1` | [Cutover](#cutover) |
+| go back to the Django site | `make cutover-undo APPLY=1` | [Cutover](#cutover) |
 
 ## One-time setup
 
@@ -665,17 +666,81 @@ its secrets go to `myordbok-live` with `--env live` at cutover.
 
 ## Cutover
 
-1. Freeze edits on the Django site, then publish and promote a dictionary
-   build made from the final dataset.
-2. In GitHub, set the variable `LIVE_ENABLED` to `true`.
-3. In Cloudflare DNS, delete the `myordbok.com` record that points to the
-   Django site (the Worker creates its own).
-4. `make release APPLY=1`. The live job waits for approval, then
-   deploys to myordbok.com.
-5. Keep the Django site running read-only for a few weeks as a fallback.
+The day myordbok.com leaves the Django site for the Worker `myordbok-live`.
+One command makes it, one takes it back; both are dry runs until `APPLY=1`.
 
-Rollback: **Workers & Pages → myordbok-live → Deployments** lists every
-version; any earlier one can be promoted again from there.
+```bash
+make cutover              # every check, nothing changed
+make cutover APPLY=1      # the cutover
+make cutover-undo         # what the way back would do
+make cutover-undo APPLY=1
+```
+
+**Before the day** (each is a check of the dry run, which names what is
+missing):
+
+1. The final dictionary build is on both sites: `make data-beta`, then
+   `make data-live`.
+2. The sign-in secrets are on the live Worker, and each provider knows the
+   address `https://myordbok.com/api/auth/…/callback` ([Sign-in](#sign-in)):
+   ```bash
+   npx wrangler secret put GITHUB_CLIENT_SECRET --env live
+   npx wrangler secret put GOOGLE_CLIENT_SECRET --env live
+   ```
+3. GitHub has the environment **live**
+   ([GitHub](#4-github)), and the GitHub command line is signed in on the
+   machine: `gh auth login`.
+4. A Cloudflare API token for the cutover alone (**My Profile → API Tokens →
+   Create Token → Custom**), with **Zone → DNS → Edit** on myordbok.com and
+   **Account → Workers Scripts → Edit**, given to the command as
+   `CUTOVER_TOKEN`:
+   ```bash
+   read -rs CUTOVER_TOKEN && export CUTOVER_TOKEN   # paste, Enter; it is not shown or kept in the shell history
+   ```
+   It is named apart from `CLOUDFLARE_API_TOKEN` on purpose: wrangler would
+   use that one for the deploy in place of its own login. Delete the token
+   once the fallback weeks are over.
+5. `dev` is pushed, and beta runs the version that is to go live.
+
+**What `make cutover APPLY=1` does**, only when no check failed:
+
+1. builds the live site;
+2. fast-forwards `master` to `dev`;
+3. keeps a copy of the domain's address records (A, AAAA, CNAME; mail and
+   text records are not touched) in `~/.local/state/myordbok/cutover.json`,
+   then deletes them: a Worker cannot take a domain while a record of that
+   name exists;
+4. deploys `myordbok-live` from the machine. When the deploy fails, the
+   records are put back at once and the Django site answers again;
+5. waits, up to five minutes, until `https://myordbok.com/api/health`
+   answers with the version deployed;
+6. sets `LIVE_ENABLED` to `true`: from then on `make release APPLY=1`
+   deploys live through GitHub, after approval.
+
+Between steps 3 and 4 the domain has no record, so readers get an error for
+as long as the deploy takes, about half a minute. Run again after a step
+failed, the command picks up where things are: a domain already on the
+Worker is left alone and the kept copy is not written over.
+
+**Afterwards:** sign in once on myordbok.com; give
+`https://myordbok.com/sitemap.xml` to Google Search Console; keep the Django
+site running for a few weeks, since the undo needs it.
+
+**The way back**, `make cutover-undo APPLY=1`: sets `LIVE_ENABLED` to
+`false`, takes the domain off the Worker and creates the kept records again.
+`master` stays where it is, and the Worker stays deployed without a domain,
+so a later `make cutover APPLY=1` puts it back. The undo works from the
+machine that made the cutover (the kept copy is there). What was written on
+the new site meanwhile (members, comments, edits) stays in `myordbok-app`
+and is there again after the next cutover.
+
+A bad version after cutover is a smaller matter than the undo: **Workers &
+Pages → myordbok-live → Deployments** lists every version; any earlier one
+can be put back from there.
+
+The commands were tested against stand-ins for Cloudflare and GitHub
+(`tests/cutover.test.js`), not against the real accounts: the dry run is
+the first real meeting, so run it some days ahead.
 
 ## Analytics
 
@@ -710,7 +775,7 @@ sending it (`worker/routes/page.js`), the same for every reader:
 - **A title, a description and one sentence** in the page:
   “love” in Myanmar (noun, verb): ချစ်ခြင်း, ချစ်ခင်မှု, ချစ်သူ, …
   (`shared/summary.js`). The parts of speech are named once and the meanings
-  follow as one run of plain words: the first 5 of each part, at most 12
+  follow as one run of plain words: the first 2 of each part, at most 12
   words or phrases, with no labels, examples, forms, statuses, or mark of
   where one meaning ends. The app replaces the sentence with the entry.
 - **One address per headword** (`rel="canonical"`), however it was typed.
@@ -718,6 +783,12 @@ sending it (`worker/routes/page.js`), the same for every reader:
   questions are sent as they are and not indexed. Beta is never indexed.
 - **The same limit as the API**: page requests count towards the heavy rate
   limit; over it, the page goes out without the sentence.
+- **A sitemap** of every headword that has meanings: `/sitemap.xml` lists
+  `/sitemap/en-1.xml`, `/sitemap/my-1.xml` and so on, 25,000 addresses to a
+  file, made from the dictionary the site reads and kept at the edge for a
+  day, so it follows each data release by itself (`worker/routes/sitemap.js`).
+- **`/robots.txt`**: on live, everything but `/api/`, `/workspace` and
+  `/account`, and the sitemap's address; on beta and locally, nothing.
 - **Addresses of the earlier site** are redirected: `/dictionary` and
   `/dictionary/…` to the home page, `/cookie-policy` to `/privacy`,
   `/health` to `/api/health`.

@@ -44,12 +44,12 @@ test('summary: the parts of speech once, then the first meanings as one run of p
 		],
 	});
 	assert.deepEqual(s.parts, ['verb', 'noun']);
-	// Verb: its first five meanings (the first gives two words), then the noun's; labels, patterns and brackets are gone.
-	assert.deepEqual(s.glosses, ['ပြေးသည်', 'လည်ပတ်သည်', 'ကြိယာ0', 'ကြိယာ1', 'ကြိယာ2', 'ကြိယာ3', 'အပြေး']);
-	assert.equal(SUMMARY_SENSES, 5);
-	assert.deepEqual(summaryText(s), { title: 'run: ပြေးသည်, လည်ပတ်သည်, ကြိယာ0', sentence: '“run” in Myanmar (verb, noun): ပြေးသည်, လည်ပတ်သည်, ကြိယာ0, ကြိယာ1, ကြိယာ2, ကြိယာ3, အပြေး' });
+	// Verb: its first two meanings (the first gives two words), then the noun's first two, one said already; labels, patterns and brackets are gone.
+	assert.deepEqual(s.glosses, ['ပြေးသည်', 'လည်ပတ်သည်', 'ကြိယာ0', 'အပြေး']);
+	assert.equal(SUMMARY_SENSES, 2);
+	assert.deepEqual(summaryText(s), { title: 'run: ပြေးသည်, လည်ပတ်သည်, ကြိယာ0', sentence: '“run” in Myanmar (verb, noun): ပြေးသည်, လည်ပတ်သည်, ကြိယာ0, အပြေး' });
 
-	const many = entrySummary({ query: 'w', language: 'en', entries: Array.from({ length: 5 }, (_, i) => sense('Noun', Array.from({ length: 6 }, (_, j) => `g${i}-${j}`).join('; '))) });
+	const many = entrySummary({ query: 'w', language: 'en', entries: Array.from({ length: 5 }, (_, i) => sense(`Part${i}`, Array.from({ length: 6 }, (_, j) => `g${i}-${j}`).join('; '))) });
 	assert.equal(many.glosses.length, SUMMARY_GLOSSES);
 	assert.equal(entrySummary({ query: 'w', language: 'en', entries: [sense('Noun', '[see:x]')] }), null, 'nothing plain to say');
 });
@@ -104,7 +104,7 @@ test('page: the same limit as the API, beta never indexed, a failure never in th
 	const within = env({ API_GUARD: '1', RATE_HEAVY: { limit: async () => ({ success: true }) }, RATE_LOOKUP: { limit: async () => ({ success: true }) } });
 	assert.match((await page(within, '/definition?q=love')).main, /entry-summary/);
 
-	assert.equal((await page(env({ ENV_NAME: 'beta', DICT_DB: 'live' }), '/definition?q=love')).headers.get('x-robots-tag'), 'noindex');
+	assert.equal((await page(env({ NOINDEX: '1' }), '/definition?q=love')).headers.get('x-robots-tag'), 'noindex');
 	assert.equal((await page(env(), '/definition?q=love')).headers.get('x-robots-tag'), null);
 
 	// The dictionary cannot be read: the page still goes out, as it is.
@@ -128,4 +128,42 @@ test('addresses of the earlier site lead to where they live now', async () => {
 	const res = await worker.fetch(new Request(`${SITE}/cookie-policy`, { redirect: 'manual' }), e);
 	assert.deepEqual([res.status, res.headers.get('location')], [301, `${SITE}/privacy`]);
 	assert.deepEqual(e.asked, []);
+});
+
+test('robots.txt: the live site opens itself to search engines; beta and local development do not', async () => {
+	const get = async (more) => (await worker.fetch(new Request(`${SITE}/robots.txt`), env(more))).text();
+	assert.equal(await get({ ENV_NAME: 'live', DICT_DB: '' }), `User-agent: *\nDisallow: /api/\nDisallow: /workspace\nDisallow: /account\n\nSitemap: ${SITE}/sitemap.xml\n`);
+	assert.equal(await get({ ENV_NAME: 'beta', NOINDEX: '1', DICT_DB: '' }), 'User-agent: *\nDisallow: /\n');
+	assert.equal(await get({}), 'User-agent: *\nDisallow: /\n');
+});
+
+test('sitemap: every headword with a meaning, once, as the address of its page', async () => {
+	const e = env();
+	const get = async (path) => {
+		const res = await worker.fetch(new Request(`${SITE}${path}`), e);
+		return { status: res.status, type: res.headers.get('content-type'), cache: res.headers.get('cache-control'), body: await res.text() };
+	};
+	const index = await get('/sitemap.xml');
+	assert.equal(index.status, 200);
+	assert.match(index.type, /application\/xml/);
+	assert.match(index.cache, /max-age=86400/);
+	assert.deepEqual([...index.body.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]), [`${SITE}/sitemap/en-1.xml`, `${SITE}/sitemap/my-1.xml`]);
+
+	const en = await get('/sitemap/en-1.xml');
+	const words = [...en.body.matchAll(/<loc>[^<]*\?q=([^<]*)<\/loc>/g)].map((m) => decodeURIComponent(m[1]));
+	assert.ok(words.includes('love') && words.includes('water') && words.includes('go'));
+	assert.ok(!words.includes('went') && !words.includes('loves'), 'a form has no meanings of its own');
+	assert.equal(new Set(words.map((w) => w.toLowerCase())).size, words.length, 'one spelling per word');
+	// Each address is a page that is indexed.
+	for (const w of words.slice(0, 5)) {
+		const p = await page(e, `/definition?q=${encodeURIComponent(w)}`);
+		assert.deepEqual([p.status, p.noindex], [200, false], w);
+	}
+	const my = await get('/sitemap/my-1.xml');
+	assert.match(my.body, new RegExp(`<loc>${SITE}/definition\\?q=${encodeURIComponent('ချစ်')}</loc>`));
+	assert.doesNotMatch(en.body, /<lastmod>/, 'the sample build names no day');
+
+	assert.equal((await get('/sitemap/en-2.xml')).status, 404, 'past the last file');
+	assert.equal((await get('/sitemap/xx-1.xml')).status, 404);
+	assert.equal((await get('/sitemap/en-0.xml')).status, 404);
 });
