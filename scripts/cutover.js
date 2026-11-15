@@ -106,7 +106,8 @@ export function listIn(out) {
  * @param {Deps} deps
  */
 function cloudflare(deps) {
-	const token = deps.env.CUTOVER_TOKEN;
+	const token = deps.env.CUTOVER_TOKEN?.trim();
+	if (token && /[^\x21-\x7e]/.test(token)) throw new Error(`CUTOVER_TOKEN holds ${token.length} characters, some of which no token has (a space, a line break, or text pasted with it); set it again with the token alone`);
 	if (!token) throw new Error('CUTOVER_TOKEN is not set: a Cloudflare API token with Zone → DNS → Edit and Account → Workers Scripts → Edit (docs/deploy.md, Cutover)');
 	/**
 	 * @param {string} method
@@ -226,7 +227,12 @@ export async function check(deps) {
 	});
 
 	await step('GitHub', () => {
-		deps.run('gh', ['api', 'repos/{owner}/{repo}/environments/live', '--jq', '.name']);
+		try {
+			deps.run('gh', ['api', 'repos/{owner}/{repo}/environments/live', '--jq', '.name']);
+		} catch (err) {
+			if (/HTTP 404/.test(message(err))) throw new Error('the repository has no environment named live (an environment cannot be renamed): create it under Settings → Environments, with master as its branch and the two Cloudflare secrets (docs/deploy.md, GitHub)');
+			throw err;
+		}
 		let now = '';
 		try {
 			now = deps.run('gh', ['variable', 'get', 'LIVE_ENABLED']).trim();

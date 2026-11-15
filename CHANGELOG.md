@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+124
+
+- Cutover: clearer messages for a badly pasted token and a missing GitHub environment
+
 ## 26.11.15+123
 
 - The Myanmar interface is paused for review: English for every reader; ?ui=my turns it on for a reviewer's device

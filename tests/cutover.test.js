@@ -190,6 +190,15 @@ test('cutover: undo without kept records says so and changes nothing', async () 
 	assert.deepEqual(did, []);
 });
 
+test('cutover: a token pasted with something else is refused before Cloudflare is asked', async () => {
+	const { said, deps } = standIn();
+	deps.env = { CUTOVER_TOKEN: 'abc def' };
+	assert.equal(await cutover(deps, { apply: false }), 1);
+	assert.match(said.join('\n'), /FAIL \] Domain: CUTOVER_TOKEN holds 7 characters/);
+	deps.env = { CUTOVER_TOKEN: ' token\n' };
+	assert.equal(await cutover(deps, { apply: false }), 0);
+});
+
 test('listIn finds the list after wrangler\'s notices', () => {
 	assert.deepEqual(listIn('▲ [WARNING] Proxy detected [x]\n\n[\n  { "a": 1 }\n]\n'), [{ a: 1 }]);
 	assert.deepEqual(listIn('[]'), []);
