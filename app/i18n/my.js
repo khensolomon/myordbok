@@ -87,7 +87,6 @@ export const MY = {
 	"Remove “{word}”": "“{word}” ကို ဖယ်ရန်",
 
 	// Entry
-	Definition: 'အဓိပ္ပာယ်',
 	'No entry for “{word}”': '“{word}” အတွက် ဝေါဟာရ မရှိပါ',
 	'Showing “{word}” for “{asked}”.': '“{asked}” အတွက် “{word}” ကို ပြထားပါသည်။',
 	'Search for “{asked}” as typed': '“{asked}” ကို ရိုက်ထားသည့်အတိုင်း ရှာရန်',
@@ -383,10 +382,6 @@ export const MY = {
 	'Delete the account': 'အကောင့်ကို ဖျက်ရန်',
 	'Removes the sign-ins, ratings, comments and suggestions still waiting. Suggestions already reviewed stay in the dictionary’s history as “Former member”. This cannot be undone.': 'အကောင့်ဝင်မှုများ၊ အဆင့်သတ်မှတ်ချက်များ၊ မှတ်ချက်များနှင့် စောင့်ဆိုင်းဆဲ အကြံပြုချက်များကို ဖျက်ပါမည်။ စိစစ်ပြီးသော အကြံပြုချက်များမှာ အဘိဓာန်၏ မှတ်တမ်းတွင် “Former member” အဖြစ် ကျန်ရှိပါမည်။ ပြန်ပြင်၍ မရပါ။',
 	'Type {text} to confirm': 'အတည်ပြုရန် {text} ကို ရိုက်ထည့်ပါ',
-	dictionary: 'အဘိဓာန်',
-	'build {build}': 'တည်ဆောက်မှု {build}',
-	'dictionary unavailable': 'အဘိဓာန် မရနိုင်ပါ',
-	'Site:': 'ဆိုက် −',
 	'Sign in': 'အကောင့်ဝင်ရန်',
 	'To rate meanings and suggest corrections or new ones. Reading and searching never need an account.': 'အဓိပ္ပာယ်များကို အဆင့်သတ်မှတ်ရန်နှင့် ပြင်ဆင်ချက် သို့မဟုတ် အသစ်များ အကြံပြုရန် ဖြစ်ပါသည်။ ဖတ်ခြင်းနှင့် ရှာဖွေခြင်းအတွက် အကောင့် မလိုပါ။',
 	'Continue with {provider}': '{provider} ဖြင့် ဆက်လုပ်ရန်',

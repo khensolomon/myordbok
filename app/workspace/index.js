@@ -2,7 +2,8 @@
 /**
  * The workspace (/workspace): one place for every signed-in member, laid
  * out like a studio. A rail of sections, a list, the work area, an
- * inspector and a status bar; the sections in the rail follow the role.
+ * inspector; the sections in the rail follow the role. The dictionary build
+ * is named on Overview, and the Suggestions badge counts what waits.
  *
  *   ?s=overview      everyone, the default: figures for the role (overview.js)
  *   ?s=suggestions   editors and admins: suggestions by status
@@ -140,53 +141,53 @@ export async function view(ctx) {
 		const list = root.querySelector('.ws-list');
 		if (list instanceof HTMLElement) listResizer(root, list);
 	};
-	const status = statusBar(health, summary, editor);
+	const waitingBy = editor ? waitingBadges(root, summary.waiting) : () => {};
 	const rail = railFor(me, editor, section, summary);
 	if (section === 'account') {
-		root.append(rail, accountPane(me, ctx, notice(ctx.query)), status.node);
+		root.append(rail, accountPane(me, ctx, notice(ctx.query)));
 		return root;
 	}
 	if (section === 'overview') {
-		root.append(rail, await overviewPane(me, health), status.node);
+		root.append(rail, await overviewPane(me, health));
 		return root;
 	}
 	if (section === 'offline') {
-		root.append(rail, await offlinePane(), status.node);
+		root.append(rail, await offlinePane());
 		return root;
 	}
 	if (section === 'ratings') {
-		root.append(rail, await ratingsPane(ctx, seesStatistics(me), ago), status.node);
+		root.append(rail, await ratingsPane(ctx, seesStatistics(me), ago));
 		return root;
 	}
 	if (section === 'comments') {
-		root.append(rail, ...(await commentsPanes(ctx, root, ago)), status.node);
+		root.append(rail, ...(await commentsPanes(ctx, root, ago)));
 		resizable();
 		return root;
 	}
 	if (section === 'searches') {
-		root.append(rail, ...(await searchesPanes(ctx, root, admin)), status.node);
+		root.append(rail, ...(await searchesPanes(ctx, root, admin)));
 		resizable();
 		return root;
 	}
 	if (section === 'members') {
-		root.append(rail, ...(await membersPanes(ctx, root, ago)), status.node);
+		root.append(rail, ...(await membersPanes(ctx, root, ago)));
 		resizable();
 		return root;
 	}
 	if (section === 'settings') {
-		root.append(rail, await settingsPane(), status.node);
+		root.append(rail, await settingsPane());
 		return root;
 	}
 	if (section === 'notices') {
-		root.append(rail, await noticesPane(ctx, ago), status.node);
+		root.append(rail, await noticesPane(ctx, ago));
 		return root;
 	}
 	if (section === 'sponsors') {
-		root.append(rail, await sponsorsPane(ctx), status.node);
+		root.append(rail, await sponsorsPane(ctx));
 		return root;
 	}
 	if (section === 'studio') {
-		root.append(rail, ...(await studioPanes(ctx, root, me.role)), status.node);
+		root.append(rail, ...(await studioPanes(ctx, root, me.role)));
 		resizable();
 		return root;
 	}
@@ -197,7 +198,7 @@ export async function view(ctx) {
 				badge.toggleAttribute('hidden', unread === 0);
 			}
 		});
-		root.append(rail, ...panes, status.node);
+		root.append(rail, ...panes);
 		resizable();
 		return root;
 	}
@@ -206,7 +207,7 @@ export async function view(ctx) {
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose an item from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
 	const listPane = h('section', { class: 'ws-list', 'aria-label': section === 'suggestions' ? t('Suggestions') : t('Contributions') });
-	root.append(rail, listPane, work, inspector, status.node);
+	root.append(rail, listPane, work, inspector);
 
 	/** @type {Edit[]} */
 	let items = [];
@@ -228,7 +229,6 @@ export async function view(ctx) {
 		url.searchParams.set('id', String(e.id));
 		history.replaceState(history.state, '', url);
 		root.toggleAttribute('data-open', true);
-		status.word(e.word);
 		renderItem(e, { work, inspector, editor, admin, liveOn, section, back: () => root.removeAttribute('data-open'), done: (next) => afterDecision(next) });
 	};
 	/**
@@ -244,7 +244,7 @@ export async function view(ctx) {
 			items.splice(i, 1);
 			rows[i].closest('li')?.remove();
 			rows.splice(i, 1);
-			status.waiting(-1);
+			waitingBy(-1);
 			if (items.length) open(Math.min(i, items.length - 1));
 			else {
 				work.replaceChildren(h('p', { class: 'ws-empty' }, t('Nothing is waiting. Well done.')));
@@ -310,7 +310,8 @@ export async function view(ctx) {
 	});
 
 	await load();
-	const count = section === 'suggestions' ? t('{n} waiting', { n: summary.waiting ?? 0 }) : num(Object.values(summary.mine).reduce((a, b) => a + b, 0));
+	// The Suggestions list counts what waits; the number follows each decision (waitingBadges).
+	const count = section === 'suggestions' ? h('span', { 'data-waiting-text': '' }, t('{n} waiting', { n: summary.waiting ?? 0 })) : num(Object.values(summary.mine).reduce((a, b) => a + b, 0));
 	const fallback = section === 'suggestions' ? 'pending' : 'all';
 	const statusHref = (/** @type {string} */ s) => `/workspace?s=${section}${s === fallback ? '' : `&status=${s}`}`;
 	listPane.replaceChildren(
@@ -618,7 +619,7 @@ function railFor(me, editor, section, summary) {
 			{ class: 'ws-menu-list', 'aria-label': t('Workspace') },
 			sections.map((s) => h('a', { href: `/workspace?s=${s.id}`, 'aria-current': section === s.id ? 'page' : null }, icon(s.icon, 18), h('span', null, t(s.label)), badge(s.id, countOf(s.id)))),
 		),
-		h('nav', { class: 'ws-menu-list', 'aria-label': t('More') }, h('a', { href: '/workspace?s=account', 'aria-current': section === 'account' ? 'page' : null }, icon(ICONS.account, 18), h('span', null, t('Account'))), h('a', { href: '/' }, icon(ICONS.dictionary, 18), h('span', null, t('Back to the dictionary')))),
+		h('nav', { class: 'ws-menu-list', 'aria-label': t('More') }, h('a', { href: '/workspace?s=account', 'aria-current': section === 'account' ? 'page' : null }, icon(ICONS.account, 18), h('span', null, t('Account'))), h('a', { href: '/about' }, icon(ICONS.info, 18), h('span', null, t('About'))), h('a', { href: '/' }, icon(ICONS.dictionary, 18), h('span', null, t('Back to the dictionary')))),
 	);
 	const setOpen = (/** @type {boolean} */ open) => {
 		panel.hidden = !open;
@@ -817,42 +818,22 @@ function deletion(me, ctx) {
 }
 
 /**
- * @param {{ dictionary?: { database?: string, built?: string | null } | null } | null} health
- * @param {{ waiting: number | null, mine: Record<string, number> }} summary
- * @param {boolean} editor
+ * The number of suggestions waiting, on the Suggestions badges of the rail
+ * and the phone menu and at the head of the list: it follows each decision
+ * made in this view.
+ * @param {HTMLElement} root  The workspace.
+ * @param {number | null} waiting
+ * @returns {(by: number) => void}
  */
-function statusBar(health, summary, editor) {
-	let waiting = summary.waiting ?? 0;
-	const waitingText = h('span', null, editor ? t('{n} waiting', { n: waiting }) : '');
-	const definition = /** @type {HTMLAnchorElement} */ (h('a', { href: '/definition' }, t('Definition')));
-	const db = health?.dictionary;
-	const node = h(
-		'footer',
-		{ class: 'ws-status' },
-		h('span', { class: 'ws-live' }, db ? `${db.database ?? t('dictionary')}${db.built ? ` · ${t('build {build}', { build: db.built })}` : ''}` : t('dictionary unavailable')),
-		waitingText,
-		h('span', { class: 'ws-status-gap' }),
-		h('span', null, t('Site:')),
-		h('a', { href: '/' }, t('Home')),
-		definition,
-		h('a', { href: '/grammar' }, t('Grammar')),
-	);
-	return {
-		node,
-		/** @param {string} word  The Definition link opens the word in hand. */
-		word(word) {
-			definition.href = definitionHref(word);
-		},
-		/** @param {number} by */
-		waiting(by) {
-			waiting = Math.max(0, waiting + by);
-			if (!editor) return;
-			waitingText.textContent = t('{n} waiting', { n: waiting });
-			for (const badge of node.parentElement?.querySelectorAll('[data-section-badge="suggestions"]') ?? []) {
-				badge.textContent = num(waiting);
-				badge.toggleAttribute('hidden', waiting === 0);
-			}
-		},
+function waitingBadges(root, waiting) {
+	let n = waiting ?? 0;
+	return (by) => {
+		n = Math.max(0, n + by);
+		for (const badge of root.querySelectorAll('[data-section-badge="suggestions"]')) {
+			badge.textContent = num(n);
+			badge.toggleAttribute('hidden', n === 0);
+		}
+		for (const text of root.querySelectorAll('[data-waiting-text]')) text.textContent = t('{n} waiting', { n });
 	};
 }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+120
+
+- Workspace without its footer: the build is named on Overview, the waiting count follows each decision in the list header and the badge; About in the person menu; docs/deploy.md opens with a what-to-do guide for both directions of a dictionary update
+
 ## 26.11.15+119
 
 - Sweep: dead code and unused styles and icons removed, colours for danger, warning and success as tokens with dark-mode values, shared text limits, docs brought up to date; fixes: a doubled Myanmar text, names every object has taken for settings or fields, the same new meaning taken twice; the No entry page suggests the word

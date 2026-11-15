@@ -145,8 +145,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   readers with the next dictionary release. Every write needs a session and
   an Origin header from the site.
 - **The workspace (`/workspace`) is one place for every member, laid out
-  like a studio**: a rail of sections, a list, the work area, an inspector
-  and a status bar; on phones the rail becomes a bar at the top with the section's
+  like a studio**: a rail of sections, a list, the work area and an
+  inspector; on phones the rail becomes a bar at the top with the section's
   name and a menu button that opens the sections, and the list and the item
   take turns. The rail follows the role: members see Overview,
   Contributions and Account; editors and admins also Suggestions, the
@@ -172,8 +172,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **One person menu holds everything personal** (`app/core/menu.js`). The
   header keeps the navigation and the person button; the button opens a
   panel pointed at it: sign-in (or the account and the workspace, with what
-  waits there), language, theme, usage statistics, the offline copy and
-  Contact. The footer keeps About, Privacy and Terms. The button stays a
+  waits there), language, theme, usage statistics, the offline copy, About
+  and Contact. The footer keeps About, Privacy and Terms. The button stays a
   link to the workspace when scripts do not run. Members manage the offline
   copy in the workspace (Offline); visitors see what the device keeps and,
   while definitions are for members, a sign-in that leads there.

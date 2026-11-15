@@ -21,6 +21,78 @@ Both sites are bound to all three databases; `dict_release` in
 Until cutover, myordbok.com keeps serving the previous Django site and
 `master` keeps its code. Beta stays up permanently as the test site.
 
+## What to do
+
+Every `make` command here is a dry run until `APPLY=1` is added. `make`
+alone lists them all.
+
+### Updating the dictionary
+
+The TSV files of the private dataset (`khensolomon/lai`, branch `dataset`,
+folder `myordbok/`) are the source of truth. Text moves in two directions,
+and both end the same way: beta first, then live.
+
+```text
+ workspace edits ──► TSV            TSV ──► beta ──► live
+ (myordbok-app)      (lai)          (lai)   (myordbok-beta)  (myordbok-live)
+   make data-release                  db_build.py + make data-beta, then make data-live
+```
+
+> [!IMPORTANT]
+> **Workspace → TSV** (edits approved in the workspace or made in the
+> studio). One command writes them into the TSV files, builds, and puts the
+> build on beta:
+>
+> ```bash
+> make data-release              # dry run: the edits, any conflicts
+> make data-release APPLY=1      # → TSV, build, the diff to confirm, commit, push, beta
+> make data-live APPLY=1         # after checking beta.myordbok.com
+> ```
+>
+> Details: [One command: make data-release](#one-command-make-data-release).
+> Edits an admin or owner approved are already shown to readers
+> ([Live edits](#live-edits)); the release makes them permanent.
+
+> [!IMPORTANT]
+> **TSV → sites** (the TSV files changed in the dataset itself, by hand or
+> by its scripts). Build there, then publish from here:
+>
+> ```bash
+> # in the dataset checkout (../lai/myordbok)
+> python3 scripts/db_build.py --apply
+>
+> # here
+> make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1
+> make data-live APPLY=1         # after checking beta.myordbok.com
+> ```
+>
+> Details: [Dictionary releases](#dictionary-releases).
+
+> [!NOTE]
+> Run `make data-release` before changing the TSV files by hand when edits
+> wait in the workspace: an edit made against text the dataset has since
+> changed becomes a conflict. `make data-status` shows the build each site
+> reads and how many edits wait.
+
+### Everything else
+
+| To | Run | Details |
+|---|---|---|
+| work on the app locally | `make db-reset` once, then `make api` and `make dev` | [Daily work](#daily-work) |
+| put code on beta | push to `dev` | [Daily work](#daily-work) |
+| record a version | `make version NOTE="…" APPLY=1` | [Daily work](#daily-work) |
+| see which build each site reads | `make data-status` | [Dictionary releases](#dictionary-releases) |
+| change one word's meanings from the site | Workspace → Studio | [The studio](#the-studio) |
+| show an approved edit to readers now | approve it as admin or owner, or **Make live** | [Live edits](#live-edits) |
+| undo a dictionary release | build the earlier dataset commit and release it | [Dictionary releases](#dictionary-releases) (Rollback) |
+| apply a database migration | `make db-migrate-remote APPLY=1` | [Databases](#2-databases) |
+| give a member a level | Workspace → Members; `make grant EMAIL=… ROLE=… APPLY=1` in an emergency | [Sign-in](#sign-in) |
+| get deleted rows back | `make restore TABLE=… WHERE="…"` | [Restoring rows](#restoring-rows) |
+| take a backup now | `make backup-now APPLY=1` | [Backups](#backups) |
+| watch the logs | `make logs-beta`, `make logs-live` | |
+| release code to live (after cutover) | `make release APPLY=1` | [Branches and releases](#branches-and-releases) |
+| replace the Django site | the steps in order | [Cutover](#cutover) |
+
 ## One-time setup
 
 ### 1. Domain
@@ -235,7 +307,7 @@ live Django site until then.
 
 ## Dictionary releases
 
-The dictionary is built from the TSV files of the private dataset
+TSV → sites. The dictionary is built from the TSV files of the private dataset
 (`khensolomon/lai`, branch `dataset`, folder `myordbok/`). The TSV files are
 the source of truth; D1 only ever receives a complete build, never a partial
 change. A build reaches readers in two steps: beta first, then live.
@@ -299,7 +371,7 @@ make dataset-sync DATASET=../lai/myordbok APPLY=1    # writes shared/search/
 
 ## Workspace edits
 
-Corrections, additions and deletions made in the workspace never touch the
+Workspace → TSV. Corrections, additions and deletions made in the workspace never touch the
 dictionary tables; they reach the dictionary through the dataset, built and
 released like any other change.
 

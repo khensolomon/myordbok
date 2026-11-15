@@ -42,7 +42,7 @@ export async function overviewPane(me, health) {
 	const head = h(
 		'header',
 		{ class: 'ws-hero' },
-		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), build ? ` · ${t('Build {build}', { build })}` : '')),
+		h('div', null, h('p', { class: 'ws-hero-kicker' }, t('Overview')), h('h1', { class: 'ws-hero-title' }, t('Hello, {name}', { name: me.name })), h('p', { class: 'ws-hero-sub' }, roleName(data.role), health?.dictionary?.database ? ` · ${health.dictionary.database}` : '', build ? ` · ${t('Build {build}', { build })}` : '')),
 		h('p', { class: 'ws-hero-date' }, shortDate(new Date(), { year: true })),
 	);
 	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, yours(data, editor), searches(data, Boolean(data.insights)), dictionary(data, health, atLeast(me.role, 'admin')), community(data), data.insights ? offline(data.usage ?? []) : '', editor ? review(data) : '', data.backup !== undefined ? backups(data.backup) : '')));
