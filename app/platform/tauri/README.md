@@ -10,7 +10,10 @@ Each file in `../web/` needs a counterpart here exporting the same names:
 |---|---|---|
 | `boot.js` | registers the service worker | no service worker; native updater |
 | `http.js` | `fetch` | Tauri HTTP plugin (no CORS) |
-| `storage.js` | IndexedDB | files or SQLite through plugins |
+
+Offline dictionary data is stored in IndexedDB by `app/data/offline.js`
+today. A Tauri build needs a third adapter, `storage.js` (files or SQLite
+through plugins), with the web's IndexedDB code moved behind it.
 
 `npm run build:tauri` stops with an error until every adapter exists, and
 `tests/platform.test.js` checks that the exports match.

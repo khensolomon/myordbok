@@ -94,7 +94,7 @@ class SignInError extends Error {
 export async function auth(request, env, parts) {
 	const [, which, action] = parts;
 	if (which === 'signout' && parts.length === 2) return signOut(request, env);
-	if (!(which in PROVIDERS) || (action !== 'start' && action !== 'callback') || parts.length !== 3) {
+	if (!Object.hasOwn(PROVIDERS, which) || (action !== 'start' && action !== 'callback') || parts.length !== 3) {
 		throw new AppError('not_found', `No API route for ${new URL(request.url).pathname}`);
 	}
 	if (request.method !== 'GET') throw new AppError('bad_request', `${action} is a GET`);

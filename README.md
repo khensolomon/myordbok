@@ -22,10 +22,9 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 | Smart search    | Suggestions while typing, "did you mean", phrases (`king of Norway`) read from their words, sentences one word at a time, Myanmar typed in Zawgyi read in Unicode |
 | Answers         | Numbers read in words both ways (`10000`, `၁၀၀၀၀`, `ten thousand`), sums (`x=3/4*12`, `10% of 70`), shares, the time and date, laid out like an entry with copy buttons |
 | Home            | Recent searches (kept on the device) and the words searched most this week |
-| Members         | Sign in with Google or GitHub to rate meanings, suggest corrections and new meanings, and download the definitions for offline use |
-| Workspace       | Overview and usage statistics, contributions, ratings, offline copy and account for every member; suggestion review for editors; members and the contact inbox for admins |
+| Members         | Sign in with Google or GitHub to rate meanings, comment on entries, suggest corrections and new meanings, and download the definitions for offline use |
+| Workspace       | Overview and usage statistics, contributions, ratings, offline copy and account for every member; suggestion review, comment moderation and the studio (a word's meanings, examples, parts of speech and statuses on one sheet) for editors; members, notices, settings and the contact inbox for admins, whose approved edits are live for readers within minutes |
 | Grammar         | Instant Myanmar [grammar][grammar] lookup                               |
-| Fonts           | Integrated Myanmar [fonts][fonts] support                               |
 | Apps            | Available on the [App Store][appstore], [Google play][playStore].       |
 
 Keyboard: `/` or Ctrl+K (⌘K) goes to the search field.
@@ -38,16 +37,16 @@ git clone https://github.com/khensolomon/myordbok.git
 
 A single-page HTML5 app (PWA) in plain JavaScript modules with JSDoc, served
 by a Cloudflare Worker with D1 and R2. No framework and no bundler; Node
-22.13+ and wrangler are the only tools. Tauri desktop and mobile builds reuse
+22.13+, wrangler, and esbuild to minify the build are the only tools. Tauri desktop and mobile builds reuse
 the same code through platform adapters (see
 [docs/architecture.md](docs/architecture.md)).
 
 ```bash
-make install              # wrangler only
+make install              # wrangler and esbuild
 make db-reset             # local D1: app tables + a small made-up sample dictionary
 make api                  # worker + local D1 on :8787
 make dev                  # app on :8000, no build step, /api proxied to :8787
-make test                 # node:test, no dependencies
+make test                 # node:test
 ```
 
 The dictionary itself is built in a separate, private repository; this one
@@ -105,4 +104,3 @@ The Zawgyi detector and converter in `shared/zawgyi/` are Google's [myanmar-tool
 
 [home]: //myordbok.com
 [grammar]: //myordbok.com/grammar
-[fonts]: //myordbok.com/myanmar-fonts

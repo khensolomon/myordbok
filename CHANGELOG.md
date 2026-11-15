@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+119
+
+- Sweep: dead code and unused styles and icons removed, colours for danger, warning and success as tokens with dark-mode values, shared text limits, docs brought up to date; fixes: a doubled Myanmar text, names every object has taken for settings or fields, the same new meaning taken twice; the No entry page suggests the word
+
 ## 26.11.15+118
 
 - Studio laid out like Suggestions: a list of edited words with filter and search (any dictionary word can be opened), the sheet in the middle, the word's figures and history beside it

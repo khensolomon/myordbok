@@ -16,10 +16,11 @@ import { ICONS } from '../core/icons.js';
 import { deleteComment, entryComments, postComment } from '../data/api.js';
 import { ago, num, shortDate, t } from '../i18n/index.js';
 import { noZawgyi } from '../core/zawgyi.js';
+import { COMMENT_MAX } from '#shared/limits.js';
 
 /** @typedef {import('../data/api.js').EntryComment} EntryComment */
 
-const BODY_MAX = 1000;
+const BODY_MAX = COMMENT_MAX;
 /** Shown before "Show all": the newest few. */
 const FIRST = 5;
 

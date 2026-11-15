@@ -15,6 +15,7 @@
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { atLeast } from '#shared/roles.js';
+import { EDIT_TEXT_MAX } from '#shared/limits.js';
 import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
@@ -212,7 +213,7 @@ export function entryFeedback(lang, word) {
 function senseEditor(lang, word, id, s, glossLang, close) {
 	const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }, s.sense));
 	const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text', value: s.example ?? '', lang: glossLang === 'my' ? 'en' : 'my' }));
-	const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: t('A source or a short reason helps the review') }));
+	const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: EDIT_TEXT_MAX, placeholder: t('A source or a short reason helps the review') }));
 	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send change')));
 	const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Suggest removing')));
 	const cancel = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Cancel')));
@@ -264,6 +265,16 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 }
 
 /**
+ * Suggesting a word the dictionary lacks, with its first meaning: the same
+ * form as adding a meaning. Signed out, it leads to signing in.
+ * @param {string} word  An English word; a Myanmar headword needs its pronunciation and goes through the contact form.
+ */
+export async function suggestWord(word) {
+	if (!(await member().catch(() => null))) return signIn();
+	return openAddMeaning('en', word);
+}
+
+/**
  * Adding a meaning the entry lacks, and the member's suggestions for it.
  * @param {'en' | 'my'} lang
  * @param {string} word
@@ -284,7 +295,7 @@ async function openAddMeaning(lang, word) {
 		if (noun) type.value = String(noun.id);
 		const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }));
 		const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text' }));
-		const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 600, placeholder: t('A source or a short reason helps the review') }));
+		const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: EDIT_TEXT_MAX, placeholder: t('A source or a short reason helps the review') }));
 		const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send new meaning')));
 		const out = h('p', { class: 'suggest-result', role: 'status' });
 		const mine = h('ul', { class: 'suggest-mine' });

@@ -12,6 +12,7 @@
  *   POST /api/workspace/comments/{id}            { status: visible | hidden }, editors
  */
 import { AppError } from '../../shared/errors.js';
+import { COMMENT_MAX } from '../../shared/limits.js';
 import { atLeast } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
@@ -22,7 +23,7 @@ import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 /** @typedef {import('../lib/session.js').Member} Member */
 
 const NO_STORE = { headers: { 'cache-control': 'no-store' } };
-export const BODY_MAX = 1000;
+const BODY_MAX = COMMENT_MAX;
 const WORD_MAX = 60;
 /** Most comments shown under one entry. */
 const SHOWN = 100;

@@ -35,6 +35,7 @@
  * Origin; worker/lib/guard.js checks Sec-Fetch-Site).
  */
 import { AppError } from '../../shared/errors.js';
+import { EDIT_TEXT_MAX } from '../../shared/limits.js';
 import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
@@ -44,7 +45,7 @@ import { currentMember } from '../lib/session.js';
 import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 
 /** Longest value a suggestion may carry, in characters. */
-export const MAX_VALUE = 600;
+const MAX_VALUE = EDIT_TEXT_MAX;
 /** Suggestions a member may have waiting for review at once. */
 export const MAX_PENDING = 50;
 /** Fields a suggestion may change, per dictionary. */
@@ -334,6 +335,24 @@ export async function suggestEdit(request, env) {
 		if (!Number.isInteger(wrte) || !(await read('SELECT id FROM type_word WHERE id = ?1', wrte))) throw new AppError('bad_request', 'wrte must be a part of speech id');
 		const sense = cleanValue(data.sense, 'sense');
 		const exam = cleanValue(data.exam, 'exam', { optional: true });
+		// The same meaning twice would be twice in the dataset: not one the entry has, nor one already suggested.
+		const { results: has } = await db
+			.prepare(SENSES[lang])
+			.bind(word)
+			.all()
+			.catch((err) => {
+				throw explainDictError(err, dict, env);
+			});
+		if (has.some((r) => r.wrte === wrte && r.sense === sense)) throw new AppError('bad_request', 'The entry has this meaning already');
+		const twice = /** @type {{ id: number } | null} */ (
+			await env.APP.prepare(
+				`SELECT id FROM dict_edits WHERE dict = ?1 AND action = 'add' AND word = ?2 COLLATE NOCASE AND status IN ('pending', 'approved', 'exported')
+				   AND json_extract(data, '$.wrte') = ?3 AND json_extract(data, '$.sense') = ?4 LIMIT 1`,
+			)
+				.bind(dictName, word, wrte, sense)
+				.first()
+		);
+		if (twice) throw new AppError('conflict', `This meaning is suggested already (suggestion ${twice.id}).`);
 		change = { senseId: null, field: null, oldValue: null, newValue: null, data: JSON.stringify({ wrte, sense, exam }), word };
 	} else {
 		const senseId = Number(data.sense_id);
@@ -359,7 +378,7 @@ export async function suggestEdit(request, env) {
 		}
 		if (action === 'delete') {
 			change = { senseId, field: 'delete', oldValue: row.word, newValue: null, data: null, word: row.word };
-		} else if (field && CLASSED[field]) {
+		} else if (field && Object.hasOwn(CLASSED, field)) {
 			// Part of speech and status: an editor's to change, by id.
 			const { table, what } = CLASSED[field];
 			if (!editor) throw new AppError('forbidden', `Only editors change the ${what} of a meaning.`);

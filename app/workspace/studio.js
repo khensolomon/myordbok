@@ -28,11 +28,13 @@ import { noZawgyi } from '../core/zawgyi.js';
 import { editableSenses, studioWords, suggest, suggestEdit, workspaceEdits } from '../data/api.js';
 import { ago, mark, num, posName, t, tn } from '../i18n/index.js';
 import { atLeast } from '#shared/roles.js';
+import { EDIT_TEXT_MAX } from '#shared/limits.js';
 import { listBar } from './list-bar.js';
 
 /** @typedef {import('../data/api.js').EditableSense & { wrkd: number | null, kind: string | null }} Sense */
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../data/api.js').StudioWord} Word */
+/** A row of the list: a word that has edits, or, while searching, a word of the dictionary that has none. @typedef {Partial<Word> & { lang: 'en' | 'my', word: string, edits: number }} Listed */
 /** @typedef {{ id: number, name: string }} Named */
 
 const STATUS = /** @type {Record<string, string>} */ ({
@@ -72,7 +74,7 @@ export async function studioPanes(ctx, root, role) {
 	const head = h('span');
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
 	/** Edited words, then, while searching, the dictionary's words that start with the text. */
-	/** @type {Array<Word | { lang: 'en' | 'my', word: string, edits: 0 }>} */
+	/** @type {Listed[]} */
 	let items = [];
 	/** @type {HTMLButtonElement[]} */
 	let rows = [];
@@ -189,19 +191,19 @@ export async function studioPanes(ctx, root, role) {
 }
 
 /**
- * @param {Word | { lang: 'en' | 'my', word: string, edits: 0 }} w
+ * @param {Listed} w
  * @param {() => void} onOpen
  */
 function row(w, onOpen) {
 	const state = !w.edits
 		? t('in the dictionary')
-		: [w.live ? t('{n} live', { n: num(w.live) }) : '', w.pending ? t('{n} waiting for review', { n: num(w.pending) }) : '', w.waiting ? t('{n} for the release', { n: num(w.waiting) }) : ''].filter(Boolean).join(' · ');
+		: [w.pending ? t('{n} waiting for review', { n: num(w.pending) }) : '', w.waiting ? t('{n} for the release', { n: num(w.waiting) }) : ''].filter(Boolean).join(' · ');
 	const b = /** @type {HTMLButtonElement} */ (
 		h(
 			'button',
 			{ type: 'button', class: 'ws-row', 'aria-current': 'false' },
-			h('span', { class: 'ws-row-top' }, h('span', { class: 'ws-row-word', lang: w.lang }, w.word), w.edits ? h('span', { class: 'ws-row-time' }, ago(w.at, true)) : null),
-			h('span', { class: 'ws-row-sub' }, w.edits ? tn('{n} edit', '{n} edits', w.edits) : t('No edits'), w.edits && w.live ? h('span', { class: 'ws-row-live' }, t('Live')) : null),
+			h('span', { class: 'ws-row-top' }, h('span', { class: 'ws-row-word', lang: w.lang }, w.word), w.edits && w.at ? h('span', { class: 'ws-row-time' }, ago(w.at, true)) : null),
+			h('span', { class: 'ws-row-sub' }, w.edits ? tn('{n} edit', '{n} edits', w.edits) : t('No edits'), w.edits && w.live ? h('span', { class: 'ws-row-live' }, t('{n} live', { n: num(w.live) })) : null),
 			state && w.edits ? h('span', { class: 'ws-row-state' }, state) : null,
 		)
 	);
@@ -235,7 +237,7 @@ async function sheet(o) {
 		return s;
 	};
 	/** @param {string} value @param {string} textLang @param {string} label */
-	const area = (value, textLang, label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: textLang, dir: 'auto', maxlength: 600, 'aria-label': label, spellcheck: 'false' }, value));
+	const area = (value, textLang, label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: textLang, dir: 'auto', maxlength: EDIT_TEXT_MAX, 'aria-label': label, spellcheck: 'false' }, value));
 
 	/**
 	 * @typedef {object} Row
@@ -317,7 +319,7 @@ async function sheet(o) {
 		return out;
 	};
 
-	const note = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: 300, placeholder: t('A source or a short reason (optional)'), 'aria-label': t('Reason') }));
+	const note = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: EDIT_TEXT_MAX, placeholder: t('A source or a short reason (optional)'), 'aria-label': t('Reason') }));
 	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary', disabled: true }, t('Save')));
 	const discard = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary', disabled: true }, t('Discard')));
 	const out = h('ul', { class: 'ws-studio-result', role: 'status' });

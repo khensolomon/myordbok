@@ -35,6 +35,7 @@
  * approval (export, merge) is make edits-export and the next release.
  */
 import { AppError } from '../../shared/errors.js';
+import { EDIT_TEXT_MAX } from '../../shared/limits.js';
 import { atLeast, seesStatistics } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
@@ -117,7 +118,7 @@ async function studioWords(request, env, member) {
 	if (!isEditor(member)) throw new AppError('forbidden', 'The studio is for editors.');
 	const p = new URL(request.url).searchParams;
 	const show = p.get('show') ?? 'edited';
-	if (!STUDIO_SHOWS[show]) throw new AppError('bad_request', `show must be one of ${Object.keys(STUDIO_SHOWS).join(', ')}`);
+	if (!Object.hasOwn(STUDIO_SHOWS, show)) throw new AppError('bad_request', `show must be one of ${Object.keys(STUDIO_SHOWS).join(', ')}`);
 	const q = (p.get('q') ?? '').normalize('NFC').trim();
 	const offset = Number(p.get('offset') ?? 0);
 	if (!Number.isInteger(offset) || offset < 0) throw new AppError('bad_request', 'offset must be a whole number, 0 or more');
@@ -261,7 +262,7 @@ async function review(request, env, member, id) {
 	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
 	const decision = data?.decision;
 	if (decision !== 'approve' && decision !== 'reject') throw new AppError('bad_request', 'decision must be approve or reject');
-	const note = typeof data?.note === 'string' ? data.note.replace(/[\t\r\n]+/g, ' ').trim().slice(0, 600) || null : null;
+	const note = typeof data?.note === 'string' ? data.note.replace(/[\t\r\n]+/g, ' ').trim().slice(0, EDIT_TEXT_MAX) || null : null;
 	// An admin's or owner's approval makes it live; an editor's leaves it for the release.
 	const live = decision === 'approve' && atLeast(member.role, 'admin');
 	if (live) await requireLayerRoom(env);

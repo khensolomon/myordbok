@@ -33,6 +33,7 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { atLeast, seesStatistics } from '#shared/roles.js';
+import { EDIT_TEXT_MAX } from '#shared/limits.js';
 import { ago, list, mark, num, posName, t, tx } from '../i18n/index.js';
 import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
@@ -482,7 +483,7 @@ function renderItem(e, o) {
 
 	const out = h('p', { class: 'ws-result', role: 'status' });
 	if (e.status === 'pending' && o.editor && !e.own && o.section === 'suggestions') {
-		const note = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, maxlength: 600, placeholder: t('Shown to {who} with the decision', { who: e.author }) }));
+		const note = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, maxlength: EDIT_TEXT_MAX, placeholder: t('Shown to {who} with the decision', { who: e.author }) }));
 		const approve = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary', 'data-key': 'a' }, t('Approve')));
 		const decline = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary', 'data-key': 'd' }, t('Decline')));
 		/** @param {'approve' | 'reject'} decision */

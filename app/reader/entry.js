@@ -37,7 +37,7 @@ import { renderMarkup } from '../core/markup.js';
 import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
-import { entryFeedback } from './contribute.js';
+import { entryFeedback, suggestWord } from './contribute.js';
 import { commentsSection } from './comments.js';
 import { addRecent, removeRecent } from '../data/recent.js';
 import { classify, understoodHref } from './query.js';
@@ -184,7 +184,6 @@ async function english(data, asked, said = []) {
 	if (!data.entries.length && !roots.length) return null;
 
 	const extra = data.entries.length ? extras(data) : null;
-	/** @type {import('../core/dom.js').Child[]} */
 	const read = understood(data.query, asked, extra?.present ?? null, said);
 	const notes = [offlineNote(data), read];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
@@ -614,18 +613,27 @@ async function missing(q, found, options = {}) {
 		!close.length && !prefix.length ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
 		options.inline
 			? null
-			: h(
-					'div',
-					{ class: 'aside-card no-result-ask' },
-					h('h2', null, t('We don’t have it yet')),
-					h('p', { class: 'aside-lead' }, t('Would you like to suggest “{word}” for the dictionary?', { word: q })),
-					h(
-						'div',
-						{ class: 'aside-actions' },
-						h('button', { type: 'button', class: 'aside-suggest', disabled: true, title: t('Suggesting a new word comes in a later change') }, icon(ICONS.suggest, 18), t('Suggest this word')),
-						h('a', { href: `/contact?kind=word&word=${encodeURIComponent(q)}&from=${encodeURIComponent(location.pathname + location.search)}` }, t('Tell us about it')),
-					),
-					h('p', { class: 'aside-quiet' }, t('Suggesting a new word in the app comes in a later change.')),
-				),
+			: noEntryAsk(q),
+	);
+}
+
+/**
+ * The card under "No entry": suggest the word with its first meaning (an
+ * English word), or tell about it through the contact form (a Myanmar
+ * headword needs its pronunciation, which the form here does not take).
+ * @param {string} q
+ */
+function noEntryAsk(q) {
+	const tell = h('a', { href: `/contact?kind=word&word=${encodeURIComponent(q)}&from=${encodeURIComponent(location.pathname + location.search)}` }, t('Tell us about it'));
+	const myanmar = /[\u1000-\u109f]/.test(q);
+	const suggest = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'aside-suggest' }, icon(ICONS.suggest, 18), t('Suggest this word')));
+	suggest.addEventListener('click', () => suggestWord(q));
+	return h(
+		'div',
+		{ class: 'aside-card no-result-ask' },
+		h('h2', null, t('We don’t have it yet')),
+		h('p', { class: 'aside-lead' }, t('Would you like to suggest “{word}” for the dictionary?', { word: q })),
+		h('div', { class: 'aside-actions' }, myanmar ? null : suggest, tell),
+		h('p', { class: 'aside-quiet' }, myanmar ? t('A Myanmar word needs its pronunciation too, so it is suggested through the contact form.') : t('Give its first meaning; an editor looks at it before it joins the dictionary.')),
 	);
 }

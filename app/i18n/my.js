@@ -162,10 +162,8 @@ export const MY = {
 	'Check the spelling, or try the root form of the word.': 'စာလုံးပေါင်းကို စစ်ဆေးပါ၊ သို့မဟုတ် စကားလုံး၏ မူလပုံစံဖြင့် ရှာကြည့်ပါ။',
 	'We don’t have it yet': 'ယခု မရှိသေးပါ',
 	'Would you like to suggest “{word}” for the dictionary?': '“{word}” ကို အဘိဓာန်တွင် ထည့်ရန် အကြံပြုလိုပါသလား။',
-	'Suggesting a new word comes in a later change': 'စကားလုံးအသစ် အကြံပြုခြင်းကို နောက်ပိုင်းတွင် ထည့်ပါမည်',
 	'Suggest this word': 'ဤစကားလုံးကို အကြံပြုရန်',
 	'Tell us about it': 'ကျွန်ုပ်တို့ကို ပြောပြပါ',
-	'Suggesting a new word in the app comes in a later change.': 'အက်ပ်ထဲတွင် စကားလုံးအသစ် အကြံပြုခြင်းကို နောက်ပိုင်းတွင် ထည့်ပါမည်။',
 
 	// Rating and suggesting
 	'waiting for review': 'စိစစ်ရန် စောင့်နေသည်',
@@ -592,7 +590,6 @@ export const MY = {
 	'Your comment': 'သင့်မှတ်ချက်',
 	'hidden': 'ဖျောက်ထား',
 	'Sign in to add a comment': 'မှတ်ချက်ရေးရန် အကောင့်ဝင်ပါ',
-	'Live': 'တိုက်ရိုက်',
 	'live now': 'ယခု ဖော်ပြနေသည်',
 	'Live edits': 'တိုက်ရိုက် ပြင်ဆင်ချက်များ',
 	'On: an edit an admin or owner approves is shown to readers within minutes, before the next data release. Off: readers get the release alone; edits made live are kept and show again when turned on.': 'ဖွင့်ထားလျှင် − admin သို့မဟုတ် owner အတည်ပြုသော ပြင်ဆင်ချက်ကို နောက် release မတိုင်မီ မိနစ်ပိုင်းအတွင်း စာဖတ်သူများ မြင်ရသည်။ ပိတ်ထားလျှင် − release ကိုသာ မြင်ရသည်၊ တိုက်ရိုက်ပြုထားသော ပြင်ဆင်ချက်များကို သိမ်းထားပြီး ပြန်ဖွင့်လျှင် ပြန်ပေါ်သည်။',
@@ -606,6 +603,8 @@ export const MY = {
 	'Not live: readers see it after the next release.': 'မဖော်ပြသေးပါ − နောက် release ပြီးမှ စာဖတ်သူများ မြင်ရမည်။',
 	'Take off the site': 'ဝဘ်ဆိုက်မှ ဖယ်ရန်',
 	'Make live': 'ယခု ဖော်ပြရန်',
+	'A Myanmar word needs its pronunciation too, so it is suggested through the contact form.': 'မြန်မာစကားလုံးအတွက် အသံထွက်ပါ လိုအပ်သဖြင့် ဆက်သွယ်ရန် ဖောင်မှတစ်ဆင့် အကြံပြုပါ။',
+	'Give its first meaning; an editor looks at it before it joins the dictionary.': 'ပထမဆုံး အဓိပ္ပာယ်ကို ထည့်ပါ၊ အဘိဓာန်ထဲ မရောက်မီ အယ်ဒီတာက စစ်ဆေးမည်။',
 	'Edited': 'ပြင်ဆင်ပြီး',
 	'Not released': 'မထုတ်ပြန်ရသေး',
 	'Choose a word from the list, or search for any word to open it.': 'စာရင်းမှ စကားလုံးတစ်လုံး ရွေးပါ၊ သို့မဟုတ် မည်သည့်စကားလုံးကိုမဆို ရှာ၍ ဖွင့်ပါ။',

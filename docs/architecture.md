@@ -14,7 +14,7 @@ app/                  client: plain ES modules, JSDoc types, no framework
   reader/             home, definition, info pages, <mo-search>
   workspace/          workspace for editors and admins (lazy, never precached)
   data/               dictionary access; offline packs plug in here
-  platform/web/       browser adapters: boot, http, storage
+  platform/web/       browser adapters: boot, http
   platform/tauri/     reserved: same exports, native implementations
   styles/             tokens, base, app
   static/             logo, icon, app icons, Noto Sans Myanmar (400, 600)
@@ -149,7 +149,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   and a status bar; on phones the rail becomes a bar at the top with the section's
   name and a menu button that opens the sections, and the list and the item
   take turns. The rail follows the role: members see Overview,
-  Contributions and Account; editors and admins also Suggestions. Overview
+  Contributions and Account; editors and admins also Suggestions, the
+  Studio and Comments. Overview
   is the home: a member's own figures, or for editors and admins searches
   per day, the words searched most and searched but missing, suggestions,
   members and the meanings rated down most (`/api/workspace/overview`).
@@ -300,12 +301,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   headword by spelling, so they survive any rebuild.
 - **Roles are checked on the server on every write**, reading the role from
   D1: `member` reacts, comments and suggests; `editor` edits and reviews;
-  `admin` also grants and removes levels. The first admin is created from the
+  `admin` also grants and removes levels, and makes edits live. The first admin is created from the
   command line, never by the app.
 - **Offline.** The service worker keeps the app shell. Dictionary data is
-  downloaded on request as versioned packs and stored through the storage
-  adapter (IndexedDB on the web, files or SQLite in Tauri). `/api` is never
-  served from the service worker cache.
+  downloaded on request as versioned packs and stored in IndexedDB
+  (`app/data/offline.js`); a Tauri build needs that behind a storage adapter
+  (files or SQLite), written with the Tauri work. `/api` is never served
+  from the service worker cache.
 - **Fail fast.** Errors carry a stable code (`shared/errors.js`) and reach the
   screen or the log; nothing falls back silently.
 - **Analytics only with consent.** Google Analytics loads on the public

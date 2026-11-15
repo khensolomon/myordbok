@@ -21,7 +21,7 @@ help: ## List the commands
 
 ## Local development
 
-install: ## Install tools (wrangler)
+install: ## Install tools (wrangler, esbuild)
 	npm ci
 
 dev: ## App on :8000 from source, /api proxied to :8787

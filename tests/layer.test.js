@@ -348,3 +348,30 @@ test('the studio’s list: words that have edits, by how their edits stand, sear
 	assert.equal((await call(e, '/api/workspace/studio?show=everything', { who: 'editor' })).status, 400);
 	assert.equal((await call(e, '/api/workspace/studio', { who: 'member' })).status, 403);
 });
+
+test('a name every object has is not a setting, a list or a field', async () => {
+	const e = env();
+	for (const name of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+		assert.equal((await call(e, '/api/workspace/settings', { who: 'admin', body: { key: name, value: 'on' } })).status, 400, `setting ${name}`);
+		assert.equal((await call(e, `/api/workspace/studio?show=${name}`, { who: 'editor' })).status, 400, `list ${name}`);
+		assert.equal((await call(e, '/api/edits', { who: 'editor', body: { lang: 'en', word: 'love', action: 'edit', sense_id: 1, field: name, value: 1 } })).status, 400, `field ${name}`);
+	}
+});
+
+test('a new meaning is not taken twice: not one the entry has, nor one already suggested', async () => {
+	const e = env();
+	const add = (who, more) => call(e, '/api/edits', { who, body: { lang: 'en', word: 'love', action: 'add', wrte: 2, sense: 'ချစ်စရာ', ...more } });
+	const has = await add('member', { wrte: 0, sense: 'ချစ်သူ' });
+	assert.equal(has.status, 400);
+	assert.match(has.body.error.message, /has this meaning already/);
+	assert.equal((await add('member', { wrte: 1, sense: 'ချစ်သူ' })).status, 201, 'the same text as another part of speech is another meaning');
+
+	const first = (await add('member')).body.edit;
+	const again = await add('editor');
+	assert.equal(again.status, 409);
+	assert.match(again.body.error.message, new RegExp(`suggested already \\(suggestion ${first.id}\\)`));
+	assert.equal((await call(e, '/api/edits', { who: 'editor', body: { lang: 'en', word: 'LOVE', action: 'add', wrte: 2, sense: 'ချစ်စရာ' } })).status, 409, 'whatever the capitals');
+	// Declined, it may be suggested again.
+	await call(e, `/api/workspace/edits/${first.id}/review`, { who: 'editor', body: { decision: 'reject' } });
+	assert.equal((await add('editor')).status, 201);
+});

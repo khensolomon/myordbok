@@ -59,6 +59,13 @@
 	/* The connection dot on the person button (app/core/online.js). */
 	--online: #22a06b;
 	--offline: #98a2b3;
+	/* What went wrong or removes; what needs care; what went well: as text on
+	   the ground, and as a fill under white text. */
+	--danger: #b23a2c;
+	--danger-fill: #b23a2c;
+	--warn: #a75b12;
+	--warn-fill: #c8711c;
+	--good: #1f7a4d;
 	/* Header links: the page you are on, and the pointer. Barely there. */
 	--nav-current: rgba(118, 128, 142, 0.075);
 	--nav-hover: rgba(118, 128, 142, 0.045);
@@ -115,6 +122,9 @@
 	--heart-tint: rgba(240, 138, 165, 0.12);
 	--online: #3ccf8e;
 	--offline: #6b7685;
+	--danger: #f08a7c;
+	--warn: #f0a75c;
+	--good: #6fd19c;
 	--nav-current: rgba(150, 165, 185, 0.1);
 	--nav-hover: rgba(150, 165, 185, 0.06);
 	--glass-shine: 0 0 #0000;
@@ -157,6 +167,9 @@
 		--heart-tint: rgba(240, 138, 165, 0.12);
 		--online: #3ccf8e;
 		--offline: #6b7685;
+		--danger: #f08a7c;
+		--warn: #f0a75c;
+		--good: #6fd19c;
 		--nav-current: rgba(150, 165, 185, 0.1);
 		--nav-hover: rgba(150, 165, 185, 0.06);
 		--glass-shine: 0 0 #0000;

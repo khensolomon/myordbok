@@ -148,7 +148,8 @@ export async function allSettings(env) {
  * @param {number} by  The admin's id.
  */
 export async function setSetting(env, key, value, by) {
-	const known = SETTINGS[key];
+	// Own keys only: "constructor" is on every object, and is no setting.
+	const known = Object.hasOwn(SETTINGS, key) ? SETTINGS[key] : null;
 	if (!known) throw new AppError('bad_request', `No setting ${key}`);
 	if (!known.valid(value)) throw new AppError('bad_request', `${JSON.stringify(value)} is not allowed for ${key}`);
 	await env.APP.prepare(
