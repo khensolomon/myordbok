@@ -189,7 +189,12 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		// Source maps are for the browser's tools only: never precached.
 		const all = (await walk(dist)).filter((f) => f !== '_headers' && !f.endsWith('.map'));
 		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/'));
-		const version = `${pkg.version}-${hash8(Buffer.from(precache.join('\n')))}`;
+		// The offline copy is replaced when this changes. Names alone would miss
+		// a file whose content changed under the same name (grammar JSON, icons,
+		// fonts), so each file's content counts too.
+		const sums = createHash('sha256');
+		for (const url of [...precache].sort()) sums.update(`${url}\n`).update(await readFile(join(dist, url))).update('\n');
+		const version = `${pkg.version}-${sums.digest('hex').slice(0, 8)}`;
 		let sw = await readFile(join(app, 'sw.js'), 'utf8');
 		sw = replaceOnce(sw, /const VERSION = 'dev';/, `const VERSION = ${JSON.stringify(version)};`, 'VERSION in sw.js');
 		sw = replaceOnce(sw, /const PRECACHE = \[\];/, `const PRECACHE = ${JSON.stringify(precache)};`, 'PRECACHE in sw.js');

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+126
+
+- The offline copy follows a change of content alone (grammar, icons, fonts), with or without a new version number
+
 ## 26.11.15+125
 
 - Cutover: reads LIVE_ENABLED through the API (earlier gh versions); says what Cloudflare's 6003 means

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
@@ -29,6 +29,22 @@ test('web build precaches the shell but not the workspace', async () => {
 	assert.ok(!precache.some((u) => u.startsWith('/workspace/')));
 	assert.doesNotMatch(sw, /VERSION\s*=\s*['"]dev['"]/);
 	assert.ok(precache.length > 20, 'the shell is listed');
+});
+
+test('a change of grammar content alone gives the offline copy a new version', async () => {
+	const source = join(out, 'thuddar');
+	await cp(new URL('../assets/data/thuddar', import.meta.url), source, { recursive: true });
+	const versionOf = async () => {
+		await build({ target: 'web', out: join(out, 'grammar'), grammar: source });
+		return /VERSION\s*=\s*"([^"]+)"/.exec(await readFile(join(out, 'grammar', 'sw.js'), 'utf8'))?.[1];
+	};
+	const first = await versionOf();
+	assert.equal(await versionOf(), first, 'the same content, the same version');
+	const file = join(source, 'context.json');
+	const context = JSON.parse(await readFile(file, 'utf8'));
+	context.desc = `${context.desc} .`;
+	await writeFile(file, JSON.stringify(context));
+	assert.notEqual(await versionOf(), first);
 });
 
 test('web build leaves other platforms out', async () => {
