@@ -24,6 +24,7 @@ import { workspace } from './routes/workspace.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
+import { definitionPage, movedTo } from './routes/page.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 import { addUsage, reportUsage } from './lib/usage.js';
@@ -170,7 +171,13 @@ export default {
 			url.protocol = 'https:';
 			return Response.redirect(url.toString(), 308);
 		}
-		if (!pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+		if (!pathname.startsWith('/api/')) {
+			// Addresses of the earlier site, and the definition page with what it is about (routes/page.js).
+			const moved = movedTo(pathname);
+			if (moved) return Response.redirect(new URL(moved, url).toString(), 301);
+			if (pathname === '/definition' && request.method === 'GET') return definitionPage(request, env);
+			return env.ASSETS.fetch(request);
+		}
 		let res;
 		try {
 			res = await api(request, env, ctx);

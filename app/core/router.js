@@ -30,6 +30,10 @@ export function startRouter(outlet, onRoute) {
 			return;
 		}
 
+		// What the Worker wrote about the page asked for (its address to index,
+		// whether to index it: worker/routes/page.js) is about that page alone.
+		if (mine > 1) for (const el of document.head.querySelectorAll('link[rel="canonical"], meta[name="robots"], meta[property^="og:"]')) el.remove();
+		/** @type {import('./routes.js').ViewContext} */
 		const ctx = { query: url.searchParams, go, replace };
 		startProgress();
 		try {
@@ -38,7 +42,9 @@ export function startRouter(outlet, onRoute) {
 			if (mine !== token) return; // a newer navigation won
 			endProgress();
 			outlet.replaceChildren(node);
-			document.title = mod.title ? `${mod.title(ctx)} · MyOrdbok` : 'MyOrdbok';
+			// A view may name itself once it knows what it shows (an entry: the word and its first meanings).
+			const title = ctx.title ?? (mod.title ? mod.title(ctx) : null);
+			document.title = title ? `${title} · MyOrdbok` : 'MyOrdbok';
 			// Back or forward to a page: where it was left. A deep link to a place
 			// in the page (/grammar/noun#s-2): that place. Otherwise the top.
 			const saved = history.state?.scroll;

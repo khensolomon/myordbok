@@ -84,3 +84,12 @@ test('a module that does not parse stops the build, naming the file', async () =
 	assert.match(await readFile(join(plain, router), 'utf8'), /@ts-check/, '--no-minify keeps the files as written');
 	await assert.rejects(readFile(join(plain, `${router}.map`)));
 });
+
+test('the built page holds each mark the Worker writes into, exactly once', async () => {
+	const { MARKS, writePage } = await import('../worker/routes/page.js');
+	const html = await readFile(join(out, 'index.html'), 'utf8');
+	const written = writePage(html, { title: 'love: ချစ်ခြင်း', description: 'A sentence.', canonical: 'https://myordbok.com/definition?q=love', index: true, body: '<article class="page entry-summary"><h1>love</h1></article>' });
+	assert.match(written, /<title>love: ချစ်ခြင်း · MyOrdbok<\/title>/);
+	assert.match(written, /<main id="view" tabindex="-1"><article class="page entry-summary">/);
+	assert.ok(!written.includes(MARKS.title));
+});

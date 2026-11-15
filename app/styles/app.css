@@ -2095,3 +2095,9 @@ body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var
 	.ws-studio-sense { grid-template-columns: minmax(0, 1fr); padding: 12px; }
 	.ws-studio-n { padding: 0; text-align: left; }
 }
+
+/* The definition page before its scripts run: the word and one sentence
+   about it, written by the Worker (worker/routes/page.js). */
+.entry-summary h1 { margin: 0 0 10px; font: 650 clamp(30px, 5vw, 40px)/1.2 var(--font-ui); color: var(--ink); }
+.entry-summary h1:lang(my) { font-family: var(--font-my); line-height: 1.6; }
+.entry-summary p { margin: 0; max-width: 60ch; font-size: 17px; line-height: 1.7; color: var(--ink-2); }

@@ -31,6 +31,7 @@
  * the same way, and a way to suggest it.
  */
 import { splitExamples } from '#shared/markup.js';
+import { entrySummary, summaryText } from '#shared/summary.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
@@ -98,8 +99,12 @@ export async function view(ctx) {
 		return node;
 	};
 	switch (reading.kind) {
-		case 'entry':
+		case 'entry': {
+			// The title the Worker gave the page: the word and its first meanings (shared/summary.js).
+			const about = reading.result.entries.length ? entrySummary(reading.result) : null;
+			if (about) ctx.title = summaryText({ ...about, word: (reading.result.language === 'en' && reading.result.entries[0]?.word) || reading.result.query }).title;
 			return (await result(reading.result, asked, said)) ?? missing(q, { close: [], starts: [] });
+		}
 		case 'phrase':
 			return marked(phraseView(reading.phrase, asked));
 		case 'sentence':

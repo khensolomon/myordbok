@@ -12,6 +12,7 @@
  * @property {URLSearchParams} query
  * @property {(path: string) => void} go
  * @property {(path: string) => void} replace  Go without a new history entry.
+ * @property {string} [title]  Set by a view that knows its title only once loaded; otherwise the module's title(ctx).
  */
 
 /**

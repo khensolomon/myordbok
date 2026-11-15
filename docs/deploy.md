@@ -700,6 +700,32 @@ separated in reports by hostname. Settings worth checking in the GA property:
 - Never commit API tokens; they live only in GitHub environment secrets and
   in `npx wrangler login` on the maintainer's machine.
 
+### What search engines read
+
+The app builds its pages in the browser, and not every reader runs scripts:
+Google does, in a second pass; most other crawlers and link previews do
+not. So the Worker writes into the definition page what it is about, before
+sending it (`worker/routes/page.js`), the same for every reader:
+
+- **A title, a description and one sentence** in the page:
+  “love” in Myanmar (noun, verb): ချစ်ခြင်း, ချစ်ခင်မှု, ချစ်သူ, …
+  (`shared/summary.js`). The parts of speech are named once and the meanings
+  follow as one run of plain words: the first 5 of each part, at most 12
+  words or phrases, with no labels, examples, forms, statuses, or mark of
+  where one meaning ends. The app replaces the sentence with the entry.
+- **One address per headword** (`rel="canonical"`), however it was typed.
+- **No entry** answers 404 and is not indexed; phrases, sentences, sums and
+  questions are sent as they are and not indexed. Beta is never indexed.
+- **The same limit as the API**: page requests count towards the heavy rate
+  limit; over it, the page goes out without the sentence.
+- **Addresses of the earlier site** are redirected: `/dictionary` and
+  `/dictionary/…` to the home page, `/cookie-policy` to `/privacy`,
+  `/health` to `/api/health`.
+
+The entry itself (examples, forms, related words, statuses, ids) is only in
+the API, which answers the app's own pages. What the sentence gives away is
+the price of being found: anything a search engine can read, a script can.
+
 ### The API
 
 The API serves the app, not the public. On beta and live

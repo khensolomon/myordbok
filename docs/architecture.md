@@ -308,6 +308,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   (`app/data/offline.js`); a Tauri build needs that behind a storage adapter
   (files or SQLite), written with the Tauri work. `/api` is never served
   from the service worker cache.
+- **The definition page says what it is about before any script runs.**
+  The Worker writes a title, a description, the address to index and one
+  sentence into the app's page for `/definition?q=word`
+  (`worker/routes/page.js`, `shared/summary.js`), the same for every
+  reader; the app replaces the sentence with the entry. Only that sentence
+  is outside the API's guard.
 - **Fail fast.** Errors carry a stable code (`shared/errors.js`) and reach the
   screen or the log; nothing falls back silently.
 - **Analytics only with consent.** Google Analytics loads on the public
