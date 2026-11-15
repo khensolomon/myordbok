@@ -15,6 +15,7 @@
  *   ?s=members       admins and owners: levels and suspending (members.js)
  *   ?s=notices       admins: site notices, scheduled ahead (notices.js)
  *   ?s=settings      admins: site settings (settings.js)
+ *   ?s=studio        editors: one word with every meaning open to change (studio.js)
  *   ?s=sponsors      the owner: supporters and their donations (sponsors.js)
  *   ?s=account       everyone: who is signed in, linking a provider, signing
  *                    out, deleting the account; signed out, signing in.
@@ -47,15 +48,17 @@ import { listBar, listResizer } from './list-bar.js';
 import { commentsPanes } from './comments.js';
 import { noticesPane } from './notices.js';
 import { sponsorsPane } from './sponsors.js';
+import { studioPane } from './studio.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
 	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false },
 	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
+	{ id: 'studio', label: mark('Studio'), icon: ICONS.dictionary, editor: true, admin: false },
 	{ id: 'comments', label: mark('Comments'), icon: ICONS.comment, editor: true, admin: false },
 	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: false, admin: false, stats: true },
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
@@ -127,7 +130,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -179,6 +182,10 @@ export async function view(ctx) {
 	}
 	if (section === 'sponsors') {
 		root.append(rail, await sponsorsPane(ctx), status.node);
+		return root;
+	}
+	if (section === 'studio') {
+		root.append(rail, await studioPane(ctx, me.role), status.node);
 		return root;
 	}
 	if (section === 'inbox') {
@@ -352,7 +359,7 @@ const isLive = (e) => e.live && (e.status === 'approved' || e.status === 'export
  * @param {() => void} onOpen
  */
 function rowButton(e, section, onOpen) {
-	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove') : e.field === 'exam' ? t('Example') : t('Meaning');
+	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove') : e.field === 'exam' ? t('Example') : e.field === 'wrte' ? t('Part of speech') : e.field === 'wrkd' ? t('Status') : t('Meaning');
 	const by = section === 'suggestions' ? (e.own ? t('you') : e.author) : STATUS[e.status] ? t(STATUS[e.status]) : e.status;
 	const live = isLive(e) ? h('span', { class: 'ws-row-live' }, t('Live')) : null;
 	const b = /** @type {HTMLButtonElement} */ (
@@ -376,7 +383,7 @@ function renderItem(e, o) {
 	const lang = e.dict === 'emd' ? 'en' : 'my';
 	const meaningLang = lang === 'en' ? 'my' : 'en';
 	const exampleLang = lang;
-	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove a meaning') : e.field === 'exam' ? t('Change an example') : t('Change a meaning');
+	const what = e.action === 'add' ? t('New meaning') : e.action === 'delete' ? t('Remove a meaning') : e.field === 'exam' ? t('Change an example') : e.field === 'wrte' ? t('Change a part of speech') : e.field === 'wrkd' ? t('Change a status') : t('Change a meaning');
 
 	const entry = h('div', { class: 'ws-entry' }, h('p', { class: 'ws-quiet' }, t('Loading the entry…')));
 	const backButton = h('button', { type: 'button', class: 'ws-back', 'aria-label': t('Back to the list') }, icon(ICONS.back, 20));
@@ -389,6 +396,7 @@ function renderItem(e, o) {
 			h('span', { class: 'ws-crumb-word', lang }, e.word),
 			h('span', { 'aria-hidden': 'true' }, '›'),
 			h('span', null, what),
+			o.editor ? h('a', { href: `/workspace?s=studio&word=${encodeURIComponent(e.word)}`, class: 'ws-out ws-out-studio' }, t('Open in the studio')) : null,
 			h('a', { href: definitionHref(e.word), class: 'ws-out' }, t('Open on the site ↗')),
 		),
 		h('div', { class: 'ws-work' }, h('p', { class: 'ws-quiet' }, t('The entry as it is now, with the suggested change in place. Changed lines show the text as stored.')), entry),
@@ -400,7 +408,12 @@ function renderItem(e, o) {
 		h('div', { class: `ws-line ws-${kind}` }, h('span', { class: 'ws-sign', 'aria-label': kind === 'del' ? t('removed') : t('added') }, kind === 'del' ? '−' : '+'), h('span', { lang: textLang }, text ?? t('(none)')));
 	/** @type {HTMLElement[]} */
 	const change = [];
-	if (e.action === 'edit') {
+	// A part of speech or status change keeps the meaning and names both sides.
+	const classed = e.action === 'edit' && (e.field === 'wrte' || e.field === 'wrkd');
+	const className = (/** @type {string | null} */ name, /** @type {string | null} */ id) => (name === null ? id : e.field === 'wrte' ? posName(name) : name);
+	if (classed) {
+		change.push(line('del', className(e.old_name, e.old_value), 'en'), line('add', className(e.new_name, e.new_value), 'en'));
+	} else if (e.action === 'edit') {
 		const textLang = e.field === 'exam' ? exampleLang : meaningLang;
 		change.push(line('del', e.old_value, textLang), line('add', e.new_value, textLang));
 	} else if (e.action === 'delete') {
@@ -427,7 +440,7 @@ function renderItem(e, o) {
 					out.push(h('div', { class: 'ws-line ws-type' }, posName(type)));
 				}
 				n++;
-				if (s.id === e.sense_id && e.action === 'edit' && e.field === 'exam') {
+				if (s.id === e.sense_id && (classed || (e.action === 'edit' && e.field === 'exam'))) {
 					out.push(h('div', { class: 'ws-line ws-ctx' }, h('span', { class: 'ws-sign ws-n' }, num(n)), h('span', { lang: meaningLang }, renderMarkup(s.sense, { headword: e.word }))), ...change);
 				} else if (s.id === e.sense_id) {
 					out.push(...change);

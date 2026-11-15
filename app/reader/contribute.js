@@ -291,7 +291,7 @@ async function openAddMeaning(lang, word) {
 		const mineHead = h('h3', null, t('Your suggestions for this word'));
 		/** @param {OwnEdit[]} list */
 		const showMine = (list) => {
-			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, e.live && (e.status === 'approved' || e.status === 'exported') ? t('live now') : STATUS[e.status] ? t(STATUS[e.status]) : e.status), ' ', describe(e, data.senses))));
+			mine.replaceChildren(...list.map((e) => h('li', null, h('span', { class: `suggest-status status-${e.status}` }, e.live && (e.status === 'approved' || e.status === 'exported') ? t('live now') : STATUS[e.status] ? t(STATUS[e.status]) : e.status), ' ', describe(e, data))));
 			mineHead.hidden = !list.length;
 		};
 		showMine(data.mine);
@@ -331,10 +331,10 @@ async function openAddMeaning(lang, word) {
 /**
  * One line about a suggestion, for the member's list.
  * @param {OwnEdit} e
- * @param {Array<{ id: number }>} senses
+ * @param {{ senses: Array<{ id: number }>, types: Array<{ id: number, name: string }>, kinds: Array<{ id: number, name: string }> }} data
  */
-function describe(e, senses) {
-	const n = senses.findIndex((s) => s.id === e.sense_id) + 1;
+function describe(e, data) {
+	const n = data.senses.findIndex((s) => s.id === e.sense_id) + 1;
 	const which = n ? t('meaning {n}', { n }) : t('a meaning');
 	if (e.action === 'delete') return t('Remove {which}.', { which });
 	if (e.action === 'add') {
@@ -344,6 +344,10 @@ function describe(e, senses) {
 			return t('New meaning.');
 		}
 	}
+	// Part of speech and status travel as ids.
+	const named = (/** @type {Array<{ id: number, name: string }>} */ list) => list.find((x) => String(x.id) === e.new_value)?.name ?? e.new_value ?? '';
+	if (e.field === 'wrte') return t('Part of speech of {which}: {value}', { which, value: posName(named(data.types)) });
+	if (e.field === 'wrkd') return t('Status of {which}: {value}', { which, value: named(data.kinds) });
 	const value = e.new_value ?? t('(none)');
 	return e.field === 'exam' ? t('Example of {which}: {value}', { which, value }) : t('Meaning of {which}: {value}', { which, value });
 }

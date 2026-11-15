@@ -19,7 +19,7 @@
  * Setting edits.live off empties the layer; readers then get the build alone.
  */
 import { AppError } from '../../shared/errors.js';
-import { addedSense, applyEdits } from '../../shared/layer.js';
+import { addedSense, applyEdits, textField } from '../../shared/layer.js';
 import { dictionary, explainDictError } from './dict.js';
 
 /** @typedef {import('../../shared/layer.js').LiveEdit} LiveEdit */
@@ -47,6 +47,9 @@ export const LIVE_EDITS = `SELECT id, dict, action, sense_id, field, old_value, 
  * @property {<T extends LookupResult>(result: T) => T} apply  A lookup with the layer over it.
  * @property {<T extends { id: number, sense: string | null, exam: string | null }>(dict: 'emd' | 'med', rows: T[]) => T[]} senses
  *   Rows of a sense table with the layer over them: edited and deleted; added senses are left out.
+ *   A row with wrte and type, or wrkd and kind, has those follow an edit too.
+ * @property {(id: number) => string | undefined} typeName  Part of speech by id (type_word).
+ * @property {(id: number) => string | undefined} kindName  Status or label by id (type_sense).
  */
 
 /**
@@ -71,9 +74,10 @@ const lower = (/** @type {string} */ w) => w.toLowerCase();
 /**
  * @param {LiveEdit[]} edits
  * @param {Map<number, string>} types  Part of speech by id.
+ * @param {Map<number, string>} kinds  Status or label by id.
  * @returns {Layer}
  */
-export function layerOf(edits, types) {
+export function layerOf(edits, types, kinds) {
 	/** @type {Map<string, LiveEdit[]>} */
 	const bySense = new Map();
 	/** @type {Map<string, LiveEdit[]>} */
@@ -84,6 +88,28 @@ export function layerOf(edits, types) {
 		else push(bySense, `${e.dict}:${e.sense_id}`, e);
 	}
 	const typeName = (/** @type {number} */ id) => types.get(id);
+	const kindName = (/** @type {number} */ id) => kinds.get(id);
+
+	/**
+	 * A field kept as a name (a lookup's type and kind), and beside its id
+	 * where the row has one (a table row's wrte and wrkd): held when the name
+	 * is the old id's, put as the new id's name.
+	 * @param {string} nameKey
+	 * @param {string} idKey
+	 * @param {(id: number) => string | undefined} nameOf
+	 * @returns {import('../../shared/layer.js').Field<any>}
+	 */
+	const named = (nameKey, idKey, nameOf) => ({
+		holds: (row, old) => nameKey in row && (old === null ? row[nameKey] === null : row[nameKey] === nameOf(Number(old))),
+		put: (row, value) => {
+			const name = value === null ? undefined : nameOf(Number(value));
+			return name === undefined ? null : { ...row, [nameKey]: name, ...(idKey in row ? { [idKey]: Number(value) } : {}) };
+		},
+	});
+	const type = named('type', 'wrte', typeName);
+	const kind = named('kind', 'wrkd', kindName);
+	const asLookup = { sense: textField('sense'), exam: textField('example'), wrte: type, wrkd: kind };
+	const asTable = { sense: textField('sense'), exam: textField('exam'), wrte: type, wrkd: kind };
 
 	/**
 	 * @param {'emd' | 'med'} dict
@@ -105,7 +131,7 @@ export function layerOf(edits, types) {
 			if (result.language === 'my') {
 				const mine = editsFor('med', result.entries, [result.query]);
 				if (!mine.length) return result;
-				const entries = applyEdits(result.entries, mine, { exampleKey: 'example', typeName, make: (a) => ({ type: a.type, sense: a.sense, example: a.exam, etymology: null }) });
+				const entries = applyEdits(result.entries, mine, { fields: asLookup, typeName, make: (a) => ({ type: a.type, sense: a.sense, example: a.exam, etymology: null }) });
 				// A headword only the layer has brings its pronunciation with it.
 				const first = result.pronunciation ? null : mine.map(addedSense).find((d) => d?.ipa && d?.mlc);
 				return { ...result, entries, pronunciation: result.pronunciation ?? (first ? [String(first.ipa), String(first.mlc)] : null) };
@@ -113,14 +139,16 @@ export function layerOf(edits, types) {
 			const mine = editsFor('emd', result.entries, [result.query, ...result.entries.map((e) => e.word)]);
 			if (!mine.length) return result;
 			// An added sense is a draft in the dataset until reviewed there (emd_add.py).
-			const entries = applyEdits(result.entries, mine, { exampleKey: 'example', typeName, make: (a, e) => ({ word: e.word, type: a.type, kind: 'Draft', sense: a.sense, example: a.exam }) });
+			const entries = applyEdits(result.entries, mine, { fields: asLookup, typeName, make: (a, e) => ({ word: e.word, type: a.type, kind: 'Draft', sense: a.sense, example: a.exam }) });
 			return { ...result, entries };
 		},
 		senses(dict, rows) {
 			if (!edits.length) return rows;
 			const mine = editsFor(dict, rows, []).filter((e) => e.action !== 'add');
-			return mine.length ? applyEdits(rows, mine, { exampleKey: 'exam', typeName, make: () => rows[0] }) : rows;
+			return mine.length ? applyEdits(rows, mine, { fields: asTable, typeName, make: () => rows[0] }) : rows;
 		},
+		typeName,
+		kindName,
 	};
 }
 
@@ -135,10 +163,11 @@ export async function liveLayer(env, now = Date.now()) {
 	const key = `${env.ENV_NAME ?? ''}:${dict}`;
 	if (cached && cached.key === key && now - cached.at < LAYER_TTL_MS) return cached.layer;
 
-	const [on, built, types] = await Promise.all([
+	const [on, built, types, kinds] = await Promise.all([
 		env.APP.prepare("SELECT value FROM settings WHERE key = 'edits.live'").first(),
 		db.prepare("SELECT value FROM meta WHERE key = 'built'").first(),
 		db.prepare('SELECT id, name FROM type_word').all(),
+		db.prepare('SELECT id, name FROM type_sense').all(),
 	]).catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
@@ -154,7 +183,8 @@ export async function liveLayer(env, now = Date.now()) {
 	} else if (on.value !== '"off"') {
 		throw new AppError('internal', `Setting edits.live holds ${on.value}, which is no longer allowed; set it again in the workspace.`);
 	}
-	const layer = layerOf(edits, new Map(types.results.map((r) => [Number(r.id), String(r.name)])));
+	const names = (/** @type {{ results: Record<string, unknown>[] }} */ list) => new Map(list.results.map((r) => [Number(r.id), String(r.name)]));
+	const layer = layerOf(edits, names(types), names(kinds));
 	cached = { key, at: now, layer };
 	return layer;
 }

@@ -168,10 +168,11 @@ export function react(lang, word, value, senseId) {
  * (signed in only).
  * @param {'en' | 'my'} lang
  * @param {string} word
- * @returns {Promise<{ senses: EditableSense[], types: Array<{ id: number, name: string }>, mine: OwnEdit[], role: string }>}
+ * @param {boolean} [fresh]  Editors: with the live edits read anew (the studio, after saving).
+ * @returns {Promise<{ senses: EditableSense[], types: Array<{ id: number, name: string }>, kinds: Array<{ id: number, name: string }>, mine: OwnEdit[], role: string }>}
  */
-export function editableSenses(lang, word) {
-	return getJSON(`/api/senses?${new URLSearchParams({ lang, word })}`);
+export function editableSenses(lang, word, fresh = false) {
+	return getJSON(`/api/senses?${new URLSearchParams(fresh ? { lang, word, fresh: '1' } : { lang, word })}`);
 }
 
 /**
@@ -207,6 +208,8 @@ export function suggestEdit(suggestion) {
  * @property {string} author
  * @property {string | null} reviewer
  * @property {string | null} [source]  The dictionary build it was made against.
+ * @property {string | null} old_name  The name of a part of speech or status an edit replaces (their values are ids).
+ * @property {string | null} new_name
  * @property {boolean} own
  * @property {{ word: string, type: string, sense: string | null, exam: string | null } | null} current
  */
@@ -217,13 +220,15 @@ export function workspaceSummary() {
 }
 
 /**
- * @param {{ status?: string, mine?: boolean, before?: number }} options
+ * @param {{ status?: string, mine?: boolean, before?: number, word?: string, lang?: 'en' | 'my' }} options  word with lang: one word's edits.
  * @returns {Promise<{ edits: WorkspaceEdit[], more: boolean, role: string, live_on: boolean }>}
  */
 export function workspaceEdits(options) {
 	const q = new URLSearchParams({ status: options.status ?? 'pending' });
 	if (options.mine) q.set('mine', '1');
 	if (options.before) q.set('before', String(options.before));
+	if (options.word) q.set('word', options.word);
+	if (options.lang) q.set('lang', options.lang);
 	return getJSON(`/api/workspace/edits?${q}`);
 }
 

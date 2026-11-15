@@ -6,7 +6,8 @@
  * made against, the same rule the data release follows:
  *
  *   edit    the sense exists and its field holds the old value (or, after
- *           an earlier edit in the layer, that edit's new value)
+ *           an earlier edit in the layer, that edit's new value); the
+ *           fields are sense, exam, wrte (part of speech) and wrkd (status)
  *   delete  the sense exists
  *   add     the word has no sense with this part of speech and meaning
  *
@@ -21,7 +22,7 @@
  * @property {'emd' | 'med'} dict
  * @property {'edit' | 'add' | 'delete'} action
  * @property {number | null} sense_id
- * @property {string | null} field      'sense' or 'exam' for an edit.
+ * @property {string | null} field      'sense', 'exam', 'wrte' or 'wrkd' for an edit.
  * @property {string | null} old_value
  * @property {string | null} new_value
  * @property {string} word
@@ -31,6 +32,13 @@
 /**
  * A sense as a row: `example` in a lookup, `exam` in the tables.
  * @typedef {{ id?: number | null, word?: string, type?: string, sense: string | null, [key: string]: unknown }} SenseRow
+ */
+
+/**
+ * How a row keeps one field: whether it holds the value an edit was made
+ * against, and the row with a new value (null: the value means nothing here).
+ * @template T
+ * @typedef {{ holds: (row: T, old: string | null) => boolean, put: (row: T, value: string | null) => T | null }} Field
  */
 
 const same = (/** @type {unknown} */ a, /** @type {unknown} */ b) => (a ?? '') === (b ?? '');
@@ -54,7 +62,7 @@ export function addedSense(edit) {
  * @param {T[]} rows  Not changed; changed senses are copies.
  * @param {LiveEdit[]} edits  Of one dictionary, for these senses or this word.
  * @param {object} how
- * @param {'example' | 'exam'} how.exampleKey  Where a row keeps its example.
+ * @param {Record<string, Field<T> | undefined>} how.fields  How a row keeps each field an edit names; one it does not keep is left alone.
  * @param {(wrte: number) => string | undefined} how.typeName  Part of speech by id.
  * @param {(added: { wrte: number, type: string, sense: string, exam: string | null }, edit: LiveEdit) => T} how.make  A row for an added sense.
  * @returns {T[]}
@@ -76,9 +84,21 @@ export function applyEdits(rows, edits, how) {
 			out = out.filter((_, i) => i !== at);
 			continue;
 		}
-		const key = e.field === 'exam' ? how.exampleKey : e.field === 'sense' ? 'sense' : null;
-		if (!key || !same(out[at][key], e.old_value)) continue;
-		out = out.map((r, i) => (i === at ? { ...r, [key]: e.new_value ?? null } : r));
+		const field = how.fields[String(e.field)];
+		if (!field || !field.holds(out[at], e.old_value)) continue;
+		const next = field.put(out[at], e.new_value);
+		if (!next) continue;
+		out = out.map((r, i) => (i === at ? next : r));
 	}
 	return out;
+}
+
+/**
+ * A text field kept under a key of the row.
+ * @template {SenseRow} T
+ * @param {string} key
+ * @returns {Field<T>}
+ */
+export function textField(key) {
+	return { holds: (row, old) => same(row[key], old), put: (row, value) => ({ ...row, [key]: value ?? null }) };
 }

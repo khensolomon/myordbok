@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.15+117
+
+- Studio in the workspace: one word with every meaning on a sheet; change the text, example, part of speech and status, add or remove meanings, and see the word's history
+
 ## 26.11.14+116
 
 - Live edits: an edit an admin or owner approves is shown to readers within minutes, laid over the build until the next data release carries it; Make live and Take off the site in Suggestions; a Live edits switch in Settings (migration 0014)

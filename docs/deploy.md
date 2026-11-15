@@ -303,6 +303,25 @@ Corrections, additions and deletions made in the workspace never touch the
 dictionary tables; they reach the dictionary through the dataset, built and
 released like any other change.
 
+### The studio
+
+Workspace → **Studio** (editors, admins, owners) opens one headword with
+every meaning on a sheet: its part of speech, its status or label (every
+row of `type_sense`), its text and its example can be changed, the meaning
+removed, and a new one added. Save sends each change as an edit, the same
+edits the ✎ form on an entry makes, so review, live edits and the release
+treat them alike; `emd_edit.py` and `med_edit.py` apply part of speech as
+`wrte` and status as `wrkd`. Under the sheet is the word's history: every
+edit, by whom, and where it stands.
+
+- A change to a meaning that has an approved change waiting for the release
+  is refused until an admin makes that one live, or the release is run: the
+  two would be in conflict.
+- An added meaning is a draft and has no id until a release, so its status
+  is changed after that release.
+- A new Myanmar headword needs its pronunciation and is added in the
+  dataset.
+
 ### Live edits
 
 An approved edit can be shown to readers before that release: the Worker

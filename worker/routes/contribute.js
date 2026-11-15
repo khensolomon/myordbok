@@ -18,6 +18,7 @@
  *                                           suggestions (signed in only)
  *   POST /api/edits                         a suggestion:
  *        { lang, word, action: 'edit', sense_id, field: 'sense' | 'exam', value, note? }
+ *        { lang, word, action: 'edit', sense_id, field: 'wrte' | 'wrkd', value: id, note? }   editors: part of speech, status
  *        { lang, word, action: 'delete', sense_id, note? }
  *        { lang, word, action: 'add', wrte, sense, exam?, note? }
  *
@@ -48,6 +49,8 @@ export const MAX_VALUE = 600;
 export const MAX_PENDING = 50;
 /** Fields a suggestion may change, per dictionary. */
 const EDITABLE = Object.freeze(['sense', 'exam']);
+/** What editors change besides: a sense's part of speech and its status or label, by id in these tables. */
+const CLASSED = Object.freeze(/** @type {Record<string, { table: string, what: string }>} */ ({ wrte: { table: 'type_word', what: 'part of speech' }, wrkd: { table: 'type_sense', what: 'status' } }));
 
 const NO_STORE = { headers: { 'cache-control': 'no-store' } };
 
@@ -240,18 +243,20 @@ function sameWord(lang, found, asked) {
 
 /** Senses of a headword with their ids, per dictionary. */
 const SENSES = {
-	en: `SELECT s.id, w.word, s.wrte, t.name AS type, s.sense, s.exam
-		FROM eng_word w JOIN emd_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte
+	en: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam
+		FROM eng_word w JOIN emd_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd
 		WHERE w.word = ?1 COLLATE NOCASE ORDER BY w.word, s.wseq`,
-	my: `SELECT s.id, w.word, s.wrte, t.name AS type, s.sense, s.exam
-		FROM mya_word w JOIN med_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte
+	my: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam
+		FROM mya_word w JOIN med_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd
 		WHERE w.word = ?1 ORDER BY s.wseq`,
 };
 
 /** One sense with its headword, to check an edit against. */
 const ONE_SENSE = {
-	en: 'SELECT s.id, w.word, s.sense, s.exam FROM emd_sense s JOIN eng_word w ON w.id = s.wrid WHERE s.id = ?1',
-	my: 'SELECT s.id, w.word, s.sense, s.exam FROM med_sense s JOIN mya_word w ON w.id = s.wrid WHERE s.id = ?1',
+	en: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam
+		FROM emd_sense s JOIN eng_word w ON w.id = s.wrid LEFT JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd WHERE s.id = ?1`,
+	my: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam
+		FROM med_sense s JOIN mya_word w ON w.id = s.wrid LEFT JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd WHERE s.id = ?1`,
 };
 
 /**
@@ -265,9 +270,10 @@ export async function senses(request, env) {
 	const lang = language(url.searchParams.get('lang'));
 	const word = headword(url.searchParams.get('word'));
 	const { dict, db } = await dictionary(env);
-	const [list, types] = await Promise.all([
+	const [list, types, kinds] = await Promise.all([
 		db.prepare(SENSES[lang]).bind(word).all(),
 		db.prepare('SELECT id, name FROM type_word ORDER BY id').all(),
+		db.prepare('SELECT id, name FROM type_sense ORDER BY id').all(),
 	]).catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
@@ -279,9 +285,12 @@ export async function senses(request, env) {
 	)
 		.bind(member.id, lang === 'en' ? 'emd' : 'med', word)
 		.all();
+	// The studio asks again right after saving: an editor reads the layer
+	// anew, not this isolate's copy from before the save.
+	if (url.searchParams.get('fresh') === '1' && atLeast(member.role, 'editor')) resetLayerCache();
 	const layer = await liveLayer(env);
 	const shown = layer.senses(lang === 'en' ? 'emd' : 'med', /** @type {any[]} */ (list.results));
-	return json({ lang, word, senses: shown, types: types.results, mine: mine.map((m) => ({ ...m, live: Boolean(m.live) })), role: member.role }, NO_STORE);
+	return json({ lang, word, senses: shown, types: types.results, kinds: kinds.results, mine: mine.map((m) => ({ ...m, live: Boolean(m.live) })), role: member.role }, NO_STORE);
 }
 
 /**
@@ -329,7 +338,7 @@ export async function suggestEdit(request, env) {
 	} else {
 		const senseId = Number(data.sense_id);
 		if (!Number.isInteger(senseId)) throw new AppError('bad_request', 'sense_id must be a sense id');
-		const stored = /** @type {{ id: number, word: string, sense: string | null, exam: string | null } | null} */ (await read(ONE_SENSE[lang], senseId));
+		const stored = /** @type {{ id: number, word: string, wrte: number, wrkd: number | null, sense: string | null, exam: string | null } | null} */ (await read(ONE_SENSE[lang], senseId));
 		// As readers see it now: a live edit may have changed or deleted it.
 		const [row] = stored ? (await liveLayer(env)).senses(dictName, [stored]) : [];
 		if (!row || !sameWord(lang, row.word, word)) throw new AppError('not_found', `“${word}” has no sense ${senseId} in this dictionary`);
@@ -350,8 +359,17 @@ export async function suggestEdit(request, env) {
 		}
 		if (action === 'delete') {
 			change = { senseId, field: 'delete', oldValue: row.word, newValue: null, data: null, word: row.word };
+		} else if (field && CLASSED[field]) {
+			// Part of speech and status: an editor's to change, by id.
+			const { table, what } = CLASSED[field];
+			if (!editor) throw new AppError('forbidden', `Only editors change the ${what} of a meaning.`);
+			const id = Number(data.value);
+			if (!Number.isInteger(id) || !(await read(`SELECT id FROM ${table} WHERE id = ?1`, id))) throw new AppError('bad_request', `value must be a ${what} id`);
+			const now = row[/** @type {'wrte' | 'wrkd'} */ (field)];
+			if (now === id) throw new AppError('bad_request', `The meaning has this ${what} already`);
+			change = { senseId, field, oldValue: now === null || now === undefined ? null : String(now), newValue: String(id), data: null, word: row.word };
 		} else {
-			if (!field || !EDITABLE.includes(field)) throw new AppError('bad_request', `field must be one of ${EDITABLE.join(', ')}`);
+			if (!field || !EDITABLE.includes(field)) throw new AppError('bad_request', `field must be one of ${[...EDITABLE, ...Object.keys(CLASSED)].join(', ')}`);
 			const oldValue = /** @type {string | null} */ (row[/** @type {'sense' | 'exam'} */ (field)] ?? null);
 			const newValue = cleanValue(data.value, field, { optional: field === 'exam' });
 			if ((newValue ?? '') === (oldValue ?? '')) throw new AppError('bad_request', 'The suggestion is the same as the current text');

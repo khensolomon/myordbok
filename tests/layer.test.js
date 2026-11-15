@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import worker from '../worker/index.js';
-import { applyEdits } from '../shared/layer.js';
+import { applyEdits, textField } from '../shared/layer.js';
 import { LAYER_MAX, resetLayerCache } from '../worker/lib/layer.js';
 import { MIGRATION, SAMPLE, d1, sqlite } from './helpers/d1.js';
 
@@ -44,7 +44,7 @@ test('applyEdits: only where the build still holds what the edit was made agains
 		{ id: 1, type: 'Noun', sense: 'a', example: 'x' },
 		{ id: 2, type: 'Verb', sense: 'b', example: null },
 	];
-	const how = { exampleKey: 'example', typeName: (id) => ['Noun', 'Verb'][id], make: (a) => ({ type: a.type, sense: a.sense, example: a.exam }) };
+	const how = { fields: { sense: textField('sense'), exam: textField('example') }, typeName: (id) => ['Noun', 'Verb'][id], make: (a) => ({ type: a.type, sense: a.sense, example: a.exam }) };
 	const edit = (id, more) => ({ id, dict: 'emd', word: 'w', action: 'edit', sense_id: 1, field: 'sense', old_value: null, new_value: null, data: null, ...more });
 	const out = applyEdits(
 		rows,
@@ -268,4 +268,58 @@ test('live: the layer is read through its own indexes, however many edits were e
 	const plan = sqlite(MIGRATION).prepare(`EXPLAIN QUERY PLAN ${LIVE_EDITS}`).all('sample').map((r) => r.detail).join('\n');
 	assert.match(plan, /USING INDEX dict_edits_live\b/);
 	assert.match(plan, /USING INDEX dict_edits_live_merged \(merged_in>\?\)/);
+});
+
+test('status and part of speech: an editor’s to change, by id; live when an admin does', async () => {
+	const e = env();
+	const edit = (who, body) => call(e, '/api/edits', { who, body: { lang: 'en', word: 'love', action: 'edit', ...body } });
+	const entries = async () => (resetLayerCache(), (await call(e, '/api/lookup?q=love')).body.entries.map((s) => [s.id, s.type, s.kind]));
+	assert.deepEqual(await entries(), [[1, 'Noun', 'Active'], [2, 'Noun', 'Checked: awaiting native review'], [3, 'Verb', 'Active'], [4, 'Verb', 'Draft']]);
+
+	// What the studio offers: every part of speech and every status or label.
+	const sheet = (await call(e, '/api/senses?lang=en&word=love', { who: 'editor' })).body;
+	assert.deepEqual(sheet.kinds.map((k) => k.name), ['Draft', 'Active', 'Country', 'Idiom', 'Checked: awaiting native review']);
+	assert.deepEqual([sheet.senses[0].wrte, sheet.senses[0].type, sheet.senses[0].wrkd, sheet.senses[0].kind], [0, 'Noun', 1, 'Active']);
+
+	assert.equal((await edit('editor', { sense_id: 4, field: 'wrkd', value: 77 })).status, 400, 'no such status');
+	assert.equal((await edit('editor', { sense_id: 4, field: 'wrkd', value: 0 })).status, 400, 'it has it already');
+	assert.equal((await edit('editor', { sense_id: 4, field: 'wrte', value: 'Noun' })).status, 400, 'an id, not a name');
+
+	// An editor's: approved, in the next release. An admin's: live.
+	const waits = (await edit('editor', { sense_id: 4, field: 'wrkd', value: 9 })).body.edit;
+	assert.deepEqual(waits, { id: waits.id, status: 'approved', live: false });
+	assert.deepEqual({ ...e.raw.prepare('SELECT field, old_value, new_value FROM dict_edits WHERE id = ?').get(waits.id) }, { field: 'wrkd', old_value: '0', new_value: '9' });
+	assert.deepEqual((await entries())[3], [4, 'Verb', 'Draft']);
+
+	assert.equal((await edit('admin', { sense_id: 2, field: 'wrkd', value: 1 })).body.edit.live, true);
+	assert.equal((await edit('owner', { sense_id: 2, field: 'wrte', value: 2 })).body.edit.live, true);
+	assert.deepEqual((await entries())[1], [2, 'Adjective', 'Active']);
+	const now = (await call(e, '/api/senses?lang=en&word=love', { who: 'editor' })).body.senses[1];
+	assert.deepEqual([now.wrte, now.type, now.wrkd, now.kind], [2, 'Adjective', 1, 'Active']);
+	// The next change follows the live one.
+	assert.equal((await edit('admin', { sense_id: 2, field: 'wrkd', value: 1 })).status, 400);
+	const back = (await edit('admin', { sense_id: 2, field: 'wrkd', value: 0 })).body.edit;
+	assert.equal(e.raw.prepare('SELECT old_value FROM dict_edits WHERE id = ?').get(back.id).old_value, '1');
+	assert.deepEqual((await entries())[1], [2, 'Adjective', 'Draft']);
+});
+
+test('the studio’s history: one word’s edits, with part of speech and status by name', async () => {
+	const e = env();
+	await suggest(e, 'admin', { action: 'edit', sense_id: 2, field: 'wrkd', value: 9 });
+	await suggest(e, 'editor', { action: 'edit', sense_id: 3, field: 'wrte', value: 2 });
+	await call(e, '/api/edits', { who: 'admin', body: { lang: 'en', word: 'water', action: 'edit', sense_id: 7, field: 'exam', value: 'a cup of water' } });
+	resetLayerCache();
+	const of = async (q) => (await call(e, `/api/workspace/edits?status=all&${q}`, { who: 'editor' })).body.edits.map((x) => [x.word, x.field, x.old_name, x.new_name, x.showing]);
+	assert.deepEqual(await of('word=LOVE&lang=en'), [
+		['love', 'wrte', 'Verb', 'Adjective', null],
+		['love', 'wrkd', 'Checked: awaiting native review', 'Idiom', true],
+	]);
+	assert.deepEqual(await of('word=water&lang=en'), [['water', 'exam', null, null, true]]);
+	assert.deepEqual(await of('word=love&lang=my'), [], 'the other dictionary has its own');
+	assert.equal((await of('')).length, 3);
+	// Asked fresh by an editor, the sheet has what was saved a moment ago in another isolate.
+	e.raw.exec("UPDATE dict_edits SET new_value = '0' WHERE field = 'wrkd'");
+	assert.equal((await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses[1].kind, 'Idiom', 'a member reads this isolate’s layer');
+	assert.equal((await call(e, '/api/senses?lang=en&word=love&fresh=1', { who: 'member' })).body.senses[1].kind, 'Idiom', 'and cannot ask for it anew');
+	assert.equal((await call(e, '/api/senses?lang=en&word=love&fresh=1', { who: 'editor' })).body.senses[1].kind, 'Draft');
 });

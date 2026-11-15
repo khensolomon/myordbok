@@ -81,7 +81,9 @@ test('suggestions: checked before they are kept', async () => {
 	const [first] = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
 	const bad = async (body) => (await call(e, '/api/edits', { who: 'member', body: { lang: 'en', word: 'love', ...body } })).status;
 	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'sense', value: first.sense }), 400, 'unchanged');
-	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'wrkd', value: '1' }), 400, 'not an editable field');
+	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'wrkd', value: 1 }), 403, 'status is an editor’s to change');
+	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'wrte', value: 1 }), 403, 'and so is the part of speech');
+	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'synset', value: '1' }), 400, 'not an editable field');
 	assert.equal(await bad({ action: 'edit', sense_id: first.id, field: 'sense', value: 'x'.repeat(601) }), 400, 'too long');
 	assert.equal(await bad({ action: 'edit', sense_id: 99999, field: 'sense', value: 'x' }), 404);
 	assert.equal(await bad({ word: 'water', action: 'delete', sense_id: first.id }), 404, 'a sense of another word');

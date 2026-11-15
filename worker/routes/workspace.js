@@ -56,11 +56,11 @@ const NO_STORE = { headers: { 'cache-control': 'no-store' } };
 
 /** Senses as the dictionary has them now, by id. */
 const CURRENT = {
-	emd: `SELECT s.id, w.word, t.name AS type, s.sense, s.exam FROM emd_sense s
-		JOIN eng_word w ON w.id = s.wrid JOIN type_word t ON t.id = s.wrte
+	emd: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam FROM emd_sense s
+		JOIN eng_word w ON w.id = s.wrid JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd
 		WHERE s.id IN (SELECT value FROM json_each(?1))`,
-	med: `SELECT s.id, w.word, t.name AS type, s.sense, s.exam FROM med_sense s
-		JOIN mya_word w ON w.id = s.wrid JOIN type_word t ON t.id = s.wrte
+	med: `SELECT s.id, w.word, s.wrte, t.name AS type, s.wrkd, k.name AS kind, s.sense, s.exam FROM med_sense s
+		JOIN mya_word w ON w.id = s.wrid JOIN type_word t ON t.id = s.wrte LEFT JOIN type_sense k ON k.id = s.wrkd
 		WHERE s.id IN (SELECT value FROM json_each(?1))`,
 };
 
@@ -125,6 +125,9 @@ async function list(request, env, member) {
 	const mine = url.searchParams.get('mine') === '1' || !isEditor(member);
 	const before = Number(url.searchParams.get('before') ?? 0);
 	if (!Number.isInteger(before) || before < 0) throw new AppError('bad_request', 'before must be a suggestion id');
+	// One word's edits, for its history in the studio: ?word= with ?lang=.
+	const word = (url.searchParams.get('word') ?? '').normalize('NFC').trim();
+	const wordDict = url.searchParams.get('lang') === 'my' ? 'med' : 'emd';
 
 	const { results } = await env.APP.prepare(
 		`SELECT e.id, e.dict, e.action, e.sense_id, e.field, e.old_value, e.new_value, e.word, e.data, e.source,
@@ -132,9 +135,10 @@ async function list(request, env, member) {
 		        u.name AS author, r.name AS reviewer, l.name AS live_by
 		 FROM dict_edits e JOIN users u ON u.id = e.user_id LEFT JOIN users r ON r.id = e.reviewed_by LEFT JOIN users l ON l.id = e.live_by
 		 WHERE (?1 = 'all' OR e.status = ?1) AND (?2 = 0 OR e.user_id = ?3) AND (?4 = 0 OR e.id < ?4)
+		   AND (?6 = '' OR (e.dict = ?7 AND e.word = ?6 COLLATE NOCASE))
 		 ORDER BY e.id DESC LIMIT ?5`,
 	)
-		.bind(status, mine ? 1 : 0, member.id, before, PAGE + 1)
+		.bind(status, mine ? 1 : 0, member.id, before, PAGE + 1, word, wordDict)
 		.all();
 	const page = results.slice(0, PAGE);
 
@@ -147,9 +151,13 @@ async function list(request, env, member) {
 	const built = {};
 	const ids = { emd: new Set(), med: new Set() };
 	for (const e of page) if (e.sense_id !== null) ids[/** @type {'emd' | 'med'} */ (e.dict)].add(Number(e.sense_id));
-	if (ids.emd.size || ids.med.size) {
+	// Part of speech and status travel as ids; the list names them.
+	const classed = page.some((e) => e.field === 'wrte' || e.field === 'wrkd');
+	const layer = ids.emd.size || ids.med.size || classed ? await liveLayer(env) : null;
+	const named = (/** @type {Record<string, unknown>} */ e, /** @type {unknown} */ value) =>
+		!layer || value === null || (e.field !== 'wrte' && e.field !== 'wrkd') ? null : ((e.field === 'wrte' ? layer.typeName(Number(value)) : layer.kindName(Number(value))) ?? null);
+	if (layer && (ids.emd.size || ids.med.size)) {
 		const { dict, db } = await dictionary(env);
-		const layer = await liveLayer(env);
 		for (const name of /** @type {Array<'emd' | 'med'>} */ (['emd', 'med'])) {
 			if (!ids[name].size) continue;
 			const { results: rows } = await db
@@ -159,7 +167,7 @@ async function list(request, env, member) {
 				.catch((err) => {
 					throw explainDictError(err, dict, env);
 				});
-			const pick = (/** @type {Record<string, unknown>} */ r) => ({ word: r.word, type: r.type, sense: r.sense, exam: r.exam });
+			const pick = (/** @type {Record<string, unknown>} */ r) => ({ word: r.word, type: r.type, kind: r.kind, wrte: r.wrte, wrkd: r.wrkd, sense: r.sense, exam: r.exam });
 			for (const r of rows) built[`${name}:${r.id}`] = pick(r);
 			for (const r of layer.senses(name, /** @type {any[]} */ (rows))) current[`${name}:${r.id}`] = pick(r);
 		}
@@ -174,12 +182,14 @@ async function list(request, env, member) {
 		if (e.live_at === null || e.sense_id === null || (e.status !== 'approved' && e.status !== 'exported')) return null;
 		const now = current[`${e.dict}:${e.sense_id}`];
 		if (e.action === 'delete') return now === undefined;
-		return now !== undefined && (now[e.field === 'exam' ? 'exam' : 'sense'] ?? '') === (e.new_value ?? '');
+		return now !== undefined && String(now[String(e.field)] ?? '') === (e.new_value ?? '');
 	};
 	const edits = page.map((e) => ({
 		...e,
 		data: e.data ? JSON.parse(String(e.data)) : null,
 		own: e.user_id === member.id,
+		old_name: named(e, e.old_value),
+		new_name: named(e, e.new_value),
 		live: e.live_at !== null,
 		showing: showing(e),
 		current: e.sense_id === null ? null : ((e.live_at !== null ? built : current)[`${e.dict}:${e.sense_id}`] ?? null),
