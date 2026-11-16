@@ -220,6 +220,19 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 		);
 	};
 
+	/**
+	 * Shift and a press on a row: every row from the last one picked (or the
+	 * one open) to this one is ticked, and nothing is opened.
+	 * @param {number} i
+	 */
+	const pickTo = (i) => {
+		const start = anchor >= 0 ? anchor : current >= 0 ? current : i;
+		const [a, z] = start < i ? [start, i] : [i, start];
+		for (let k = a; k <= z; k++) if (!boxes[k].disabled) boxes[k].checked = true;
+		anchor = i;
+		drawBulk();
+	};
+
 	/** @param {boolean} [again]  Adds the next page instead of starting over. */
 	const load = async (again = false) => {
 		const page = await inboxMessages(f, again && items.length ? items[items.length - 1].id : undefined);
@@ -236,7 +249,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 		ol.append(
 			...page.messages.map((m, n) => {
 				const i = from + n;
-				const b = row(m, ago, () => open(i));
+				const b = row(m, ago, (ev) => (ev.shiftKey ? pickTo(i) : open(i)));
 				rows.push(b);
 				const box = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', class: 'ws-pick', 'aria-label': t('Select this message') }));
 				boxes.push(box);
@@ -420,7 +433,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 			),
 			m.page ? h('section', { class: 'ws-box' }, h('h2', null, t('About the page')), h('p', null, h('a', { href: m.page }, m.page))) : '',
 			h('section', { class: 'ws-box' }, h('h2', null, t('State')), h('div', { class: 'ws-states', role: 'group', 'aria-label': t('State') }, stateButtons), who),
-			h('section', { class: 'ws-box' }, h('h2', null, t('Note')), note, keep, out, h('p', { class: 'ws-quiet ws-keys' }, t('1–4 state · J K next, previous'))),
+			h('section', { class: 'ws-box' }, h('h2', null, t('Note')), note, keep, out, h('p', { class: 'ws-quiet ws-keys' }, t('1–4 state · J K next, previous · Shift and a click selects a range'))),
 		);
 	};
 	listPane.append(bar, bulk, ol, more);
@@ -459,7 +472,7 @@ function handled(m, ago) {
 /**
  * @param {Message} m
  * @param {(when: number, short?: boolean) => string} ago
- * @param {() => void} onOpen
+ * @param {(ev: MouseEvent) => void} onOpen
  */
 function row(m, ago, onOpen) {
 	const b = /** @type {HTMLButtonElement} */ (

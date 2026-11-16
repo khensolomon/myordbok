@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+136
+
+- Searches and Inbox: Shift and a click on a row selects every row from the open one to it
+
 ## 26.11.16+135
 
 - Members: filters by sign-in, joining, last visit, contributions, supporter and statistics; sorting; show more; CSV

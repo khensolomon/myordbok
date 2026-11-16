@@ -456,7 +456,7 @@ export const MY = {
 	'Saved.': 'သိမ်းပြီးပါပြီ။',
 
 	// Overview, Ratings and Inbox states
-	"1–4 state · J K next, previous": "၁–၄ အခြေအနေ · J K နောက်၊ ယခင်",
+	'1–4 state · J K next, previous · Shift and a click selects a range': '၁–၄ အခြေအနေ · J K နောက်၊ ယခင် · Shift နှိပ်၍ ကလစ်လျှင် အတန်းလိုက် ရွေး',
 	"Last changed by {who}, {when}": "{who} က {when} တွင် နောက်ဆုံး ပြောင်းထားသည်",
 	"Last changed {when}": "{when} တွင် နောက်ဆုံး ပြောင်းထားသည်",
 	"No unread messages.": "မဖတ်ရသေးသော စာ မရှိပါ။",
@@ -1021,7 +1021,7 @@ export const MY = {
 	'Never found, by label': 'မတွေ့ခဲ့သည်များ၊ အမှတ်အသားအလိုက်',
 	'Within the period and the other filters. A word added to the dictionary since shows as such whatever its label.': 'ကာလနှင့် အခြား စစ်ထုတ်မှုများအတွင်း။ ထို့နောက် အဘိဓာန်သို့ ထည့်ပြီးသော စကားလုံးကို အမှတ်အသား မည်သို့ပင်ရှိစေ ထိုသို့ ပြသည်။',
 	'Every word that matches the filter, with its figures and its label, for a spreadsheet.': 'စစ်ထုတ်မှုနှင့် ကိုက်ညီသော စကားလုံးတိုင်းကို ကိန်းဂဏန်းများ၊ အမှတ်အသားနှင့်တကွ စာရင်းဇယားအတွက်။',
-	'1 2 3 label · 0 no label · J K next, previous · Shift selects a range': '1 2 3 အမှတ်အသား · 0 အမှတ်အသား ဖြုတ် · J K ရှေ့၊ နောက် · Shift ဖြင့် အတန်းလိုက် ရွေး',
+	'1 2 3 label · 0 no label · J K next, previous · Shift and a click selects a range': '1 2 3 အမှတ်အသား · 0 အမှတ်အသား ဖြုတ် · J K ရှေ့၊ နောက် · Shift နှိပ်၍ ကလစ်လျှင် အတန်းလိုက် ရွေး',
 	'J K next, previous': 'J K ရှေ့၊ နောက်',
 	'Shape': 'ပုံစံ',
 	'First searched': 'ပထမဆုံး ရှာခဲ့ချိန်',

@@ -236,6 +236,19 @@ export async function searchesPanes(ctx, root, may) {
 		);
 	};
 
+	/**
+	 * Shift and a press on a row: every row from the last one picked (or the
+	 * one open) to this one is ticked, and nothing is opened.
+	 * @param {number} i
+	 */
+	const pickTo = (i) => {
+		const start = anchor >= 0 ? anchor : current >= 0 ? current : i;
+		const [a, z] = start < i ? [start, i] : [i, start];
+		for (let k = a; k <= z; k++) if (!boxes[k].disabled) boxes[k].checked = true;
+		anchor = i;
+		drawBulk();
+	};
+
 	/** @param {boolean} [again]  Adds the next page instead of starting over. */
 	const load = async (again = false) => {
 		const page = await workspaceSearches(f, again ? items.length : 0);
@@ -250,7 +263,7 @@ export async function searchesPanes(ctx, root, may) {
 		items.push(...page.words);
 		const added = page.words.map((w, n) => {
 			const i = from + n;
-			const b = row(w, listed(w.label), () => open(i));
+			const b = row(w, listed(w.label), (ev) => (ev.shiftKey && may.editor ? pickTo(i) : open(i)));
 			rows.push(b);
 			if (!may.editor) return h('li', null, b);
 			// A word that was found has nothing to label.
@@ -427,7 +440,7 @@ export async function searchesPanes(ctx, root, may) {
 			),
 			h('section', { class: 'ws-box' }, h('h2', null, t('This list')), h('p', { class: 'ws-quiet' }, t('Every word that matches the filter, with its figures and its label, for a spreadsheet.')), download, out),
 			may.admin ? pruneBox(() => load()) : '',
-			h('section', { class: 'ws-box' }, h('p', { class: 'ws-quiet' }, may.editor ? t('1 2 3 label · 0 no label · J K next, previous · Shift selects a range') : t('J K next, previous')), h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.'))),
+			h('section', { class: 'ws-box' }, h('p', { class: 'ws-quiet' }, may.editor ? t('1 2 3 label · 0 no label · J K next, previous · Shift and a click selects a range') : t('J K next, previous')), h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.'))),
 		);
 	};
 
@@ -556,7 +569,7 @@ function state(found, now) {
 /**
  * @param {Word} w
  * @param {boolean} listed  Whether its label belongs to the list as filtered.
- * @param {() => void} onOpen
+ * @param {(ev: MouseEvent) => void} onOpen
  */
 function row(w, listed, onOpen) {
 	const last = shortDate(new Date(`${w.last}T00:00:00Z`), { utc: true });
