@@ -310,6 +310,39 @@ test('ratings: a member sees their own, a changed meaning says so; editors see t
 	assert.equal((await call(e, '/api/workspace/ratings?scope=site&order=up', { who: 'editor' })).body.items.length, 0, 'the changed meaning’s rating no longer counts');
 });
 
+test('members: the list is narrowed by sign-in, joining, last visit and contributions, sorted, and downloads as CSV', async () => {
+	const e = env();
+	e.raw.exec(`UPDATE users SET role = 'admin' WHERE id = 2;
+		UPDATE users SET created_at = unixepoch() - 200 * 86400, seen_at = unixepoch() - 120 * 86400 WHERE id = 3;
+		UPDATE users SET seen_at = unixepoch() - 86400 WHERE id = 1;
+		INSERT INTO identities (provider, provider_user_id, user_id) VALUES ('github', 'gh-3', 3);
+		INSERT INTO comments (user_id, lang, word, body) VALUES (3, 'en', 'love', 'A comment');`);
+	const names = async (query) => (await call(e, `/api/workspace/members?${query}`, { who: 'editor' })).body.members.map((m) => m.name);
+	const everyone = await names('');
+	assert.equal(everyone.length, 3);
+	assert.deepEqual(await names('provider=github'), ['Other']);
+	assert.ok(!(await names('joined=30')).includes('Other'));
+	assert.deepEqual(await names('seen=quiet'), everyone.filter((n) => n !== 'Mya'), 'never seen counts as quiet');
+	assert.deepEqual(await names('seen=30'), ['Mya']);
+	assert.deepEqual(await names('gave=yes'), ['Other']);
+	assert.equal((await names('gave=no')).length, 2);
+	assert.deepEqual(await names('order=name'), [...everyone].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
+	assert.equal((await names('order=gave'))[0], 'Other');
+	assert.equal((await names('order=seen'))[0], 'Mya');
+	const page = (await call(e, '/api/workspace/members?gave=yes', { who: 'editor' })).body;
+	assert.equal(page.listed, 1);
+	for (const bad of ['provider=facebook', 'joined=12', 'seen=never', 'gave=maybe', 'order=random', 'offset=-1']) assert.equal((await call(e, `/api/workspace/members?${bad}`, { who: 'editor' })).status, 400, bad);
+
+	const res = await worker.fetch(new Request(`${SITE}/api/workspace/members?gave=yes&format=csv`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e);
+	assert.match(res.headers.get('content-type'), /text\/csv/);
+	const csv = (await res.text()).trim().split('\r\n');
+	assert.equal(csv[0], 'id,name,email,level,status,sign_in,joined,last_seen,suggestions,comments');
+	assert.equal(csv.length, 2);
+	assert.match(csv[1], /^3,Other,/);
+	assert.match(csv[1], /,0,1$/);
+	assert.equal((await worker.fetch(new Request(`${SITE}/api/workspace/members?format=csv`, { headers: { origin: SITE, cookie: '__Host-mo_session=member' } }), e)).status, 403);
+});
+
 test('members: an owner gives any level, an admin only member and editor; the site keeps an owner', async () => {
 	const e = env();
 	// Mya (1) member, Ed (2) owner, Other (3) member; Ed makes Other an admin.

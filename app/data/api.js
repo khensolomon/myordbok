@@ -615,12 +615,19 @@ export function workspaceRatings(f, offset = 0) {
 
 /**
  * Members, for admins and owners.
- * @param {{ q?: string, role?: string, status?: string }} filter
- * @returns {Promise<{ members: MemberRow[], more: boolean, counts: Array<{ role: string, status: string, n: number }> }>}
+ * @param {Record<string, string>} filter  q, role, status, provider, joined, seen, gave, supporter, insights, order; what is empty is left out.
+ * @param {number} [offset]
+ * @returns {Promise<{ members: MemberRow[], more: boolean, listed: number, counts: Array<{ role: string, status: string, n: number }> }>}
  */
-export function workspaceMembers(filter) {
-	const p = new URLSearchParams(Object.entries(filter).filter(([, v]) => v));
+export function workspaceMembers(filter, offset) {
+	const p = membersQuery(filter);
+	if (offset) p.set('offset', String(offset));
 	return getJSON(`/api/workspace/members${p.size ? `?${p}` : ''}`);
+}
+
+/** @param {Record<string, string>} filter */
+export function membersQuery(filter) {
+	return new URLSearchParams(Object.entries(filter).filter(([, v]) => v));
 }
 
 /** @param {number} id @returns {Promise<{ member: MemberDetail }>} */

@@ -306,6 +306,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   counts. The default list holds what is still to sort and what is to add;
   filters narrow it by label, number of searches, days searched, shape, and
   first searched in the period; the list as filtered downloads as CSV.
+- **The workspace's lists are narrowed in the address.** Searches, the Inbox
+  and Members each take their filters as address parameters, so a view can
+  be bookmarked and shared; the server does the filtering and searching, and
+  each list loads further pages on request. Searches and the Inbox act on
+  several rows at once (a label; a state, thanks, deletion), never more than
+  200; Members has no such actions on purpose: levels and suspensions are
+  changed one member at a time. Searches and Members download as CSV.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

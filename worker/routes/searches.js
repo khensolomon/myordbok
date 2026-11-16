@@ -330,7 +330,7 @@ async function headwords(env, words) {
  * =, +, - or @ is prefixed so spreadsheets do not run it as a formula.
  * @param {string} value
  */
-function csvCell(value) {
+export function csvCell(value) {
 	const safe = /^[=+\-@]/.test(value) ? `'${value}` : value;
 	return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }

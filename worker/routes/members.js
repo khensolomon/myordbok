@@ -2,7 +2,11 @@
 /**
  * Members, for admins and owners (workspace section Members).
  *
- *   GET  /api/workspace/members?q=&role=&status=   the list, newest first; q matches name or email
+ *   GET  /api/workspace/members?q=&role=&status=   the list, newest first; q matches name or email.
+ *        Also &provider=google|github, &joined=7|30|90 (days), &seen=30 (in the last 30 days)
+ *        or quiet (not for 90 days, or never), &gave=yes|no (suggested or commented),
+ *        &supporter=1, &insights=1, &order=joined|seen|name|gave, &offset=; 100 a page.
+ *        &format=csv: every matching member as CSV
  *   GET  /api/workspace/members/{id}               one member: sign-ins, contributions, role history
  *   POST /api/workspace/members/{id}               { role?, status?, insights? }; insights:
  *                                                  shown the site's statistics (shared/roles.js)
@@ -17,12 +21,16 @@
 import { AppError } from '../../shared/errors.js';
 import { assignable, atLeast, isRole } from '../../shared/roles.js';
 import { json } from '../lib/http.js';
+import { csvCell } from './searches.js';
 
 /** @typedef {{ APP: D1Database }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
 
 const NO_STORE = { headers: { 'cache-control': 'no-store' } };
 const PAGE = 100;
+/** Most rows one CSV holds. */
+const CSV_MAX = 10000;
+const ORDERS = { joined: 'u.id DESC', seen: 'u.seen_at DESC NULLS LAST, u.id DESC', name: 'lower(u.name), u.id', gave: 'gave DESC, u.id DESC' };
 
 /**
  * @param {Request} request
@@ -53,23 +61,59 @@ async function list(request, env, actor) {
 	if (role && !isRole(role)) throw new AppError('bad_request', 'role must be member, editor, admin or owner');
 	if (status && status !== 'active' && status !== 'suspended') throw new AppError('bad_request', 'status must be active or suspended');
 	const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+	const pick = (/** @type {string} */ name, /** @type {readonly string[]} */ allowed) => {
+		const v = url.searchParams.get(name) ?? '';
+		if (v && !allowed.includes(v)) throw new AppError('bad_request', `${name} must be one of ${allowed.join(', ')}`);
+		return v;
+	};
+	const provider = pick('provider', ['google', 'github']);
+	const joined = pick('joined', ['7', '30', '90']);
+	const seen = pick('seen', ['30', 'quiet']);
+	const gave = pick('gave', ['yes', 'no']);
+	const supporter = pick('supporter', ['1']);
+	const insights = pick('insights', ['1']);
+	const order = /** @type {keyof typeof ORDERS} */ (pick('order', Object.keys(ORDERS)) || 'joined');
+	const offset = Number(url.searchParams.get('offset') ?? 0);
+	if (!Number.isInteger(offset) || offset < 0) throw new AppError('bad_request', 'offset must be a whole number');
+	const contributed = '(EXISTS (SELECT 1 FROM dict_edits e WHERE e.user_id = u.id) OR EXISTS (SELECT 1 FROM comments c WHERE c.user_id = u.id))';
+	const where = [
+		'u.id > 0',
+		"(?1 = '' OR lower(u.name) LIKE ?2 ESCAPE '\\' OR u.email LIKE ?2 ESCAPE '\\')",
+		"(?3 = '' OR u.role = ?3)",
+		"(?4 = '' OR u.status = ?4)",
+		provider ? `EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider = '${provider}')` : '',
+		joined ? `u.created_at >= unixepoch() - ${Number(joined)} * 86400` : '',
+		seen === '30' ? 'u.seen_at >= unixepoch() - 30 * 86400' : seen === 'quiet' ? '(u.seen_at IS NULL OR u.seen_at < unixepoch() - 90 * 86400)' : '',
+		gave === 'yes' ? contributed : gave === 'no' ? `NOT ${contributed}` : '',
+		supporter ? 'EXISTS (SELECT 1 FROM donors d WHERE d.user_id = u.id)' : '',
+		insights ? 'u.insights = 1' : '',
+	].filter(Boolean).join(' AND ');
+	const csv = url.searchParams.get('format') === 'csv';
 	const { results } = await env.APP.prepare(
 		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.offline_day, u.offline_today, u.offline_total, u.created_at, u.seen_at,
 		        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
-		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
+		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions,
+		        (SELECT count(*) FROM comments c WHERE c.user_id = u.id) AS comments,
+		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) + (SELECT count(*) FROM comments c WHERE c.user_id = u.id) AS gave
 		 FROM users u
-		 WHERE u.id > 0
-		   AND (?1 = '' OR lower(u.name) LIKE ?2 ESCAPE '\\' OR u.email LIKE ?2 ESCAPE '\\')
-		   AND (?3 = '' OR u.role = ?3) AND (?4 = '' OR u.status = ?4)
-		 ORDER BY u.id DESC LIMIT ?5`,
+		 WHERE ${where}
+		 ORDER BY ${ORDERS[order]} LIMIT ?5 OFFSET ?6`,
 	)
-		.bind(q, like, role, status, PAGE + 1)
+		.bind(q, like, role, status, csv ? CSV_MAX : PAGE + 1, csv ? 0 : offset)
 		.all();
+	if (csv) {
+		const day = (/** @type {unknown} */ at) => (at ? new Date(Number(at) * 1000).toISOString().slice(0, 10) : '');
+		const lines = [['id', 'name', 'email', 'level', 'status', 'sign_in', 'joined', 'last_seen', 'suggestions', 'comments'].join(',')];
+		for (const r of results) lines.push([r.id, csvCell(String(r.name ?? '')), csvCell(String(r.email ?? '')), r.role, r.status, csvCell(String(r.providers ?? '')), day(r.created_at), day(r.seen_at), r.suggestions, r.comments].join(','));
+		return new Response(`${lines.join('\r\n')}\r\n`, { headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="members-${new Date().toISOString().slice(0, 10)}.csv"`, 'cache-control': 'no-store' } });
+	}
 	const { results: counted } = await env.APP.prepare("SELECT role, status, count(*) AS n FROM users WHERE id > 0 GROUP BY role, status").all();
+	const listed = /** @type {{ n: number }} */ (await env.APP.prepare(`SELECT count(*) AS n FROM users u WHERE ${where}`).bind(q, like, role, status).first());
 	return json(
 		{
 			members: results.slice(0, PAGE).map((r) => shape(r, actor)),
 			more: results.length > PAGE,
+			listed: Number(listed.n),
 			counts: counted.map((r) => ({ role: r.role, status: r.status, n: Number(r.n) })),
 		},
 		NO_STORE,

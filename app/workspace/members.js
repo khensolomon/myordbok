@@ -9,12 +9,11 @@
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
-import { changeMember, workspaceMember, workspaceMembers } from '../data/api.js';
+import { changeMember, membersQuery, workspaceMember, workspaceMembers } from '../data/api.js';
 import { mark, num, t } from '../i18n/index.js';
 import { listBar } from './list-bar.js';
 
 /** @param {string} f  A filter of FILTERS. */
-const memberHref = (f) => `/workspace?s=members${f ? `&show=${f}` : ''}`;
 
 /** @typedef {import('../data/api.js').MemberRow} Row */
 /** @typedef {import('../data/api.js').MemberDetail} Detail */
@@ -38,6 +37,14 @@ const FILTERS = /** @type {const} */ ([
 	['suspended', mark('Suspended')],
 ]);
 
+/** Further filters; the first of each is "any" and leaves the address alone. */
+const ORDERS = /** @type {const} */ ([['', mark('Newest')], ['seen', mark('Last seen')], ['name', mark('Name')], ['gave', mark('Most contributions')]]);
+const SEEN = /** @type {const} */ ([['', mark('Any')], ['30', mark('In the last 30 days')], ['quiet', mark('Not for 90 days')]]);
+const JOINED = /** @type {const} */ ([['', mark('Any')], ['7', mark('7 days')], ['30', mark('30 days')], ['90', mark('90 days')]]);
+const GAVE = /** @type {const} */ ([['', mark('Any')], ['yes', mark('Has contributed')], ['no', mark('Nothing yet')]]);
+const PROVIDERS = /** @type {const} */ ([['', mark('Any')], ['google', mark('Google')], ['github', mark('GitHub')]]);
+const YES = /** @type {const} */ ([['', mark('Any')], ['1', mark('Yes')]]);
+
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
  * @param {HTMLElement} root
@@ -46,6 +53,17 @@ const FILTERS = /** @type {const} */ ([
 export async function membersPanes(ctx, root, ago) {
 	const asked = ctx.query.get('show') ?? '';
 	const filter = FILTERS.some(([f]) => f === asked) ? asked : '';
+	// The other filters, each in the address under its own name.
+	const one = (/** @type {ReadonlyArray<readonly [string, string]>} */ options, /** @type {string} */ name) => (options.some(([v]) => v === ctx.query.get(name)) ? /** @type {string} */ (ctx.query.get(name)) : '');
+	const more = { provider: one(PROVIDERS, 'provider'), joined: one(JOINED, 'joined'), seen: one(SEEN, 'seen'), gave: one(GAVE, 'gave'), supporter: one(YES, 'supporter'), insights: one(YES, 'insights'), order: one(ORDERS, 'order') };
+	/** The address with one filter changed. @param {Record<string, string>} change */
+	const memberHref = (change) => {
+		const p = membersQuery({ show: filter, ...more, ...change });
+		p.set('s', 'members');
+		return `/workspace?${p}`;
+	};
+	/** What the server is asked: the list as filtered and searched. */
+	const asking = () => ({ q: search.value.trim(), role: filter === 'suspended' ? '' : filter, status: filter === 'suspended' ? 'suspended' : '', ...more });
 	const listPane = h('section', { class: 'ws-list', 'aria-label': t('Members') });
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose a member from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
@@ -57,15 +75,53 @@ export async function membersPanes(ctx, root, ago) {
 	/** @type {HTMLButtonElement[]} */
 	let rows = [];
 
-	const load = async () => {
-		const page = await workspaceMembers({ q: search.value.trim(), role: filter === 'suspended' ? '' : filter, status: filter === 'suspended' ? 'suspended' : '' });
-		items = page.members;
+	const next = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
+	/** @param {boolean} [again]  Adds the next page instead of starting over. */
+	const load = async (again = false) => {
+		const page = await workspaceMembers(asking(), again ? items.length : 0);
+		if (!again) {
+			items = [];
+			rows = [];
+			ol.replaceChildren();
+		}
+		const from = items.length;
+		items.push(...page.members);
+		const added = page.members.map((m, n) => row(m, ago, () => open(from + n)));
+		rows.push(...added);
+		ol.append(...added.map((b) => h('li', null, b)));
+		if (!items.length) ol.replaceChildren(h('li', { class: 'ws-none' }, t('Nobody here.')));
+		next.hidden = !page.more;
 		const total = page.counts.reduce((a, c) => a + c.n, 0);
-		head.textContent = t('{n} in all', { n: total });
-		rows = items.map((m, i) => row(m, ago, () => open(i)));
-		ol.replaceChildren(...(rows.length ? rows.map((b) => h('li', null, b)) : [h('li', { class: 'ws-none' }, t('Nobody here.'))]));
-		if (page.more) ol.append(h('li', { class: 'ws-none' }, t('Showing the newest {n}; narrow it with a name or email.', { n: items.length })));
+		head.textContent = page.listed === total ? t('{n} in all', { n: total }) : t('{n} of {total}', { n: num(page.listed), total: num(total) });
 	};
+	next.addEventListener('click', () => {
+		next.disabled = true;
+		load(true)
+			.catch((err) => ol.append(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))))
+			.finally(() => (next.disabled = false));
+	});
+	// The list as filtered, for a spreadsheet.
+	const csvOut = h('span', { class: 'ws-result', role: 'status' });
+	const csv = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, icon(ICONS.download, 15), t('Download as CSV')));
+	csv.addEventListener('click', async () => {
+		csv.disabled = true;
+		csvOut.textContent = t('Preparing…');
+		try {
+			const p = membersQuery(asking());
+			p.set('format', 'csv');
+			const res = await fetch(`/api/workspace/members?${p}`, { credentials: 'same-origin' });
+			if (!res.ok) throw new Error((await res.json().catch(() => null))?.error?.message ?? `Download failed with status ${res.status}`);
+			const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'members.csv';
+			const url = URL.createObjectURL(await res.blob());
+			h('a', { href: url, download: name }).click();
+			setTimeout(() => URL.revokeObjectURL(url), 10000);
+			csvOut.textContent = '';
+		} catch (err) {
+			csvOut.textContent = err instanceof Error ? err.message : String(err);
+		} finally {
+			csv.disabled = false;
+		}
+	});
 
 	/** @param {number} i */
 	const open = async (i) => {
@@ -200,11 +256,25 @@ export async function membersPanes(ctx, root, ago) {
 		...listBar({
 			title: t('Members'),
 			count: head,
-			groups: [{ title: t('Show'), current: filter, fallback: '', href: memberHref, choices: FILTERS.map(([f, label]) => ({ value: f, label: t(label) })) }],
+			// Most important first: the ones that do not fit the column go under ⋯.
+			groups: [
+				{ title: t('Show'), current: filter, fallback: '', href: (v) => memberHref({ show: v }), choices: FILTERS.map(([f, label]) => ({ value: f, label: t(label) })) },
+				...(/** @type {const} */ ([
+					[mark('Sort'), 'order', ORDERS],
+					[mark('Last seen'), 'seen', SEEN],
+					[mark('Joined'), 'joined', JOINED],
+					[mark('Contributions'), 'gave', GAVE],
+					[mark('Sign-in'), 'provider', PROVIDERS],
+					[mark('Supporter'), 'supporter', YES],
+					[mark('Statistics'), 'insights', YES],
+				])).map(([title, name, options]) => ({ title: t(title), current: more[name], fallback: '', href: (/** @type {string} */ v) => memberHref({ [name]: v }), choices: options.map(([v, label]) => ({ value: v, label: t(label) })) })),
+			],
 			search,
-			reset: memberHref(''),
+			reset: memberHref({ show: '', provider: '', joined: '', seen: '', gave: '', supporter: '', insights: '', order: '' }),
 		}),
 		ol,
+		next,
+		h('div', { class: 'ws-list-foot' }, csv, csvOut),
 	);
 	await load();
 	if (items.length && matchMedia('(min-width: 761px)').matches) await open(0);

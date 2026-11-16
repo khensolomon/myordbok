@@ -1607,6 +1607,9 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-bulk-link:hover { text-decoration: underline; }
 .ws-bulk button:disabled { opacity: 0.5; cursor: default; }
 .ws-bulk-out:empty { display: none; }
+/* Under a list: what is done with the list as a whole. */
+.ws-list-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px; border-top: 1px solid var(--line-soft); }
+.ws-list-foot .ws-secondary { height: 30px; padding: 0 12px; gap: 6px; font-size: 13px; }
 .ws-label { flex: none; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 17px; color: var(--ink-2); }
 .ws-label[hidden] { display: none; }
 .ws-label-add { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); color: var(--good); }

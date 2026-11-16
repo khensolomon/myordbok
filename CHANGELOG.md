@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+135
+
+- Members: filters by sign-in, joining, last visit, contributions, supporter and statistics; sorting; show more; CSV
+
 ## 26.11.16+134
 
 - Inbox: filters by kind, sender, answer and language; search over every message; several messages at once (read, done, thank and close, unread, delete)
