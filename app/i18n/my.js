@@ -988,4 +988,9 @@ export const MY = {
 	'What you sent through the contact form, and what was answered. Thanks and ideas are read even when no answer is written.': 'ဆက်သွယ်ရန် ဖောင်မှ သင်ပို့ခဲ့သည်များနှင့် ပြန်ဖြေထားသည်များ။ ကျေးဇူးစကားနှင့် အကြံဉာဏ်များကို အဖြေမရေးသည့်တိုင် ဖတ်ရှုပါသည်။',
 	'Nothing sent yet.': 'ဘာမျှ မပို့ရသေးပါ။',
 	'New': 'အသစ်',
+	'To {name}': '{name} ထံသို့',
+	'Visitor': 'ဧည့်သည်',
+	'reads it in their Inbox': 'သူတို့၏ ဝင်စာတွင် ဖတ်ရမည်',
+	'goes by email': 'အီးမေးလ်ဖြင့် ပို့မည်',
+	'no address': 'လိပ်စာ မရှိပါ',
 };

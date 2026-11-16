@@ -186,10 +186,19 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 		// One press for the commonest answer: thanks, and nothing left to do.
 		const thank = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, icon(ICONS.like, 15), t('Thank and close')));
 		thank.addEventListener('click', () => answerWith(SAVED[0][m.lang], 'done'));
+		// Who the answer is for and how it reaches them, where it is written.
+		const to = h(
+			'p',
+			{ class: 'ws-answer-to' },
+			signedIn || m.reply_to ? h('strong', null, t('To {name}', { name: m.member ?? m.reply_to ?? '' })) : null,
+			h('span', { class: `ws-who ws-who-${signedIn ? 'member' : 'visitor'}` }, signedIn ? t('Member') : t('Visitor')),
+			h('span', null, signedIn ? t('reads it in their Inbox') : m.reply_to ? t('goes by email') : t('no address')),
+		);
 		const answerBox = h(
 			'section',
 			{ class: 'ws-answer' },
 			h('h2', null, t('Answer')),
+			to,
 			signedIn || m.reply_to ? saved : '',
 			signedIn || m.reply_to ? text : h('p', { class: 'ws-quiet' }, t('Sent without signing in and without an address: there is nowhere to answer. The state is still yours to set.')),
 			signedIn ? h('div', { class: 'ws-answer-go' }, sendIt, thank) : m.reply_to ? h('div', { class: 'ws-answer-go' }, mail) : '',
@@ -299,7 +308,7 @@ function row(m, ago, onOpen) {
 			{ type: 'button', class: `ws-row${m.status === 'new' ? ' ws-row-unread' : ''}`, 'aria-current': 'false' },
 			h('span', { class: 'ws-row-top' }, h('span', { class: 'ws-row-word' }, t(KIND[m.kind])), h('span', { class: 'ws-row-time' }, ago(m.created_at, true))),
 			h('span', { class: 'ws-row-sub', lang: m.lang }, m.body.length > 90 ? `${m.body.slice(0, 90)}…` : m.body),
-			h('span', { class: 'ws-row-state' }, stateName(m.status)),
+			h('span', { class: 'ws-row-meta' }, h('span', { class: 'ws-row-state' }, stateName(m.status)), h('span', { class: `ws-who ws-who-${m.member !== null ? 'member' : 'visitor'}` }, m.member !== null ? t('Member') : t('Visitor'))),
 		)
 	);
 	b.addEventListener('click', onOpen);
