@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+131
+
+- A form's note (loved: past of love) stands under the part of speech it holds for, lit for a few seconds when first on screen
+
 ## 26.11.16+130
 
 - Related words: each kind a label with its words beneath, side by side where there is room; forms on the line of their part of speech

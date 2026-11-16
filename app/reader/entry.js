@@ -193,7 +193,8 @@ async function english(data, asked, said = []) {
 	const read = understood(data.query, asked, extra?.present ?? null, said);
 	const notes = [offlineNote(data), read];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
-	if (roots.length) notes.push(formNote(data));
+	/** What the query is a form of, not yet said beside a part of speech on the page. */
+	let unsaid = data.forms_of;
 	/** Senses on the page, for the summary beside it. */
 	let shown = data.entries;
 	let summary = lead(data.query, data.entries);
@@ -214,9 +215,18 @@ async function english(data, asked, said = []) {
 		found.forEach((root, n) => {
 			if (root.language !== 'en') return;
 			const more = extras(root);
-			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true, extra: i === 0 ? more : null })));
+			// "loved: past, past participle of love" goes under the root's verb, where the reader
+			// sees which meanings the word asked for takes; a part of speech the root does not
+			// show keeps its line in the note above.
+			/** @type {Map<string, string[]>} */
+			const byPos = new Map();
+			for (const [of, pos, form] of data.forms_of) if (of === root.query && pos) byPos.set(pos.toLowerCase(), [...(byPos.get(pos.toLowerCase()) ?? []), form]);
+			const formOf = { word: data.query, root: root.query, byPos };
+			bySpelling(root.entries).forEach(([word, senses], i) => blocks.push(wordBlock(word, senses, { first: n === 0 && i === 0, link: true, extra: i === 0 ? more : null, formOf })));
+			unsaid = unsaid.filter(([of, pos]) => !(of === root.query && pos && !byPos.has(pos.toLowerCase())));
 		});
 	}
+	if (unsaid.length) notes.push(formNote(unsaid));
 	// A form shows its root's senses, so feedback is about the root (went → go).
 	const word = shown[0]?.word ?? data.query;
 	const feedback = entryFeedback('en', word);
@@ -249,13 +259,14 @@ function bySpelling(senses) {
  * The first on a page is the page's h1.
  * @param {string} word
  * @param {import('#shared/types.js').EnglishSense[]} senses
- * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string, extra?: Extras | null }} [options]
+ * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string, extra?: Extras | null, formOf?: FormOf | null }} [options]
  *   link: the headword links to its own page; fit: the sense that fits a
  *   phrase, shown first and marked with fitLabel; extra: forms and related
- *   words, placed on this word's timeline.
+ *   words, placed on this word's timeline; formOf: the word asked for, a
+ *   form of this one, said under the part of speech it is a form in.
  */
 function wordBlock(word, senses, options = {}) {
-	const { first = false, link = false, fit = null, fitLabel = '', extra = null } = options;
+	const { first = false, link = false, fit = null, fitLabel = '', extra = null, formOf = null } = options;
 	const ordered = fit ? [fit, ...senses.filter((s) => s !== fit)] : senses;
 	const name = link ? h('a', { href: definitionHref(word) }, word) : word;
 	return h(
@@ -265,7 +276,7 @@ function wordBlock(word, senses, options = {}) {
 			h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'),
 			h(first ? 'h1' : 'h2', { class: 'headword' }, name),
 			first ? pronounceButton(word, 'en') : null),
-		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra),
+		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra, formOf),
 	);
 }
 
@@ -335,12 +346,12 @@ function myanmarHead(data) {
 
 /**
  * "went: past of go".
- * @param {EnglishResult} data
+ * @param {EnglishResult['forms_of']} formsOf  Root, part of speech, form.
  */
-function formNote(data) {
+function formNote(formsOf) {
 	/** @type {Map<string, string[]>} */
 	const byRoot = new Map();
-	for (const [root, pos, form] of data.forms_of) {
+	for (const [root, pos, form] of formsOf) {
 		const list = byRoot.get(root) ?? [];
 		list.push(`${form}${pos ? ` (${pos})` : ''}`);
 		byRoot.set(root, list);
@@ -351,6 +362,27 @@ function formNote(data) {
 		[...byRoot].map(([root, forms]) =>
 			h('li', null, tx('{forms} of {root}', { forms: forms.join(', '), root: h('a', { href: definitionHref(root) }, root) }))),
 	);
+}
+
+/**
+ * @typedef {object} FormOf  The word asked for as a form of a root shown in its place.
+ * @property {string} word  The word asked for (loved).
+ * @property {string} root  The root whose meanings are shown (love).
+ * @property {Map<string, string[]>} byPos  Forms by part of speech in lower case, those not yet said on the page.
+ */
+
+/**
+ * Lights a line for a few seconds the first time it is on screen (app.css,
+ * .is-noticed), so a reader sees it wherever on the page it stands.
+ * @param {HTMLElement} line
+ */
+function noticed(line) {
+	const seen = new IntersectionObserver((entries) => {
+		if (!entries.some((e) => e.isIntersecting)) return;
+		seen.disconnect();
+		line.classList.add('is-noticed');
+	}, { threshold: 1 });
+	seen.observe(line);
 }
 
 /**
@@ -376,8 +408,18 @@ function groupByType(senses) {
  * @param {object | null} [fit]  The sense that fits a phrase, marked.
  * @param {string} [fitLabel]
  * @param {Extras | null} [extra]  Forms (each in its part of speech) and related words (a section of their own).
+ * @param {FormOf | null} [formOf]  The word asked for, a form of the headword; a part of speech said here leaves formOf.byPos.
  */
-function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra = null) {
+function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra = null, formOf = null) {
+	/** "loved: past, past participle of love", under the part of speech it holds for. @param {string} pos */
+	const formOfLine = (pos) => {
+		const forms = formOf?.byPos.get(pos.toLowerCase());
+		if (!formOf || !forms) return null;
+		formOf.byPos.delete(pos.toLowerCase());
+		const line = h('p', { class: 'pos-form-of' }, h('b', null, formOf.word), ': ', tx('{forms} of {root}', { forms: forms.join(', '), root: formOf.root }));
+		noticed(line);
+		return line;
+	};
 	/** Forms not yet placed, by part of speech in lower case. */
 	const forms = new Map(extra?.forms ?? []);
 	let formsId = 'forms';
@@ -398,6 +440,7 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 			'section',
 			{ class: 'pos' },
 			head(type),
+			formOfLine(type),
 			h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 		),
 	);

@@ -713,6 +713,19 @@ body[data-route="home"] .site-footer { display: none; }
 .pos-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
 .pos-forms { margin: 0; min-width: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
 .pos-forms::before { content: "·"; margin-right: 10px; color: var(--faint); }
+/* The word asked for is a form of this one: said under the part of speech it
+   is a form in, and lit for a few seconds when first on screen (entry.js). */
+.pos-form-of {
+	width: fit-content; max-width: 100%;
+	margin: 10px 0 0 -10px; padding: 5px 10px; border-radius: 9px;
+	font-size: 14.5px; color: var(--muted);
+}
+.pos-form-of b { font-weight: 600; color: var(--ink); }
+@keyframes form-of-noticed {
+	0%, 60% { background: color-mix(in srgb, var(--warn) 15%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 28%, transparent); }
+	100% { background: transparent; box-shadow: 0 0 0 1px transparent; }
+}
+.pos-form-of.is-noticed { animation: form-of-noticed 4.5s ease-out both; }
 /* Related words, the timeline's last section: each kind a small label with
    its words beneath, the kinds side by side where there is room. */
 .related-list { margin: 16px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 36px; }
@@ -930,6 +943,7 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.pos-forms { flex: 1; padding: 5px 16px 5px 0; }
 	.pos-forms::before { content: none; }
 	.pos-only-forms .pos-head { margin-bottom: 4px; }
+	.pos-form-of { margin: 12px 16px 0 6px; font-size: 15px; }
 	.related-list { margin: 14px 16px 6px; grid-template-columns: 1fr; gap: 16px; }
 	/* Related words are tapped more than read: a size up, and room between
 	   the lines so a finger finds the word it means. */
