@@ -22,13 +22,13 @@
 .site-header,
 .site-footer {
 	width: 100%;
-	padding-inline: var(--gutter);
+	padding-left: var(--edge-l); padding-right: var(--edge-r);
 }
 .search-bar-inner,
 main {
 	width: 100%;
 	max-width: var(--page);
-	padding-inline: var(--gutter);
+	padding-left: var(--edge-l); padding-right: var(--edge-r);
 }
 
 /* Liquid Glass surfaces: blurred, tinted, a bright top edge. */
@@ -223,7 +223,7 @@ html:not([data-online]) :is(.you, .ws-rail > .ws-rail-face, .ws-menu-button .ws-
 
 /* Maintenance and information: a calm bar under the header on every page
    (app/core/notices.js). A celebration is a line on the home page instead. */
-.site-notices { width: 100%; padding-inline: var(--gutter); display: grid; gap: 8px; margin: 2px 0 6px; }
+.site-notices { width: 100%; padding-left: var(--edge-l); padding-right: var(--edge-r); display: grid; gap: 8px; margin: 2px 0 6px; }
 .site-notices[hidden] { display: none; }
 @media (max-width: 640px) {
 	.site-notice { align-items: flex-start; font-size: 13px; padding: 8px 6px 8px 12px; }
@@ -515,7 +515,7 @@ body[data-searching] .search-bar::before { -webkit-backdrop-filter: none; backdr
 	.search-cancel {
 		display: block;
 		position: absolute;
-		right: var(--gutter);
+		right: var(--edge-r);
 		top: calc(env(safe-area-inset-top) + (var(--header-h) - 40px) / 2);
 		height: 40px; padding: 0 18px;
 		border: none; border-radius: 999px;
@@ -610,7 +610,8 @@ body[data-route="home"] main { padding-top: 0; }
 .site-footer {
 	display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
 	padding-top: 18px;
-	padding-bottom: max(22px, env(safe-area-inset-bottom));
+	/* Clear of the home indicator or gesture bar, with room of its own above it. */
+	padding-bottom: calc(22px + var(--safe-b));
 	box-shadow: var(--glass-shine);
 	font-size: 13px; color: var(--muted);
 }
@@ -1064,7 +1065,10 @@ body[data-route="workspace"] .site-header,
 body[data-route="workspace"] .site-footer { display: none; }
 body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 
+/* The workspace fills the screen, so it keeps clear of the phone's own parts
+   itself: the sides (a phone on its side) and the bottom. */
 .ws {
+	padding: 0 var(--safe-r) var(--safe-b) var(--safe-l);
 	height: 100vh; height: 100dvh;
 	display: grid;
 	grid-template-columns: 52px var(--ws-list-w, 300px) minmax(0, 1fr) 290px;
@@ -1721,7 +1725,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 		display: grid; position: absolute; top: calc(100% + 2px); right: 10px; z-index: 30;
 		width: min(300px, calc(100vw - 24px)); padding: 6px 0;
 		/* Never taller than the screen: the sections scroll, the person and the way back stay. */
-		max-height: calc(100dvh - 84px); grid-template-rows: auto minmax(0, 1fr) auto;
+		max-height: calc(100dvh - 84px - var(--safe-t) - var(--safe-b)); grid-template-rows: auto minmax(0, 1fr) auto;
 		border: 1px solid var(--line); border-radius: 16px; background: var(--ground); color: var(--ink);
 		box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
 	}
@@ -1764,9 +1768,9 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .consent {
 	position: fixed;
 	z-index: 6;
-	left: var(--gutter);
-	right: var(--gutter);
-	bottom: max(var(--gutter), env(safe-area-inset-bottom));
+	left: var(--edge-l);
+	right: var(--edge-r);
+	bottom: calc(var(--gutter) + var(--safe-b));
 	max-width: 420px;
 	padding: 14px 16px;
 	border-radius: 18px;

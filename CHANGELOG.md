@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+128
+
+- Phones: side and bottom room for the notch, Dynamic Island and home indicator, in the workspace too; an empty search field lists recent searches on focus
+
 ## 26.11.16+127
 
 - Search: ✕ and Escape clear the field and list recent searches, the / hint shows whenever the cursor is elsewhere; comments as cards pointing at the face, a form as tall as the face that grows with its lines

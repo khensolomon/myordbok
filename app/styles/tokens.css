@@ -89,6 +89,17 @@
 	--radius: 16px;
 	/* Side padding grows with the window: 16px on phones, up to 48px on wide screens. */
 	--gutter: clamp(16px, 2.5vw, 48px);
+	/* The parts of the screen a phone keeps for itself: the notch or Dynamic
+	   Island, rounded corners, the home indicator or gesture bar. Zero on
+	   screens without them. */
+	--safe-t: env(safe-area-inset-top, 0px);
+	--safe-r: env(safe-area-inset-right, 0px);
+	--safe-b: env(safe-area-inset-bottom, 0px);
+	--safe-l: env(safe-area-inset-left, 0px);
+	/* The page's side margins: the gutter, or the safe area where that is wider
+	   (a phone on its side has the notch at one end). */
+	--edge-l: max(var(--gutter), var(--safe-l));
+	--edge-r: max(var(--gutter), var(--safe-r));
 	/* Reading width of page content, from the left edge. */
 	--page: 1040px;
 	color-scheme: light;

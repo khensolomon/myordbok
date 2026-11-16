@@ -14,10 +14,10 @@
  * the search field, its text selected; a small "/" in the box says so while
  * the cursor is elsewhere, on devices with a keyboard and pointer.
  *
- * Clearing: a field holding text shows an ✕; it, or Escape in the field,
- * empties the field, keeps the cursor there and lists this device's recent
- * searches (data/recent.js) in place of suggestions. Escape in an empty
- * field closes the list.
+ * An empty field with the cursor in it lists this device's recent searches
+ * (data/recent.js) in place of suggestions: on focus, and when emptied.
+ * A field holding text shows an ✕; it, or Escape in the field, empties the
+ * field and keeps the cursor there. Escape in an empty field closes the list.
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
@@ -121,6 +121,7 @@ export class SearchBox extends HTMLElement {
 			clearTimeout(settle);
 			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget)) && !document.body.hasAttribute('data-searching')) this.valueBefore = this.input?.value ?? '';
 			document.body.toggleAttribute('data-searching', true);
+			if (e.target === this.input && !this.input?.value) this.show(recentSearches(), [], true);
 		});
 		// On a touch screen the bar stops sticking while the field has focus
 		// (app.css): iOS Safari draws a sticky field's text cursor off the field
@@ -183,7 +184,7 @@ export class SearchBox extends HTMLElement {
 		const input = /** @type {HTMLInputElement} */ (this.input);
 		const q = input.value.trim();
 		const mine = ++this.seq;
-		if (!q) return this.show([]);
+		if (!q) return this.show(document.activeElement === input ? recentSearches() : [], [], true);
 		const intent = classify(q);
 		const line = preview(intent);
 		if (line) return this.show([], [row(line.label, line.value, definitionHref(q), q)]);
