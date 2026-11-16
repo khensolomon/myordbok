@@ -41,7 +41,7 @@ import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
 import { liveLayer, requireLayerRoom, resetLayerCache } from '../lib/layer.js';
 import { currentMember, endSession } from '../lib/session.js';
-import { inbox } from './messages.js';
+import { inbox, unseenAnswers } from './messages.js';
 import { members } from './members.js';
 import { manageNotices } from './notices.js';
 import { searches } from './searches.js';
@@ -161,7 +161,7 @@ async function summary(env, member) {
 		: null;
 	const unread = atLeast(member.role, 'admin') ? /** @type {{ n: number }} */ (await env.APP.prepare("SELECT count(*) AS n FROM messages WHERE status = 'new'").first()).n : null;
 	return json(
-		{ role: member.role, mine: Object.fromEntries(own.results.map((r) => [String(r.status), Number(r.n)])), waiting: waiting === null ? null : Number(waiting), ...(unread === null ? {} : { unread: Number(unread) }) },
+		{ role: member.role, mine: Object.fromEntries(own.results.map((r) => [String(r.status), Number(r.n)])), waiting: waiting === null ? null : Number(waiting), ...(unread === null ? {} : { unread: Number(unread) }), answers: await unseenAnswers(env, member.id) },
 		NO_STORE,
 	);
 }
@@ -368,7 +368,7 @@ async function overview(env, member) {
 	]);
 	const r = /** @type {{ entries: number, senses: number }} */ (rated);
 	const own = { suggestions: Object.fromEntries(mine.map((x) => [String(x.status), Number(x.n)])), ratings: Number(r.entries) + Number(r.senses), rated: { entries: Number(r.entries), senses: Number(r.senses) } };
-	const base = { role: member.role, insights: seesStatistics(member), own, days: OVERVIEW_DAYS, ...shared };
+	const base = { role: member.role, insights: seesStatistics(member), own, answers: await unseenAnswers(env, member.id), days: OVERVIEW_DAYS, ...shared };
 	if (!seesStatistics(member)) return json(base, NO_STORE);
 	// The site's statistics: editors and above, and members shown them.
 	const [usage, ratedDown] = await Promise.all([

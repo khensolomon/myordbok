@@ -2,9 +2,15 @@
 /**
  * The Inbox (?s=inbox), for admins: messages from the contact form
  * (/contact). A message is unread until opened, then read; an admin marks
- * it replied once answered (by their own mail, to the address left) and done
- * when nothing is left to do. Any state can be set again. Each message can
- * carry a note for the admins; the sender never sees it.
+ * it replied once answered and done when nothing is left to do. Any state
+ * can be set again. Each message can carry a note for the admins; the
+ * sender never sees it.
+ *
+ * Answering: a member who wrote while signed in reads the answer, and the
+ * state, in their own Inbox (messages.js); nothing is mailed. A visitor has
+ * no Inbox, so theirs is written in the admin's own mail, to the address
+ * left. Either way the saved answers below start the text, in the language
+ * the message was sent from, to be changed before it goes.
  */
 import { listBar } from './list-bar.js';
 import { h, icon } from '../core/dom.js';
@@ -21,6 +27,20 @@ const STATES = [
 	['read', mark('Read')],
 	['replied', mark('Replied')],
 	['done', mark('Done')],
+];
+
+/**
+ * Answers written often, in both languages the site is read in. They are
+ * sent to readers, so they are kept here as texts of their own, not as
+ * interface words: the one in the sender's language is used.
+ * @type {ReadonlyArray<{ label: string, en: string, my: string }>}
+ */
+const SAVED = [
+	{ label: mark('Thank you'), en: 'Thank you for the kind words. They are read, and they help.', my: 'ကြင်နာသော စကားများအတွက် ကျေးဇူးတင်ပါသည်။ ဖတ်ရှုပြီး အားတက်ရပါသည်။' },
+	{ label: mark('On the list'), en: 'Thank you for the idea. It is on the list; a date cannot be promised yet.', my: 'အကြံပြုချက်အတွက် ကျေးဇူးတင်ပါသည်။ စာရင်းတွင် ထည့်ထားပါသည်။ ရက်စွဲကိုမူ မကတိပြုနိုင်သေးပါ။' },
+	{ label: mark('It is fixed'), en: 'Thank you for telling us. It is fixed and on the site now.', my: 'အသိပေးသည့်အတွက် ကျေးဇူးတင်ပါသည်။ ပြင်ဆင်ပြီး ဝက်ဘ်ဆိုက်တွင် ရောက်ရှိနေပါပြီ။' },
+	{ label: mark('The word is noted'), en: 'Thank you. The word is noted for the dictionary.', my: 'ကျေးဇူးတင်ပါသည်။ ထိုစကားလုံးကို အဘိဓာန်အတွက် မှတ်သားထားပါသည်။' },
+	{ label: mark('More detail, please'), en: 'Thank you. To look into it, a little more is needed: which word or page was it, and what did you expect to see?', my: 'ကျေးဇူးတင်ပါသည်။ စစ်ဆေးနိုင်ရန် အနည်းငယ် ထပ်သိလိုပါသည်။ မည်သည့် စကားလုံး သို့မဟုတ် စာမျက်နှာ ဖြစ်ပြီး မည်သို့ မြင်ရမည်ဟု မျှော်လင့်ခဲ့ပါသနည်း။' },
 ];
 
 /** @type {Record<Message['kind'], string>} */
@@ -79,7 +99,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 	/**
 	 * Saves a change and shows it everywhere it appears.
 	 * @param {number} i
-	 * @param {{ status?: State, note?: string | null }} change
+	 * @param {{ status?: State, note?: string | null, answer?: string | null }} change
 	 */
 	const save = async (i, change) => {
 		const before = items[i];
@@ -90,7 +110,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 			onUnread(counts.new);
 			drawSegments();
 		}
-		items[i] = { ...before, status: saved.status, note: saved.note, handled_by: t('you'), handled_at: Math.floor(Date.now() / 1000) };
+		items[i] = { ...before, status: saved.status, note: saved.note, answer: saved.answer, answered_at: saved.answered_at, answer_seen: change.answer === undefined ? before.answer_seen : false, handled_by: t('you'), handled_at: Math.floor(Date.now() / 1000) };
 		rows[i].classList.toggle('ws-row-unread', saved.status === 'new');
 		rows[i].querySelector('.ws-row-state')?.replaceChildren(stateName(saved.status));
 	};
@@ -105,12 +125,84 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 		const m = items[i];
 		const back = h('button', { type: 'button', class: 'ws-back', 'aria-label': t('Back to the list') }, icon(ICONS.back, 20));
 		back.addEventListener('click', () => root.removeAttribute('data-open'));
-		work.replaceChildren(
-			h('header', { class: 'ws-crumbs' }, back, h('span', null, t(KIND[m.kind])), h('span', { 'aria-hidden': 'true' }, '›'), h('span', null, ago(m.created_at))),
-			h('div', { class: 'ws-work' }, h('p', { class: 'ws-message', lang: m.lang }, m.body)),
+		const out = h('p', { class: 'ws-result', role: 'status' });
+		/** The states follow whatever was just saved. */
+		const showState = () => {
+			stateButtons.forEach((x, k) => x.setAttribute('aria-pressed', String(STATES[k][0] === items[i].status)));
+			who.textContent = handled(items[i], ago);
+		};
+
+		// The answer: to a member's Inbox, or begun here for the admin's own mail.
+		const signedIn = m.member !== null;
+		const text = /** @type {HTMLTextAreaElement} */ (h('textarea', { class: 'ws-answer-text', rows: 4, maxlength: 2000, lang: m.lang, placeholder: signedIn ? t('An answer {name} reads in their Inbox', { name: m.member ?? '' }) : t('An answer to send by email') }, m.answer ?? ''));
+		const sent = h('p', { class: 'ws-quiet' });
+		const showSent = () => {
+			const now = items[i];
+			sent.textContent = now.answer ? (now.answer_seen ? t('Answered {when}; seen by the sender.', { when: ago(now.answered_at ?? 0) }) : t('Answered {when}; not seen yet.', { when: ago(now.answered_at ?? 0) })) : '';
+		};
+		showSent();
+		const said = h('p', { class: 'ws-result', role: 'status' });
+		const sendIt = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-primary' }, t('Send the answer')));
+		const mail = /** @type {HTMLAnchorElement} */ (h('a', { class: 'ws-primary ws-reply' }, t('Reply by email')));
+		const quoted = `\n\n> ${m.body.split('\n').join('\n> ')}`;
+		const sync = () => {
+			const written = text.value.trim();
+			sendIt.disabled = !written || written === (items[i].answer ?? '');
+			if (m.reply_to) mail.href = `mailto:${m.reply_to}?subject=${encodeURIComponent(t('Your message to MyOrdbok'))}&body=${encodeURIComponent(`${written}${quoted}`)}`;
+		};
+		text.addEventListener('input', sync);
+		sync();
+		/** @param {string} answer @param {State} [status] */
+		const answerWith = async (answer, status) => {
+			said.textContent = '';
+			sendIt.disabled = true;
+			thank.disabled = true;
+			try {
+				await save(i, status ? { answer, status } : { answer });
+				text.value = answer;
+				showState();
+				showSent();
+				said.textContent = t('The answer is in their Inbox.');
+			} catch (err) {
+				said.textContent = err instanceof Error ? err.message : String(err);
+			}
+			thank.disabled = false;
+			sync();
+		};
+		sendIt.addEventListener('click', () => answerWith(text.value.trim()));
+		const saved = h(
+			'div',
+			{ class: 'ws-saved', role: 'group', 'aria-label': t('Saved answers') },
+			SAVED.map((s) => {
+				const b = h('button', { type: 'button', class: 'ws-saved-one', title: s[m.lang] }, t(s.label));
+				b.addEventListener('click', () => {
+					text.value = s[m.lang];
+					sync();
+					text.focus();
+				});
+				return b;
+			}),
+		);
+		// One press for the commonest answer: thanks, and nothing left to do.
+		const thank = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, icon(ICONS.like, 15), t('Thank and close')));
+		thank.addEventListener('click', () => answerWith(SAVED[0][m.lang], 'done'));
+		const answerBox = h(
+			'section',
+			{ class: 'ws-answer' },
+			h('h2', null, t('Answer')),
+			signedIn || m.reply_to ? saved : '',
+			signedIn || m.reply_to ? text : h('p', { class: 'ws-quiet' }, t('Sent without signing in and without an address: there is nowhere to answer. The state is still yours to set.')),
+			signedIn ? h('div', { class: 'ws-answer-go' }, sendIt, thank) : m.reply_to ? h('div', { class: 'ws-answer-go' }, mail) : '',
+			said,
+			signedIn ? sent : m.reply_to ? h('p', { class: 'ws-quiet' }, t('Not signed in: the answer goes from your own mail to {email}. Set the state to Replied once sent.', { email: m.reply_to })) : '',
+			signedIn && m.reply_to ? h('p', { class: 'ws-quiet' }, t('An address was left too:'), ' ', mail) : '',
 		);
 
-		const out = h('p', { class: 'ws-result', role: 'status' });
+		work.replaceChildren(
+			h('header', { class: 'ws-crumbs' }, back, h('span', null, t(KIND[m.kind])), h('span', { 'aria-hidden': 'true' }, '›'), h('span', null, ago(m.created_at))),
+			h('div', { class: 'ws-work' }, h('p', { class: 'ws-message', lang: m.lang }, m.body), answerBox),
+		);
+
 		const stateButtons = STATES.map(([s, label], n) => {
 			const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-state', 'aria-pressed': String(m.status === s), 'data-key': String(n + 1) }, t(label)));
 			b.addEventListener('click', async () => {
@@ -119,8 +211,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 				out.textContent = '';
 				try {
 					await save(i, { status: s });
-					stateButtons.forEach((x, k) => x.setAttribute('aria-pressed', String(STATES[k][0] === s)));
-					who.textContent = handled(items[i], ago);
+					showState();
 				} catch (err) {
 					out.textContent = err instanceof Error ? err.message : String(err);
 				} finally {
@@ -143,10 +234,6 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 				out.textContent = err instanceof Error ? err.message : String(err);
 			}
 		});
-		const reply = m.reply_to
-			? h('a', { class: 'ws-primary ws-reply', href: `mailto:${m.reply_to}?subject=${encodeURIComponent(t('Your message to MyOrdbok'))}&body=${encodeURIComponent(`\n\n> ${m.body.split('\n').join('\n> ')}`)}` }, t('Reply by email'))
-			: null;
-
 		inspector.replaceChildren(
 			h(
 				'section',
@@ -154,7 +241,7 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 				h('h2', null, t('From')),
 				h('p', null, m.member ?? t('A visitor, not signed in')),
 				m.reply_to ? h('p', null, m.reply_to) : h('p', { class: 'ws-quiet' }, t('No address for a reply.')),
-				reply ?? '',
+				h('p', { class: 'ws-quiet' }, signedIn ? t('Signed in: an answer shows in their Inbox.') : t('Not signed in: no Inbox to answer in.')),
 				h('p', { class: 'ws-quiet' }, m.lang === 'my' ? t('Sent from the Myanmar interface.') : t('Sent from the English interface.')),
 			),
 			m.page ? h('section', { class: 'ws-box' }, h('h2', null, t('About the page')), h('p', null, h('a', { href: m.page }, m.page))) : '',

@@ -23,7 +23,7 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 | Answers         | Numbers read in words both ways (`10000`, `၁၀၀၀၀`, `ten thousand`), sums (`x=3/4*12`, `10% of 70`), shares, the time and date, laid out like an entry with copy buttons |
 | Home            | Recent searches (kept on the device) and the words searched most this week |
 | Members         | Sign in with Google or GitHub to rate meanings, comment on entries, suggest corrections and new meanings, and download the definitions for offline use |
-| Workspace       | Overview and usage statistics, contributions, ratings, offline copy and account for every member; suggestion review, comment moderation and the studio (a word's meanings, examples, parts of speech and statuses on one sheet) for editors; members, notices, settings and the contact inbox for admins, whose approved edits are live for readers within minutes |
+| Workspace       | Overview and usage statistics, contributions, ratings, offline copy, account and an inbox with the answers to their own messages for every member; suggestion review, comment moderation and the studio (a word's meanings, examples, parts of speech and statuses on one sheet) for editors; members, notices, settings and the contact inbox for admins, whose approved edits are live for readers within minutes |
 | Grammar         | Instant Myanmar [grammar][grammar] lookup                               |
 | Apps            | Available on the [App Store][appstore], [Google play][playStore].       |
 

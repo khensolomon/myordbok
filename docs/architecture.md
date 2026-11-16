@@ -275,8 +275,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Contact goes through the site, not email.** MyOrdbok has no address of
   its own: `/contact` sends feedback, questions, problems and words to add to
   the `messages` table (`POST /api/messages`), read by admins in the
-  workspace's Inbox, where a sender's address (if left) opens a reply in the
-  admin's own mail. Spam: a field people never see drops the message when
+  workspace's Inbox. A member who wrote while signed in reads the answer, and
+  the message's state, in their own Inbox (`GET /api/messages`, migration
+  0015); nothing is mailed, and the workspace's badge counts the answers not
+  yet seen. A visitor has no Inbox: their address (if left) opens a reply in
+  the admin's own mail. Saved answers, in both languages, start either kind.
+  Spam: a field people never see drops the message when
   filled, plus the same-origin rule and the stricter rate limit.
 - **Site notices are scheduled, not posted.** Admins write them in the
   workspace's Notices section (`notices` table, `worker/routes/notices.js`,

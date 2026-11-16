@@ -81,7 +81,7 @@ function yours(data, editor) {
 			'div',
 			{ class: 'ws-tiles' },
 			editor ? tile(t('Waiting'), data.suggestions?.pending ?? 0, t('suggestions to review'), '/workspace?s=suggestions', ICONS.document) : '',
-			data.unread === undefined ? '' : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox', ICONS.inbox),
+			data.unread === undefined ? tile(t('Inbox'), data.answers, t('new answers'), '/workspace?s=inbox', ICONS.inbox) : tile(t('Inbox'), data.unread, t('new messages'), '/workspace?s=inbox', ICONS.inbox),
 			tile(t('Suggestions'), total, (s.pending ?? 0) ? t('{n} waiting', { n: s.pending ?? 0 }) : t('sent'), '/workspace?s=contributions', ICONS.suggest),
 			tile(t('Approved'), (s.approved ?? 0) + (s.exported ?? 0) + (s.merged ?? 0), (s.merged ?? 0) ? t('{n} in the dictionary', { n: s.merged }) : t('so far'), undefined, ICONS.check),
 			tile(t('Meanings rated'), data.own.rated.senses, data.own.rated.entries ? t('and {n} whole entries', { n: data.own.rated.entries }) : t('up or down'), '/workspace?s=ratings', ICONS.thumbUp),

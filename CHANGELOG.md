@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+132
+
+- Inbox for every member: their own messages with the answers; admins answer from the Inbox with saved answers, or thank and close in one press
+
 ## 26.11.16+131
 
 - A form's note (loved: past of love) stands under the part of speech it holds for, lit for a few seconds when first on screen

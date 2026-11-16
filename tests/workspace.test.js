@@ -45,8 +45,8 @@ test('workspace: a member sees only their own; an editor sees the queue with the
 	assert.equal(item.current.sense, first.sense);
 	assert.equal(item.current.type, first.type);
 
-	assert.deepEqual((await call(e, '/api/workspace/summary', { who: 'editor' })).body, { role: 'editor', mine: {}, waiting: 2 });
-	assert.deepEqual((await call(e, '/api/workspace/summary', { who: 'member' })).body, { role: 'member', mine: { pending: 1 }, waiting: null });
+	assert.deepEqual((await call(e, '/api/workspace/summary', { who: 'editor' })).body, { role: 'editor', mine: {}, waiting: 2, answers: 0 });
+	assert.deepEqual((await call(e, '/api/workspace/summary', { who: 'member' })).body, { role: 'member', mine: { pending: 1 }, waiting: null, answers: 0 });
 });
 
 test('workspace: review once, by an editor; withdraw by the author while waiting', async () => {
@@ -217,6 +217,38 @@ test('contact form: anyone may send; the hidden field drops a message; admins re
 	assert.deepEqual(replied.counts, { new: 0, read: 0, replied: 1, done: 1 });
 	assert.equal(replied.messages[0].handled_by, 'Ed');
 	assert.equal((await call(e, '/api/workspace/messages/999', { who: 'editor', body: { status: 'done' } })).status, 404);
+
+	// An answer: read by the member who wrote, in their own Inbox.
+	const own = box.messages[0].id;
+	assert.equal((await call(e, '/api/messages')).status, 401, 'a visitor has no Inbox');
+	const mineBefore = (await call(e, '/api/messages', { who: 'member' })).body.messages;
+	assert.deepEqual(mineBefore.map((m) => [m.kind, m.body, m.status, m.answer, m.unseen]), [['word', 'Please add selfie.', 'done', null, true]], 'the state alone is an answer of a kind');
+	assert.ok(!('note' in mineBefore[0]) && !('handled_by' in mineBefore[0]), 'the admins’ note stays theirs');
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).body.answers, 1);
+	assert.equal((await call(e, '/api/messages/seen', { who: 'member', body: {} })).status, 200);
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).body.answers, 0);
+
+	const answered = (await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: '  The word is noted. ' } })).body;
+	assert.deepEqual([answered.status, answered.answer], ['replied', 'The word is noted.']);
+	const mine = (await call(e, '/api/messages', { who: 'member' })).body.messages[0];
+	assert.deepEqual([mine.answer, mine.unseen], ['The word is noted.', true], 'a new answer is new again');
+	assert.equal((await call(e, '/api/workspace/messages?status=replied', { who: 'editor' })).body.messages[0].answer_seen, false);
+	await call(e, '/api/messages/seen', { who: 'member', body: {} });
+	assert.equal((await call(e, '/api/workspace/messages?status=replied', { who: 'editor' })).body.messages[0].answer_seen, true);
+	// Thanks and done in one; the member's other messages are not touched.
+	const thanked = (await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: 'Thank you.', status: 'done' } })).body;
+	assert.deepEqual([thanked.status, thanked.answer], ['done', 'Thank you.']);
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).body.answers, 1);
+	assert.equal((await call(e, '/api/workspace/summary', { who: 'other' })).body.answers, 0, 'another member sees none of it');
+	assert.deepEqual((await call(e, '/api/messages', { who: 'other' })).body.messages, []);
+	// The visitor's message has no Inbox to answer in; an empty or overlong answer is refused.
+	const refused = await call(e, `/api/workspace/messages/${other}`, { who: 'editor', body: { answer: 'Hello' } });
+	assert.equal(refused.status, 400);
+	assert.match(refused.body.error.message, /not signed in/);
+	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: '   ' } })).status, 400);
+	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: 'x'.repeat(2001) } })).status, 400);
+	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'member', body: { answer: 'mine' } })).status, 403);
+	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: null } })).body.answer, null, 'an answer can be taken back');
 
 	// A deleted account takes its messages with it.
 	await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'm@example.com' } });

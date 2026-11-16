@@ -52,9 +52,18 @@ export async function view(ctx) {
 	const result = h('p', { class: 'contact-result', role: 'status' });
 
 	// A signed-in member's address is known already; the field is still theirs to fill or leave.
+	// Signed in, the answer is read on the site (the workspace Inbox); a visitor is told so.
+	let signedIn = false;
+	const where = h('small', { class: 'contact-where' });
 	member()
 		.then((m) => {
+			signedIn = m !== null;
 			if (m?.email && !reply.value) reply.placeholder = m.email;
+			where.replaceChildren(
+				...(m
+					? [t('An answer shows in your Inbox on this site; no email is needed.')]
+					: [h('a', { href: `/workspace?s=account&return=${encodeURIComponent('/contact')}` }, t('Sign in')), ' ', t('to read the answer on this site, without leaving an address.')]),
+			);
 		})
 		.catch(() => {});
 
@@ -63,7 +72,7 @@ export async function view(ctx) {
 		{ class: 'contact-form', novalidate: true },
 		h('label', null, t('What is it about?'), choice),
 		h('label', null, t('Message'), body),
-		h('label', null, t('Your email, for a reply (optional)'), reply, h('small', null, t('Only to answer this message; never for anything else.'))),
+		h('label', null, t('Your email, for a reply (optional)'), reply, h('small', null, t('Only to answer this message; never for anything else.')), where),
 		h('div', { class: 'contact-trap', 'aria-hidden': 'true' }, h('label', null, 'Website', trap)),
 		h('div', { class: 'contact-actions' }, send),
 		result,
@@ -89,7 +98,7 @@ export async function view(ctx) {
 				lang: getLang(),
 				website: trap.value,
 			});
-			form.replaceWith(h('div', { class: 'contact-done', role: 'status' }, h('p', null, t('Thank you. The message has been sent.')), reply.value.trim() ? h('p', null, t('A reply, if one is needed, goes to {email}.', { email: reply.value.trim() })) : null, h('a', { href: '/' }, t('Back to the dictionary'))));
+			form.replaceWith(h('div', { class: 'contact-done', role: 'status' }, h('p', null, t('Thank you. The message has been sent.')), signedIn ? h('p', null, t('An answer, if one is needed, shows in your Inbox.'), ' ', h('a', { href: '/workspace?s=inbox' }, t('Open the Inbox'))) : null, reply.value.trim() ? h('p', null, t('A reply, if one is needed, goes to {email}.', { email: reply.value.trim() })) : null, h('a', { href: '/' }, t('Back to the dictionary'))));
 		} catch (err) {
 			send.disabled = false;
 			result.className = 'contact-result contact-failed';

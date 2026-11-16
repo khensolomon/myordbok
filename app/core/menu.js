@@ -21,7 +21,6 @@
 import { analyticsAvailable, getChoice, setChoice } from './consent.js';
 import { h, icon } from './dom.js';
 import { ICONS } from './icons.js';
-import { atLeast } from '#shared/roles.js';
 import { member, signInHref, signOut } from './member.js';
 import { getTheme, setTheme } from './prefs.js';
 import { workspaceSummary } from '../data/api.js';
@@ -139,17 +138,18 @@ function signIn(here) {
  */
 function account(me, done) {
 	const badge = h('span', { class: 'you-badge', hidden: true });
-	const editor = atLeast(me.role, 'editor');
-	if (editor) {
-		workspaceSummary()
-			.then((s) => {
-				const n = (s.waiting ?? 0) + (s.unread ?? 0);
-				badge.textContent = num(n);
-				badge.title = [s.waiting ? t('{n} waiting', { n: s.waiting }) : '', s.unread ? t('{n} unread', { n: s.unread }) : ''].filter(Boolean).join(' · ');
-				badge.hidden = n === 0;
-			})
-			.catch(() => {});
-	}
+	// What waits in the workspace: for a member, answers to their own messages;
+	// for editors and admins also suggestions to review and unread messages.
+	workspaceSummary()
+		.then((s) => {
+			// An admin's own answers show in the Inbox they already count.
+			const answers = s.unread === undefined ? s.answers : 0;
+			const n = (s.waiting ?? 0) + (s.unread ?? 0) + answers;
+			badge.textContent = num(n);
+			badge.title = [s.waiting ? t('{n} waiting', { n: s.waiting }) : '', s.unread ? t('{n} unread', { n: s.unread }) : '', answers ? t('{n} new answers', { n: answers }) : ''].filter(Boolean).join(' · ');
+			badge.hidden = n === 0;
+		})
+		.catch(() => {});
 	return h(
 		'div',
 		{ class: 'you-head you-me' },

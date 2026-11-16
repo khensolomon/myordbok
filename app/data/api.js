@@ -214,7 +214,7 @@ export function suggestEdit(suggestion) {
  * @property {{ word: string, type: string, sense: string | null, exam: string | null } | null} current
  */
 
-/** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null, unread?: number }>} */
+/** @returns {Promise<{ role: string, mine: Record<string, number>, waiting: number | null, unread?: number, answers: number }>} */
 export function workspaceSummary() {
 	return getJSON('/api/workspace/summary');
 }
@@ -305,6 +305,7 @@ export function withdrawEdit(id) {
  * @property {{ roles: Record<string, number>, joinedWeek: number }} [members]  Editors and admins.
  * @property {Array<{ dict: string, sense_id: number, word: string, type: string, sense: string, down: number, up: number }>} [disliked]  Editors and admins.
  * @property {number} [unread]  New messages in the Inbox; admins only.
+ * @property {number} answers  Answers to the member's own messages, not yet seen.
  * @property {{ beta?: string, live?: string }} [builds]  The build each site reads; editors.
  * @property {{ at: string, name: string, bytes: number, kept: number } | { error: string } | null} [backup]  The newest backup of the app database; admins only.
  * @property {boolean} [insights]  Shown the site's statistics (editors and up, or by an admin's choice).
@@ -455,7 +456,34 @@ export function sendMessage(message) {
  * @property {string | null} member
  * @property {string | null} handled_by
  * @property {number | null} handled_at
+ * @property {string | null} answer  What the sender reads in their own Inbox.
+ * @property {number | null} answered_at
+ * @property {boolean} answer_seen  The sender has opened their Inbox since.
  */
+
+/**
+ * @typedef {object} OwnMessage  A message as its sender sees it.
+ * @property {number} id
+ * @property {number} created_at
+ * @property {'feedback' | 'question' | 'problem' | 'word'} kind
+ * @property {string} body
+ * @property {string | null} page
+ * @property {'en' | 'my'} lang
+ * @property {MessageState} status
+ * @property {string | null} answer
+ * @property {number | null} answered_at
+ * @property {boolean} unseen  Answered since the sender last looked.
+ */
+
+/** A member's own messages with their answers. @returns {Promise<{ messages: OwnMessage[] }>} */
+export function myMessages() {
+	return getJSON('/api/messages');
+}
+
+/** The member has seen the answers. */
+export function messagesSeen() {
+	return postJSON('/api/messages/seen', {});
+}
 
 /**
  * The Inbox, for admins.
@@ -467,10 +495,10 @@ export function inboxMessages({ status, before }) {
 }
 
 /**
- * A message's state, its note (null clears it), or both.
+ * A message's state, its note (null clears it), its answer (null takes it back), or several.
  * @param {number} id
- * @param {{ status?: MessageState, note?: string | null }} change
- * @returns {Promise<{ ok: true, status: MessageState, note: string | null }>}
+ * @param {{ status?: MessageState, note?: string | null, answer?: string | null }} change
+ * @returns {Promise<{ ok: true, status: MessageState, note: string | null, answer: string | null, answered_at: number | null }>}
  */
 export function updateMessage(id, change) {
 	return postJSON(`/api/workspace/messages/${id}`, change);

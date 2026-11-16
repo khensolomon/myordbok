@@ -12,7 +12,8 @@
  *   ?s=contributions everyone: the member's own suggestions
  *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
- *   ?s=inbox         admins: messages from the contact form (inbox.js)
+ *   ?s=inbox         admins: messages from the contact form (inbox.js);
+ *                    other members: their own messages and the answers (messages.js)
  *   ?s=members       admins and owners: levels and suspending (members.js)
  *   ?s=notices       admins: site notices, scheduled ahead (notices.js)
  *   ?s=settings      admins: site settings (settings.js)
@@ -40,6 +41,7 @@ import { member, signInHref, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, liveEdit, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
 import { inboxPanes } from './inbox.js';
+import { messagesPane } from './messages.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
@@ -66,7 +68,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
-	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: true, admin: true },
+	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: false, admin: false },
 	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
 	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
@@ -132,7 +134,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'inbox' || asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -192,12 +194,20 @@ export async function view(ctx) {
 		return root;
 	}
 	if (section === 'inbox') {
-		const panes = await inboxPanes(ctx, root, ago, (unread) => {
+		const count = (/** @type {number} */ unread) => {
 			for (const badge of rail.querySelectorAll('[data-section-badge="inbox"]')) {
 				badge.textContent = num(unread);
 				badge.toggleAttribute('hidden', unread === 0);
 			}
-		});
+		};
+		// A member's Inbox is their own messages; an admin's is everyone's.
+		if (!admin) {
+			// One column, not the admins' three (app.css).
+			root.dataset.section = 'messages';
+			root.append(rail, await messagesPane(ago, () => count(0)));
+			return root;
+		}
+		const panes = await inboxPanes(ctx, root, ago, count);
 		root.append(rail, ...panes);
 		resizable();
 		return root;
@@ -585,11 +595,11 @@ function progress(status) {
  * @param {Member} me
  * @param {boolean} editor
  * @param {Section} section
- * @param {{ waiting: number | null, unread?: number }} summary
+ * @param {{ waiting: number | null, unread?: number, answers: number }} summary
  */
 function railFor(me, editor, section, summary) {
 	const sections = SECTIONS.filter((s) => ('owner' in s ? atLeast(me.role, 'owner') : 'stats' in s ? seesStatistics(me) : s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
-	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? 0) : 0);
+	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? summary.answers) : 0);
 	const badge = (/** @type {string} */ id, /** @type {number} */ count) => (id === 'suggestions' || id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': id, hidden: count ? null : true }, num(count)) : null);
 	const items = sections.map((s) => {
 		const label = t(s.label);

@@ -15,7 +15,7 @@ import { auth, me } from './routes/auth.js';
 import { publicSupport } from './routes/support.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
-import { sendMessage } from './routes/messages.js';
+import { myMessages, seenMessages, sendMessage } from './routes/messages.js';
 import { activeNotices } from './routes/notices.js';
 import { comments } from './routes/comments.js';
 import { packs } from './routes/packs.js';
@@ -128,6 +128,7 @@ async function answer(request, env, url, parts) {
 		if (parts.length === 1 && parts[0] === 'reactions') return reactions(request, env);
 		if (parts.length === 1 && parts[0] === 'edits') return suggestEdit(request, env);
 		if (parts.length === 1 && parts[0] === 'messages') return sendMessage(request, env);
+		if (parts.length === 2 && parts[0] === 'messages' && parts[1] === 'seen') return seenMessages(request, env);
 		if (parts.length === 1 && parts[0] === 'usage') return reportUsage(request, env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
 	}
@@ -148,6 +149,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'site') return siteSwitches(env);
 		if (parts[0] === 'support') return publicSupport(env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
+		if (parts[0] === 'messages') return myMessages(request, env);
 		if (parts[0] === 'reactions') return reactions(request, env);
 		if (parts[0] === 'senses') return senses(request, env);
 	}
