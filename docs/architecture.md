@@ -300,6 +300,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   query), words that start the same way, and a way to ask for it. A sentence
   is shown one word at a time (`&w=`), each word fetched only when opened and
   kept for the session, the next fetched ahead unless the reader saves data.
+- **A headword can be heard.** The button beside it plays
+  `/api/pronunciation?q=…&tl=en|my`, which the Worker fetches from Google
+  Translate's speech address and keeps at the edge and in the browser for a
+  month (`worker/routes/pronunciation.js`). That address is not a documented
+  service: it may refuse or end without notice, and then the button says so.
 - **Ids belong to a build, words do not.** Reactions and comments name the
   headword by spelling, so they survive any rebuild.
 - **Roles are checked on the server on every write**, reading the role from

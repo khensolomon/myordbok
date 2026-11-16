@@ -28,6 +28,7 @@ import { definitionPage, movedTo } from './routes/page.js';
 import { robots, sitemap } from './routes/sitemap.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
+import { pronunciation } from './routes/pronunciation.js';
 import { addUsage, reportUsage } from './lib/usage.js';
 import { getSetting, getSettings } from './lib/settings.js';
 
@@ -138,6 +139,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'lookup') return lookup(url, env);
 		if (parts[0] === 'suggest') return suggest(url, env);
 		if (parts[0] === 'spelling') return spelling(url, env);
+		if (parts[0] === 'pronunciation') return pronunciation(url);
 		if (parts[0] === 'phrase') return phrase(url, env);
 		if (parts[0] === 'read') return read(url, env);
 		if (parts[0] === 'me') return me(request, env);

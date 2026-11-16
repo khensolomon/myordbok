@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+129
+
+- A headword can be heard: a button beside it, through /api/pronunciation
+
 ## 26.11.16+128
 
 - Phones: side and bottom room for the notch, Dynamic Island and home indicator, in the workspace too; an empty search field lists recent searches on focus

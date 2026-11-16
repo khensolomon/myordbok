@@ -40,6 +40,7 @@ import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
 import { entryFeedback, suggestWord } from './contribute.js';
 import { commentsSection } from './comments.js';
+import { pronounceButton } from './pronounce.js';
 import { addRecent, removeRecent } from '../data/recent.js';
 import { classify, understoodHref } from './query.js';
 
@@ -262,7 +263,8 @@ function wordBlock(word, senses, options = {}) {
 		{ class: 'entry-block' },
 		h('header', { class: 'entry-head' },
 			h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'),
-			h(first ? 'h1' : 'h2', { class: 'headword' }, name)),
+			h(first ? 'h1' : 'h2', { class: 'headword' }, name),
+			first ? pronounceButton(word, 'en') : null),
 		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra),
 	);
 }
@@ -327,6 +329,7 @@ function myanmarHead(data) {
 					ipa ? h('span', { title: 'IPA' }, `/${ipa}/`) : null,
 					mlc ? h('span', { title: t('MLC transcription') }, mlc) : null)
 				: null),
+		pronounceButton(data.query, 'my'),
 	);
 }
 

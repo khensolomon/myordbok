@@ -953,4 +953,8 @@ export const MY = {
 	'Worked out on the device, percentages too.': 'ရာခိုင်နှုန်းအပါအဝင် စက်ပေါ်တွင် တွက်ချက်ပေးသည်။',
 	'The time or the date': 'အချိန် သို့မဟုတ် ရက်စွဲ',
 	'From the device’s clock, in English and in Myanmar.': 'စက်၏ နာရီမှ အင်္ဂလိပ်နှင့် မြန်မာဖြင့်။',
+	// Pronunciation (app/reader/pronounce.js)
+	'Listen': 'နားထောင်ရန်',
+	'The pronunciation needs a connection.': 'အသံထွက်ကို နားထောင်ရန် အင်တာနက် ချိတ်ဆက်မှု လိုအပ်သည်။',
+	'The pronunciation could not be played.': 'အသံထွက်ကို ဖွင့်၍ မရပါ။',
 };
