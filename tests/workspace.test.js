@@ -250,6 +250,35 @@ test('contact form: anyone may send; the hidden field drops a message; admins re
 	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'member', body: { answer: 'mine' } })).status, 403);
 	assert.equal((await call(e, `/api/workspace/messages/${own}`, { who: 'editor', body: { answer: null } })).body.answer, null, 'an answer can be taken back');
 
+	// Filters narrow the list and the counts; several messages take one action.
+	await call(e, '/api/messages', { who: 'member', body: { kind: 'feedback', body: 'Thank you all!', lang: 'my' } });
+	await call(e, '/api/messages', { body: { kind: 'feedback', body: 'Nice site', reply_to: 'fan@example.org' } });
+	await call(e, '/api/messages', { body: { kind: 'problem', body: 'BUY CHEAP WATCHES' } });
+	const inboxOf = async (query) => (await call(e, `/api/workspace/messages?status=all${query}`, { who: 'editor' })).body;
+	assert.deepEqual((await inboxOf('&kind=feedback')).messages.map((m) => m.body), ['Nice site', 'Thank you all!']);
+	assert.deepEqual((await inboxOf('&from=member')).messages.map((m) => m.kind), ['feedback', 'word']);
+	assert.deepEqual((await inboxOf('&from=visitor&kind=feedback')).counts, { new: 1, read: 0, replied: 0, done: 0 });
+	assert.deepEqual((await inboxOf('&lang=my')).messages.map((m) => m.body), ['Thank you all!', 'Where are the fonts?']);
+	assert.deepEqual((await inboxOf('&q=fan@example')).messages.map((m) => m.body), ['Nice site']);
+	assert.deepEqual((await inboxOf('&q=100%25')).messages, [], 'a % in the search is a character, not a wildcard');
+	assert.equal((await call(e, '/api/workspace/messages?kind=spam', { who: 'editor' })).status, 400);
+	const all = (await inboxOf('')).messages;
+	const idOf = (text) => all.find((m) => m.body === text).id;
+	const bulk = (body, who = 'editor') => call(e, '/api/workspace/messages/bulk', { who, body });
+	assert.equal((await bulk({ ids: [idOf('Nice site')], action: 'read' }, 'member')).status, 403);
+	for (const bad of [{}, { ids: [], action: 'read' }, { ids: ['1'], action: 'read' }, { ids: [1], action: 'archive' }, { ids: [1], action: 'thank' }, { ids: Array.from({ length: 201 }, (_, i) => i + 1), action: 'read' }]) {
+		assert.equal((await bulk(bad)).status, 400, JSON.stringify(bad).slice(0, 50));
+	}
+	assert.deepEqual((await bulk({ ids: [idOf('Nice site'), idOf('Thank you all!')], action: 'read' })).body, { ok: true, action: 'read', changed: 2, skipped: 0 });
+	// Thanks reach the member, in the language they wrote from; the visitor is left as is.
+	const thanked2 = (await bulk({ ids: [idOf('Nice site'), idOf('Thank you all!')], action: 'thank', answer: { en: 'Thank you.', my: 'ကျေးဇူးတင်ပါသည်။' } })).body;
+	assert.deepEqual([thanked2.changed, thanked2.skipped], [1, 1]);
+	const mineNow = (await call(e, '/api/messages', { who: 'member' })).body.messages.find((m) => m.body === 'Thank you all!');
+	assert.deepEqual([mineNow.status, mineNow.answer, mineNow.unseen], ['done', 'ကျေးဇူးတင်ပါသည်။', true]);
+	assert.equal((await inboxOf('&answer=yes')).messages.length, 1);
+	assert.deepEqual((await bulk({ ids: [idOf('BUY CHEAP WATCHES'), 99999], action: 'delete' })).body, { ok: true, action: 'delete', changed: 1, skipped: 0 });
+	assert.equal((await inboxOf('')).messages.length, 4);
+
 	// A deleted account takes its messages with it.
 	await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'm@example.com' } });
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM messages WHERE user_id = 1').get().n, 0);

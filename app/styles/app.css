@@ -1601,6 +1601,8 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-bulk-acts { display: flex; flex-wrap: wrap; gap: 6px; }
 .ws-bulk-act { height: 26px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); border-radius: 999px; background: var(--ground); color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; }
 .ws-bulk-act:hover { border-color: var(--brand); }
+.ws-bulk-danger { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); color: var(--danger); }
+.ws-bulk-danger:hover { border-color: var(--danger); }
 .ws-bulk-link { padding: 0; border: none; background: none; color: var(--link); font: inherit; font-size: 12.5px; cursor: pointer; }
 .ws-bulk-link:hover { text-decoration: underline; }
 .ws-bulk button:disabled { opacity: 0.5; cursor: default; }

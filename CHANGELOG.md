@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+134
+
+- Inbox: filters by kind, sender, answer and language; search over every message; several messages at once (read, done, thank and close, unread, delete)
+
 ## 26.11.16+133
 
 - Searches: labels (to add, misspelling, not a word), more filters, several words at once, near spellings on a word's page

@@ -11,11 +11,16 @@
  * no Inbox, so theirs is written in the admin's own mail, to the address
  * left. Either way the saved answers below start the text, in the language
  * the message was sent from, to be changed before it goes.
+ *
+ * The list is narrowed in the address (&status= &kind= &from= &lang=
+ * &answer= &q=) and read 30 at a time. The boxes pick several messages for
+ * one action: a state, thanks to each member in their language, or deleting
+ * them for good (asked twice).
  */
 import { listBar } from './list-bar.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
-import { inboxMessages, updateMessage } from '../data/api.js';
+import { bulkMessages, inboxMessages, inboxQuery, updateMessage } from '../data/api.js';
 import { mark, num, t } from '../i18n/index.js';
 
 /** @typedef {import('../data/api.js').InboxMessage} Message */
@@ -43,6 +48,9 @@ const SAVED = [
 	{ label: mark('More detail, please'), en: 'Thank you. To look into it, a little more is needed: which word or page was it, and what did you expect to see?', my: 'ကျေးဇူးတင်ပါသည်။ စစ်ဆေးနိုင်ရန် အနည်းငယ် ထပ်သိလိုပါသည်။ မည်သည့် စကားလုံး သို့မဟုတ် စာမျက်နှာ ဖြစ်ပြီး မည်သို့ မြင်ရမည်ဟု မျှော်လင့်ခဲ့ပါသနည်း။' },
 ];
 
+/** Most messages one action takes (worker/routes/messages.js BULK_MAX). */
+const BULK_MAX = 200;
+
 /** @type {Record<Message['kind'], string>} */
 const KIND = {
 	feedback: mark('Feedback'),
@@ -59,42 +67,79 @@ const KIND = {
  * @param {(unread: number) => void} onUnread  The rail's badge follows the unread count.
  */
 export async function inboxPanes(ctx, root, ago, onUnread) {
-	const asked = ctx.query.get('status');
-	/** @type {State | 'all'} */
-	const filter = asked === 'all' || STATES.some(([s]) => s === asked) ? /** @type {State | 'all'} */ (asked) : 'new';
+	const q0 = ctx.query;
+	const one = (/** @type {readonly string[]} */ allowed, /** @type {string} */ name, /** @type {string} */ fallback) => (allowed.includes(q0.get(name) ?? '') ? /** @type {string} */ (q0.get(name)) : fallback);
+	/** @type {import('../data/api.js').InboxFilter} */
+	const f = {
+		status: /** @type {State | 'all'} */ (one([...STATES.map(([s]) => s), 'all'], 'status', 'new')),
+		kind: /** @type {import('../data/api.js').InboxFilter['kind']} */ (one(Object.keys(KIND), 'kind', '')),
+		from: /** @type {'' | 'member' | 'visitor'} */ (one(['member', 'visitor'], 'from', '')),
+		lang: /** @type {'' | 'en' | 'my'} */ (one(['en', 'my'], 'lang', '')),
+		answer: /** @type {'' | 'yes' | 'no'} */ (one(['yes', 'no'], 'answer', '')),
+		q: (q0.get('q') ?? '').trim(),
+	};
+	/** The address with one part of the filter changed. @param {Partial<typeof f>} change */
+	const href = (change) => {
+		const p = inboxQuery({ ...f, ...change });
+		p.set('s', 'inbox');
+		return `/workspace?${p}`;
+	};
 	const listPane = h('section', { class: 'ws-list', 'aria-label': t('Inbox') });
 	const work = h('main', { class: 'ws-main', 'aria-label': t('Work area') }, h('p', { class: 'ws-empty' }, t('Choose a message from the list.')));
 	const inspector = h('aside', { class: 'ws-inspector', 'aria-label': t('Details') });
-
-	const page = await inboxMessages({ status: filter });
-	const counts = { ...page.counts };
-	/** @type {Message[]} */
-	const items = page.messages;
-	const rows = items.map((m, i) => row(m, ago, () => open(i)));
-	const ol = h('ol', { class: 'ws-rows' }, rows.length ? rows.map((b) => h('li', null, b)) : h('li', { class: 'ws-none' }, filter === 'new' ? t('No unread messages.') : t('Nothing here.')));
+	const ol = h('ol', { class: 'ws-rows ws-rows-pick' });
 	const bar = h('div', { class: 'ws-list-top' });
-	// Searches the messages in the list (the latest of the filter), as typed.
-	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Text, member or email'), 'aria-label': t('Find a message') }));
-	search.addEventListener('input', () => {
-		const q = search.value.trim().toLowerCase();
-		items.forEach((m, i) => {
-			const hit = !q || [m.body, m.member, m.reply_to, m.note].some((v) => v?.toLowerCase().includes(q));
-			/** @type {HTMLElement} */ (rows[i].parentElement).hidden = !hit;
-		});
-	});
-	const href = (/** @type {string} */ s) => `/workspace?s=inbox${s === 'new' ? '' : `&status=${s}`}`;
+	const bulk = h('div', { class: 'ws-bulk', hidden: true, role: 'region', 'aria-label': t('Selected messages') });
+	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
+	// Searches every message of the filter, on the server, a moment after typing stops.
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Text, member or email'), 'aria-label': t('Find a message'), value: f.q }));
+
+	/** @type {Message[]} */
+	let items = [];
+	/** @type {HTMLButtonElement[]} */
+	let rows = [];
+	/** @type {HTMLInputElement[]} */
+	let boxes = [];
+	let current = -1;
+	/** The box last ticked or cleared, for a range with Shift. */
+	let anchor = -1;
+	/** @type {Record<State, number>} */
+	let counts = { new: 0, read: 0, replied: 0, done: 0 };
+	/** Every unread message, whatever the list is narrowed to (the rail's badge). */
+	let unread = 0;
+
+	/** @param {ReadonlyArray<readonly [string, string]>} options */
+	const choices = (options) => options.map(([v, text]) => ({ value: v, label: t(text) }));
+	const any = /** @type {const} */ (['', mark('Any')]);
 	/** The head and its filters; drawn again when a count changes. */
 	const drawSegments = () =>
 		bar.replaceChildren(
 			...listBar({
 				title: t('Inbox'),
-				count: t('{n} unread', { n: counts.new }),
-				groups: [{ title: t('Status'), current: filter, fallback: 'new', href, choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) }],
-				reset: href('new'),
+				count: t('{n} unread', { n: unread }),
+				// Most important first: the ones that do not fit the column go under ⋯.
+				groups: [
+					{ title: t('Status'), current: f.status, fallback: 'new', href: (s) => href({ status: /** @type {State | 'all'} */ (s) }), choices: [...STATES, /** @type {[string, string]} */ (['all', mark('All')])].map(([s, label]) => ({ value: s, label: t(label), count: s === 'all' ? undefined : counts[/** @type {State} */ (s)] })) },
+					{ title: t('Kind'), current: f.kind, fallback: '', href: (v) => href({ kind: /** @type {typeof f.kind} */ (v) }), choices: choices([any, ...Object.entries(KIND)]) },
+					{ title: t('From'), current: f.from, fallback: '', href: (v) => href({ from: /** @type {typeof f.from} */ (v) }), choices: choices([any, ['member', mark('Members')], ['visitor', mark('Visitors')]]) },
+					{ title: t('Answer'), current: f.answer, fallback: '', href: (v) => href({ answer: /** @type {typeof f.answer} */ (v) }), choices: choices([any, ['yes', mark('Answered')], ['no', mark('Not answered')]]) },
+					{ title: t('Language'), current: f.lang, fallback: '', href: (v) => href({ lang: /** @type {typeof f.lang} */ (v) }), choices: choices([['', mark('Both')], ['en', mark('English')], ['my', mark('Myanmar')]]) },
+				],
+				reset: href({ status: 'new', kind: '', from: '', lang: '', answer: '' }),
 				search,
 			}),
 		);
-	drawSegments();
+
+	/** A state changed: the counts, the rail's badge and the row follow. @param {number} i @param {State} to */
+	const moved = (i, to) => {
+		const from = items[i].status;
+		if (from === to) return;
+		counts[from]--;
+		counts[to]++;
+		unread += (to === 'new' ? 1 : 0) - (from === 'new' ? 1 : 0);
+		rows[i].classList.toggle('ws-row-unread', to === 'new');
+		rows[i].querySelector('.ws-row-state')?.replaceChildren(stateName(to));
+	};
 
 	/**
 	 * Saves a change and shows it everywhere it appears.
@@ -105,15 +150,135 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 		const before = items[i];
 		const saved = await updateMessage(before.id, change);
 		if (saved.status !== before.status) {
-			counts[before.status]--;
-			counts[saved.status]++;
-			onUnread(counts.new);
+			moved(i, saved.status);
+			onUnread(unread);
 			drawSegments();
 		}
 		items[i] = { ...before, status: saved.status, note: saved.note, answer: saved.answer, answered_at: saved.answered_at, answer_seen: change.answer === undefined ? before.answer_seen : false, handled_by: t('you'), handled_at: Math.floor(Date.now() / 1000) };
-		rows[i].classList.toggle('ws-row-unread', saved.status === 'new');
-		rows[i].querySelector('.ws-row-state')?.replaceChildren(stateName(saved.status));
 	};
+
+	/** The bar over the list while boxes are ticked. */
+	const drawBulk = () => {
+		const picked = boxes.flatMap((b, i) => (b.checked ? [i] : []));
+		bulk.hidden = picked.length === 0;
+		ol.classList.toggle('ws-rows-picking', picked.length > 0);
+		if (!picked.length) return;
+		const out = h('span', { class: 'ws-bulk-out', role: 'status' });
+		const clear = () => {
+			boxes.forEach((b) => (b.checked = false));
+			anchor = -1;
+			drawBulk();
+		};
+		/** @param {'new' | 'read' | 'done' | 'thank' | 'delete'} action */
+		const go = async (action) => {
+			if (picked.length > BULK_MAX) {
+				out.textContent = t('At most {n} messages at once.', { n: num(BULK_MAX) });
+				return;
+			}
+			for (const b of bulk.querySelectorAll('button')) b.disabled = true;
+			try {
+				const done = await bulkMessages(picked.map((i) => items[i].id), action, action === 'thank' ? { en: SAVED[0].en, my: SAVED[0].my } : undefined);
+				// Deleted messages leave the list, and thanks change what a message shows: the list is read again.
+				await load();
+				if (done.skipped && action === 'thank') bulk.replaceChildren(h('span', { role: 'status' }, t('{n} thanked; {m} were from visitors, who have no Inbox.', { n: num(done.changed), m: num(done.skipped) }))), (bulk.hidden = false);
+			} catch (err) {
+				out.textContent = err instanceof Error ? err.message : String(err);
+				for (const b of bulk.querySelectorAll('button')) b.disabled = false;
+			}
+		};
+		const act = (/** @type {string} */ text, /** @type {() => void} */ on, cls = 'ws-bulk-act') => {
+			const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: cls }, text));
+			b.addEventListener('click', on);
+			return b;
+		};
+		// Deleting asks twice: it cannot be taken back.
+		let sure = false;
+		const del = act(t('Delete'), () => {
+			if (sure) return go('delete');
+			sure = true;
+			del.textContent = t('Delete {n} for good?', { n: num(picked.length) });
+			setTimeout(() => {
+				sure = false;
+				if (del.isConnected) del.textContent = t('Delete');
+			}, 4000);
+		}, 'ws-bulk-act ws-bulk-danger');
+		bulk.replaceChildren(
+			h('strong', null, t('{n} selected', { n: num(picked.length) })),
+			h('span', { class: 'ws-bulk-acts' }, act(t('Read'), () => go('read')), act(t('Done'), () => go('done')), act(t('Thank and close'), () => go('thank')), act(t('Unread'), () => go('new')), del),
+			h(
+				'span',
+				{ class: 'ws-bulk-acts' },
+				picked.length < items.length
+					? act(t('Select all {n} shown', { n: num(items.length) }), () => {
+							boxes.forEach((b) => (b.checked = true));
+							drawBulk();
+						}, 'ws-bulk-link')
+					: '',
+				act(t('Clear'), clear, 'ws-bulk-link'),
+			),
+			out,
+		);
+	};
+
+	/** @param {boolean} [again]  Adds the next page instead of starting over. */
+	const load = async (again = false) => {
+		const page = await inboxMessages(f, again && items.length ? items[items.length - 1].id : undefined);
+		if (!again) {
+			items = [];
+			rows = [];
+			boxes = [];
+			current = -1;
+			anchor = -1;
+			ol.replaceChildren();
+		}
+		const from = items.length;
+		items.push(...page.messages);
+		ol.append(
+			...page.messages.map((m, n) => {
+				const i = from + n;
+				const b = row(m, ago, () => open(i));
+				rows.push(b);
+				const box = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', class: 'ws-pick', 'aria-label': t('Select this message') }));
+				boxes.push(box);
+				box.addEventListener('click', (ev) => {
+					// Shift takes every box between this one and the last one touched.
+					if (ev.shiftKey && anchor >= 0 && anchor !== i) {
+						const [a, z] = anchor < i ? [anchor, i] : [i, anchor];
+						for (let k = a; k <= z; k++) boxes[k].checked = box.checked;
+					}
+					anchor = i;
+					drawBulk();
+				});
+				return h('li', null, box, b);
+			}),
+		);
+		if (!items.length) ol.replaceChildren(h('li', { class: 'ws-none' }, f.status === 'new' && !f.kind && !f.from && !f.lang && !f.answer && !f.q ? t('No unread messages.') : t('Nothing here.')));
+		more.hidden = !page.more;
+		counts = { ...page.counts };
+		unread = page.unread;
+		onUnread(unread);
+		drawSegments();
+		drawBulk();
+		if (!again && !items.length) {
+			work.replaceChildren(h('p', { class: 'ws-empty' }, t('Choose a message from the list.')));
+			inspector.replaceChildren();
+		}
+	};
+	more.addEventListener('click', () => {
+		more.disabled = true;
+		load(true)
+			.catch((err) => ol.append(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))))
+			.finally(() => (more.disabled = false));
+	});
+	let timer = 0;
+	search.addEventListener('input', () => {
+		clearTimeout(timer);
+		timer = window.setTimeout(() => {
+			f.q = search.value.trim();
+			history.replaceState(history.state, '', href({}));
+			load().catch((err) => ol.replaceChildren(h('li', { class: 'ws-none' }, err instanceof Error ? err.message : String(err))));
+		}, 250);
+	});
 
 	/** @param {number} i */
 	const open = async (i) => {
@@ -258,20 +423,15 @@ export async function inboxPanes(ctx, root, ago, onUnread) {
 			h('section', { class: 'ws-box' }, h('h2', null, t('Note')), note, keep, out, h('p', { class: 'ws-quiet ws-keys' }, t('1–4 state · J K next, previous'))),
 		);
 	};
-	let current = -1;
-
-	listPane.append(
-		bar,
-		ol,
-		page.more ? h('p', { class: 'ws-quiet ws-more-note' }, t('Showing the latest {n}.', { n: items.length })) : '',
-	);
+	listPane.append(bar, bulk, ol, more);
+	await load();
 	if (items.length && matchMedia('(min-width: 761px)').matches) open(0);
 
 	/** @param {KeyboardEvent} ev */
 	const keys = (ev) => {
 		if (!root.isConnected) return document.removeEventListener('keydown', keys);
 		const target = /** @type {HTMLElement} */ (ev.target);
-		if (ev.metaKey || ev.ctrlKey || ev.altKey || target.closest('input, textarea, select, [contenteditable]')) return;
+		if (ev.metaKey || ev.ctrlKey || ev.altKey || target.closest('input:not([type=checkbox]), textarea, select, [contenteditable]')) return;
 		const k = ev.key.toLowerCase();
 		if (k === 'j' && current + 1 < items.length) open(current + 1);
 		else if (k === 'k' && current > 0) open(current - 1);

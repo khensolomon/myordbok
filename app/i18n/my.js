@@ -409,7 +409,6 @@ export const MY = {
 	'Sent from the English interface.': 'အင်္ဂလိပ် မျက်နှာပြင်မှ ပို့ထားသည်။',
 	'About the page': 'စာမျက်နှာ',
 	'{label}, {n} new': '{label}၊ အသစ် {n}',
-	'Showing the latest {n}.': 'နောက်ဆုံး {n} စောင်ကို ပြထားသည်။',
 	'new messages': 'စာအသစ်',
 
 	// Members
@@ -1029,4 +1028,12 @@ export const MY = {
 	'First searched': 'ပထမဆုံး ရှာခဲ့ချိန်',
 	'In this period': 'ဤကာလအတွင်း',
 	'With a note': 'မှတ်စုပါ',
+	// Inbox: more filters, several messages at once
+	'Selected messages': 'ရွေးထားသော စာများ',
+	'Visitors': 'ဧည့်သည်များ',
+	'Not answered': 'မဖြေရသေး',
+	'At most {n} messages at once.': 'တစ်ကြိမ်လျှင် စာ {n} စောင်သာ။',
+	'{n} thanked; {m} were from visitors, who have no Inbox.': '{n} စောင်ကို ကျေးဇူးတင်ပြီး။ {m} စောင်မှာ ဝင်စာ မရှိသော ဧည့်သည်များထံမှ ဖြစ်သည်။',
+	'Delete {n} for good?': '{n} စောင်ကို အပြီးဖျက်မလား။',
+	'Select this message': 'ဤစာကို ရွေးရန်',
 };

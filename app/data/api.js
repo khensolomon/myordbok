@@ -505,12 +505,39 @@ export function messagesSeen() {
 }
 
 /**
- * The Inbox, for admins.
- * @param {{ status: MessageState | 'all', before?: number }} options
+ * @typedef {{ status: MessageState | 'all', kind: '' | InboxMessage['kind'], from: '' | 'member' | 'visitor', lang: '' | 'en' | 'my', answer: '' | 'yes' | 'no', q: string }} InboxFilter
+ */
+
+/** The filter as an address query; what is at its default is left out. @param {InboxFilter} f */
+export function inboxQuery(f) {
+	const p = new URLSearchParams();
+	if (f.status !== 'new') p.set('status', f.status);
+	for (const k of /** @type {const} */ (['kind', 'from', 'lang', 'answer', 'q'])) if (f[k]) p.set(k, f[k]);
+	return p;
+}
+
+/**
+ * The Inbox, for admins: 30 at a time, newest first.
+ * @param {InboxFilter} f
+ * @param {number} [before]  The id of the last message already listed.
  * @returns {Promise<{ messages: InboxMessage[], more: boolean, unread: number, counts: Record<MessageState, number> }>}
  */
-export function inboxMessages({ status, before }) {
-	return getJSON(`/api/workspace/messages?status=${status}${before ? `&before=${before}` : ''}`);
+export function inboxMessages(f, before) {
+	const p = inboxQuery(f);
+	p.set('status', f.status);
+	if (before) p.set('before', String(before));
+	return getJSON(`/api/workspace/messages?${p}`);
+}
+
+/**
+ * One action on several messages (at most 200): a state, thanks to each member in their language, or deleting them.
+ * @param {number[]} ids
+ * @param {'new' | 'read' | 'done' | 'thank' | 'delete'} action
+ * @param {{ en: string, my: string }} [answer]  The thanks, for action "thank".
+ * @returns {Promise<{ ok: true, action: string, changed: number, skipped: number }>}
+ */
+export function bulkMessages(ids, action, answer) {
+	return postJSON('/api/workspace/messages/bulk', { ids, action, ...(answer ? { answer } : {}) });
 }
 
 /**
