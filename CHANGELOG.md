@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+130
+
+- Related words: each kind a label with its words beneath, side by side where there is room; forms on the line of their part of speech
+
 ## 26.11.16+129
 
 - A headword can be heard: a button beside it, through /api/pronunciation

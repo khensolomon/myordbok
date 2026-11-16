@@ -388,19 +388,21 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 		forms.delete(pos.toLowerCase());
 		const id = formsId;
 		formsId = '';
-		return h('p', { class: 'pos-forms', id: id || null }, h('span', { class: 'pos-forms-name' }, t('Forms')), ' ', wordLinks(words));
+		// Read aloud as "Forms: loves"; seen, the place beside the part of speech says as much.
+		return h('p', { class: 'pos-forms', id: id || null, title: t('Forms') }, h('span', { class: 'visually-hidden' }, `${t('Forms')}: `), wordLinks(words));
 	};
+	/** A part of speech and, on the same line, its forms: "verb · loves, loved, loving". @param {string} pos */
+	const head = (pos) => h('header', { class: 'pos-head' }, h('h2', { class: 'pos-name' }, posName(pos)), formsLine(pos));
 	const sections = groups.map(([type, senses]) =>
 		h(
 			'section',
 			{ class: 'pos' },
-			h('h2', { class: 'pos-name' }, posName(type)),
-			formsLine(type),
+			head(type),
 			h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 		),
 	);
 	// Forms of a part of speech that has no meanings here (a noun's plural when only the verb is defined) get a section of their own.
-	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, h('h2', { class: 'pos-name' }, posName(pos)), formsLine(pos)));
+	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos)));
 	if (extra?.related.length) {
 		sections.push(
 			h(
