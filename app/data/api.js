@@ -313,10 +313,13 @@ export function withdrawEdit(id) {
  */
 
 /**
- * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string, order: 'hits' | 'recent' | 'days' | 'az' }} SearchFilter
- * @typedef {{ lang: 'en' | 'my', term: string, hits: number, days: number, first: string, last: string, found: boolean, now: boolean }} SearchedWord
- * @typedef {{ show: string, days: number, counts: { words: number, missed: number, found: number, hits: number }, words: SearchedWord[], more: boolean }} SearchesPage
- * @typedef {{ lang: 'en' | 'my', term: string, hits: number, found: boolean, now: boolean, daily: Array<{ day: string, hits: number, found: boolean }> }} SearchedDetail
+ * @typedef {'add' | 'misspelling' | 'noise'} SearchLabel  What a word never found is (migration 0016).
+ * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string, order: 'hits' | 'recent' | 'days' | 'az',
+ *   label: 'open' | 'none' | SearchLabel | 'all', min: 1 | 2 | 5 | 10 | 25, spread: 1 | 2 | 5, shape: '' | 'word' | 'phrase' | 'digits', fresh: boolean, noted: boolean }} SearchFilter
+ * @typedef {{ lang: 'en' | 'my', term: string, hits: number, days: number, first: string, last: string, found: boolean, now: boolean, label: SearchLabel | null, note: string | null }} SearchedWord
+ * @typedef {{ show: string, days: number, counts: { words: number, missed: number, found: number, hits: number, listed: number, labels: Record<'none' | SearchLabel, number> }, words: SearchedWord[], more: boolean }} SearchesPage
+ * @typedef {{ lang: 'en' | 'my', term: string, hits: number, found: boolean, now: boolean, daily: Array<{ day: string, hits: number, found: boolean }>,
+ *   label: SearchLabel | null, note: string | null, marked_by: string | null, marked_at: number | null, near: string[] }} SearchedDetail
  */
 
 /** @param {SearchFilter} f */
@@ -325,7 +328,23 @@ export function searchesQuery(f) {
 	if (f.lang) p.set('lang', f.lang);
 	if (f.q) p.set('q', f.q);
 	if (f.order !== 'hits') p.set('order', f.order);
+	if (f.label !== 'open') p.set('label', f.label);
+	if (f.min !== 1) p.set('min', String(f.min));
+	if (f.spread !== 1) p.set('spread', String(f.spread));
+	if (f.shape) p.set('shape', f.shape);
+	if (f.fresh) p.set('fresh', '1');
+	if (f.noted) p.set('noted', '1');
 	return p;
+}
+
+/**
+ * Labels searched words (null takes the label off), or writes one word's note; editors.
+ * @param {Array<{ lang: 'en' | 'my', term: string }>} words  At most 200.
+ * @param {{ label?: SearchLabel | null, note?: string | null }} change
+ * @returns {Promise<{ ok: true, marked: number, label: SearchLabel | null, note?: string | null }>}
+ */
+export function markSearches(words, change) {
+	return postJSON('/api/workspace/searches/mark', { words, ...change });
 }
 
 /**

@@ -1587,6 +1587,40 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 /* The figures over the search chart. */
 /* Searches (searches.js) */
 .ws-row-count { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+/* Searches: a box on each row to pick several, the bar that acts on them,
+   and the label a word carries. */
+.ws-rows-pick > li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.ws-rows-pick > li.ws-none { display: block; }
+.ws-pick { width: 16px; height: 16px; margin: 12px 0 0 12px; accent-color: var(--brand); cursor: pointer; opacity: 0.45; transition: opacity 0.12s; }
+.ws-rows-pick > li:hover .ws-pick, .ws-pick:checked, .ws-pick:focus-visible, .ws-rows-picking .ws-pick { opacity: 1; }
+.ws-pick:disabled { visibility: hidden; }
+.ws-rows-pick .ws-row { padding-left: 10px; }
+.ws-rows-pick > li:has(.ws-pick:checked) { background: var(--term-tint); }
+.ws-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--term-tint); font-size: 13px; }
+.ws-bulk[hidden] { display: none; }
+.ws-bulk-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-bulk-act { height: 26px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); border-radius: 999px; background: var(--ground); color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ws-bulk-act:hover { border-color: var(--brand); }
+.ws-bulk-link { padding: 0; border: none; background: none; color: var(--link); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ws-bulk-link:hover { text-decoration: underline; }
+.ws-bulk button:disabled { opacity: 0.5; cursor: default; }
+.ws-bulk-out:empty { display: none; }
+.ws-label { flex: none; padding: 0 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 17px; color: var(--ink-2); }
+.ws-label[hidden] { display: none; }
+.ws-label-add { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); color: var(--good); }
+.ws-label-misspelling { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); color: var(--warn); }
+.ws-label-noise { color: var(--muted); }
+/* On a word's page: what it is spelled like, its label, its note. */
+.ws-sort { margin: 14px 0 22px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--glass-solid); display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.ws-sort p { margin: 0; }
+.ws-near { font-size: 14px; }
+.ws-sort-labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ws-sort-note-row { display: flex; gap: 8px; align-items: flex-end; }
+.ws-sort-note-row textarea { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: inherit; font-size: 14px; resize: vertical; }
+.ws-sort-note-row .ws-secondary { flex: none; height: 34px; padding: 0 14px; }
+.ws-sort-note { font-size: 14px; color: var(--ink-2); white-space: pre-wrap; }
+.ws-facts dt a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+@media (max-width: 520px) { .ws-sort-labels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ws-row-done .ws-row-word { color: var(--muted); }
 .ws-row-sub .ws-flag { flex-basis: auto; }
 .ws-flag-now { color: var(--brand); }

@@ -299,6 +299,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   is sent and including answers from the edge cache
   (`worker/lib/counts.js`). No identity, no time of day; terms over 60
   characters, typing suggestions, numbers and sums are not counted.
+- **What was searched and not found is sorted, not just listed.** In the
+  workspace's Searches an editor labels a word never found (to add, a
+  misspelling, not a word), one key a word or many at once (`search_marks`,
+  migration 0016). The label belongs to the word, so it outlives the daily
+  counts. The default list holds what is still to sort and what is to add;
+  filters narrow it by label, number of searches, days searched, shape, and
+  first searched in the period; the list as filtered downloads as CSV.
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+133
+
+- Searches: labels (to add, misspelling, not a word), more filters, several words at once, near spellings on a word's page
+
 ## 26.11.16+132
 
 - Inbox for every member: their own messages with the answers; admins answer from the Inbox with saved answers, or thank and close in one press

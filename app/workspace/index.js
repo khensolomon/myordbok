@@ -167,7 +167,7 @@ export async function view(ctx) {
 		return root;
 	}
 	if (section === 'searches') {
-		root.append(rail, ...(await searchesPanes(ctx, root, admin)));
+		root.append(rail, ...(await searchesPanes(ctx, root, { admin, editor })));
 		resizable();
 		return root;
 	}

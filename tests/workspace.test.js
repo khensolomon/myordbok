@@ -416,7 +416,7 @@ test('searches: every word over a period, not found first, paged; one word day b
 	assert.ok(!first.words.some((w) => w.term === 'love' || w.term === 'olden'), 'found words and words older than 30 days are left out');
 	assert.equal(first.words.length, 50);
 	assert.equal(first.more, true);
-	assert.deepEqual(first.counts, { words: 58, missed: 57, found: 1, hits: 70 });
+	assert.deepEqual(first.counts, { words: 58, missed: 57, found: 1, hits: 70, listed: 57, labels: { none: 57, add: 0, misspelling: 0, noise: 0 } });
 	const second = (await call(e, '/api/workspace/searches?offset=50', { who: 'editor' })).body;
 	assert.equal(second.words.length, 7);
 	assert.equal(second.more, false);
@@ -435,8 +435,82 @@ test('searches: every word over a period, not found first, paged; one word day b
 	const res = await worker.fetch(new Request(`${SITE}/api/workspace/searches?lang=en&format=csv`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e);
 	assert.match(res.headers.get('content-type'), /text\/csv/);
 	const csv = (await res.text()).trim().split('\r\n');
-	assert.equal(csv[0], 'language,word,searches,days,first,last,found,now_in_dictionary');
+	assert.equal(csv[0], 'language,word,searches,days,first,last,found,now_in_dictionary,label,note');
 	assert.ok(csv.some((l) => l.startsWith("en,'=sum,1,")), 'a leading = is defused for spreadsheets');
+});
+
+test('searches: editors label words; the default list keeps those to sort and to add; filters narrow it', async () => {
+	const e = env();
+	const day = (ago) => new Date(Date.now() - ago * 86400000).toISOString().slice(0, 10);
+	const add = e.raw.prepare("INSERT INTO search_counts (day, lang, term, found, hits) VALUES (?1, 'en', ?2, 0, ?3)");
+	add.run(day(0), 'selfie', 12);
+	add.run(day(1), 'selfie', 3);
+	add.run(day(2), 'selfie', 1);
+	add.run(day(0), 'lofe', 6);
+	add.run(day(0), 'asdf', 2);
+	add.run(day(0), 'ice cream cone', 1);
+	add.run(day(0), 'covid19', 1);
+	add.run(day(1), 'oldie', 1);
+	add.run(day(60), 'oldie', 1);
+	const list = async (query = '') => (await call(e, `/api/workspace/searches${query}`, { who: 'editor' })).body;
+	const terms = async (query = '') => (await list(query)).words.map((w) => w.term);
+	const mark = (body, who = 'editor') => call(e, '/api/workspace/searches/mark', { who, body });
+
+	assert.equal((await mark({ words: [{ lang: 'en', term: 'lofe' }], label: 'misspelling' }, 'member')).status, 403);
+	e.raw.exec("UPDATE users SET insights = 1 WHERE id = 1");
+	assert.equal((await mark({ words: [{ lang: 'en', term: 'lofe' }], label: 'misspelling' }, 'member')).status, 403, 'a member shown the statistics reads, never labels');
+	for (const bad of [{}, { words: [] }, { words: [{ lang: 'en', term: 'x' }] }, { words: [{ lang: 'fr', term: 'x' }], label: 'add' }, { words: [{ lang: 'en', term: 'x' }], label: 'later' }, { words: [{ lang: 'en', term: 'a' }, { lang: 'en', term: 'b' }], note: 'two' }, { words: Array.from({ length: 201 }, (_, i) => ({ lang: 'en', term: `w${i}` })), label: 'noise' }]) {
+		assert.equal((await mark(bad)).status, 400, JSON.stringify(bad).slice(0, 60));
+	}
+
+	// Several at once; then the default list is what is left to sort, and what is to add.
+	assert.equal((await mark({ words: [{ lang: 'en', term: 'lofe' }, { lang: 'en', term: 'lofe' }], label: 'misspelling' })).body.marked, 1);
+	assert.equal((await mark({ words: [{ lang: 'en', term: 'asdf' }, { lang: 'en', term: 'covid19' }], label: 'noise' })).body.marked, 2);
+	await mark({ words: [{ lang: 'en', term: 'selfie' }], label: 'add' });
+	assert.deepEqual(await terms(), ['selfie', 'ice cream cone', 'oldie']);
+	const page = await list();
+	assert.deepEqual(page.counts.labels, { none: 2, add: 1, misspelling: 1, noise: 2 });
+	assert.equal(page.counts.listed, 3);
+	assert.deepEqual(page.words[0].label, 'add');
+	assert.deepEqual(await terms('?label=none'), ['ice cream cone', 'oldie']);
+	assert.deepEqual(await terms('?label=misspelling'), ['lofe']);
+	assert.deepEqual((await terms('?label=noise')).sort(), ['asdf', 'covid19']);
+	assert.equal((await terms('?label=all')).length, 6);
+	assert.equal((await list('?label=later')).error.code, 'bad_request');
+
+	// The other filters.
+	assert.deepEqual(await terms('?label=all&min=5'), ['selfie', 'lofe']);
+	assert.deepEqual(await terms('?label=all&spread=2'), ['selfie']);
+	assert.deepEqual(await terms('?label=all&shape=phrase'), ['ice cream cone']);
+	assert.deepEqual(await terms('?label=all&shape=digits'), ['covid19']);
+	assert.equal((await terms('?label=all&shape=word')).length, 4);
+	assert.ok(!(await terms('?label=all&fresh=1')).includes('oldie'), 'searched before the period too');
+	assert.ok((await terms('?label=all&fresh=1')).includes('selfie'));
+	assert.equal((await list('?min=3')).error.code, 'bad_request');
+
+	// A note on one word; a label taken off; a word left with neither has no row.
+	assert.equal((await mark({ words: [{ lang: 'en', term: 'selfie' }], note: '  Asked for in the Inbox too. ' })).body.note, 'Asked for in the Inbox too.');
+	assert.deepEqual(await terms('?noted=1'), ['selfie']);
+	const one = (await call(e, '/api/workspace/searches/word?lang=en&term=selfie', { who: 'editor' })).body;
+	assert.deepEqual([one.label, one.note, one.marked_by], ['add', 'Asked for in the Inbox too.', 'Ed']);
+	await mark({ words: [{ lang: 'en', term: 'selfie' }], label: null });
+	assert.deepEqual({ ...e.raw.prepare("SELECT label, note FROM search_marks WHERE term = 'selfie'").get() }, { label: null, note: 'Asked for in the Inbox too.' });
+	await mark({ words: [{ lang: 'en', term: 'selfie' }], note: null });
+	assert.equal(e.raw.prepare("SELECT count(*) AS n FROM search_marks WHERE term = 'selfie'").get().n, 0);
+	await mark({ words: [{ lang: 'en', term: 'lofe' }], label: null });
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM search_marks').get().n, 2);
+	await mark({ words: [{ lang: 'en', term: 'never-marked' }], label: null });
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM search_marks').get().n, 2);
+
+	// A near headword says a misspelling from a missing word; the CSV carries the labels.
+	assert.deepEqual((await call(e, '/api/workspace/searches/word?lang=en&term=lofe', { who: 'editor' })).body.near, ['love']);
+	const res = await worker.fetch(new Request(`${SITE}/api/workspace/searches?label=noise&format=csv`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e);
+	const csv = (await res.text()).trim().split('\r\n');
+	assert.equal(csv.length, 3);
+	assert.ok(csv.every((l, i) => i === 0 || l.endsWith(',noise,')));
+	// Labels outlive the counts.
+	e.raw.exec('DELETE FROM search_counts');
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM search_marks').get().n, 2);
 });
 
 test('searches: a word never found that has become a headword says so', async () => {
