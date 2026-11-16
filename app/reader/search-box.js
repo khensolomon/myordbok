@@ -11,14 +11,20 @@
  * word ("what is lo" → words starting "lo").
  *
  * Keyboard: "/" or Ctrl+K (⌘K) from anywhere on the page puts the cursor in
- * the search field, its text selected; a small "/" in the box says so on
- * devices with a keyboard and pointer.
+ * the search field, its text selected; a small "/" in the box says so while
+ * the cursor is elsewhere, on devices with a keyboard and pointer.
+ *
+ * Clearing: a field holding text shows an ✕; it, or Escape in the field,
+ * empties the field, keeps the cursor there and lists this device's recent
+ * searches (data/recent.js) in place of suggestions. Escape in an empty
+ * field closes the list.
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { t, tn } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { suggest } from '../data/api.js';
+import { recentSearches } from '../data/recent.js';
 import { classify, preview, understoodHref } from './query.js';
 
 const DEBOUNCE_MS = 150;
@@ -80,6 +86,19 @@ export class SearchBox extends HTMLElement {
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
 			h('label', { for: id, class: 'visually-hidden' }, t('Search a word')),
 			this.input,
+			h(
+				'button',
+				{
+					type: 'button',
+					class: 'search-clear',
+					'aria-label': t('Clear'),
+					title: t('Clear'),
+					// The press must not take the cursor out of the field first.
+					onMousedown: (/** @type {MouseEvent} */ e) => e.preventDefault(),
+					onClick: () => this.clear(),
+				},
+				icon(ICONS.close, 16),
+			),
 			h('kbd', { class: 'search-key', 'aria-hidden': 'true', title: t('Press / to search') }, '/'),
 			h('button', { type: 'submit', class: 'search-go', 'aria-label': t('Search'), title: t('Search') }, icon(ICONS.search, 18)),
 		);
@@ -145,6 +164,16 @@ export class SearchBox extends HTMLElement {
 		this.input?.blur();
 	}
 
+	/** Empties the field, keeps the cursor in it, and lists this device's recent searches. */
+	clear() {
+		const input = /** @type {HTMLInputElement} */ (this.input);
+		clearTimeout(this.timer);
+		this.seq++; // a suggestion request still under way is no longer wanted
+		input.value = '';
+		input.focus();
+		this.show(recentSearches(), [], true);
+	}
+
 	schedule() {
 		clearTimeout(this.timer);
 		this.timer = window.setTimeout(() => this.suggest(), DEBOUNCE_MS);
@@ -174,10 +203,11 @@ export class SearchBox extends HTMLElement {
 	/**
 	 * @param {string[]} words
 	 * @param {HTMLElement[]} [lead]  Rows before the words: an answer, or choices.
+	 * @param {boolean} [recent]  The words are this device's recent searches.
 	 */
-	show(words, lead = []) {
+	show(words, lead = [], recent = false) {
 		const list = /** @type {HTMLUListElement} */ (this.list);
-		const items = [...lead, ...words.map((w) => h('li', null, h('a', { href: definitionHref(w), tabindex: '-1' }, w)))];
+		const items = [...lead, ...words.map((w) => h('li', recent ? { class: 'search-recent' } : null, h('a', { href: definitionHref(w), tabindex: '-1' }, recent ? icon(ICONS.clock, 15) : null, w)))];
 		items.forEach((li, i) => {
 			li.setAttribute('role', 'option');
 			li.id = `${list.id}-${i}`;
@@ -188,7 +218,7 @@ export class SearchBox extends HTMLElement {
 		this.toggleAttribute('data-open', open);
 		this.input?.setAttribute('aria-expanded', String(open));
 		if (open) this.fit();
-		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? tn('{n} suggestion', '{n} suggestions', items.length) : '';
+		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? `${recent ? `${t('Recent')}: ` : ''}${tn('{n} suggestion', '{n} suggestions', items.length)}` : '';
 	}
 
 	/** The list's height: what is left of the visible page below it, keyboard excluded. */
@@ -203,6 +233,11 @@ export class SearchBox extends HTMLElement {
 	keys(e) {
 		const list = /** @type {HTMLUListElement} */ (this.list);
 		const links = [...list.querySelectorAll('a')];
+		if (e.key === 'Escape' && this.input?.value) {
+			// Before the browser's own handling, which would empty the field and close the list.
+			e.preventDefault();
+			return this.clear();
+		}
 		if (!links.length || list.hidden) return;
 		const current = links.indexOf(/** @type {HTMLAnchorElement} */ (list.querySelector('[aria-selected="true"] a')));
 		let next = current;

@@ -464,9 +464,20 @@ mo-search { display: block; position: relative; height: 44px; }
 }
 .search-box:hover { border-color: color-mix(in srgb, var(--line) 55%, var(--muted)); }
 .search-key { display: none; flex: none; align-self: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 6px; border: 1px solid var(--line); border-radius: 5px; font: 500 12px/18px var(--font-ui); text-align: center; color: var(--muted); background: var(--ground); }
+/* The shortcut shows while the cursor is elsewhere, with or without a word in the field. */
 @media (hover: hover) and (pointer: fine) {
-	.search-box:not(:focus-within) .search:has(input:placeholder-shown) .search-key { display: inline-block; }
+	.search-box:not(:focus-within) .search-key { display: inline-block; }
 }
+/* ✕ empties the field: there only while the field holds something. */
+.search-clear {
+	flex: none; width: 28px; height: 28px; margin-right: 2px;
+	display: flex; align-items: center; justify-content: center;
+	border: none; border-radius: 999px;
+	background: none; color: var(--muted); cursor: pointer;
+	transition: background-color 0.15s, color 0.15s;
+}
+.search-clear:hover { background: var(--line-soft); color: var(--ink); }
+.search:has(input:placeholder-shown) .search-clear { display: none; }
 
 /* Open (suggestions shown): the box grows 4px outward (the field and the text do not move)
    and its corners ease from a pill to --field-r plus that 4px, so the
@@ -579,6 +590,9 @@ mo-search[data-open] .search-box {
 .search-list a { display: block; padding: 8px 18px; border-radius: 0; color: var(--ink); }
 .search-list li:last-child a { border-bottom-left-radius: var(--field-r); border-bottom-right-radius: var(--field-r); }
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
+/* This device's recent searches, listed when the field is cleared. */
+.search-recent a { display: flex; align-items: center; gap: 10px; }
+.search-recent svg { flex: none; color: var(--faint); }
 
 /* Open over a page, nothing behind may show through the suggestions: the
    box turns opaque while the list is open, glass again once it closes. */
@@ -705,12 +719,13 @@ body[data-suggestions-off] .sense-edit, body[data-suggestions-off] .aside-sugges
 .comments-note { margin: 0 0 18px; font-size: 14px; color: var(--ink-2); }
 
 /* The form: one quiet line beside the writer's face, opening when written in. */
-.comments-compose { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; margin-bottom: 24px; }
+.comments-compose { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; align-items: start; margin-bottom: 24px; }
 .comments-write { display: grid; gap: 8px; min-width: 0; }
-.comments-input { display: block; text-overflow: ellipsis; box-sizing: border-box; width: 100%; min-height: 40px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--glass-solid); color: var(--ink); font: 15px/22px var(--font-ui); resize: none; overflow: hidden; transition: border-color .15s ease, border-radius .15s ease, box-shadow .15s ease; }
-.comments-input::placeholder { color: var(--muted); }
+.comments-input { display: block; text-overflow: ellipsis; box-sizing: border-box; width: 100%; height: 32px; min-height: 32px; padding: 4px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--glass-solid); color: var(--ink); font: 15px/22px var(--font-ui); resize: none; overflow: hidden; transition: border-color .15s ease, border-radius .15s ease, box-shadow .15s ease; }
+.comments-input::placeholder { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .comments-input:hover { border-color: color-mix(in srgb, var(--brand) 35%, var(--line)); }
-.comments-compose.is-open .comments-input { min-height: 84px; padding: 10px 14px; border-radius: 14px; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent); outline: none; }
+/* Open: one line to start; the height then follows the lines written (comments.js). */
+.comments-compose.is-open .comments-input { height: 44px; min-height: 44px; padding: 10px 14px; border-radius: 14px; border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent); outline: none; }
 .comments-signin { display: flex; align-items: center; color: var(--muted); text-decoration: none; }
 .comments-signin:hover, .comments-signin:focus-visible { color: var(--brand); }
 .comments-actions { display: none; align-items: center; justify-content: flex-end; gap: 8px; }
@@ -725,12 +740,28 @@ body[data-suggestions-off] .sense-edit, body[data-suggestions-off] .aside-sugges
 .comments-result:empty { display: none; }
 
 /* The comments. */
-.comments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
-.comment { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; }
+.comments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.comment { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; align-items: start; }
 .comment-face { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 .comment-initial { display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font: 700 13px var(--font-ui); }
 .comment-nobody { display: flex; align-items: center; justify-content: center; background: var(--line-soft); color: var(--muted); }
-.comment-main { min-width: 0; }
+/* Each comment is a card with a point toward the face of who wrote it. */
+.comment-main {
+	position: relative; min-width: 0;
+	padding: 10px 14px 12px;
+	border: 1px solid var(--line); border-radius: 14px;
+	background: var(--glass-solid);
+	box-shadow: 0 1px 2px rgba(23, 32, 43, 0.04), 0 4px 14px rgba(23, 32, 43, 0.05);
+}
+.comment-main::before {
+	content: ""; position: absolute; left: -6px; top: 11px;
+	width: 10px; height: 10px;
+	border: solid var(--line); border-width: 0 0 1px 1px; border-bottom-left-radius: 3px;
+	background: inherit;
+	transform: rotate(45deg);
+}
+.comment-by-editor .comment-main { border-color: color-mix(in srgb, var(--brand) 30%, var(--line)); }
+.comment-by-editor .comment-main::before { border-color: color-mix(in srgb, var(--brand) 30%, var(--line)); }
 .comment-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0 0 3px; font: 14px/1.4 var(--font-ui); }
 .comment-head strong { color: var(--ink); font-weight: 600; }
 .comment-editor { padding: 1px 8px; border-radius: 999px; background: var(--term-tint); color: var(--brand); font: 600 11px/1.6 var(--font-ui); }
@@ -741,7 +772,7 @@ body[data-suggestions-off] .sense-edit, body[data-suggestions-off] .aside-sugges
 @media (hover: none) { .comment-delete { opacity: 1; } }
 .comment-body { margin: 0; white-space: pre-wrap; overflow-wrap: break-word; font: 15px/1.6 var(--font-ui); color: var(--ink-2); }
 .comment-body:lang(my), .comments :lang(my) { font-family: var(--font-my); }
-.comments-more { margin: 16px 0 0 44px; padding: 0; border: none; background: none; color: var(--brand); font: 600 14px var(--font-ui); cursor: pointer; }
+.comments-more { margin: 16px 0 0 46px; padding: 0; border: none; background: none; color: var(--brand); font: 600 14px var(--font-ui); cursor: pointer; }
 .comments-more:hover { text-decoration: underline; }
 /* Large screens: each part of speech's line (the one with the circle) starts
    under the left edge of the search box; the outer line stays under the

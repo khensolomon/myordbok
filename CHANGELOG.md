@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.16+127
+
+- Search: ✕ and Escape clear the field and list recent searches, the / hint shows whenever the cursor is elsewhere; comments as cards pointing at the face, a form as tall as the face that grows with its lines
+
 ## 26.11.15+126
 
 - The offline copy follows a change of content alone (grammar, icons, fonts), with or without a new version number

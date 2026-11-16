@@ -7,8 +7,9 @@
  * the workspace. Loaded once the section comes near the screen, and only
  * with a connection: the copy on the device has no comments.
  *
- * The form waits as one quiet line beside the writer's face; it opens when
- * written in, with Post and Cancel. Signed out, the same line asks to sign
+ * The form waits as one quiet line beside the writer's face, as tall as the
+ * face; it opens when written in, with Post and Cancel, and grows with each
+ * line written. Signed out, the same line asks to sign
  * in. A long discussion shows its newest few, then the rest on request.
  */
 import { h, icon } from '../core/dom.js';
@@ -137,8 +138,12 @@ export function commentsSection(lang, word) {
 			const open = document.activeElement === box || box.value.length > 0;
 			f.classList.toggle('is-open', open);
 			box.placeholder = open ? hint : idle;
-			box.style.height = 'auto';
-			box.style.height = `${Math.min(box.scrollHeight + 2, 320)}px`;
+			// Closed, the style sheet keeps it as tall as the face; open, as tall as its lines.
+			// Empty, one line as well: a hint too long for the line is cut short, not wrapped.
+			const lines = open && box.value.length > 0;
+			box.style.height = lines ? 'auto' : '';
+			if (lines) box.style.height = `${Math.min(box.scrollHeight + 2, 320)}px`;
+			box.style.overflowY = lines && box.scrollHeight + 2 > 320 ? 'auto' : '';
 		};
 		box.addEventListener('input', update);
 		box.addEventListener('focus', update);
