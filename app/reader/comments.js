@@ -44,7 +44,7 @@ export function commentsSection(lang, word) {
 	const list = h('ol', { class: 'comments-list' });
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'comments-more', hidden: true }));
 	const form = h('div', { class: 'comments-form' });
-	const section = h('section', { class: 'comments', 'aria-labelledby': `comments-${lang}` }, h('h2', { id: `comments-${lang}`, class: 'comments-title' }, t('Comments'), count), form, list, more);
+	const section = h('section', { class: 'comments', 'aria-labelledby': `comments-${lang}` }, h('h2', { id: `comments-${lang}`, class: 'comments-title' }, h('span', null, t('Comments'), count)), form, list, more);
 
 	/** @type {EntryComment[]} */
 	let items = [];

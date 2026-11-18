@@ -790,13 +790,14 @@ body[data-quiz-off] .quiz-slot, body[data-quiz-off] .practice .quiz { display: n
 body[data-quiz-off] .practice-paused { display: block; }
 .quiz-slot:empty { display: none; }
 /* Laid out like Comments: the same rule, heading and width; the round in a bubble beside the MyOrdbok mark. */
-.quiz { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
-.quiz-slot + .comments { margin-top: 32px; }
+.quiz { margin-top: 56px; }
+/* A section's heading runs into a rule to the right: "Test yourself ———", "Comments ———". */
+.quiz-title::after, .comments-title::after { content: ""; flex: 1 1 24px; min-width: 24px; height: 1px; background: var(--line); order: 2; }
 .quiz.is-folded .quiz-title { margin-bottom: 0; }
 .quiz-row[hidden] { display: none; }
 .quiz-title { margin: 0 0 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .quiz-title:lang(my), :lang(my) > .quiz-title { text-transform: none; letter-spacing: 0; }
-.quiz-head-end { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.quiz-head-end { order: 3; text-transform: none; letter-spacing: 0; font-weight: 400; }
 .quiz-row { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; align-items: start; }
 .quiz-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); }
 .quiz-bubble {
@@ -874,8 +875,8 @@ body[data-quiz-off] .practice-paused { display: block; }
 .practice-settings { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
 .practice-toggle { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
 @media (prefers-reduced-motion: reduce) { .quiz-choice { transition: none; } }
-.comments { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
-.comments-title { margin: 0 0 16px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.comments { margin-top: 56px; }
+.comments-title { margin: 0 0 16px; display: flex; align-items: center; gap: 6px 12px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .comments-title:lang(my), :lang(my) > .comments-title { text-transform: none; letter-spacing: 0; }
 .comments-count { font-weight: 500; }
 .comments-note { margin: 0 0 18px; font-size: 14px; color: var(--ink-2); }

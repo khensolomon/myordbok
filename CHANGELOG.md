@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+143
+
+- Test yourself and Comments: the heading runs into a rule to the right, with more space between the meanings, the quiz and the comments
+
 ## 26.11.18+142
 
 - Test yourself hidden on a device keeps its heading with a Show button; a cached site answer without the quiz switch no longer hides it
