@@ -238,6 +238,12 @@ async function english(data, asked, said = []) {
 	const feedback = entryFeedback('en', word);
 	const article = h('article', { class: 'entry', lang: 'en' }, notes, blocks);
 	feedback.wire(article, shown, 'my');
+	// Test yourself on the word asked for, when it has meanings of its own; its code loads on its own.
+	if (data.entries.length) {
+		const slot = h('div', { class: 'quiz-slot' });
+		article.append(slot);
+		import('./quiz.js').then(({ quizCard }) => slot.replaceChildren(quizCard(data) ?? '')).catch((err) => console.warn('Test yourself unavailable:', err));
+	}
 	if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('en', word));
 	return withAside(article, aside(feedback, summary, shown, read));
 }

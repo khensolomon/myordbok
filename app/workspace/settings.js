@@ -73,6 +73,12 @@ const GROUPS = [
 		},
 	],
 	[
+		mark('Learning'),
+		{
+			'quiz.open': { title: mark('Test yourself'), about: mark('Whether word pages offer a few questions on the word, and the practice page its rounds. Questions are made and progress kept on each device; nothing is sent.'), choices: ON_OFF },
+		},
+	],
+	[
 		mark('Contact'),
 		{
 			'contact.open': { title: mark('Contact form'), about: mark('Whether the contact form takes messages. Closed, it says so instead.'), choices: OPEN_CLOSED },

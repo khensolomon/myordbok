@@ -432,7 +432,7 @@ export function moderateComment(id, status) {
 
 /**
  * The switches pages follow (worker/lib/settings.js), the same for everyone.
- * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }> }>}
+ * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }>, quiz: boolean }>}
  */
 export function siteSwitches() {
 	return getJSON('/api/site');

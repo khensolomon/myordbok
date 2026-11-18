@@ -52,6 +52,7 @@ export const SETTINGS = {
 		about: 'Whether edits an admin or owner approved are shown to readers at once, before the data release that carries them; off shows the release alone.',
 	},
 	'ratings.open': { fallback: 'on', valid: onOff, about: 'Whether readers may rate entries and meanings; off hides the thumbs.' },
+	'quiz.open': { fallback: 'on', valid: onOff, about: 'Whether word pages offer “Test yourself” and the practice page its rounds. Questions are made and progress kept on each device.' },
 	'contact.open': { fallback: 'on', valid: onOff, about: 'Whether the contact form takes messages.' },
 	'searches.count': { fallback: 'on', valid: onOff, about: 'Whether search pages are counted (search_counts).' },
 	'searches.keep_days': { fallback: 0, valid: (v) => v === 0 || whole(30, 36500)(v), about: 'Search counts older than this many days are deleted as new ones come in; 0 keeps them all.' },

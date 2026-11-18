@@ -31,5 +31,6 @@ export const ICONS = Object.freeze({
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 	// Three paths: the cone, then the near and the far wave, moved one by one (app.css, .pronounce).
 	speaker: '<path d="M4.5 9.5h2.8l4.2-3.4v11.8l-4.2-3.4H4.5z"/><path d="M14.8 9.4a3.6 3.6 0 0 1 0 5.2"/><path d="M17.4 6.9a7.2 7.2 0 0 1 0 10.2"/>',
+	practice: '<rect x="4" y="5" width="16" height="14" rx="3"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
 	comment: '<path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H11l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/>',
 });

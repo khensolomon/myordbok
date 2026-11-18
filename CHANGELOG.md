@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+140
+
+- Test yourself on word pages and a practice page: questions made on the device from reviewed meanings, progress kept on the device
+
 ## 26.11.18+139
 
 - Workspace filters: the group that does not fit whole shows the choices that do, the chosen one always among them; the rest go under ⋯

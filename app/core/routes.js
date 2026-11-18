@@ -40,6 +40,7 @@ export const ROUTES = Object.freeze([
 	{ name: 'privacy', path: '/privacy', load: () => import('../reader/privacy.js'), offline: true },
 	{ name: 'terms', path: '/terms', load: () => import('../reader/terms.js'), offline: true },
 	{ name: 'offline', path: '/offline', load: () => import('../reader/offline.js'), offline: true },
+	{ name: 'practice', path: '/practice', load: () => import('../reader/practice.js'), offline: true },
 	{ name: 'contact', path: '/contact', load: () => import('../reader/contact.js'), offline: true },
 	{ name: 'account', path: '/account', load: () => import('../reader/account.js') },
 	{ name: 'workspace', path: '/workspace', load: () => import('../workspace/index.js') },

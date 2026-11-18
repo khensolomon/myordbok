@@ -118,6 +118,7 @@ siteSwitches()
 		document.body.toggleAttribute('data-ratings-off', !s.ratings);
 		document.body.toggleAttribute('data-suggestions-off', !s.suggestions);
 		document.body.toggleAttribute('data-readonly', s.readonly);
+		document.body.toggleAttribute('data-quiz-off', !s.quiz);
 	})
 	.catch((err) => console.warn('Site switches unavailable:', err));
 

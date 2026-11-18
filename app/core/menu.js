@@ -113,7 +113,7 @@ async function contents(me, done) {
 		me ? account(me, done) : signIn(here),
 		h('div', { class: 'you-group' }, languageRow(), themeRow(), analyticsAvailable() ? statsRow() : ''),
 		await offlineRow(me, here),
-		h('nav', { class: 'you-links', 'aria-label': t('More') }, h('a', { href: '/about' }, icon(ICONS.info, 16), t('About')), h('a', { href: '/contact' }, icon(ICONS.inbox, 16), t('Contact')), me ? signOutButton(done) : ''),
+		h('nav', { class: 'you-links', 'aria-label': t('More') }, h('a', { href: '/practice' }, icon(ICONS.practice, 16), t('Practice')), h('a', { href: '/about' }, icon(ICONS.info, 16), t('About')), h('a', { href: '/contact' }, icon(ICONS.inbox, 16), t('Contact')), me ? signOutButton(done) : ''),
 	];
 }
 
