@@ -5,7 +5,7 @@
 
 -- name: my_entries
 -- Myanmar headword: its senses in order. ?1 = the headword.
-SELECT t.name AS type, s.sense, s.exam, s.etymology, s.id
+SELECT t.name AS type, s.sense, s.exam, s.id
 FROM mya_word w JOIN med_sense s ON s.wrid = w.id JOIN type_word t ON t.id = s.wrte
 WHERE w.word = ?1 ORDER BY s.wseq;
 

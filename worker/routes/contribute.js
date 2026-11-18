@@ -36,9 +36,11 @@
  */
 import { AppError } from '../../shared/errors.js';
 import { EDIT_TEXT_MAX } from '../../shared/limits.js';
+import { itemsProblem } from '../../shared/markup.js';
 import { atLeast } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { meaningHash } from '../lib/meaning.js';
 import { liveLayer, requireLayerRoom, resetLayerCache } from '../lib/layer.js';
 import { getSetting, requireOn } from '../lib/settings.js';
 import { currentMember } from '../lib/session.js';
@@ -82,7 +84,7 @@ const LABEL = /** @type {Record<string, string>} */ ({ sense: 'The meaning', exa
  * Unicode (never Zawgyi).
  * @param {unknown} value
  * @param {string} name
- * @param {{ optional?: boolean }} [options]
+ * @param {{ optional?: boolean, dict?: 'emd' | 'med' }} [options]  dict: the text is a meaning or an example of that dictionary, checked as its items.
  */
 function cleanValue(value, name, options = {}) {
 	if ((value === undefined || value === null || value === '') && options.optional) return null;
@@ -91,6 +93,11 @@ function cleanValue(value, name, options = {}) {
 	if (!v && !options.optional) throw new AppError('bad_request', `${name} cannot be empty`);
 	if (v.length > MAX_VALUE) throw new AppError('bad_request', `${name} is longer than ${MAX_VALUE} characters`);
 	refuseZawgyi(v, LABEL[name] ?? name);
+	// A meaning or example the dataset's build would refuse is refused here, not at the release.
+	if (v && options.dict && (name === 'sense' || name === 'exam')) {
+		const problem = itemsProblem(v, { field: name, dict: options.dict });
+		if (problem) throw new AppError('bad_request', `${LABEL[name] ?? name}: ${problem}`);
+	}
 	return v || null;
 }
 
@@ -109,12 +116,6 @@ async function body(request) {
 	const data = await request.json().catch(() => null);
 	if (!data || typeof data !== 'object') throw new AppError('bad_request', 'The request body must be a JSON object');
 	return /** @type {Record<string, unknown>} */ (data);
-}
-
-/** @param {string} text */
-async function textHash(text) {
-	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.normalize('NFC')));
-	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -160,7 +161,7 @@ async function countsFor(env, lang, word, memberId) {
 			throw explainDictError(err, dict, env);
 		});
 	const shown = (await liveLayer(env)).senses(lang === 'en' ? 'emd' : 'med', /** @type {any[]} */ (list));
-	const pairs = await Promise.all(shown.map(async (s) => [Number(s.id), await textHash(String(s.sense ?? ''))]));
+	const pairs = await Promise.all(shown.map(async (s) => [Number(s.id), await meaningHash(String(s.sense ?? ''))]));
 	/** @type {Record<string, Counts>} */
 	const senses = {};
 	if (pairs.length) {
@@ -215,7 +216,7 @@ async function react(request, env) {
 				`INSERT INTO sense_reactions (user_id, dict, sense_id, text_hash, value) VALUES (?1, ?2, ?3, ?4, ?5)
 				 ON CONFLICT (user_id, dict, sense_id) DO UPDATE SET text_hash = excluded.text_hash, value = excluded.value, created_at = unixepoch()`,
 			)
-				.bind(member.id, dictName, senseId, await textHash(String(row.sense ?? '')), value)
+				.bind(member.id, dictName, senseId, await meaningHash(String(row.sense ?? '')), value)
 				.run();
 		}
 	} else if (value === 0) {
@@ -333,8 +334,8 @@ export async function suggestEdit(request, env) {
 	if (action === 'add') {
 		const wrte = Number(data.wrte);
 		if (!Number.isInteger(wrte) || !(await read('SELECT id FROM type_word WHERE id = ?1', wrte))) throw new AppError('bad_request', 'wrte must be a part of speech id');
-		const sense = cleanValue(data.sense, 'sense');
-		const exam = cleanValue(data.exam, 'exam', { optional: true });
+		const sense = cleanValue(data.sense, 'sense', { dict: dictName });
+		const exam = cleanValue(data.exam, 'exam', { optional: true, dict: dictName });
 		// The same meaning twice would be twice in the dataset: not one the entry has, nor one already suggested.
 		const { results: has } = await db
 			.prepare(SENSES[lang])
@@ -390,7 +391,7 @@ export async function suggestEdit(request, env) {
 		} else {
 			if (!field || !EDITABLE.includes(field)) throw new AppError('bad_request', `field must be one of ${[...EDITABLE, ...Object.keys(CLASSED)].join(', ')}`);
 			const oldValue = /** @type {string | null} */ (row[/** @type {'sense' | 'exam'} */ (field)] ?? null);
-			const newValue = cleanValue(data.value, field, { optional: field === 'exam' });
+			const newValue = cleanValue(data.value, field, { optional: field === 'exam', dict: dictName });
 			if ((newValue ?? '') === (oldValue ?? '')) throw new AppError('bad_request', 'The suggestion is the same as the current text');
 			change = { senseId, field, oldValue, newValue, data: null, word: row.word };
 		}

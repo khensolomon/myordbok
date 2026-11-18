@@ -141,7 +141,7 @@ export function setDatabaseIds(toml, ids) {
 /** Columns of the patch files, per dictionary (the dataset's edit scripts). */
 export const FIELDS = Object.freeze({
 	emd: ['word', 'wrte', 'sense', 'exam', 'wrkd', 'synset', 'delete'],
-	med: ['wrte', 'sense', 'exam', 'wrkd', 'usg', 'ref', 'etymology', 'variant', 'reference', 'ipa', 'mlc', 'delete'],
+	med: ['wrte', 'sense', 'exam', 'wrkd', 'ipa', 'mlc', 'delete'],
 });
 
 /** Current values of senses, by dictionary: one row per sense id. */
@@ -150,7 +150,7 @@ const CURRENT_SQL = {
 		`SELECT s.id, w.word, s.wrte, s.sense, s.exam, s.wrkd, s.synset
 		 FROM emd_sense s JOIN eng_word w ON w.id = s.wrid WHERE s.id IN (${ids})`,
 	med: (/** @type {string} */ ids) =>
-		`SELECT s.id, w.word, w.ipa, w.mlc, s.wrte, s.sense, s.exam, s.wrkd, s.usg, s.ref, s.etymology, s.variant, s.reference
+		`SELECT s.id, w.word, w.ipa, w.mlc, s.wrte, s.sense, s.exam, s.wrkd
 		 FROM med_sense s JOIN mya_word w ON w.id = s.wrid WHERE s.id IN (${ids})`,
 };
 

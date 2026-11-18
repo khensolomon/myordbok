@@ -15,7 +15,7 @@
  * @property {string} type     Part of speech name, e.g. "Noun".
  * @property {string} kind     Review state or label, e.g. "Active", "Draft",
  *                             "Checked: awaiting native review".
- * @property {string} sense    Myanmar gloss, with dataset markup.
+ * @property {string} sense    Myanmar glosses, then the sense in English as `[en:…]`, with dataset markup.
  * @property {string | null} example
  */
 
@@ -46,9 +46,8 @@
  * @typedef {object} MyanmarSense
  * @property {number} [id]     med_sense.id; absent on a sense only the live layer has.
  * @property {string} type
- * @property {string} sense    English gloss, with dataset markup.
+ * @property {string} sense    English glosses and notes on them (labels, cross-references, origin), with dataset markup.
  * @property {string | null} example  `~` stands for the headword.
- * @property {string | null} etymology
  */
 
 /**

@@ -313,6 +313,19 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   several rows at once (a label; a state, thanks, deletion), never more than
   200; Members has no such actions on purpose: levels and suspensions are
   changed one member at a time. Searches and Members download as CSV.
+- **A sense is read as items.** Every text column of the dictionary holds
+  items separated by ` | `; `;` and `,` are punctuation (the dataset's
+  Readme, "Items and markup"). `shared/markup.js` splits and classifies
+  them: an item that is one bracket is a note, `[figurative]` shown as a
+  label before the glosses and `[compare:…]`, `[Pali:…]` as the name and its
+  value after them; in an English headword's sense `[en:…]` is the sense
+  explained in English, shown under it; every other item is a gloss or an
+  example, one a line. Editors edit a field one item a line, and a
+  suggestion the dataset's build would refuse (`;` between glosses, a pipe
+  without its spaces, unbalanced brackets, `[en:…]` before the glosses) is
+  refused when it is made. A rating holds while the glosses stay the same:
+  the notes, the English explanation and the separator are not the meaning
+  (`worker/lib/meaning.js`).
 - **Nothing found is still an answer.** A word the dictionary lacks gets
   "did you mean" (`/api/spelling`: headwords one edit away, checked in one
   query), words that start the same way, and a way to ask for it. A sentence

@@ -10,6 +10,7 @@
  * a time. The Myanmar line is made from the entries' own glosses in Myanmar
  * word order, and is shown as made, never as an entry.
  */
+import { glossesOf } from '../markup.js';
 
 /** Words that are never a part of their own. */
 const ARTICLES = new Set(['a', 'an', 'the']);
@@ -57,16 +58,16 @@ function content(words) {
 }
 
 /**
- * The plain Myanmar of a sense, for putting words together: no labels, no
- * notes in brackets, the first of several glosses.
+ * The plain Myanmar of a sense, for putting words together: the first of
+ * its glosses (notes and the sense in English are not glosses), without
+ * labels or notes in brackets.
  * @param {string} sense  With dataset markup.
  */
 export function plainGloss(sense) {
-	return sense
+	return (glossesOf(sense)[0] ?? '')
 		.replace(/\[[^\]]*\]/g, ' ')
 		.replace(/<([^>]*)>/g, '$1')
 		.replace(/\([^)]*\)/g, ' ')
-		.split(/[;၊]/)[0]
 		.replace(/\s+/g, ' ')
 		.trim();
 }

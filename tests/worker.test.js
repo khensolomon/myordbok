@@ -157,7 +157,7 @@ test('phrase: parts found as typed, by form or by spelling, put together in Myan
 	assert.deepEqual(body.parts.map((p) => [p.term, p.word, p.note]), [['king', 'king', null], ['danmark', 'Denmark', 'spelling']]);
 	assert.equal(body.myanmar, 'ဒိန်းမတ် ဘုရင်', 'the sense whose example has a name after "of"');
 	const jazz = (await call('/api/phrase?q=king%20of%20water', localEnv())).body;
-	assert.equal(jazz.parts[0].sense.sense, 'အကောင်းဆုံးသူ; ထိပ်ဆုံးသူ', 'a common noun after "of": the other example');
+	assert.equal(jazz.parts[0].sense.sense, 'အကောင်းဆုံးသူ | ထိပ်ဆုံးသူ', 'a common noun after "of": the other example');
 	const kings = (await call(`/api/phrase?q=${encodeURIComponent('kings of Norway')}`, localEnv())).body;
 	assert.deepEqual(kings.parts.map((p) => [p.word, p.note]), [['king', 'form'], ['Norway', null]]);
 	assert.equal((await call('/api/phrase?q=big%20house', localEnv())).body.myanmar, 'ကြီးသော အိမ်');
@@ -172,7 +172,7 @@ test('lookup keeps each spelling found: God and god', async () => {
 	assert.deepEqual([...new Set(body.entries.map((e) => e.word))].sort(), ['God', 'god']);
 	const king = (await call(`/api/phrase?q=${encodeURIComponent('king of Norway')}`, localEnv())).body.parts[0];
 	assert.equal(king.entries.length, 2);
-	assert.equal(king.entries[king.fit].sense, 'ဘုရင်; မင်း');
+	assert.equal(king.entries[king.fit].sense, 'ဘုရင် | မင်း');
 });
 
 test('read: one request decides entry, phrase, sentence or nothing', async () => {

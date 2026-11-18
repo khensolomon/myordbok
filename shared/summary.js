@@ -11,7 +11,7 @@
  * mark of where one meaning ends. The entry itself comes from the API, to
  * the app's own pages only (worker/lib/guard.js).
  */
-import { parseMarkup, splitExamples } from './markup.js';
+import { glossesOf, parseMarkup } from './markup.js';
 
 /** Meanings read from each part of speech. */
 export const SUMMARY_SENSES = 2;
@@ -47,7 +47,8 @@ export function entrySummary(result) {
 	const glosses = [];
 	let length = 0;
 	for (const sense of [...byPart.values()].flat()) {
-		for (const part of splitExamples(sense)) {
+		// Glosses only: a note (a label, an origin) or the sense in English is not a meaning in the other language.
+		for (const part of glossesOf(sense)) {
 			const gloss = words(parseMarkup(part)).replace(/\s+/g, ' ').trim();
 			if (!gloss || glosses.includes(gloss)) continue;
 			if (glosses.length >= SUMMARY_GLOSSES || length + gloss.length > SUMMARY_LENGTH) break;

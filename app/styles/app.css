@@ -707,6 +707,17 @@ body[data-route="home"] .site-footer { display: none; }
 .gloss-line + .gloss-line { margin-top: 2px; }
 .gloss-line + .gloss-line::before { content: ""; position: absolute; left: -24px; top: 0.62em; width: 7px; height: 7px; border: 1.5px solid var(--ring); border-radius: 50%; box-sizing: border-box; opacity: 0.8; }
 .mk-note { font-style: italic; font-size: 0.86em; color: var(--muted); }
+/* The notes of a meaning (an item that is one bracket): labels together
+   before the glosses, a name and its value on a line of its own after
+   them, then the meaning explained in English. */
+.sense-labels { display: inline-flex; flex-wrap: wrap; gap: 4px 6px; margin-right: 8px; vertical-align: 0.2em; }
+.sense-label { padding: 1px 8px; border-radius: 999px; background: var(--term-tint); font-size: 12px; line-height: 18px; color: var(--ink-2); }
+.sense-notes { margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.sense-note-line { display: block; }
+.sense-note-name { font-style: italic; }
+.sense-note-value { color: var(--ink-2); }
+.sense-explained { margin: 4px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.example-note { font-size: 14px; color: var(--muted); }
 /* A part of speech and its forms share a line, "verb · loves, loved, loving":
    the forms read as that part of speech's own, not as a line between it and
    the meanings. */
@@ -749,7 +760,6 @@ body[data-route="home"] .site-footer { display: none; }
 
 .pron { display: flex; gap: 14px; margin: 6px 0 0; color: var(--muted); font-size: 15px; }
 .entry-note { margin: 14px 0 0; padding: 0; list-style: none; color: var(--muted); }
-.etymology { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
 
 /* Dataset markup */
 .mk-label { font-size: 0.8em; color: var(--muted); }

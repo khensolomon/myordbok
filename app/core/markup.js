@@ -4,7 +4,7 @@
  * is never treated as HTML: every token becomes text or an element built
  * here.
  */
-import { labelName, parseMarkup } from '#shared/markup.js';
+import { LINKED_LABELS, labelName, parseMarkup } from '#shared/markup.js';
 import { h } from './dom.js';
 import { definitionHref } from './routes.js';
 
@@ -22,7 +22,10 @@ function links(words) {
 	const out = [];
 	words.forEach((w, i) => {
 		if (i) out.push(document.createTextNode('/'));
-		out.push(h('a', { href: definitionHref(w) }, w));
+		// A region or a remark after the word stays text: [also:ငါးလက်ခွာ (Rakhine)].
+		const aside = /^(.*\S)\s+(\([^()]*\))$/.exec(w);
+		out.push(h('a', { href: definitionHref(aside ? aside[1] : w) }, aside ? aside[1] : w));
+		if (aside) out.push(h('span', { class: 'mk-note' }, ` ${aside[2]}`));
 	});
 	return out;
 }
@@ -79,4 +82,20 @@ function render(tokens, opts) {
  */
 export function renderMarkup(text, opts = {}) {
 	return render(parseMarkup(text), opts);
+}
+
+/**
+ * A note, an item that is one bracket: a label as a label; a name and its
+ * value as the name, then the value. The name is the caption; a value that
+ * names headwords (see, compare, =, also, …) links to them.
+ * @param {Extract<import('#shared/markup.js').Item, { t: 'note' }>} note
+ * @param {MarkupOptions} [opts]
+ * @returns {HTMLElement}
+ */
+export function renderNote(note, opts = {}) {
+	if (note.value === null) return h('span', { class: 'sense-label', 'data-note': note.name }, note.name);
+	const name = labelName(note.name);
+	const linked = LINKED_LABELS.has(note.name) && !/[<>]/.test(note.value);
+	const value = linked ? links(note.value.split('/').map((w) => w.trim()).filter(Boolean)) : renderMarkup(note.value, opts);
+	return h('span', { class: 'sense-note', 'data-note': note.name }, name ? h('span', { class: 'sense-note-name' }, name) : null, name ? ' ' : null, h('span', { class: 'sense-note-value' }, value));
 }

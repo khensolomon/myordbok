@@ -118,7 +118,7 @@ export async function search(db, statements, query) {
     return {
       query: text, language: "my",
       pronunciation: word.length ? [word[0][0], word[0][1]] : null,
-      entries: senses.map(([type, sense, example, etymology, id]) => ({ id, type, sense, example, etymology })),
+      entries: senses.map(([type, sense, example, id]) => ({ id, type, sense, example })),
     };
   }
 

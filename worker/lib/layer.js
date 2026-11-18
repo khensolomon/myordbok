@@ -131,7 +131,7 @@ export function layerOf(edits, types, kinds) {
 			if (result.language === 'my') {
 				const mine = editsFor('med', result.entries, [result.query]);
 				if (!mine.length) return result;
-				const entries = applyEdits(result.entries, mine, { fields: asLookup, typeName, make: (a) => ({ type: a.type, sense: a.sense, example: a.exam, etymology: null }) });
+				const entries = applyEdits(result.entries, mine, { fields: asLookup, typeName, make: (a) => ({ type: a.type, sense: a.sense, example: a.exam }) });
 				// A headword only the layer has brings its pronunciation with it.
 				const first = result.pronunciation ? null : mine.map(addedSense).find((d) => d?.ipa && d?.mlc);
 				return { ...result, entries, pronunciation: result.pronunciation ?? (first ? [String(first.ipa), String(first.mlc)] : null) };

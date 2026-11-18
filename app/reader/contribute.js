@@ -16,6 +16,7 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { atLeast } from '#shared/roles.js';
 import { EDIT_TEXT_MAX } from '#shared/limits.js';
+import { itemsToLines, linesToItems } from '#shared/markup.js';
 import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
@@ -192,13 +193,26 @@ export function entryFeedback(lang, word) {
 						edit.setAttribute('aria-expanded', 'false');
 						edit.focus();
 					});
-					row.querySelector('.gloss')?.after(editor);
+					// Under the meaning as shown: its glosses, notes and the sense in English.
+					[...row.querySelectorAll(':scope > .gloss, :scope > .sense-notes, :scope > .sense-explained')].pop()?.after(editor);
 					editor.querySelector('textarea')?.focus();
 				});
-				row.querySelector('.gloss')?.append(h('span', { class: 'sense-tools' }, pair.up, pair.down, edit));
+				// Beside the last gloss, on its line.
+				(row.querySelector('.gloss > .gloss-line:last-child') ?? row.querySelector('.gloss'))?.append(h('span', { class: 'sense-tools' }, pair.up, pair.down, edit));
 			}
 		},
 	};
+}
+
+/**
+ * A field to edit one item a line: a meaning's glosses and notes, or its
+ * examples, as the dataset's " | " parts them.
+ * @param {string | null} value  As the dataset keeps it.
+ * @param {string} textLang
+ */
+function lines(value, textLang) {
+	const text = itemsToLines(value);
+	return /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: Math.max(2, Math.min(6, text.split('\n').length)), lang: textLang, dir: 'auto', placeholder: t('One item a line') }, text));
 }
 
 /**
@@ -211,14 +225,15 @@ export function entryFeedback(lang, word) {
  * @param {() => void} close
  */
 function senseEditor(lang, word, id, s, glossLang, close) {
-	const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }, s.sense));
-	const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text', value: s.example ?? '', lang: glossLang === 'my' ? 'en' : 'my' }));
+	// One item a line (a gloss, a note, an example), joined with " | " when sent.
+	const meaning = lines(s.sense, glossLang);
+	const example = lines(s.example, glossLang === 'my' ? 'en' : 'my');
 	const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: EDIT_TEXT_MAX, placeholder: t('A source or a short reason helps the review') }));
 	const save = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send change')));
 	const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Suggest removing')));
 	const cancel = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-remove' }, t('Cancel')));
 	const out = h('p', { class: 'suggest-result', role: 'status' });
-	const changed = () => meaning.value.trim() !== s.sense || example.value.trim() !== (s.example ?? '');
+	const changed = () => linesToItems(meaning.value) !== s.sense || linesToItems(example.value) !== (s.example ?? '');
 	for (const f of [meaning, example]) f.addEventListener('input', () => (save.disabled = !changed()));
 
 	/** @param {Array<Record<string, unknown>>} list */
@@ -243,8 +258,8 @@ function senseEditor(lang, word, id, s, glossLang, close) {
 	save.addEventListener('click', () => {
 		/** @type {Array<Record<string, unknown>>} */
 		const list = [];
-		if (meaning.value.trim() !== s.sense) list.push({ action: 'edit', field: 'sense', value: meaning.value });
-		if (example.value.trim() !== (s.example ?? '')) list.push({ action: 'edit', field: 'exam', value: example.value });
+		if (linesToItems(meaning.value) !== s.sense) list.push({ action: 'edit', field: 'sense', value: linesToItems(meaning.value) });
+		if (linesToItems(example.value) !== (s.example ?? '')) list.push({ action: 'edit', field: 'exam', value: linesToItems(example.value) });
 		send(list);
 	});
 	remove.addEventListener('click', () => send([{ action: 'delete' }]));
@@ -293,8 +308,8 @@ async function openAddMeaning(lang, word) {
 		const type = /** @type {HTMLSelectElement} */ (h('select', null, data.types.map((ty) => h('option', { value: String(ty.id) }, posName(ty.name)))));
 		const noun = data.types.find((ty) => ty.name === 'Noun');
 		if (noun) type.value = String(noun.id);
-		const meaning = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: glossLang }));
-		const example = /** @type {HTMLInputElement} */ (h('input', { type: 'text' }));
+		const meaning = lines('', glossLang);
+		const example = lines('', lang);
 		const reason = /** @type {HTMLInputElement} */ (h('input', { type: 'text', maxlength: EDIT_TEXT_MAX, placeholder: t('A source or a short reason helps the review') }));
 		const add = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'suggest-send', disabled: true }, t('Send new meaning')));
 		const out = h('p', { class: 'suggest-result', role: 'status' });
@@ -313,7 +328,7 @@ async function openAddMeaning(lang, word) {
 			add.disabled = true;
 			out.textContent = t('Sending…');
 			try {
-				const { edit } = await suggestEdit({ lang, word, action: 'add', wrte: Number(type.value), sense: meaning.value, exam: example.value, note: reason.value });
+				const { edit } = await suggestEdit({ lang, word, action: 'add', wrte: Number(type.value), sense: linesToItems(meaning.value), exam: linesToItems(example.value), note: reason.value });
 				out.textContent = sentMessage(edit.status, edit.live);
 				meaning.value = example.value = reason.value = '';
 				showMine((await editableSenses(lang, word)).mine);

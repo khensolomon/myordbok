@@ -30,11 +30,11 @@
  * small result at a time; a single word gets "did you mean", words starting
  * the same way, and a way to suggest it.
  */
-import { splitExamples } from '#shared/markup.js';
+import { itemsOf } from '#shared/markup.js';
 import { entrySummary, summaryText } from '#shared/summary.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
-import { renderMarkup } from '../core/markup.js';
+import { renderMarkup, renderNote } from '../core/markup.js';
 import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, read, remember, savingData, spelling } from '../data/api.js';
@@ -468,16 +468,27 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 function sense(s, glossLang, headword, fitLabel = '') {
 	const kind = 'kind' in s ? kindBadge(s.kind) : null;
 	const fits = fitLabel ? h('span', { class: 'kind kind-fit' }, fitLabel) : null;
-	const etymology = 'etymology' in s && s.etymology ? h('p', { class: 'etymology' }, renderMarkup(s.etymology)) : null;
+	const exampleLang = glossLang === 'my' ? 'en' : 'my';
+	// One item a line (the dataset's " | "). Labels stand together before the
+	// glosses, notes with a name follow them, then the sense in English, then
+	// the examples.
+	const items = itemsOf(s.sense, { languages: glossLang === 'my' });
+	/** @param {Extract<import('#shared/markup.js').Item, { t: 'note' }>} it */
+	const isLabel = (it) => it.value === null;
+	const labels = items.flatMap((it) => (it.t === 'note' && isLabel(it) ? [renderNote(it)] : []));
+	const glosses = items.flatMap((it) => (it.t === 'text' ? [h('span', { class: 'gloss-line' }, renderMarkup(it.text, { headword }))] : []));
+	const notes = items.flatMap((it) => (it.t === 'note' && !isLabel(it) ? [h('span', { class: 'sense-note-line' }, renderNote(it, { headword }))] : []));
+	const explained = items.flatMap((it) => (it.t === 'language' ? [h('p', { class: 'sense-explained', lang: it.lang }, it.text)] : []));
+	const examples = itemsOf(s.example).map((it) =>
+		it.t === 'note' ? h('p', { class: 'example example-note', lang: exampleLang }, renderNote(it, { headword })) : h('p', { class: 'example', lang: exampleLang }, renderMarkup(it.t === 'text' ? it.text : '', { headword })),
+	);
 	return h(
 		'li',
 		{ class: fitLabel ? 'sense sense-fit' : 'sense', 'data-sense-id': 'id' in s && s.id !== undefined ? String(s.id) : null },
-		// One line for each of the meaning's wordings, as `;` parts them.
-		h('p', { class: 'gloss', lang: glossLang }, fits, kind, splitExamples(s.sense ?? '').map((part) => h('span', { class: 'gloss-line' }, renderMarkup(part, { headword })))),
-		s.example
-			? splitExamples(s.example).map((ex) => h('p', { class: 'example', lang: glossLang === 'my' ? 'en' : 'my' }, renderMarkup(ex, { headword })))
-			: null,
-		etymology,
+		h('p', { class: 'gloss', lang: glossLang }, fits, kind, labels.length ? h('span', { class: 'sense-labels' }, labels) : null, glosses),
+		notes.length ? h('p', { class: 'sense-notes', lang: glossLang }, notes) : null,
+		explained,
+		examples,
 	);
 }
 

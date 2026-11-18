@@ -50,7 +50,7 @@ test('senses: ids and parts of speech for a signed-in member only', async () => 
 	assert.ok(body.senses.length >= 2);
 	assert.ok(body.senses.every((s) => Number.isInteger(s.id) && s.word === 'love' && s.type));
 	assert.ok(body.types.some((t) => t.name === 'Noun'));
-	assert.equal((await call(e, '/api/senses?lang=my&word=ချစ်', { who: 'member' })).body.senses.length, 1);
+	assert.equal((await call(e, '/api/senses?lang=my&word=ချစ်', { who: 'member' })).body.senses.length, 2);
 });
 
 test('suggestions: a member’s waits, an editor’s is approved; the old value comes from the dictionary', async () => {
@@ -89,6 +89,13 @@ test('suggestions: checked before they are kept', async () => {
 	assert.equal(await bad({ word: 'water', action: 'delete', sense_id: first.id }), 404, 'a sense of another word');
 	assert.equal(await bad({ action: 'add', wrte: 999, sense: 'x' }), 400, 'unknown part of speech');
 	assert.equal(await bad({ action: 'rename' }), 400);
+	// What the dataset's build would refuse is refused here, with the reason.
+	const said = async (body) => (await call(e, '/api/edits', { who: 'member', body: { lang: 'en', word: 'love', ...body } })).body.error?.message;
+	assert.match(await said({ action: 'edit', sense_id: first.id, field: 'sense', value: 'ချစ်ခြင်း; ချစ်ခင်မှု' }), /^The meaning: Meanings are separated by " \| "/);
+	assert.match(await said({ action: 'edit', sense_id: first.id, field: 'sense', value: 'ချစ်ခြင်း |ချစ်ခင်မှု' }), /one space each side/);
+	assert.match(await said({ action: 'edit', sense_id: first.id, field: 'sense', value: '[en:love] | ချစ်ခြင်း' }), /after the meanings/);
+	assert.match(await said({ action: 'add', wrte: 0, sense: 'ချစ်ခြင်း', exam: '[type:x' }), /^The example: Square brackets/);
+	assert.match(await said({ lang: 'my', word: 'ရေ', action: 'edit', sense_id: 1, field: 'exam', value: '~ချိုး; ~သောက်' }), /Examples are separated/);
 	assert.equal((await call(e, '/api/edits', { body: { lang: 'en', word: 'love', action: 'delete', sense_id: first.id } })).status, 401);
 
 	e.raw.exec("INSERT INTO dict_edits (user_id, dict, action, word, data, status) SELECT 1, 'emd', 'add', 'love', '{}', 'pending' FROM (WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 50) SELECT i FROM n)");
@@ -109,8 +116,15 @@ test('sense reactions: per sense, and they start afresh when the meaning changes
 	assert.equal((await react('member', { sense_id: 99999, value: 1 })).status, 404);
 	assert.equal((await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'water', sense_id: first.id, value: 1 } })).status, 404, 'a sense of another word');
 
-	// The meaning is corrected in a new build: its old feedback no longer counts.
+	// A new build parts the same glosses with " | " and adds the sense in English and a note: the feedback still counts.
 	const dictDb = e.rawDict;
+	const before = dictDb.prepare('SELECT sense FROM emd_sense WHERE id = ?').get(first.id).sense;
+	dictDb.prepare('UPDATE emd_sense SET sense = ? WHERE id = ?').run('ချစ်ခြင်း; ချစ်ခင်မှု', first.id);
+	await react('editor', { sense_id: first.id, value: -1 });
+	dictDb.prepare('UPDATE emd_sense SET sense = ? WHERE id = ?').run(`[brit] | ${before}`, first.id);
+	assert.deepEqual((await call(e, '/api/reactions?lang=en&word=love')).body.senses[String(first.id)], { likes: 0, dislikes: 2, mine: 0 }, 'a rating given to "a; b" counts for "a | b"');
+
+	// The meaning is corrected in a new build: its old feedback no longer counts.
 	dictDb.prepare('UPDATE emd_sense SET sense = ? WHERE id = ?').run('ချစ်ခင်မှု (corrected)', first.id);
 	const after = (await call(e, '/api/reactions?lang=en&word=love')).body.senses;
 	assert.equal(after[String(first.id)], undefined);

@@ -14,8 +14,11 @@ test('plan: X of Y and pairs, articles left out', () => {
 });
 
 test('plain gloss: no labels, notes or alternatives', () => {
-	assert.equal(plainGloss('[type:computing] AI (artificial intelligence); ကွန်ပျူတာ'), 'AI');
-	assert.equal(plainGloss('ဘုရင်; မင်း'), 'ဘုရင်');
+	assert.equal(plainGloss('[type:computing] AI (artificial intelligence) | ကွန်ပျူတာ'), 'AI');
+	assert.equal(plainGloss('ဘုရင် | မင်း'), 'ဘုရင်');
+	assert.equal(plainGloss('[brit] | ဘုရင် | [en:a man who rules a country]'), 'ဘုရင်', 'the first gloss, not a note');
+	assert.equal(plainGloss('(နေရာ၊ ယာဉ်ကို) စွန့်ခွာသည်'), 'စွန့်ခွာသည်', 'the Myanmar comma is punctuation');
+	assert.equal(plainGloss('[obsolete] | [=:ရဲစခန်း]'), '', 'notes alone: no gloss');
 	assert.equal(plainGloss('<ချစ်>သည်'), 'ချစ်သည်');
 });
 

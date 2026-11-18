@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+137
+
+- Senses read as items: ' | ' between glosses and examples, notes as labels and name–value lines, [en:…] as the sense in English; etymology column gone; suggestions checked against the item rules; ratings follow the glosses
+
 ## 26.11.16+136
 
 - Searches and Inbox: Shift and a click on a row selects every row from the open one to it

@@ -39,6 +39,7 @@ import { EDIT_TEXT_MAX } from '../../shared/limits.js';
 import { atLeast, seesStatistics } from '../../shared/roles.js';
 import { dictionary, explainDictError } from '../lib/dict.js';
 import { json } from '../lib/http.js';
+import { meaningHash } from '../lib/meaning.js';
 import { liveLayer, requireLayerRoom, resetLayerCache } from '../lib/layer.js';
 import { currentMember, endSession } from '../lib/session.js';
 import { inbox, unseenAnswers } from './messages.js';
@@ -512,7 +513,7 @@ async function currentSenses(env, rated) {
 				throw explainDictError(err, dict, env);
 			});
 		for (const s of now.results) {
-			const hash = await textHash(String(s.sense ?? ''));
+			const hash = await meaningHash(String(s.sense ?? ''));
 			for (const r of rated.filter((d) => d.dict === name && Number(d.sense_id) === Number(s.id) && d.text_hash === hash)) {
 				out.push({ dict: name, sense_id: s.id, word: s.word, type: s.type, sense: s.sense, down: Number(r.down), up: Number(r.up), ...(r.value === undefined ? {} : { value: Number(r.value) }), ...(r.at === undefined ? {} : { at: Number(r.at) }) });
 			}
@@ -520,12 +521,6 @@ async function currentSenses(env, rated) {
 	}
 	out.sort((a, b) => Number(b.down) - Number(a.down) || Number(a.up) - Number(b.up));
 	return out;
-}
-
-/** @param {string} text */
-async function textHash(text) {
-	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.normalize('NFC')));
-	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -669,7 +664,7 @@ async function ratings(request, env, member) {
 		const items = await Promise.all(
 			page.map(async (r) => {
 				const s = now.get(`${r.dict}:${r.sense_id}`);
-				return { dict: r.dict, sense_id: Number(r.sense_id), value: Number(r.value), at: Number(r.at), word: s?.word ?? null, type: s?.type ?? null, sense: s?.sense ?? null, state: !s ? 'gone' : (await textHash(String(s.sense ?? ''))) === r.text_hash ? 'current' : 'changed' };
+				return { dict: r.dict, sense_id: Number(r.sense_id), value: Number(r.value), at: Number(r.at), word: s?.word ?? null, type: s?.type ?? null, sense: s?.sense ?? null, state: !s ? 'gone' : (await meaningHash(String(s.sense ?? ''))) === r.text_hash ? 'current' : 'changed' };
 			}),
 		);
 		return json({ ...base, items, more: got.length > RATINGS_PAGE }, NO_STORE);

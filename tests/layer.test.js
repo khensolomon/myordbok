@@ -33,9 +33,9 @@ const read = async (e, q = 'love') => {
 	return body.kind === 'entry' ? body.result.entries.map((s) => [s.id ?? null, s.sense, s.example]) : body.kind;
 };
 const BUILT = [
-	[1, 'ချစ်ခြင်း; ချစ်ခင်မှု', "a mother's love for her <family>"],
+	[1, 'ချစ်ခြင်း | ချစ်ခင်မှု | [en:a strong feeling of liking and caring for someone]', "a mother's love for her <family>"],
 	[2, 'ချစ်သူ', 'You were my first love.'],
-	[3, 'ချစ်သည်', '<love/loved/loved>; She loves her <family>.'],
+	[3, 'ချစ်သည် | [en:to have strong feelings of liking and caring for someone]', '<love/loved/loved> | She loves her <family>.'],
 	[4, '[type:informal] အလွန်နှစ်သက်သည်', 'I (-love-) this song!'],
 ];
 
@@ -77,7 +77,7 @@ test('live: an admin or owner makes an approved edit live; an editor’s approva
 	assert.deepEqual(await read(e), BUILT);
 
 	// A member suggests, an editor approves: approved, not live.
-	const a = await suggest(e, 'member', { action: 'edit', sense_id: 2, field: 'sense', value: 'ချစ်သူ; ရည်းစား' });
+	const a = await suggest(e, 'member', { action: 'edit', sense_id: 2, field: 'sense', value: 'ချစ်သူ | ရည်းစား' });
 	assert.deepEqual(a, { id: a.id, status: 'pending', live: false });
 	assert.deepEqual((await call(e, `/api/workspace/edits/${a.id}/review`, { who: 'editor', body: { decision: 'approve' } })).body.edit, { id: a.id, status: 'approved', live: false });
 	assert.deepEqual(await read(e), BUILT);
@@ -88,7 +88,7 @@ test('live: an admin or owner makes an approved edit live; an editor’s approva
 	assert.equal((await call(e, `/api/workspace/edits/${a.id}/live`, { who: 'admin', body: { live: 'yes' } })).status, 400);
 	assert.equal((await call(e, '/api/workspace/edits/999/live', { who: 'admin', body: { live: true } })).status, 404);
 	assert.deepEqual((await call(e, `/api/workspace/edits/${a.id}/live`, { who: 'admin', body: { live: true } })).body.edit, { id: a.id, status: 'approved', live: true });
-	assert.deepEqual((await read(e))[1], [2, 'ချစ်သူ; ရည်းစား', 'You were my first love.']);
+	assert.deepEqual((await read(e))[1], [2, 'ချစ်သူ | ရည်းစား', 'You were my first love.']);
 	const listed = (await call(e, '/api/workspace/edits?status=approved', { who: 'editor' })).body.edits[0];
 	assert.equal(listed.live, true);
 	assert.equal(listed.live_by, 'Ad');
@@ -103,7 +103,7 @@ test('live: an admin or owner makes an approved edit live; an editor’s approva
 	const b = await suggest(e, 'member', { action: 'edit', sense_id: 1, field: 'exam', value: 'love of country' });
 	assert.equal((await call(e, `/api/workspace/edits/${b.id}/live`, { who: 'admin', body: { live: true } })).status, 409);
 	assert.deepEqual((await call(e, `/api/workspace/edits/${b.id}/review`, { who: 'admin', body: { decision: 'approve' } })).body.edit, { id: b.id, status: 'approved', live: true });
-	assert.deepEqual((await read(e))[0], [1, 'ချစ်ခြင်း; ချစ်ခင်မှု', 'love of country']);
+	assert.deepEqual((await read(e))[0], [1, 'ချစ်ခြင်း | ချစ်ခင်မှု | [en:a strong feeling of liking and caring for someone]', 'love of country']);
 	const c = await suggest(e, 'member', { action: 'delete', sense_id: 4 });
 	assert.deepEqual((await call(e, `/api/workspace/edits/${c.id}/review`, { who: 'admin', body: { decision: 'reject' } })).body.edit, { id: c.id, status: 'rejected', live: false });
 	assert.equal((await read(e)).length, 4);
@@ -128,10 +128,10 @@ test('live: an admin’s own change, addition and removal are live at once; an e
 	const senses = (await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses;
 	assert.deepEqual(senses.map((s) => s.id), [1, 3, 4]);
 	assert.equal((await call(e, '/api/edits', { who: 'member', body: { lang: 'en', word: 'love', action: 'edit', sense_id: 2, field: 'sense', value: 'x' } })).status, 404);
-	await suggest(e, 'admin', { action: 'edit', sense_id: 3, field: 'sense', value: 'ချစ်သည်; မြတ်နိုးသည်' });
-	assert.equal((await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses[1].sense, 'ချစ်သည်; မြတ်နိုးသည်');
+	await suggest(e, 'admin', { action: 'edit', sense_id: 3, field: 'sense', value: 'ချစ်သည် | မြတ်နိုးသည်' });
+	assert.equal((await call(e, '/api/senses?lang=en&word=love', { who: 'member' })).body.senses[1].sense, 'ချစ်သည် | မြတ်နိုးသည်');
 	const next = await suggest(e, 'owner', { action: 'edit', sense_id: 3, field: 'sense', value: 'ချစ်မြတ်နိုးသည်' });
-	assert.equal(e.raw.prepare('SELECT old_value FROM dict_edits WHERE id = ?').get(next.id).old_value, 'ချစ်သည်; မြတ်နိုးသည်');
+	assert.equal(e.raw.prepare('SELECT old_value FROM dict_edits WHERE id = ?').get(next.id).old_value, 'ချစ်သည် | မြတ်နိုးသည်');
 	assert.equal((await read(e))[1][1], 'ချစ်မြတ်နိုးသည်');
 	assert.equal((await call(e, '/api/edits', { who: 'owner', body: { lang: 'en', word: 'love', action: 'edit', sense_id: 3, field: 'sense', value: 'ချစ်မြတ်နိုးသည်' } })).status, 400, 'the same as readers see now');
 
@@ -140,7 +140,7 @@ test('live: an admin’s own change, addition and removal are live at once; an e
 	await call(e, '/api/edits', { who: 'admin', body: { lang: 'en', word: 'lovebird', action: 'add', wrte: 0, sense: 'ချစ်သူငှက်' } });
 	assert.deepEqual(await read(e, 'lovebird'), [[null, 'ချစ်သူငှက်', null]]);
 	await call(e, '/api/edits', { who: 'admin', body: { lang: 'my', word: 'ချစ်', action: 'edit', sense_id: 2, field: 'sense', value: 'to <love>' } });
-	assert.deepEqual(await read(e, 'ချစ်'), [[2, 'to <love>', '~သူ']]);
+	assert.deepEqual(await read(e, 'ချစ်'), [[2, 'to <love>', '~သူ'], [6, '[poetic] | to cherish | [compare:ချစ်သူ] | [Pali:ပေမ]', null]]);
 });
 
 test('live: the layer follows the release, the build read, and its switch', async () => {

@@ -1047,4 +1047,6 @@ export const MY = {
 	'Supporter': 'ထောက်ပံ့သူ',
 	'Google': 'Google',
 	'GitHub': 'GitHub',
+	// Editing a meaning or an example: one item a line (the dataset's " | ")
+	'One item a line': 'တစ်ကြောင်းလျှင် တစ်ခု',
 };

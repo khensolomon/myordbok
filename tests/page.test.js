@@ -37,19 +37,19 @@ test('summary: the parts of speech once, then the first meanings as one run of p
 		query: 'run',
 		language: 'en',
 		entries: [
-			sense('Verb', '[type:informal] ပြေးသည်; <လည်ပတ်သည်> (~ sth)'),
+			sense('Verb', '[informal] | [type:informal] ပြေးသည် | <လည်ပတ်သည်> (~ sth) | [en:to move fast on foot]'),
 			sense('Noun', 'အပြေး'),
 			...Array.from({ length: 8 }, (_, i) => sense('Verb', `ကြိယာ${i}`)),
 			sense('Noun', 'ပြေးသည်'), // said already
 		],
 	});
 	assert.deepEqual(s.parts, ['verb', 'noun']);
-	// Verb: its first two meanings (the first gives two words), then the noun's first two, one said already; labels, patterns and brackets are gone.
+	// Verb: its first two meanings (the first gives two glosses), then the noun's first two, one said already; notes, the sense in English, labels, patterns and brackets are gone.
 	assert.deepEqual(s.glosses, ['ပြေးသည်', 'လည်ပတ်သည်', 'ကြိယာ0', 'အပြေး']);
 	assert.equal(SUMMARY_SENSES, 2);
 	assert.deepEqual(summaryText(s), { title: 'run: ပြေးသည်, လည်ပတ်သည်, ကြိယာ0', sentence: '“run” in Myanmar (verb, noun): ပြေးသည်, လည်ပတ်သည်, ကြိယာ0, အပြေး' });
 
-	const many = entrySummary({ query: 'w', language: 'en', entries: Array.from({ length: 5 }, (_, i) => sense(`Part${i}`, Array.from({ length: 6 }, (_, j) => `g${i}-${j}`).join('; '))) });
+	const many = entrySummary({ query: 'w', language: 'en', entries: Array.from({ length: 5 }, (_, i) => sense(`Part${i}`, Array.from({ length: 6 }, (_, j) => `g${i}-${j}`).join(' | '))) });
 	assert.equal(many.glosses.length, SUMMARY_GLOSSES);
 	assert.equal(entrySummary({ query: 'w', language: 'en', entries: [sense('Noun', '[see:x]')] }), null, 'nothing plain to say');
 });

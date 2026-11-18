@@ -29,6 +29,7 @@ import { editableSenses, studioWords, suggest, suggestEdit, workspaceEdits } fro
 import { ago, mark, num, posName, t, tn } from '../i18n/index.js';
 import { atLeast } from '#shared/roles.js';
 import { EDIT_TEXT_MAX } from '#shared/limits.js';
+import { itemsToLines, linesToItems } from '#shared/markup.js';
 import { listBar } from './list-bar.js';
 
 /** @typedef {import('../data/api.js').EditableSense & { wrkd: number | null, kind: string | null }} Sense */
@@ -236,8 +237,15 @@ async function sheet(o) {
 		s.value = now === null ? '' : String(now);
 		return s;
 	};
-	/** @param {string} value @param {string} textLang @param {string} label */
-	const area = (value, textLang, label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, lang: textLang, dir: 'auto', maxlength: EDIT_TEXT_MAX, 'aria-label': label, spellcheck: 'false' }, value));
+	// A field is edited one item a line (a gloss, a note, an example); the
+	// lines are joined with " | " when sent, as the dataset keeps them.
+	/** @param {string} value  As the dataset keeps it. @param {string} textLang @param {string} label */
+	const area = (value, textLang, label) => {
+		const lines = itemsToLines(value);
+		return /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: Math.max(2, Math.min(8, lines.split('\n').length)), lang: textLang, dir: 'auto', maxlength: EDIT_TEXT_MAX, 'aria-label': label, spellcheck: 'false', placeholder: t('One item a line') }, lines));
+	};
+	/** A field's text as it will be sent. @param {HTMLTextAreaElement} f */
+	const value = (f) => linesToItems(f.value);
 
 	/**
 	 * @typedef {object} Row
@@ -308,14 +316,14 @@ async function sheet(o) {
 				out.push({ label: `${t('Remove')} ${which}`, body: { ...base, action: 'delete' }, fields: [] });
 				return;
 			}
-			const text = r.text.value.trim();
-			const exam = r.exam.value.trim();
+			const text = value(r.text);
+			const exam = value(r.exam);
 			if (text !== (r.sense.sense ?? '')) out.push({ label: t('Meaning of {which}', { which }), body: { ...base, action: 'edit', field: 'sense', value: text }, fields: [r.text] });
 			if (exam !== (r.sense.exam ?? '')) out.push({ label: t('Example of {which}', { which }), body: { ...base, action: 'edit', field: 'exam', value: exam }, fields: [r.exam] });
 			if (r.type.value !== String(r.sense.wrte)) out.push({ label: t('Part of speech of {which}', { which }), body: { ...base, action: 'edit', field: 'wrte', value: Number(r.type.value) }, fields: [] });
 			if (r.kind.value !== '' && r.kind.value !== String(r.sense.wrkd ?? '')) out.push({ label: t('Status of {which}', { which }), body: { ...base, action: 'edit', field: 'wrkd', value: Number(r.kind.value) }, fields: [] });
 		});
-		if (canAdd && newText.value.trim()) out.push({ label: t('New meaning'), body: { lang, word, action: 'add', wrte: Number(newType.value), sense: newText.value.trim(), exam: newExam.value.trim() }, fields: [newText, newExam] });
+		if (canAdd && value(newText)) out.push({ label: t('New meaning'), body: { lang, word, action: 'add', wrte: Number(newType.value), sense: value(newText), exam: value(newExam) }, fields: [newText, newExam] });
 		return out;
 	};
 
@@ -330,7 +338,7 @@ async function sheet(o) {
 		for (const r of rows) {
 			const s = r.sense;
 			r.node.classList.toggle('is-removed', r.remove.checked);
-			r.node.classList.toggle('is-changed', !r.remove.checked && (r.text.value.trim() !== (s.sense ?? '') || r.exam.value.trim() !== (s.exam ?? '') || r.type.value !== String(s.wrte) || (r.kind.value !== '' && r.kind.value !== String(s.wrkd ?? ''))));
+			r.node.classList.toggle('is-changed', !r.remove.checked && (value(r.text) !== (s.sense ?? '') || value(r.exam) !== (s.exam ?? '') || r.type.value !== String(s.wrte) || (r.kind.value !== '' && r.kind.value !== String(s.wrkd ?? ''))));
 			for (const f of [r.type, r.kind, r.text, r.exam]) f.disabled = r.remove.checked;
 		}
 	};
