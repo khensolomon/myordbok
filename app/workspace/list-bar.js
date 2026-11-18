@@ -4,14 +4,17 @@
  * Comments, Inbox, Members), the same everywhere:
  *
  *   row 1   the title and a count
- *   row 2   the filters, each a group of segments, as many as the column's
- *           width holds; the ones that do not fit go under ⋯ at the end
+ *   row 2   the filters, each a group of segments, as many choices as the
+ *           column's width holds; the ones that do not fit go under ⋯ at
+ *           the end
  *   row 3   the search box, across the column
  *
  * The groups come in a fixed order of importance and fill the row in that
- * order, whole, never split; widening the column brings the next ones out
- * of ⋯, and with all of them out ⋯ goes. A dot on ⋯ says a group under it
- * is not at its default; Reset puts them all back. Every list has all three
+ * order. The first group that does not fit whole shows the choices that do,
+ * from its first, and always the one chosen; its others, and every group
+ * after it, go under ⋯. Widening the column brings them out, and with all of
+ * them out ⋯ goes. A dot on ⋯ says a choice made is under it; Reset puts
+ * every group back to its default. Every list has all three
  * rows, so the search box sits in the same place in each section.
  *
  * Also the column's width: on a desktop, the line between the list and the
@@ -50,33 +53,65 @@ import { num, t } from '../i18n/index.js';
 export function listBar(o) {
 	const head = h('header', { class: 'ws-list-head' }, h('h1', null, o.title), h('span', null, o.count));
 	const groups = o.groups ?? [];
-	const inline = groups.map((g) =>
-		h(
-			'nav',
-			{ class: 'ws-segments', 'aria-label': g.title },
-			g.choices.map((c) => h('a', { href: g.href(c.value), 'aria-current': c.value === g.current ? 'true' : null }, c.label, c.count ? h('span', { class: 'ws-count' }, num(c.count)) : '')),
-		),
-	);
+	/** Each group's links, in order. */
+	const links = groups.map((g) => g.choices.map((c) => h('a', { href: g.href(c.value), 'aria-current': c.value === g.current ? 'true' : null }, c.label, c.count ? h('span', { class: 'ws-count' }, num(c.count)) : '')));
+	const inline = groups.map((g, k) => h('nav', { class: 'ws-segments', 'aria-label': g.title }, links[k]));
 	const wrap = h('div', { class: 'ws-more-wrap', hidden: true });
 	const bar = h('div', { class: 'ws-filterbar' }, inline, wrap);
 	const rows = [head, bar];
 	if (o.search) rows.push(h('label', { class: 'ws-search' }, icon(ICONS.search, 14), o.search));
 	if (!groups.length) return rows;
 
-	let shown = -1;
-	/** The first groups that fit stay in the row, the rest go under ⋯. */
+	const over = () => bar.scrollWidth > bar.clientWidth;
+	let shown = '';
+	/**
+	 * The first groups that fit stay in the row whole; the next shows as many
+	 * of its choices as fit; the rest go under ⋯.
+	 */
 	const fit = () => {
 		if (!bar.isConnected || !bar.clientWidth) return;
 		inline.forEach((n) => (n.hidden = false));
+		links.flat().forEach((a) => (a.hidden = false));
 		wrap.hidden = true;
 		let n = groups.length;
-		if (bar.scrollWidth > bar.clientWidth) {
+		/** Choices of group n in the row: every one. */
+		let part = 0;
+		if (over()) {
 			wrap.hidden = false;
-			while (n > 0 && bar.scrollWidth > bar.clientWidth) inline[--n].hidden = true;
+			while (n > 0 && over()) inline[--n].hidden = true;
+			if (n < groups.length) {
+				// The group cut short: its choices one by one, the chosen one always among them.
+				const g = groups[n];
+				const mine = links[n];
+				const chosen = g.choices.findIndex((c) => c.value === g.current);
+				inline[n].hidden = false;
+				mine.forEach((a, k) => (a.hidden = k !== chosen));
+				const order = mine.map((_, k) => k).filter((k) => k !== chosen);
+				let shownHere = chosen >= 0 ? 1 : 0;
+				for (const k of order) {
+					mine[k].hidden = false;
+					if (over()) {
+						mine[k].hidden = true;
+						break;
+					}
+					shownHere++;
+				}
+				// Not even the chosen one fits, or (after the first group) a lone choice
+				// that reads as no group at all: the whole group goes under ⋯.
+				if (!shownHere || over() || (n > 0 && shownHere < 2)) {
+					inline[n].hidden = true;
+					mine.forEach((a) => (a.hidden = false));
+				} else {
+					part = shownHere;
+				}
+			}
 		}
-		if (n === shown) return;
-		shown = n;
-		wrap.replaceChildren(...(n < groups.length ? moreMenu(groups.slice(n), o.reset ?? '') : []));
+		const key = `${n}:${part}`;
+		if (key === shown) return;
+		shown = key;
+		/** Under ⋯: the choices of the group cut short that are not in the row, then every group after it. */
+		const under = groups.slice(n).map((g, k) => (k === 0 && part ? { ...g, choices: g.choices.filter((_, i) => links[n][i].hidden) } : g));
+		wrap.replaceChildren(...(n < groups.length ? moreMenu(under, o.reset ?? '', groups.some((g) => g.current !== g.fallback)) : []));
 	};
 	// Each change of width fits the row again, once per frame.
 	let frame = 0;
@@ -90,11 +125,13 @@ export function listBar(o) {
 
 /**
  * ⋯ and its panel.
- * @param {Group[]} groups
+ * @param {Group[]} groups  What is not in the row.
  * @param {string} reset
+ * @param {boolean} anyChanged  Some group, in the row or not, is not at its default: Reset is offered.
  */
-function moreMenu(groups, reset) {
-	const changed = groups.some((g) => g.current !== g.fallback);
+function moreMenu(groups, reset, anyChanged) {
+	// The dot: a choice made is under ⋯, not in sight.
+	const changed = groups.some((g) => g.current !== g.fallback && g.choices.some((c) => c.value === g.current));
 	const id = `ws-more-${Math.random().toString(36).slice(2, 8)}`;
 	const button = h(
 		'button',
@@ -123,7 +160,7 @@ function moreMenu(groups, reset) {
 				),
 			),
 		),
-		changed && reset ? h('a', { class: 'ws-more-reset', href: reset }, t('Reset')) : '',
+		anyChanged && reset ? h('a', { class: 'ws-more-reset', href: reset }, t('Reset')) : '',
 	);
 	const close = () => {
 		panel.hidden = true;

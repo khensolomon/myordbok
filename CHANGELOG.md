@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+139
+
+- Workspace filters: the group that does not fit whole shows the choices that do, the chosen one always among them; the rest go under ⋯
+
 ## 26.11.18+138
 
 - A word with meanings of its own that is also a form (loathing, -ing of loathe) says so under that part of speech, in a section of its own when it has no meanings as it
