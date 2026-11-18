@@ -113,7 +113,7 @@ async function contents(me, done) {
 		me ? account(me, done) : signIn(here),
 		h('div', { class: 'you-group' }, languageRow(), themeRow(), analyticsAvailable() ? statsRow() : ''),
 		await offlineRow(me, here),
-		h('nav', { class: 'you-links', 'aria-label': t('More') }, h('a', { href: '/practice' }, icon(ICONS.practice, 16), t('Practice')), h('a', { href: '/about' }, icon(ICONS.info, 16), t('About')), h('a', { href: '/contact' }, icon(ICONS.inbox, 16), t('Contact')), me ? signOutButton(done) : ''),
+		h('nav', { class: 'you-links', 'aria-label': t('More') }, h('a', { href: '/practice' }, icon(ICONS.practice, 16), t('Practice')), h('a', { href: '/about' }, icon(ICONS.info, 16), t('About')), h('a', { href: '/contact' }, icon(ICONS.inbox, 16), t('Contact'))),
 	];
 }
 
@@ -158,6 +158,8 @@ function account(me, done) {
 			{ class: 'you-who' },
 			me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 40, height: 40, referrerpolicy: 'no-referrer' }) : h('span', { class: 'you-face' }, me.name.slice(0, 1).toUpperCase()),
 			h('div', null, h('strong', null, me.name), h('span', null, me.role === 'owner' ? t('Owner') : me.role === 'admin' ? t('Administrator') : me.role === 'editor' ? t('Editor') : t('Member'))),
+			// Beside the account it ends, not among the page links, where it had no room.
+			signOutButton(done),
 		),
 		h('a', { class: 'you-workspace', href: '/workspace', onClick: done }, icon(ICONS.overview, 18), t('Open the workspace'), badge),
 	);
@@ -165,7 +167,7 @@ function account(me, done) {
 
 /** @param {() => void} done */
 function signOutButton(done) {
-	const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button' }, t('Sign out')));
+	const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'you-signout' }, t('Sign out')));
 	b.addEventListener('click', async () => {
 		b.disabled = true;
 		try {

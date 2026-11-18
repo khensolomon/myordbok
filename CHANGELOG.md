@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+144
+
+- Account menu: Sign out moves beside the account name; the page links no longer wrap
+
 ## 26.11.18+143
 
 - Test yourself and Comments: the heading runs into a rule to the right, with more space between the meanings, the quiz and the comments
