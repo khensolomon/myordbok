@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+141
+
+- Test yourself laid out like Comments: full width of the entry, the round in a bubble from MyOrdbok; one column of choices on narrow screens
+
 ## 26.11.18+140
 
 - Test yourself on word pages and a practice page: questions made on the device from reviewed meanings, progress kept on the device

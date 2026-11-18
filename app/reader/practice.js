@@ -8,7 +8,7 @@ import { h } from '../core/dom.js';
 import { recentSearches } from '../data/recent.js';
 import { clearProgress, progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
 import { num, t, tn } from '../i18n/index.js';
-import { ended, lookups, play, popular } from './quiz.js';
+import { ended, frame, lookups, play, popular } from './quiz.js';
 
 /** Words in one round, at most. */
 const ROUND = 8;
@@ -18,17 +18,17 @@ export function title() {
 }
 
 export function view() {
-	const card = h('section', { class: 'quiz-card quiz-page-card', 'aria-label': t('Practice') });
+	const f = frame();
 	const page = h(
 		'article',
 		{ class: 'page prose practice' },
 		h('h1', null, t('Practice')),
 		h('p', { class: 'page-lead' }, t('The words you look up come back here. A word answered right waits longer each time: a day, then 3, 7 and 21 days. One answered wrong comes back the next day.')),
 		h('p', { class: 'practice-paused notice' }, t('Practice is paused for now.')),
-		card,
+		f.section,
 		settings(),
 	);
-	start(card);
+	start(f);
 	return page;
 }
 
@@ -46,13 +46,14 @@ function roundWords() {
 	return [...new Set([...due, ...fresh.map((w) => w.toLowerCase())])].slice(0, ROUND);
 }
 
-/** @param {HTMLElement} card */
-function start(card) {
+/** @param {import('./quiz.js').Frame} f */
+function start(f) {
 	const p = progress();
 	const today = dayOf();
 	const words = roundWords();
 	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary' }, tn('Start: {n} word', 'Start: {n} words', words.length, { n: num(words.length) })));
-	card.replaceChildren(
+	f.head();
+	f.body.replaceChildren(
 		h(
 			'div',
 			{ class: 'quiz-tiles quiz-tiles-three' },
@@ -70,17 +71,17 @@ function start(card) {
 			return [];
 		});
 		if (!round.length) {
-			card.replaceChildren(h('p', { class: 'quiz-lead' }, t('These words have too few reviewed meanings to make questions yet.')));
+			f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('These words have too few reviewed meanings to make questions yet.')));
 			return;
 		}
-		play(card, round, (answers) => {
+		play(f, round, (answers) => {
 			const today = dayOf();
 			const lines = answers.map((a) => {
 				const saved = saveRound(a.question.word, a.right, today);
 				const days = saved.words[a.question.word.toLowerCase()].due - today;
 				return a.right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word: a.question.word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word: a.question.word });
 			});
-			ended(card, answers, lines, () => start(card));
+			ended(f, answers, lines, () => start(f));
 		});
 	});
 }

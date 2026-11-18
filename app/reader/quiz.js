@@ -8,7 +8,8 @@
  * when the reader starts, so a page view costs no extra lookups.
  */
 import { dayOf, dueWords, learnedCount, makeQuestions, otherWords, streakOf } from '#shared/quiz.js';
-import { h } from '../core/dom.js';
+import { h, icon } from '../core/dom.js';
+import { ICONS } from '../core/icons.js';
 import { lookup, popularWords } from '../data/api.js';
 import { recentSearches } from '../data/recent.js';
 import { progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
@@ -17,6 +18,12 @@ import { mark, num, t, tn } from '../i18n/index.js';
 /** @typedef {import('#shared/quiz.js').Question} Question */
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
 /** @typedef {{ question: Question, right: boolean }} Answer */
+/**
+ * @typedef {object} Frame  A round's place on the page, laid out like a comment: the heading above, a bubble beside the MyOrdbok mark.
+ * @property {HTMLElement} section
+ * @property {HTMLElement} body  Inside the bubble.
+ * @property {(...extra: Array<Node | string | null>) => void} head  The heading: the label, then extra (count, steps, a control).
+ */
 
 /** Other words looked up for one word's questions, at most. */
 const OTHERS_FETCHED = 6;
@@ -58,20 +65,22 @@ export async function popular() {
 export function quizCard(data) {
 	if (!quizShown() || !data.entries.some((s) => s.kind === 'Active')) return null;
 	const word = data.entries[0].word;
-	const card = h('section', { class: 'quiz-card', 'aria-label': t('Test yourself') });
+	const f = frame();
 
 	const intro = () => {
 		const start = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary' }, t('Start')));
 		const hide = h('button', { type: 'button', class: 'quiz-quiet' }, t('Hide'));
 		const due = dueWords(progress(), dayOf()).filter((w) => w !== word.toLowerCase()).length;
-		card.replaceChildren(
-			top(t('Test yourself'), hide),
-			h('p', { class: 'quiz-lead' }, t('A few quick questions on “{word}”, from its reviewed meanings.', { word })),
+		f.head(h('span', { class: 'quiz-head-end' }, hide));
+		f.body.replaceChildren(
+			by(t('from its reviewed meanings')),
+			h('p', { class: 'quiz-lead' }, t('How well do you know “{word}”? A few quick questions.', { word })),
 			h('div', { class: 'quiz-actions' }, start, due ? h('a', { class: 'quiz-btn', href: '/practice' }, tn('Practise {n} word due', 'Practise {n} words due', due, { n: num(due) })) : null),
 		);
 		hide.addEventListener('click', () => {
 			showQuiz(false);
-			card.replaceChildren(top(t('Test yourself')), h('p', { class: 'quiz-lead' }, t('Hidden on this device. The practice page turns it back on.'), ' ', h('a', { href: '/practice' }, t('Practice'))));
+			f.head();
+			f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('Hidden on this device. The practice page turns it back on.'), ' ', h('a', { href: '/practice' }, t('Practice'))));
 		});
 		start.addEventListener('click', async () => {
 			start.disabled = true;
@@ -81,20 +90,21 @@ export function quizCard(data) {
 				return [];
 			});
 			if (!questions.length) {
-				card.replaceChildren(top(t('Test yourself')), h('p', { class: 'quiz-lead' }, t('There are not enough reviewed meanings around “{word}” to make questions yet.', { word })));
+				f.head();
+				f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('There are not enough reviewed meanings around “{word}” to make questions yet.', { word })));
 				return;
 			}
-			play(card, questions, (answers) => {
+			play(f, questions, (answers) => {
 				const right = answers.every((a) => a.right);
 				const today = dayOf();
 				const saved = saveRound(word, right, today);
 				const days = saved.words[word.toLowerCase()].due - today;
-				ended(card, answers, [right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word })], intro);
+				ended(f, answers, [right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word })], intro);
 			});
 		});
 	};
 	intro();
-	return card;
+	return f.section;
 }
 
 /**
@@ -113,30 +123,51 @@ async function questionsFor(data) {
 }
 
 /**
- * The label above a round, with an optional control on the right.
- * @param {string} label
- * @param {Node | string | null} [right]
+ * An empty round: the heading like Comments' and a bubble from MyOrdbok.
+ * @returns {Frame}
  */
-function top(label, right = null) {
-	return h('div', { class: 'quiz-top' }, h('span', { class: 'quiz-eyebrow' }, label), right);
+export function frame() {
+	const heading = h('h2', { class: 'quiz-title' });
+	const body = h('div', { class: 'quiz-bubble' });
+	const section = h(
+		'section',
+		{ class: 'quiz', 'aria-label': t('Test yourself') },
+		heading,
+		h('div', { class: 'quiz-row' }, h('span', { class: 'quiz-avatar', 'aria-hidden': 'true' }, icon(ICONS.practice, 16)), body),
+	);
+	const head = (/** @type {Array<Node | string | null>} */ ...extra) => heading.replaceChildren(h('span', null, t('Test yourself')), ...extra);
+	head();
+	return { section, body, head };
+}
+
+/**
+ * Who asks, as a comment names its author.
+ * @param {string} [about]
+ */
+function by(about = '') {
+	return h('p', { class: 'quiz-by' }, h('strong', null, 'MyOrdbok'), about ? h('span', null, about) : null);
+}
+
+/**
+ * The bars of a round: done right, done wrong, now, still to come.
+ * @param {Array<'is-right' | 'is-wrong' | 'is-now' | ''>} states
+ */
+function steps(states) {
+	return h('span', { class: 'quiz-steps', 'aria-hidden': 'true' }, states.map((c) => h('span', { class: c })));
 }
 
 /**
  * Plays questions one after another in `host`, then calls done.
- * @param {HTMLElement} host
+ * @param {Frame} f
  * @param {Question[]} questions
  * @param {(answers: Answer[]) => void} done
  */
-export function play(host, questions, done) {
+export function play(f, questions, done) {
 	/** @type {Answer[]} */
 	const answers = [];
 	const show = (/** @type {number} */ i) => {
 		const q = questions[i];
-		const steps = h(
-			'div',
-			{ class: 'quiz-steps', 'aria-hidden': 'true' },
-			questions.map((_, n) => h('span', { class: n < i ? (answers[n].right ? 'is-right' : 'is-wrong') : n === i ? 'is-now' : '' })),
-		);
+		const bars = steps(questions.map((_, n) => (n < i ? (answers[n].right ? 'is-right' : 'is-wrong') : n === i ? 'is-now' : '')));
 		const feedback = h('div', { class: 'quiz-feedback', role: 'status' });
 		const next = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary', hidden: true }, i + 1 < questions.length ? t('Next question') : t('See how you did')));
 		const buttons = q.choices.map((c) =>
@@ -160,16 +191,16 @@ export function play(host, questions, done) {
 			}),
 		);
 		next.addEventListener('click', () => (i + 1 < questions.length ? show(i + 1) : done(answers)));
-		host.replaceChildren(
-			top(t('Test yourself'), h('span', { class: 'quiz-count' }, t('{n} of {total}', { n: num(i + 1), total: num(questions.length) }))),
-			steps,
+		f.head(h('span', { class: 'quiz-count' }, t('{n} of {total}', { n: num(i + 1), total: num(questions.length) })), bars);
+		f.body.replaceChildren(
+			by(),
 			...prompt(q),
-			h('div', { class: `quiz-choices${q.kind === 'gap' ? ' quiz-choices-two' : ''}`, role: 'group', 'aria-label': t('Choices') }, buttons),
+			h('div', { class: 'quiz-choices', role: 'group', 'aria-label': t('Choices') }, buttons),
 			feedback,
 			h('div', { class: 'quiz-actions' }, next),
 		);
 		// The question, not a choice, takes focus: a choice focused first would look picked.
-		const ask = /** @type {HTMLElement | null} */ (host.querySelector('.quiz-ask'));
+		const ask = /** @type {HTMLElement | null} */ (f.body.querySelector('.quiz-ask'));
 		ask?.setAttribute('tabindex', '-1');
 		ask?.focus({ preventScroll: true });
 	};
@@ -207,12 +238,12 @@ function explain(q, right) {
 /**
  * The end of a round: the score, what comes back when, the streak and
  * words learned, and where to go next.
- * @param {HTMLElement} host
+ * @param {Frame} f
  * @param {Answer[]} answers
  * @param {string[]} lines  What happens to the words.
  * @param {() => void} again
  */
-export function ended(host, answers, lines, again) {
+export function ended(f, answers, lines, again) {
 	const today = dayOf();
 	const p = progress();
 	const streak = streakOf(p, today);
@@ -220,9 +251,9 @@ export function ended(host, answers, lines, again) {
 	const due = dueWords(p, today).length;
 	const another = h('button', { type: 'button', class: 'quiz-btn' }, t('Another round'));
 	another.addEventListener('click', again);
-	host.replaceChildren(
-		top(t('Test yourself')),
-		h('div', { class: 'quiz-steps', 'aria-hidden': 'true' }, answers.map((a) => h('span', { class: a.right ? 'is-right' : 'is-wrong' }))),
+	f.head(steps(answers.map((a) => (a.right ? 'is-right' : 'is-wrong'))));
+	f.body.replaceChildren(
+		by(),
 		h('p', { class: 'quiz-score' }, t('{right} of {total} right', { right: num(right), total: num(answers.length) })),
 		h('ul', { class: 'quiz-lines' }, lines.map((l) => h('li', null, l))),
 		h(
