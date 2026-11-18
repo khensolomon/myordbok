@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+138
+
+- A word with meanings of its own that is also a form (loathing, -ing of loathe) says so under that part of speech, in a section of its own when it has no meanings as it
+
 ## 26.11.18+137
 
 - Senses read as items: ' | ' between glosses and examples, notes as labels and name–value lines, [en:…] as the sense in English; etymology column gone; suggestions checked against the item rules; ratings follow the glosses

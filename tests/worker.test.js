@@ -50,7 +50,7 @@ test('health reports the version and the dictionary database in use', async () =
 	assert.match(res.body.version, /^\d+\.\d+\.\d+\+\d+$/);
 	const { rows, ...dictionary } = res.body.dictionary;
 	assert.deepEqual(dictionary, { database: 'myordbok-live', built: 'sample', source: 'sample' });
-	assert.equal(rows.emd_sense, 24);
+	assert.equal(rows.emd_sense, 25);
 	assert.equal(rows.mya_word, 5);
 });
 
@@ -116,7 +116,7 @@ test('lookup: Myanmar headword with pronunciation', async () => {
 });
 
 test('suggest: headwords with senses, by prefix, in either script', async () => {
-	assert.deepEqual((await call('/api/suggest?q=LO', localEnv())).body.words, ['lovable', 'love', 'love affair']);
+	assert.deepEqual((await call('/api/suggest?q=LO', localEnv())).body.words, ['lovable', 'love', 'love affair', 'loving']);
 	assert.deepEqual((await call('/api/suggest?q=wen', localEnv())).body.words, []); // a form, not a headword
 	const my = (await call(`/api/suggest?q=${encodeURIComponent('ချ')}`, localEnv())).body;
 	assert.equal(my.lang, 'my');
@@ -198,7 +198,7 @@ test('read: one request decides entry, phrase, sentence or nothing', async () =>
 	const none = await read('lvoe');
 	assert.equal(none.kind, 'none');
 	assert.deepEqual(none.close, ['love']);
-	assert.deepEqual((await read('lo')).starts, ['lovable', 'love', 'love affair']);
+	assert.deepEqual((await read('lo')).starts, ['lovable', 'love', 'love affair', 'loving']);
 });
 
 test('guard: own pages only, a limit per visitor, open health; off without API_GUARD', async () => {

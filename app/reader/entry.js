@@ -203,7 +203,13 @@ async function english(data, asked, said = []) {
 
 	if (data.entries.length) {
 		// Forms and related words belong to the word asked for: its first spelling's timeline.
-		blocks.push(...bySpelling(data.entries).map(([word, senses], i) => wordBlock(word, senses, { first: i === 0, extra: i === 0 ? extra : null })));
+		// So does what it is a form of (loathing: -ing of loathe), under that part of
+		// speech, which gets a section of its own when the word has no meanings as it.
+		/** @type {Map<string, Array<[string, string]>>} */
+		const asForm = new Map();
+		for (const [root, pos, form] of data.forms_of) if (pos) asForm.set(pos.toLowerCase(), [...(asForm.get(pos.toLowerCase()) ?? []), [root, form]]);
+		blocks.push(...bySpelling(data.entries).map(([word, senses], i) => wordBlock(word, senses, { first: i === 0, extra: i === 0 ? extra : null, asForm: i === 0 ? asForm : null })));
+		unsaid = unsaid.filter(([, pos]) => !pos);
 	} else {
 		// Only a form of other words: the roots that have senses, each a headword of its own.
 		const withSenses = roots.filter((r) => (data.root_senses[r] ?? 0) > 0).slice(0, ROOTS_SHOWN);
@@ -259,14 +265,16 @@ function bySpelling(senses) {
  * The first on a page is the page's h1.
  * @param {string} word
  * @param {import('#shared/types.js').EnglishSense[]} senses
- * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string, extra?: Extras | null, formOf?: FormOf | null }} [options]
+ * @param {{ first?: boolean, link?: boolean, fit?: import('#shared/types.js').EnglishSense | null, fitLabel?: string, extra?: Extras | null, formOf?: FormOf | null, asForm?: Map<string, Array<[string, string]>> | null }} [options]
  *   link: the headword links to its own page; fit: the sense that fits a
  *   phrase, shown first and marked with fitLabel; extra: forms and related
  *   words, placed on this word's timeline; formOf: the word asked for, a
- *   form of this one, said under the part of speech it is a form in.
+ *   form of this one, said under the part of speech it is a form in;
+ *   asForm: what this word is a form of, by part of speech in lower case
+ *   ([root, form] pairs), said under that part of speech.
  */
 function wordBlock(word, senses, options = {}) {
-	const { first = false, link = false, fit = null, fitLabel = '', extra = null, formOf = null } = options;
+	const { first = false, link = false, fit = null, fitLabel = '', extra = null, formOf = null, asForm = null } = options;
 	const ordered = fit ? [fit, ...senses.filter((s) => s !== fit)] : senses;
 	const name = link ? h('a', { href: definitionHref(word) }, word) : word;
 	return h(
@@ -276,7 +284,7 @@ function wordBlock(word, senses, options = {}) {
 			h('span', { class: 'lang-badge', 'aria-label': t('English') }, 'en'),
 			h(first ? 'h1' : 'h2', { class: 'headword' }, name),
 			first ? pronounceButton(word, 'en') : null),
-		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra, formOf),
+		timeline(groupByType(ordered), 'my', word, fit, fitLabel, extra, formOf, asForm),
 	);
 }
 
@@ -409,8 +417,25 @@ function groupByType(senses) {
  * @param {string} [fitLabel]
  * @param {Extras | null} [extra]  Forms (each in its part of speech) and related words (a section of their own).
  * @param {FormOf | null} [formOf]  The word asked for, a form of the headword; a part of speech said here leaves formOf.byPos.
+ * @param {Map<string, Array<[string, string]>> | null} [asForm]  What the headword itself is a form of, by part of speech.
  */
-function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra = null, formOf = null) {
+function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra = null, formOf = null, asForm = null) {
+	/** What the headword is a form of: "-ing of loathe", under that part of speech. */
+	const ownForm = new Map(asForm ?? []);
+	/** @param {string} pos */
+	const asFormLine = (pos) => {
+		const pairs = ownForm.get(pos.toLowerCase());
+		if (!pairs) return null;
+		ownForm.delete(pos.toLowerCase());
+		/** @type {Map<string, string[]>} */
+		const byRoot = new Map();
+		for (const [root, form] of pairs) byRoot.set(root, [...(byRoot.get(root) ?? []), form]);
+		return h(
+			'p',
+			{ class: 'pos-form-of pos-is-form' },
+			[...byRoot].flatMap(([root, forms], i) => [i ? ' · ' : null, ...tx('{forms} of {root}', { forms: forms.join(', '), root: h('a', { href: definitionHref(root) }, root) })]),
+		);
+	};
 	/** "loved: past, past participle of love", under the part of speech it holds for. @param {string} pos */
 	const formOfLine = (pos) => {
 		const forms = formOf?.byPos.get(pos.toLowerCase());
@@ -441,11 +466,14 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 			{ class: 'pos' },
 			head(type),
 			formOfLine(type),
+			asFormLine(type),
 			h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
 		),
 	);
 	// Forms of a part of speech that has no meanings here (a noun's plural when only the verb is defined) get a section of their own.
-	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos)));
+	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
+	// A part of speech the headword is only a form in (loathing, the -ing of the verb loathe).
+	for (const pos of [...ownForm.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
 	if (extra?.related.length) {
 		sections.push(
 			h(

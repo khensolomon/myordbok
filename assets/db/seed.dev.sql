@@ -56,7 +56,8 @@ INSERT INTO emd_sense (id, wrid, wrte, sense, exam, wseq, wrkd, synset) VALUES
 (21, 25, 2, 'ကြီးသော', 'a big house', 1, 1, NULL),
 (22, 26, 0, 'အိမ်', NULL, 1, 1, NULL),
 (23, 28, 0, 'ဘုရားသခင်', 'pray to God', 1, 1, NULL),
-(24, 29, 0, 'နတ်ဘုရား', 'the gods of ancient Greece', 1, 1, NULL);
+(24, 29, 0, 'နတ်ဘုရား', 'the gods of ancient Greece', 1, 1, NULL),
+(25, 4, 2, 'ချစ်ခင်တတ်သော | [en:feeling or showing love]', 'a loving mother', 1, 1, NULL);
 CREATE INDEX emd_sense_1 ON emd_sense (wrid, wseq);
 CREATE INDEX emd_sense_2 ON emd_sense (synset);
 
@@ -125,6 +126,6 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 INSERT INTO meta (key, value) VALUES
 ('built', 'sample'),
 ('source', 'sample'),
-('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '29'), ('rows.emd_sense', '24'),
+('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '29'), ('rows.emd_sense', '25'),
 ('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
 ('rows.mya_word', '5'), ('rows.med_sense', '6'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');
