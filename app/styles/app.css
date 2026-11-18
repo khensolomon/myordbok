@@ -792,6 +792,8 @@ body[data-quiz-off] .practice-paused { display: block; }
 /* Laid out like Comments: the same rule, heading and width; the round in a bubble beside the MyOrdbok mark. */
 .quiz { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
 .quiz-slot + .comments { margin-top: 32px; }
+.quiz.is-folded .quiz-title { margin-bottom: 0; }
+.quiz-row[hidden] { display: none; }
 .quiz-title { margin: 0 0 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font: 600 13px/1.4 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .quiz-title:lang(my), :lang(my) > .quiz-title { text-transform: none; letter-spacing: 0; }
 .quiz-head-end { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }

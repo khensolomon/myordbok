@@ -1052,10 +1052,9 @@ export const MY = {
 	// Test yourself and Practice (reader/quiz.js, reader/practice.js)
 	'Test yourself': 'ကိုယ့်ကိုယ်ကို စမ်းကြည့်ပါ',
 	'Start': 'စတင်မည်',
-	'Hide': 'ဖျောက်ထားမည်',
+	'Hide': 'ဖျောက်ရန်',
 	'How well do you know “{word}”? A few quick questions.': '“{word}” ကို ဘယ်လောက် သိသလဲ။ မေးခွန်း အနည်းငယ် ဖြေကြည့်ပါ။',
 	'from its reviewed meanings': 'စစ်ဆေးပြီးသော အဓိပ္ပာယ်များမှ',
-	'Hidden on this device. The practice page turns it back on.': 'ဤစက်တွင် ဖျောက်ထားပြီ။ လေ့ကျင့်ရန် စာမျက်နှာတွင် ပြန်ဖွင့်နိုင်သည်။',
 	'Practice': 'လေ့ကျင့်ရန်',
 	'Making questions…': 'မေးခွန်းများ ပြင်ဆင်နေသည်…',
 	'There are not enough reviewed meanings around “{word}” to make questions yet.': '“{word}” အတွက် မေးခွန်းထုတ်ရန် စစ်ဆေးပြီးသော အဓိပ္ပာယ် မလုံလောက်သေးပါ။',

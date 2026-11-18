@@ -23,6 +23,7 @@ import { mark, num, t, tn } from '../i18n/index.js';
  * @property {HTMLElement} section
  * @property {HTMLElement} body  Inside the bubble.
  * @property {(...extra: Array<Node | string | null>) => void} head  The heading: the label, then extra (count, steps, a control).
+ * @property {(folded: boolean) => void} fold  Folded: the heading alone.
  */
 
 /** Other words looked up for one word's questions, at most. */
@@ -58,16 +59,27 @@ export async function popular() {
 
 /**
  * The card under a word's meanings, or null when the word has no reviewed
- * meaning to ask about or the reader turned it off here.
+ * meaning to ask about. Hidden on this device, only its heading shows,
+ * with the way to show it again.
  * @param {EnglishResult} data
  * @returns {HTMLElement | null}
  */
 export function quizCard(data) {
-	if (!quizShown() || !data.entries.some((s) => s.kind === 'Active')) return null;
+	if (!data.entries.some((s) => s.kind === 'Active')) return null;
 	const word = data.entries[0].word;
 	const f = frame();
 
+	const folded = () => {
+		const show = h('button', { type: 'button', class: 'quiz-quiet' }, t('Show'));
+		show.addEventListener('click', () => {
+			showQuiz(true);
+			intro();
+		});
+		f.fold(true);
+		f.head(h('span', { class: 'quiz-head-end' }, show));
+	};
 	const intro = () => {
+		f.fold(false);
 		const start = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary' }, t('Start')));
 		const hide = h('button', { type: 'button', class: 'quiz-quiet' }, t('Hide'));
 		const due = dueWords(progress(), dayOf()).filter((w) => w !== word.toLowerCase()).length;
@@ -79,8 +91,7 @@ export function quizCard(data) {
 		);
 		hide.addEventListener('click', () => {
 			showQuiz(false);
-			f.head();
-			f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('Hidden on this device. The practice page turns it back on.'), ' ', h('a', { href: '/practice' }, t('Practice'))));
+			folded();
 		});
 		start.addEventListener('click', async () => {
 			start.disabled = true;
@@ -103,7 +114,8 @@ export function quizCard(data) {
 			});
 		});
 	};
-	intro();
+	if (quizShown()) intro();
+	else folded();
 	return f.section;
 }
 
@@ -129,15 +141,15 @@ async function questionsFor(data) {
 export function frame() {
 	const heading = h('h2', { class: 'quiz-title' });
 	const body = h('div', { class: 'quiz-bubble' });
-	const section = h(
-		'section',
-		{ class: 'quiz', 'aria-label': t('Test yourself') },
-		heading,
-		h('div', { class: 'quiz-row' }, h('span', { class: 'quiz-avatar', 'aria-hidden': 'true' }, icon(ICONS.practice, 16)), body),
-	);
+	const row = h('div', { class: 'quiz-row' }, h('span', { class: 'quiz-avatar', 'aria-hidden': 'true' }, icon(ICONS.practice, 16)), body);
+	const section = h('section', { class: 'quiz', 'aria-label': t('Test yourself') }, heading, row);
 	const head = (/** @type {Array<Node | string | null>} */ ...extra) => heading.replaceChildren(h('span', null, t('Test yourself')), ...extra);
 	head();
-	return { section, body, head };
+	const fold = (/** @type {boolean} */ folded) => {
+		row.hidden = folded;
+		section.classList.toggle('is-folded', folded);
+	};
+	return { section, body, head, fold };
 }
 
 /**

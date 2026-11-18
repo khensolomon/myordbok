@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.18+142
+
+- Test yourself hidden on a device keeps its heading with a Show button; a cached site answer without the quiz switch no longer hides it
+
 ## 26.11.18+141
 
 - Test yourself laid out like Comments: full width of the entry, the round in a bubble from MyOrdbok; one column of choices on narrow screens

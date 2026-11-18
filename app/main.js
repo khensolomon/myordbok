@@ -118,7 +118,8 @@ siteSwitches()
 		document.body.toggleAttribute('data-ratings-off', !s.ratings);
 		document.body.toggleAttribute('data-suggestions-off', !s.suggestions);
 		document.body.toggleAttribute('data-readonly', s.readonly);
-		document.body.toggleAttribute('data-quiz-off', !s.quiz);
+		// An answer cached before the switch existed has no quiz: on, its default.
+		document.body.toggleAttribute('data-quiz-off', s.quiz === false);
 	})
 	.catch((err) => console.warn('Site switches unavailable:', err));
 
