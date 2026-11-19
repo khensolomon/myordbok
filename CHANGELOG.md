@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+148
+
+- Test yourself: listen, type the word and which meaning; rounds mix the kinds. Home: word of the day with Test yourself on it and Share, and the daily round (migration 0020)
+
 ## 26.11.19+147
 
 - Test yourself progress follows a signed-in member to every device (merged on each save); Practice shows answers that helped the dictionary (migration 0019)

@@ -29,7 +29,7 @@ import { mergeProgress, readProgress } from '../../shared/quiz.js';
 /** @typedef {{ APP: D1Database }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
 
-export const QUESTION_KINDS = /** @type {const} */ (['en-my', 'my-en', 'gap']);
+export const QUESTION_KINDS = /** @type {const} */ (['en-my', 'my-en', 'gap', 'listen', 'type', 'sense']);
 export const REASONS = /** @type {const} */ (['answer', 'choices', 'spelling', 'other']);
 /** Answers one round sends at most. */
 export const ROUND_MAX = 20;
@@ -114,11 +114,13 @@ async function report(request, env) {
 	const word = text(data.word, 'word', 100);
 	const prompt = text(data.prompt, 'prompt', 600);
 	const answer = text(data.answer, 'answer', 300);
-	if (!Array.isArray(data.choices) || data.choices.length < 2 || data.choices.length > 6) throw new AppError('bad_request', 'choices must be a list of 2 to 6 texts');
+	// A typed question has one choice, the word; the others 2 to 6.
+	const fewest = kind === 'type' ? 1 : 2;
+	if (!Array.isArray(data.choices) || data.choices.length < fewest || data.choices.length > 6) throw new AppError('bad_request', `choices must be a list of ${fewest} to 6 texts`);
 	const choices = data.choices.map((c, i) => text(c, `choices[${i}]`, 300));
 	if (!choices.includes(answer)) throw new AppError('bad_request', 'The answer must be one of the choices');
 	const chosen = data.chosen === undefined || data.chosen === null ? null : text(data.chosen, 'chosen', 300);
-	if (chosen !== null && !choices.includes(chosen)) throw new AppError('bad_request', 'chosen must be one of the choices');
+	if (chosen !== null && kind !== 'type' && !choices.includes(chosen)) throw new AppError('bad_request', 'chosen must be one of the choices');
 	const reason = /** @type {typeof REASONS[number]} */ (data.reason);
 	if (!REASONS.includes(reason)) throw new AppError('bad_request', `reason must be one of ${REASONS.join(', ')}`);
 	const note = data.note === undefined || data.note === null || (typeof data.note === 'string' && !data.note.trim()) ? null : text(data.note, 'The note', 500);

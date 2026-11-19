@@ -4,7 +4,8 @@
  * body[data-route="home"]); below it, this device's recent searches and the
  * words searched most this week. Recent searches never leave the device;
  * the most searched come from /api/popular (found words only, each searched
- * by several people). Last, a quiet line inviting readers to support
+ * by several people). Above them, Today: the word of the day and the
+ * daily round (today.js). Last, a quiet line inviting readers to support
  * MyOrdbok (one of the lines the owner writes in Sponsors, another each visit), when Settings asks for it (support.ask), not for members who
  * support it, and not on a device where it was hidden in the last months.
  */
@@ -15,6 +16,7 @@ import { popularWords, siteSwitches } from '../data/api.js';
 import { member } from '../core/member.js';
 import { clearRecent, recentSearches, removeRecent } from '../data/recent.js';
 import { getLang, t } from '../i18n/index.js';
+import { todaySection } from './today.js';
 
 const MYANMAR = /[က-႟]/;
 
@@ -30,7 +32,7 @@ export function view() {
 		.catch(() => {});
 	const ask = h('div', { class: 'home-support', hidden: true });
 	supportLine(ask);
-	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, mine, most, ask);
+	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, todaySection(), mine, most, ask);
 }
 
 const HIDDEN_KEY = 'mo:support-hidden';

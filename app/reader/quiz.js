@@ -7,7 +7,7 @@
  * in this browser (data/quiz-store.js). The other words are fetched only
  * when the reader starts, so a page view costs no extra lookups.
  */
-import { dayOf, dueWords, learnedCount, makeQuestions, otherWords, streakOf } from '#shared/quiz.js';
+import { checkTyped, dayOf, dueWords, KINDS, learnedCount, makeQuestions, otherWords, pickRound, streakOf } from '#shared/quiz.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { getChoice } from '../core/consent.js';
@@ -15,7 +15,8 @@ import { lookup, popularWords, reportQuestion, sendQuizAnswers } from '../data/a
 import { recentSearches } from '../data/recent.js';
 import { helpAfter } from './help.js';
 import { keptWithAccount, progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
-import { getLang, mark, num, t, tn } from '../i18n/index.js';
+import { getLang, mark, num, posName, t, tn } from '../i18n/index.js';
+import { pronounceButton } from './pronounce.js';
 
 /** @typedef {import('#shared/quiz.js').Question} Question */
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -118,6 +119,13 @@ export function quizCard(data) {
 	};
 	if (quizShown()) intro();
 	else folded();
+	// Come from "Test yourself on it" (#test): the round starts and is brought into view.
+	if (location.hash === '#test' && quizShown()) {
+		setTimeout(() => {
+			f.section.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+			/** @type {HTMLButtonElement | null} */ (f.section.querySelector('.quiz-primary'))?.click();
+		}, 0);
+	}
 	return f.section;
 }
 
@@ -133,7 +141,12 @@ async function questionsFor(data) {
 		const more = otherWords(data, await popular()).filter((w) => !near.slice(0, OTHERS_FETCHED).includes(w));
 		others = [...others, ...(await lookups(more.slice(0, OTHERS_FETCHED)))];
 	}
-	return makeQuestions(data, others);
+	return pickRound(makeQuestions(data, others, { kinds: kindsHere() }));
+}
+
+/** The kinds this device can ask now: hearing a word needs a connection. */
+export function kindsHere() {
+	return KINDS.filter((k) => k !== 'listen' || navigator.onLine);
 }
 
 /**
@@ -184,24 +197,27 @@ export function play(f, questions, done) {
 		const bars = steps(questions.map((_, n) => (n < i ? (answers[n].right ? 'is-right' : 'is-wrong') : n === i ? 'is-now' : '')));
 		const feedback = h('div', { class: 'quiz-feedback', role: 'status' });
 		const next = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary', hidden: true }, i + 1 < questions.length ? t('Next question') : t('See how you did')));
-		const buttons = q.choices.map((c) =>
-			/** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-choice', lang: q.kind === 'en-my' ? 'my' : 'en' }, h('span', { class: 'quiz-choice-text' }, c.text))),
-		);
+		const myChoices = q.kind === 'en-my' || q.kind === 'sense';
+		const buttons = q.kind === 'type' ? [] : q.choices.map((c) => /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-choice', lang: myChoices ? 'my' : 'en' }, h('span', { class: 'quiz-choice-text' }, c.text))));
+		/** @param {boolean} right @param {string} chosen @param {'right' | 'close' | 'wrong'} [how] */
+		const answered = (right, chosen, how) => {
+			answers.push({ question: q, right, chosen: chosen.slice(0, 300) || '—' });
+			feedback.replaceChildren(...explain(q, right, how).filter((n) => n !== null));
+			next.hidden = false;
+			next.focus();
+		};
 		buttons.forEach((b, n) =>
 			b.addEventListener('click', () => {
 				const chosen = q.choices[n];
-				answers.push({ question: q, right: chosen.right, chosen: chosen.text });
 				buttons.forEach((other, m) => {
 					const c = q.choices[m];
 					other.disabled = true;
 					other.classList.add(c.right ? 'is-right' : m === n ? 'is-wrong' : 'is-other');
-					const note = c.word && q.kind === 'en-my' ? c.word : c.note ? (q.kind === 'gap' ? c.note.split(', ').map((f) => t(FORM_NAMES[f] ?? f)).join(', ') : c.note) : '';
+					const note = c.word && q.kind === 'en-my' ? c.word : c.note ? (q.kind === 'gap' ? c.note.split(', ').map((f) => t(FORM_NAMES[f] ?? f)).join(', ') : q.kind === 'sense' ? posName(c.note) : c.note) : '';
 					const said = c.right ? t('Right') : m === n ? t('Your answer') : '';
-					if (note || said) other.append(h('span', { class: 'quiz-choice-note', lang: q.kind === 'my-en' ? 'my' : 'en' }, [said, note].filter(Boolean).join(' · ')));
+					if (note || said) other.append(h('span', { class: 'quiz-choice-note', lang: q.kind === 'my-en' || q.kind === 'listen' ? 'my' : 'en' }, [said, note].filter(Boolean).join(' · ')));
 				});
-				feedback.replaceChildren(...explain(q, chosen.right).filter((n) => n !== null));
-				next.hidden = false;
-				next.focus();
+				answered(chosen.right, chosen.text);
 			}),
 		);
 		next.addEventListener('click', () => {
@@ -211,10 +227,12 @@ export function play(f, questions, done) {
 			helpAfter(f, q.word, (helped) => done(answers, helped));
 		});
 		f.head(h('span', { class: 'quiz-count' }, t('{n} of {total}', { n: num(i + 1), total: num(questions.length) })), bars);
+		const say = q.kind === 'listen' ? pronounceButton(q.prompt, 'en') : null;
 		f.body.replaceChildren(
 			by(),
 			...prompt(q),
-			h('div', { class: 'quiz-choices', role: 'group', 'aria-label': t('Choices') }, buttons),
+			say ? h('div', { class: 'quiz-listen' }, say, h('span', { class: 'quiz-small' }, t('Press to hear the word.'))) : '',
+			q.kind === 'type' ? typeForm(q, answered) : h('div', { class: 'quiz-choices', role: 'group', 'aria-label': t('Choices') }, buttons),
 			feedback,
 			h('div', { class: 'quiz-actions' }, next),
 			reportLink(q, () => answers[i]?.chosen ?? null),
@@ -222,7 +240,10 @@ export function play(f, questions, done) {
 		// The question, not a choice, takes focus: a choice focused first would look picked.
 		const ask = /** @type {HTMLElement | null} */ (f.body.querySelector('.quiz-ask'));
 		ask?.setAttribute('tabindex', '-1');
-		ask?.focus({ preventScroll: true });
+		if (q.kind === 'type') /** @type {HTMLInputElement | null} */ (f.body.querySelector('.quiz-type input'))?.focus({ preventScroll: true });
+		else ask?.focus({ preventScroll: true });
+		// Heard at once when the press that brought the question still lets a page play sound.
+		if (say && i > 0) say.click();
 	};
 	show(0);
 }
@@ -322,9 +343,39 @@ function reportLink(q, chosen) {
 	return wrap;
 }
 
+/**
+ * The word typed for a Myanmar meaning: checked when sent, a slip of one
+ * letter counted right and shown. Sent empty, the answer is shown.
+ * @param {Question} q
+ * @param {(right: boolean, chosen: string, how: 'right' | 'close' | 'wrong') => void} answered
+ */
+function typeForm(q, answered) {
+	const input = /** @type {HTMLInputElement} */ (
+		h('input', { type: 'text', lang: 'en', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', enterkeyhint: 'done', 'aria-label': t('The English word'), placeholder: t('Type the English word') })
+	);
+	const check = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'quiz-btn' }, t('Check')));
+	const form = /** @type {HTMLFormElement} */ (h('form', { class: 'quiz-type' }, input, check));
+	form.addEventListener('submit', (ev) => {
+		ev.preventDefault();
+		const typed = input.value.trim();
+		const how = typed ? checkTyped(typed, q.word) : 'wrong';
+		input.readOnly = true;
+		check.disabled = true;
+		form.classList.add(how === 'wrong' ? 'is-wrong' : 'is-right');
+		answered(how !== 'wrong', typed, how);
+	});
+	return form;
+}
+
 /** @param {Question} q */
 function prompt(q) {
 	switch (q.kind) {
+		case 'listen':
+			return [h('p', { class: 'quiz-ask' }, t('Which word do you hear?'))];
+		case 'type':
+			return [h('p', { class: 'quiz-ask' }, t('Which English word means this?')), h('p', { class: 'quiz-shown', lang: 'my' }, q.prompt), h('p', { class: 'quiz-small' }, t('It starts with “{letter}”.', { letter: q.hint }))];
+		case 'sense':
+			return [h('p', { class: 'quiz-ask' }, t('Which meaning of “{word}” is used here?', { word: q.word })), h('p', { class: 'quiz-sentence', lang: 'en' }, q.prompt)];
 		case 'en-my':
 			return [h('p', { class: 'quiz-ask' }, t('Which one means “{word}”?', { word: q.prompt }))];
 		case 'my-en':
@@ -339,12 +390,13 @@ function prompt(q) {
  * glosses and, when the entry has one, its English explanation.
  * @param {Question} q
  * @param {boolean} right
+ * @param {'right' | 'close' | 'wrong'} [how]  For a typed answer.
  */
-function explain(q, right) {
+function explain(q, right, how) {
 	const { glosses, explained } = q.answer;
 	const answer = q.choices.find((c) => c.right)?.text ?? '';
 	return [
-		h('p', { class: 'quiz-verdict' }, right ? t('Right.') : t('Not quite.')),
+		h('p', { class: 'quiz-verdict' }, how === 'close' ? t('Almost: it is spelled “{word}”.', { word: q.word }) : right ? t('Right.') : t('Not quite.')),
 		q.kind === 'gap' ? h('p', { class: 'quiz-said', lang: 'en' }, q.before, h('b', null, answer), q.after) : null,
 		h('p', { class: 'quiz-meaning' }, h('b', { lang: 'en' }, q.word), ' ', h('span', { lang: 'my' }, glosses.slice(0, 3).join('၊ ')), explained ? h('span', { class: 'quiz-explained', lang: 'en' }, explained) : null),
 	];

@@ -918,3 +918,12 @@ export function findSpellingVotes() {
 export function syncQuizProgress(progress) {
 	return postJSON('/api/quiz/progress', { progress });
 }
+
+/**
+ * The word of the day for the reader's own day (worker/routes/today.js).
+ * @param {string} day  YYYY-MM-DD, local.
+ * @returns {Promise<{ day: string, word: string | null, type?: string, gloss?: string, example?: string | null }>}
+ */
+export function wordOfTheDay(day) {
+	return getJSON(`/api/today?day=${day}`);
+}

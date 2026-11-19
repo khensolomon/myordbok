@@ -8,7 +8,7 @@ import { h } from '../core/dom.js';
 import { recentSearches } from '../data/recent.js';
 import { clearProgress, helped, keptWithAccount, progress, quizShown, saveRound, showQuiz, syncProgress } from '../data/quiz-store.js';
 import { num, t, tn } from '../i18n/index.js';
-import { ended, frame, keptLine, lookups, play, popular, thanked } from './quiz.js';
+import { ended, frame, keptLine, kindsHere, lookups, play, popular, thanked } from './quiz.js';
 
 /** Words in one round, at most. */
 const ROUND = 8;
@@ -105,8 +105,7 @@ async function questions(words) {
 	let found = await lookups(words);
 	if (found.length < 5) found = [...found, ...(await lookups((await popular()).filter((w) => !words.includes(w.toLowerCase())).slice(0, 6)))];
 	const byWord = new Map(found.map((r) => [r.query.toLowerCase(), r]));
-	/** @type {Array<import('#shared/quiz.js').Question['kind']>} */
-	const kinds = ['en-my', 'my-en', 'gap'];
+	const kinds = kindsHere();
 	return words.flatMap((w, i) => {
 		const target = byWord.get(w);
 		if (!target) return [];

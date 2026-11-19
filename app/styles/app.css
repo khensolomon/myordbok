@@ -425,6 +425,24 @@ body[data-route="home"] main#view { max-width: none; }
 .home-chips a, .home-chips a:lang(my) { line-height: 1.5; }
 .home-chips a:lang(my) { font-family: var(--font-my); }
 /* Support: one quiet line under the lists, hidden with its × for months (home.js). */
+/* Today (reader/today.js): the word of the day, and the daily round. */
+.home-today { display: grid; gap: 10px; }
+.home-today:empty { display: none; }
+.home-today-word { padding: 18px 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: 0 1px 2px rgba(23, 32, 43, 0.04), 0 6px 18px rgba(23, 32, 43, 0.05); display: flex; flex-direction: column; gap: 8px; }
+.home-today-word p { margin: 0; }
+.home-today-eyebrow { font: 600 12px/1.4 var(--font-ui); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.home-today-head { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.home-today-head a { color: var(--ink); text-decoration: none; }
+.home-today-head a:hover { color: var(--link); }
+.home-today-head em { font-size: 15px; font-weight: 400; color: var(--muted); }
+.home-today-gloss { font-family: var(--font-my); font-size: 20px; line-height: 1.6; }
+.home-today-example { color: var(--ink-2); font-style: italic; }
+.home-today-word .quiz-actions { margin-top: 4px; }
+.home-today-word .quiz-btn svg { margin-right: 6px; }
+.home-today-round { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px; border: 1px solid var(--line-soft); border-radius: 14px; font-size: 14px; color: var(--ink-2); }
+.home-today-round p { margin: 0; flex: 1 1 200px; }
+.home-today-round-icon { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); flex: none; }
+.home-today-round .quiz-btn { min-height: 36px; padding: 0 14px; font-size: 14px; }
 .home-support { display: flex; align-items: center; gap: 10px; justify-self: center; width: fit-content; max-width: 100%; margin-inline: auto; text-align: center; margin-top: 18px; padding: 8px 6px 8px 16px; border: 1px solid var(--line-soft); border-radius: 999px; font-size: 14px; color: var(--ink-2); }
 .home-support[hidden] { display: none; }
 .home-support p { margin: 0; }
@@ -875,6 +893,13 @@ body[data-quiz-off] .practice-paused { display: block; }
 .quiz-tile strong { font-size: 22px; font-weight: 700; }
 .quiz-tile span { font-size: 12px; color: var(--muted); }
 .quiz-small { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.quiz-listen { display: flex; align-items: center; gap: 12px; }
+.quiz-listen .pronounce { width: 56px; height: 56px; }
+.quiz-type { display: flex; gap: 8px; }
+.quiz-type input { flex: 1; min-width: 0; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 18px; }
+.quiz-type input:focus { outline: 2px solid var(--ring); outline-offset: 0; border-color: transparent; }
+.quiz-type.is-right input { border: 1.5px solid var(--good); background: color-mix(in srgb, var(--good) 9%, var(--card)); }
+.quiz-type.is-wrong input { border: 1.5px solid var(--warn-fill); background: color-mix(in srgb, var(--warn-fill) 10%, var(--card)); }
 .quiz-report { margin-top: -4px; }
 .quiz-report .quiz-quiet { padding-left: 0; color: var(--muted); font-size: 12px; }
 .quiz-report .quiz-quiet:hover { color: var(--link-hover); }

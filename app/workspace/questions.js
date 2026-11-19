@@ -31,6 +31,9 @@ const KIND_NAMES = {
 	'en-my': mark('English → Myanmar'),
 	'my-en': mark('Myanmar → English'),
 	gap: mark('Fill the gap'),
+	listen: mark('Listen'),
+	type: mark('Type the word'),
+	sense: mark('Which meaning'),
 };
 /** @type {Record<string, string>} */
 const REASON_NAMES = {
@@ -144,7 +147,7 @@ export async function questionsPane(ctx, ago) {
  * The language a choice of this kind of question is written in.
  * @param {string} kind
  */
-const choiceLang = (kind) => (kind === 'en-my' ? 'my' : 'en');
+const choiceLang = (kind) => (kind === 'en-my' || kind === 'sense' ? 'my' : 'en');
 
 /**
  * A reported question: as the reader saw it, the right answer and what they

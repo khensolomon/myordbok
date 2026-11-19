@@ -286,3 +286,14 @@ test('an unknown value in dict_release fails with how to fix it', async () => {
 	assert.match(health.body.error, /reads "dataset", expected "beta" or "live"; apply the migrations \(make db-migrate-remote\)/);
 	resetChoiceCache();
 });
+
+test('word of the day: one reviewed meaning with an example, the same all day', async () => {
+	const env = localEnv();
+	const a = await call('/api/today?day=2026-11-19', env);
+	assert.equal(a.status, 200);
+	assert.match(a.body.word, /^[a-z]{3,12}$/);
+	assert.ok(a.body.gloss && a.body.example, 'a meaning and an example');
+	assert.doesNotMatch(a.body.example, /[<>]/, 'plain text');
+	assert.deepEqual((await call('/api/today?day=2026-11-19', env)).body, a.body);
+	assert.equal((await call('/api/today?day=19.11.2026', env)).status, 400);
+});

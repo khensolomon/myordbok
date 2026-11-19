@@ -151,3 +151,34 @@ test('quiz: two devices’ progress made one', async () => {
 	assert.deepEqual(mergeProgress(laptop, phone), both, 'either way round');
 	assert.deepEqual(mergeProgress(noProgress(), phone), phone);
 });
+
+test('quiz: listen, type and which meaning', async () => {
+	const { checkTyped, pickRound } = await import('../shared/quiz.js');
+	const [heard] = makeQuestions(love, others, { random: fixed, kinds: ['listen'] });
+	assert.equal(heard.kind, 'listen');
+	assert.equal(heard.choices.find((c) => c.right)?.text, 'love');
+	assert.ok(!heard.choices.some((c) => /lov/.test(c.text) && !c.right), 'nothing that sounds like it');
+	assert.ok(!heard.choices.some((c) => c.text === 'draft'), 'a word with nothing reviewed is not offered');
+
+	const [typed] = makeQuestions(love, [], { kinds: ['type'] });
+	assert.deepEqual([typed.kind, typed.prompt, typed.hint, typed.choices[0].text], ['type', 'ချစ်သည်', 'l', 'love']);
+	assert.equal(checkTyped(' Love ', 'love'), 'right');
+	assert.equal(checkTyped('lvoe', 'love'), 'close', 'two letters swapped');
+	assert.equal(checkTyped('lov', 'love'), 'close', 'a letter missing');
+	assert.equal(checkTyped('loves', 'love'), 'close', 'a letter added');
+	assert.equal(checkTyped('lone', 'love'), 'close', 'a letter changed');
+	assert.equal(checkTyped('like', 'love'), 'wrong');
+	assert.equal(checkTyped('ox', 'ax'), 'wrong', 'short words need the exact spelling');
+
+	const [which] = makeQuestions(love, [], { random: fixed, kinds: ['sense'] });
+	assert.equal(which.kind, 'sense');
+	const right = which.choices.find((c) => c.right);
+	assert.ok(['ချစ်ခြင်း', 'ချစ်သည်'].includes(right.text));
+	assert.equal(which.choices.length, 2, 'the two reviewed meanings that read differently');
+	assert.deepEqual(makeQuestions(result('x', [['Noun', 'Active', 'ရေ', 'a glass of water']]), [], { kinds: ['sense'] }), [], 'one meaning: nothing to choose');
+
+	const all = makeQuestions(love, others, { random: fixed, kinds: ['en-my', 'listen', 'my-en', 'type', 'gap', 'sense'] });
+	assert.equal(all.length, 6);
+	const round = pickRound(all, 3, fixed);
+	assert.deepEqual(round.map((q) => q.kind), ['en-my', 'my-en', 'gap'], 'one of each group, in round order');
+});

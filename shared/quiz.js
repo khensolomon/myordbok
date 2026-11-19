@@ -26,8 +26,17 @@ export const FEWEST_CHOICES = 3;
  *   meaning's word, or the word itself); note: said beside it once answered.
  * @typedef {{ kind: 'en-my', word: string, prompt: string, choices: Choice[], answer: Reviewed }
  *   | { kind: 'my-en', word: string, prompt: string, choices: Choice[], answer: Reviewed }
- *   | { kind: 'gap', word: string, before: string, after: string, choices: Choice[], answer: Reviewed }} Question
+ *   | { kind: 'gap', word: string, before: string, after: string, choices: Choice[], answer: Reviewed }
+ *   | { kind: 'listen', word: string, prompt: string, choices: Choice[], answer: Reviewed }
+ *   | { kind: 'type', word: string, prompt: string, hint: string, choices: Choice[], answer: Reviewed }
+ *   | { kind: 'sense', word: string, prompt: string, choices: Choice[], answer: Reviewed }} Question
+ *   listen: the word is heard, not shown (prompt is the word to say); type: the
+ *   word is typed for a Myanmar meaning, its one choice the word; sense: which
+ *   of the word's own meanings an example of it uses.
  */
+
+/** Every kind of question, in the order a round asks them. */
+export const KINDS = /** @type {const} */ (['en-my', 'listen', 'my-en', 'type', 'gap', 'sense']);
 
 /**
  * A gloss or an example as plain text: markup read, labels left out.
@@ -153,6 +162,118 @@ function myToEn(target, others, sense, gloss, random) {
 	return { kind: 'my-en', word, prompt: gloss, choices: shuffle(choices, random), answer: sense };
 }
 
+/**
+ * The word heard, with English words to choose from: the word's own, and
+ * words that sound nothing alike (others' headwords).
+ * @param {EnglishResult} target
+ * @param {EnglishResult[]} others
+ * @param {Reviewed} sense
+ * @param {() => number} random
+ * @returns {Question | null}
+ */
+function listen(target, others, sense, random) {
+	const word = target.entries[0].word;
+	/** @type {Choice[]} */
+	const wrong = [];
+	for (const o of others) {
+		const s = reviewed(o)[0];
+		const w = o.entries.find((e) => e.kind === 'Active')?.word ?? o.query;
+		const lw = w.toLowerCase();
+		const lt = word.toLowerCase();
+		// Words with the word in them (lovable, love affair) sound like it: no fair choice.
+		if (!s || lw.includes(lt) || lt.includes(lw) || wrong.some((c) => c.text.toLowerCase() === lw)) continue;
+		wrong.push({ text: w, right: false, note: s.glosses[0] });
+		if (wrong.length === MOST_CHOICES - 1) break;
+	}
+	if (wrong.length < FEWEST_CHOICES - 1) return null;
+	return { kind: 'listen', word, prompt: word, choices: shuffle([{ text: word, right: true, note: sense.glosses[0] }, ...wrong], random), answer: sense };
+}
+
+/**
+ * A Myanmar meaning, and the English word typed for it.
+ * @param {EnglishResult} target
+ * @param {Reviewed} sense
+ * @param {string} gloss
+ * @returns {Question | null}
+ */
+function typed(target, sense, gloss) {
+	const word = target.entries[0].word;
+	// Letters only, and long enough that the first letter does not give it away.
+	if (!/^[A-Za-z]{3,20}$/.test(word)) return null;
+	return { kind: 'type', word, prompt: gloss, hint: word[0].toLowerCase(), choices: [{ text: word, right: true, note: gloss }], answer: sense };
+}
+
+/**
+ * An example of the word, and which of its own meanings the example uses.
+ * Only when the word has two or more reviewed meanings that read differently.
+ * @param {EnglishResult} target
+ * @param {Reviewed[]} senses
+ * @param {() => number} random
+ * @returns {Question | null}
+ */
+function whichSense(target, senses, random) {
+	const word = target.entries[0].word;
+	/** @type {Reviewed[]} */
+	const distinct = [];
+	for (const s of senses) if (!distinct.some((d) => d.glosses[0] === s.glosses[0])) distinct.push(s);
+	if (distinct.length < 2) return null;
+	for (const sense of shuffle(/** @type {any[]} */ (distinct), random)) {
+		if (!sense.example) continue;
+		const item = itemsOf(sense.example)
+			.flatMap((it) => (it.t === 'text' ? [it.text] : []))
+			.find((t) => !/^<[^<>]*\/[^<>]*>$/.test(t.trim()));
+		if (!item) continue;
+		const text = plainItem(item, word);
+		if (text.length < 8) continue;
+		const pick = [sense, ...distinct.filter((d) => d !== sense)].slice(0, MOST_CHOICES);
+		const choices = pick.map((d) => ({ text: d.glosses[0], right: d === sense, note: d.type }));
+		return { kind: 'sense', word, prompt: text, choices: shuffle(choices, random), answer: sense };
+	}
+	return null;
+}
+
+/**
+ * How near a typed word is to the word asked for: right, one slip off
+ * (a letter missing, added, changed or two swapped, in a word of four
+ * letters or more), or wrong. Case and spaces at the ends do not matter.
+ * @param {string} typedText
+ * @param {string} word
+ * @returns {'right' | 'close' | 'wrong'}
+ */
+export function checkTyped(typedText, word) {
+	const a = typedText.trim().toLowerCase();
+	const b = word.trim().toLowerCase();
+	if (a === b) return 'right';
+	if (b.length < 4 || Math.abs(a.length - b.length) > 1) return 'wrong';
+	// One letter swapped with the next.
+	for (let i = 0; i + 1 < b.length; i++) if (a === b.slice(0, i) + b[i + 1] + b[i] + b.slice(i + 2)) return 'close';
+	// Edit distance of one.
+	let i = 0;
+	while (i < a.length && i < b.length && a[i] === b[i]) i++;
+	const rest = (/** @type {number} */ x, /** @type {number} */ y) => a.slice(i + x) === b.slice(i + y);
+	return rest(1, 1) || rest(0, 1) || rest(1, 0) ? 'close' : 'wrong';
+}
+
+/**
+ * Up to `n` questions for one round on a word, with variety: one about
+ * the meaning (en-my), one recalling the word (my-en, listen or type) and
+ * one about its use (gap or sense), each picked at random among those made.
+ * @param {Question[]} questions
+ * @param {number} [n]
+ * @param {() => number} [random]
+ */
+export function pickRound(questions, n = 3, random = Math.random) {
+	const groups = [['en-my'], ['my-en', 'listen', 'type'], ['gap', 'sense']];
+	/** @type {Question[]} */
+	const out = [];
+	for (const g of groups) {
+		const can = questions.filter((q) => g.includes(q.kind));
+		if (can.length) out.push(can[Math.floor(random() * can.length)]);
+	}
+	for (const q of questions) if (out.length < n && !out.includes(q)) out.push(q);
+	return out.slice(0, n).sort((a, b) => KINDS.indexOf(a.kind) - KINDS.indexOf(b.kind));
+}
+
 /** The verb forms a gap can ask for. */
 const VERB_FORMS = new Set(['third person', 'past', 'past participle', '-ing']);
 
@@ -226,6 +347,7 @@ function gap(target, senses, random) {
  */
 export function makeQuestions(target, others, opts = {}) {
 	const { random = Math.random, kinds = ['en-my', 'my-en', 'gap'] } = opts;
+	// listen, type and sense are asked for by name: a caller that cannot play sound leaves listen out.
 	const senses = reviewed(target);
 	if (!senses.length || !target.entries.length) return [];
 	const usable = others.filter((o) => o.language === 'en' && o.entries.length && o.query.toLowerCase() !== target.query.toLowerCase());
@@ -246,6 +368,19 @@ export function makeQuestions(target, others, opts = {}) {
 	}
 	if (kinds.includes('gap')) {
 		const q = gap(target, senses, random);
+		if (q) out.push(q);
+	}
+	if (kinds.includes('listen')) {
+		const q = listen(target, usable, first, random);
+		if (q) out.push(q);
+	}
+	if (kinds.includes('type')) {
+		const other = senses.find((s) => s.glosses[0] !== first.glosses[0]) ?? first;
+		const q = typed(target, other, other.glosses[0]);
+		if (q) out.push(q);
+	}
+	if (kinds.includes('sense')) {
+		const q = whichSense(target, senses, random);
 		if (q) out.push(q);
 	}
 	return out;

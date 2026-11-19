@@ -31,6 +31,7 @@ import { suggest } from './routes/suggest.js';
 import { pronunciation } from './routes/pronunciation.js';
 import { quiz } from './routes/quiz.js';
 import { help } from './routes/help.js';
+import { today } from './routes/today.js';
 import { addUsage, reportUsage } from './lib/usage.js';
 import { getSetting, getSettings } from './lib/settings.js';
 
@@ -145,6 +146,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'suggest') return suggest(url, env);
 		if (parts[0] === 'spelling') return spelling(url, env);
 		if (parts[0] === 'pronunciation') return pronunciation(url);
+		if (parts[0] === 'today') return today(url, env);
 		if (parts[0] === 'phrase') return phrase(url, env);
 		if (parts[0] === 'read') return read(url, env);
 		if (parts[0] === 'me') return me(request, env);
