@@ -13,7 +13,8 @@
  *   words-my     Myanmar headwords with senses                   everyone
  *   senses-en    each English word's senses, forms, variants     members, or everyone (workspace setting)
  *   senses-my    each Myanmar word's senses and pronunciation    members, or everyone
- *   related-en   each English word's synonyms and related words  members, or everyone
+ *   related-en   each English word's synonyms and related words,  members, or everyone
+ *                and which of them have an entry (with_entry)
  *
  * The senses and related packs are lines of JSON, [key, answer], the key in
  * lower case; every file is gzip. A manifest lists them with sizes, rows and
@@ -101,8 +102,9 @@ export async function buildPacks(db) {
 	for (const key of [...keysEn].sort()) {
 		const r = /** @type {any} */ (await search(lookup, statements, key));
 		if (!r.entries.length && !r.forms_of.length && !r.variant_of.length) continue;
-		sensesEn.push(JSON.stringify([key, { entries: r.entries, variant_of: r.variant_of, forms_of: r.forms_of, root_senses: r.root_senses, forms: r.forms }]));
-		const rel = { synonyms: r.synonyms, similar: r.similar, broader: r.broader, opposite: r.opposite, related: r.related };
+		// nearest is only for a word with no entry, form or variant, which has no line here: always [].
+		sensesEn.push(JSON.stringify([key, { entries: r.entries, variant_of: r.variant_of, forms_of: r.forms_of, root_senses: r.root_senses, forms: r.forms, nearest: r.nearest }]));
+		const rel = { synonyms: r.synonyms, similar: r.similar, broader: r.broader, opposite: r.opposite, related: r.related, with_entry: r.with_entry };
 		if (Object.values(rel).some((list) => list.length)) relatedEn.push(JSON.stringify([key, rel]));
 	}
 	/** @type {string[]} */

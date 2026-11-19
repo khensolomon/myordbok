@@ -83,3 +83,23 @@ ORDER BY w.word;
 -- Related words from the Moby Thesaurus. ?1 = JSON array of word ids.
 SELECT w.word FROM eng_related r JOIN eng_word w ON w.id = r.related
 WHERE r.wrid IN (SELECT value FROM json_each(?1)) ORDER BY r.rank;
+
+-- name: nearest
+-- For a word without an entry: the senses of the other words of its
+-- meanings. ?1 = JSON array of synset ids, ?2 = JSON array of the query's
+-- word ids (left out). exact is 1 when the sense is linked to that same
+-- meaning; senses counts the word's senses; wrte is the sense's word type.
+SELECT m.synset, w.word, t.name AS type, s.sense, s.synset = m.synset AS exact,
+       (SELECT count(*) FROM emd_sense x WHERE x.wrid = m.word) AS senses, s.wrte
+FROM wn_member m JOIN eng_word w ON w.id = m.word
+JOIN emd_sense s ON s.wrid = m.word JOIN type_word t ON t.id = s.wrte
+WHERE m.synset IN (SELECT value FROM json_each(?1))
+AND m.word NOT IN (SELECT value FROM json_each(?2))
+ORDER BY m.synset, m.rank, w.word, s.wseq;
+
+-- name: with_entry
+-- Which of the words have an entry of their own (any letter case).
+-- ?1 = JSON array of words.
+SELECT DISTINCT j.value FROM json_each(?1) j
+WHERE EXISTS (SELECT 1 FROM eng_word w JOIN emd_sense s ON s.wrid = w.id WHERE w.word = j.value COLLATE NOCASE)
+ORDER BY j.value;

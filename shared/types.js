@@ -39,6 +39,22 @@
  * @property {string[]} broader
  * @property {string[]} opposite
  * @property {string[]} related
+ * @property {string[]} [with_entry]     Which of synonyms, similar, broader, opposite and related have an
+ *                                       entry of their own; only those link. Absent from an answer made
+ *                                       before the field existed (an older offline copy): every word links.
+ * @property {NearestSense[]} [nearest]  For a word with no entry, form or variant: Myanmar meanings of
+ *                                       words of its meanings, closest first (at most 6). Never the word's own.
+ */
+
+/**
+ * A Myanmar meaning of a nearby word, for a word that has none
+ * (search.mjs pickNearest).
+ * @typedef {object} NearestSense
+ * @property {string} word    The nearby headword; it has an entry.
+ * @property {string} type
+ * @property {string} sense   Dataset markup, as an entry's sense.
+ * @property {'synonym' | 'similar' | 'broader'} via
+ * @property {boolean} exact  The sense is linked to that same meaning; false: the word's only sense, of the same word type.
  */
 
 /**
@@ -99,7 +115,7 @@
  * @typedef {({ q: string, kind: 'entry', result: LookupResult }
  *   | { q: string, kind: 'phrase', phrase: Phrase }
  *   | { q: string, kind: 'sentence', words: Array<{ text: string, known?: boolean }>, first: LookupResult | null }
- *   | { q: string, kind: 'none', close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null }) & { zawgyi?: { typed: string, as: string } }} Reading
+ *   | { q: string, kind: 'none', close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null, nearest?: NearestSense[], with_entry?: string[] }) & { zawgyi?: { typed: string, as: string } }} Reading
  *   `around`: an English query that is no headword but has words around it (WordNet, Moby).
  *   For a sentence, `known` is set for Myanmar words, which are found by
  *   splitting the text into headwords; false marks syllables no headword covers.

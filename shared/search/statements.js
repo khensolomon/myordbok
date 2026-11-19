@@ -14,5 +14,7 @@ export default Object.freeze({
 	"similar": "SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3\nUNION SELECT synset FROM wn_link WHERE target IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type = 3;",
 	"broader": "SELECT target AS synset FROM wn_link WHERE synset IN (SELECT value FROM json_each(?1)) AND +word = 0 AND +type IN (1, 2);",
 	"opposite": "SELECT DISTINCT w.word FROM eng_word w JOIN\n  (SELECT target_word AS other FROM wn_link WHERE type = 5 AND word IN (SELECT value FROM json_each(?1))\n   UNION SELECT word FROM wn_link WHERE type = 5 AND target_word IN (SELECT value FROM json_each(?1))\n   AND word NOT IN (SELECT value FROM json_each(?1))) o ON w.id = o.other\nORDER BY w.word;",
-	"related": "SELECT w.word FROM eng_related r JOIN eng_word w ON w.id = r.related\nWHERE r.wrid IN (SELECT value FROM json_each(?1)) ORDER BY r.rank;"
+	"related": "SELECT w.word FROM eng_related r JOIN eng_word w ON w.id = r.related\nWHERE r.wrid IN (SELECT value FROM json_each(?1)) ORDER BY r.rank;",
+	"nearest": "SELECT m.synset, w.word, t.name AS type, s.sense, s.synset = m.synset AS exact,\n       (SELECT count(*) FROM emd_sense x WHERE x.wrid = m.word) AS senses, s.wrte\nFROM wn_member m JOIN eng_word w ON w.id = m.word\nJOIN emd_sense s ON s.wrid = m.word JOIN type_word t ON t.id = s.wrte\nWHERE m.synset IN (SELECT value FROM json_each(?1))\nAND m.word NOT IN (SELECT value FROM json_each(?2))\nORDER BY m.synset, m.rank, w.word, s.wseq;",
+	"with_entry": "SELECT DISTINCT j.value FROM json_each(?1) j\nWHERE EXISTS (SELECT 1 FROM eng_word w JOIN emd_sense s ON s.wrid = w.id WHERE w.word = j.value COLLATE NOCASE)\nORDER BY j.value;"
 });

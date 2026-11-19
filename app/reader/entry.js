@@ -487,7 +487,7 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 				'section',
 				{ class: 'pos pos-related' },
 				h('h2', { class: 'pos-name' }, t('related words')),
-				h('ul', { class: 'related-list' }, extra.related.map(([name, words, id]) => h('li', { id: id ?? null }, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words' }, wordLinks(words))))),
+				h('ul', { class: 'related-list' }, extra.related.map(([name, words, id]) => h('li', { id: id ?? null }, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words' }, wordLinks(words, extra.linked))))),
 			),
 		);
 	}
@@ -543,8 +543,23 @@ function kindBadge(kind) {
 }
 
 /** @param {string[]} words */
-function wordLinks(words) {
-	return words.flatMap((w, i) => [i ? ', ' : null, h('a', { href: definitionHref(w) }, w)]);
+/**
+ * Words as links, separated by commas; with `linked`, only the words in it
+ * link (those with an entry of their own) and the others are plain text.
+ * @param {string[]} words
+ * @param {Set<string> | null} [linked]  Lower case.
+ */
+function wordLinks(words, linked = null) {
+	return words.flatMap((w, i) => [i ? ', ' : null, !linked || linked.has(w.toLowerCase()) ? h('a', { href: definitionHref(w) }, w) : h('span', { class: 'word-plain' }, w)]);
+}
+
+/**
+ * The words of a lookup that have an entry, in lower case, or null when the
+ * answer does not say (made before with_entry existed): then every word links.
+ * @param {{ with_entry?: string[] }} data
+ */
+function entryWords(data) {
+	return data.with_entry ? new Set(data.with_entry.map((w) => w.toLowerCase())) : null;
 }
 
 /**
@@ -552,6 +567,7 @@ function wordLinks(words) {
  * @property {Map<string, string[]>} forms  By part of speech, in lower case.
  * @property {Array<[string, string[], string | undefined]>} related  Name, words, id a question can point to.
  * @property {Set<string>} present  Which of forms, synonyms, opposite the entry has.
+ * @property {Set<string> | null} linked  Related words with an entry of their own (entryWords).
  */
 
 /**
@@ -585,7 +601,7 @@ function extras(data) {
 	const related = lists.filter(([, words]) => words.length).map(([name, words]) => [name, words, ids[name]]);
 	const present = new Set(related.map(([, , id]) => id).filter((id) => id !== undefined));
 	if (forms.size) present.add('forms');
-	return { forms, related, present: /** @type {Set<string>} */ (present) };
+	return { forms, related, present: /** @type {Set<string>} */ (present), linked: entryWords(data) };
 }
 
 /**
@@ -693,7 +709,7 @@ async function sentence(q, list, index) {
  * ask for it. Inline (a word of a sentence), a shorter version that fetches
  * its own "did you mean".
  * @param {string} q
- * @param {{ close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null } | null} found  From the reading.
+ * @param {{ close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null, nearest?: import('#shared/types.js').NearestSense[], with_entry?: string[] } | null} found  From the reading.
  * @param {{ inline?: boolean }} [options]
  */
 async function missing(q, found, options = {}) {
@@ -704,16 +720,63 @@ async function missing(q, found, options = {}) {
 	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
 
 	const around = found?.around ?? null;
+	const nearest = found?.nearest ?? [];
+	const linked = found ? entryWords(found) : null;
 	return h(
 		'section',
 		{ class: options.inline ? 'no-result inline' : 'page no-result' },
 		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
-		around && !options.inline ? aroundWords(q, around) : null,
+		nearest.length ? nearestMeanings(q, nearest) : null,
+		around && !options.inline ? aroundWords(q, withoutNearest(around, nearest), linked, nearest.length > 0) : null,
 		close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
 		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
 		!close.length && !prefix.length && !around ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
 		options.inline ? null : noEntryAsk(q),
 		options.inline ? null : keepGoing(),
+	);
+}
+
+/**
+ * The words around a word, less those whose meaning is already shown as nearest.
+ * @param {{ similar: string[], broader: string[], opposite: string[], related: string[] }} around
+ * @param {import('#shared/types.js').NearestSense[]} nearest
+ */
+function withoutNearest(around, nearest) {
+	const shown = new Set(nearest.map((n) => n.word.toLowerCase()));
+	const keep = (/** @type {string[]} */ list) => list.filter((w) => !shown.has(w.toLowerCase()));
+	return { similar: keep(around.similar), broader: keep(around.broader), opposite: around.opposite, related: keep(around.related) };
+}
+
+/** How a nearby word's meaning relates to the word asked about. */
+const VIA = /** @type {Record<string, string>} */ ({
+	synonym: mark('same as {word}'),
+	similar: mark('similar to {word}'),
+	broader: mark('a kind of {word}'),
+});
+
+/**
+ * The nearest Myanmar meanings of a word that has none (lookup's nearest):
+ * each said to be another word's, never shown as the word's own.
+ * @param {string} q
+ * @param {import('#shared/types.js').NearestSense[]} nearest
+ */
+function nearestMeanings(q, nearest) {
+	return h(
+		'div',
+		{ class: 'no-result-nearest' },
+		h('p', { class: 'no-result-lead' }, t('“{word}” has no entry of its own. Nearest meaning:', { word: q })),
+		h(
+			'ul',
+			{ class: 'nearest-list' },
+			nearest.map((n) =>
+				h(
+					'li',
+					{ class: `nearest-item${n.exact ? '' : ' nearest-loose'}` },
+					h('p', { class: 'nearest-via' }, ...tx(VIA[n.via] ?? '{word}', { word: h('a', { href: definitionHref(n.word), lang: 'en' }, n.word) }), h('em', null, ` ${posName(n.type)}`)),
+					h('ol', { class: 'senses nearest-senses' }, sense({ type: n.type, sense: n.sense, example: null }, 'my', n.word)),
+				),
+			),
+		),
 	);
 }
 
@@ -733,8 +796,10 @@ const AROUND_GLOSSED = 10;
  * reader can go on from here.
  * @param {string} q
  * @param {{ similar: string[], broader: string[], opposite: string[], related: string[] }} around
+ * @param {Set<string> | null} linked  Words with an entry (with_entry); null: all of them.
+ * @param {boolean} afterNearest  The nearest meanings are shown above: these are more words, not the only ones.
  */
-function aroundWords(q, around) {
+function aroundWords(q, around, linked, afterNearest) {
 	/** @type {Array<{ word: string, meaning: HTMLElement }>} */
 	const all = [];
 	const groups = AROUND.filter(([key]) => around[key].length).map(([key, label]) =>
@@ -746,6 +811,8 @@ function aroundWords(q, around) {
 				'ul',
 				{ class: 'around-list' },
 				around[key].slice(0, 12).map((w) => {
+					// A word without an entry of its own is said, not linked: its page would be another "no entry".
+					if (linked && !linked.has(w.toLowerCase())) return h('li', { class: 'around-plain' }, h('span', { class: 'around-word', lang: 'en' }, w));
 					const meaning = h('span', { class: 'around-meaning', lang: 'my' });
 					all.push({ word: w, meaning });
 					return h('li', null, h('a', { href: definitionHref(w) }, h('span', { class: 'around-word', lang: 'en' }, w), meaning));
@@ -765,7 +832,7 @@ function aroundWords(q, around) {
 	return h(
 		'div',
 		{ class: 'no-result-around' },
-		h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:', { word: q })),
+		afterNearest ? null : h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:', { word: q })),
 		groups,
 	);
 }

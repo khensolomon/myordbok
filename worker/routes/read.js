@@ -119,7 +119,8 @@ async function readAsTyped(db, q, over) {
 			? { similar: [...new Set([...result.synonyms, ...result.similar])].filter((w) => !same(w)), broader: result.broader, opposite: result.opposite, related: result.related }
 			: null;
 	const around = near && Object.values(near).some((list) => list.length) ? near : null;
-	return { q, kind: 'none', close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)), around };
+	const known = result.language === 'en' ? { nearest: result.nearest ?? [], with_entry: result.with_entry ?? [] } : {};
+	return { q, kind: 'none', close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)), around, ...known };
 }
 
 /**

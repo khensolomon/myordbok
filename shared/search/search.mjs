@@ -150,6 +150,16 @@ export async function search(db, statements, query) {
   const [synonyms, similar, broader] = await Promise.all([
     wordsOf(meanings), wordsOf(similarIds), wordsOf(broaderIds),
   ]);
+  let nearest = [];
+  if (!entries.length && !formsOf.length) {
+    for (const [via, synsets] of [["synonym", every], ["similar", similarIds], ["broader", broaderIds]]) {
+      nearest = synsets.length ? pickNearest(await q("nearest", js(synsets), js(ids)), via) : [];
+      if (nearest.length) break;
+    }
+  }
+  const lists = { synonyms, similar, broader, opposite: opposite.map((r) => r[0]), related: related.map((r) => r[0]) };
+  const listed = [...new Set(Object.values(lists).flat())];
+  const withEntry = listed.length ? (await q("with_entry", js(listed))).map((r) => r[0]) : [];
   return {
     query: text, language: "en",
     entries: entries.map(([word, type, kind, sense, example, , id]) => ({ id, word, type, kind, sense, example })),
@@ -157,10 +167,50 @@ export async function search(db, statements, query) {
     forms_of: formsOf.map(([root, pos, type]) => [root, POS[pos], FORM[type]]),
     root_senses: Object.fromEntries(rootRows.map(([word, senses]) => [word, senses])),
     forms: forms.map(([word, pos, type]) => [word, POS[pos], FORM[type]]),
-    synonyms, similar, broader,
-    opposite: opposite.map((r) => r[0]),
-    related: related.map((r) => r[0]),
+    ...lists,
+    with_entry: withEntry,
+    nearest,
   };
+}
+
+/** Words of a meaning shown at most, and nearest senses shown at most. */
+export const NEAREST_PER_MEANING = 3;
+export const NEAREST_MAX = 6;
+
+/** First digit of a synset id (n v a s r) -> type_word id of the sense. */
+const SYNSET_WRTE = { 1: 0, 2: 1, 3: 2, 5: 2, 4: 3 };
+
+/**
+ * Myanmar senses for a word without an entry, from words of its meanings.
+ * A word counts with its sense linked to the same meaning (exact), or with
+ * its only sense when that has the meaning's word type; otherwise it is
+ * left out, so no gloss of another meaning is shown.
+ * @param {Array<Array<any>>} rows (synset, word, type, sense, exact, senses, wrte)
+ *   from the `nearest` statement, in its order.
+ * @param {string} via "synonym", "similar" or "broader".
+ * @returns {Array<{word: string, type: string, sense: string, via: string, exact: boolean}>}
+ */
+export function pickNearest(rows, via) {
+  const best = new Map();
+  for (const [synset, word, type, sense, exact, senses, wrte] of rows) {
+    const key = `${synset}\t${word}`;
+    if (!best.has(key)) best.set(key, { synset, item: null });
+    const slot = best.get(key);
+    if (slot.item === null && (exact || (senses === 1 && SYNSET_WRTE[Math.floor(synset / 1e8)] === wrte))) {
+      slot.item = { word, type, sense, via, exact: Boolean(exact) };
+    }
+  }
+  const out = [];
+  const seen = new Set();
+  const per = new Map();
+  for (const { synset, item } of best.values()) {
+    if (item === null || seen.has(item.word) || (per.get(synset) ?? 0) >= NEAREST_PER_MEANING) continue;
+    seen.add(item.word);
+    per.set(synset, (per.get(synset) ?? 0) + 1);
+    out.push(item);
+    if (out.length === NEAREST_MAX) break;
+  }
+  return out;
 }
 
 /** Code-point order, as Python's sorted() orders strings. */

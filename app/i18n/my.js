@@ -1207,4 +1207,9 @@ export const MY = {
 	// Words around a word the dictionary lacks (reader/entry.js)
 	'Close in meaning': 'အဓိပ္ပာယ် နီးစပ်သော',
 	'MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:': 'MyOrdbok တွင် “{word}” ၏ မြန်မာအဓိပ္ပာယ် မရှိသေးပါ။ ဤစကားလုံးများက ၎င်းနှင့် နီးစပ်သည် −',
+	// Nearest meaning of a word without an entry (reader/entry.js)
+	'same as {word}': '{word} နှင့် အတူတူ',
+	'similar to {word}': '{word} နှင့် ဆင်တူ',
+	'a kind of {word}': '{word} ၏ အမျိုးအစားတစ်ခု',
+	'“{word}” has no entry of its own. Nearest meaning:': '“{word}” အတွက် သီးခြား အဓိပ္ပာယ် မရှိပါ။ အနီးစပ်ဆုံး အဓိပ္ပာယ် −',
 };

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+150
+
+- Lookup from dataset 1f3373b: a word without an entry shows its nearest Myanmar meaning (same as, similar to, a kind of); related words link only when they have an entry
+
 ## 26.11.19+149
 
 - Searches: periods of today, 3 and 5 days. Members: seen in the last 24 hours, 3 days or a week; sort by offline downloads or devices. No entry: the words around it from WordNet and Moby, with their Myanmar meanings, and the words searched most
