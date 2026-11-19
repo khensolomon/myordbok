@@ -674,7 +674,7 @@ test('settings: switches pause parts of the site at once, and numbers set the li
 	const set = async (key, value) => assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key, value } })).status, 200, key);
 	const site = async () => (await call(e, '/api/site')).body;
 	const { support_lines, ...switches } = await site();
-	assert.deepEqual(switches, { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true, support_ask: true, quiz: true });
+	assert.deepEqual(switches, { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true, support_ask: true, quiz: true, help: true });
 	assert.ok(support_lines.length >= 1 && support_lines.every((l) => l.en));
 
 	// Read-only: writes wait, the setting itself can be changed back.
@@ -788,4 +788,51 @@ test('test yourself: answers counted without a reader, reports kept, editors see
 
 	e.raw.prepare("INSERT INTO settings (key, value) VALUES ('quiz.open', '\"off\"')").run();
 	assert.equal((await call(e, '/api/quiz/answers', { body: round })).status, 403);
+});
+
+test('help the dictionary: checks decide whose votes count; editors see items ready and decide', async () => {
+	const e = env();
+	e.raw.exec(`INSERT INTO search_counts (day, lang, term, found, hits) VALUES ('2026-11-01', 'my', 'ခြစ်', 0, 3), ('2026-11-02', 'my', 'ချစ်း', 0, 1);
+		INSERT INTO users (id, name, email, role) VALUES (4, 'A', 'a@x.org', 'member'), (5, 'B', 'b@x.org', 'member'), (6, 'C', 'c@x.org', 'member'), (7, 'D', 'd@x.org', 'member'), (8, 'F', 'f@x.org', 'member');
+		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ${[4, 5, 6, 7, 8].map((n) => `('${hash(`m${n}`)}', ${n}, unixepoch() + 3600)`).join(', ')};`);
+
+	assert.equal((await call(e, '/api/help/next?word=love')).status, 401);
+	assert.equal((await call(e, '/api/workspace/votes/find', { who: 'member', method: 'POST' })).status, 403);
+	const found = (await call(e, '/api/workspace/votes/find', { who: 'editor', method: 'POST' })).body;
+	assert.deepEqual(found, { added: 1, looked: 1 }, 'searched 3 times, against the dictionary’s ချစ်');
+	assert.equal((await call(e, '/api/workspace/votes', { who: 'editor', body: { options: ['ရေ', 'ရေ'] } })).status, 400);
+	assert.equal((await call(e, '/api/workspace/votes', { who: 'editor', body: { options: ['ခြစ်', 'ချစ်'] } })).status, 409);
+
+	/** Answers every question a member is given: checks right or wrong, the spelling item with `pick`, a meaning with `meaning`. */
+	const round = async (who, { checks = true, pick = 'ချစ်', meaning = 'yes' } = {}) => {
+		const { questions } = (await call(e, '/api/help/next?word=love', { who })).body;
+		for (const q of questions) {
+			let answer;
+			if (q.kind === 'meaning') answer = meaning;
+			else {
+				const real = e.raw.prepare('SELECT answer, item_id FROM help_asked WHERE id = ?').get(q.id);
+				answer = real.item_id === null ? q.options.indexOf(checks ? real.answer : q.options.find((o) => o !== real.answer)) : q.options.indexOf(pick);
+			}
+			assert.equal((await call(e, '/api/help/answer', { who, body: { id: q.id, answer } })).status, 200);
+		}
+		return questions;
+	};
+	// Three rounds each: the checks, the meaning of love awaiting review, the spelling item.
+	for (const who of ['m4', 'm5', 'm6', 'm7', 'm8']) for (let i = 0; i < 3; i++) await round(who);
+	for (let i = 0; i < 3; i++) await round('member', { checks: false, pick: 'ခြစ်' });
+	assert.equal(e.raw.prepare('SELECT total FROM help_checks WHERE user_id = 4').get().total >= 3, true);
+	assert.deepEqual((await call(e, '/api/help/next?word=love', { who: 'member' })).body.questions, [], 'checks failed: not asked any more');
+	assert.equal((await call(e, '/api/help/answer', { who: 'm4', body: { id: 9999, answer: 0 } })).status, 404);
+
+	const spelling = (await call(e, '/api/workspace/votes?kind=spelling', { who: 'editor' })).body;
+	assert.equal(spelling.counts.ready, 1);
+	const [item] = spelling.items;
+	assert.deepEqual([item.votes, item.answers[0], item.searched], [5, { text: 'ချစ်', n: 5 }, 3], 'the member who failed the checks is not counted');
+	const meaning = (await call(e, '/api/workspace/votes?kind=meaning', { who: 'editor' })).body;
+	assert.deepEqual(meaning.items.map((m) => [m.word, m.gloss, m.votes]), [['love', 'အလွန်နှစ်သက်သည်', 5], ['love', 'ချစ်သူ', 5]], 'the two meanings not yet reviewed');
+
+	assert.equal((await call(e, `/api/workspace/votes/${item.id}`, { who: 'editor', body: { status: 'decided', decision: 'nothing' } })).status, 400);
+	assert.deepEqual((await call(e, `/api/workspace/votes/${item.id}`, { who: 'editor', body: { status: 'decided', decision: 'ချစ်' } })).body, { id: item.id, status: 'decided', decision: 'ချစ်' });
+	assert.deepEqual({ ...e.raw.prepare("SELECT label, note FROM search_marks WHERE term = 'ခြစ်'").get() }, { label: 'misspelling', note: '→ ချစ်' });
+	assert.equal((await call(e, '/api/workspace/votes?kind=spelling&state=decided', { who: 'editor' })).body.items.length, 1);
 });

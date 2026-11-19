@@ -8,7 +8,7 @@ import { h } from '../core/dom.js';
 import { recentSearches } from '../data/recent.js';
 import { clearProgress, progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
 import { num, t, tn } from '../i18n/index.js';
-import { ended, frame, lookups, play, popular } from './quiz.js';
+import { ended, frame, lookups, play, popular, thanked } from './quiz.js';
 
 /** Words in one round, at most. */
 const ROUND = 8;
@@ -74,14 +74,14 @@ function start(f) {
 			f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('These words have too few reviewed meanings to make questions yet.')));
 			return;
 		}
-		play(f, round, (answers) => {
+		play(f, round, (answers, helped) => {
 			const today = dayOf();
 			const lines = answers.map((a) => {
 				const saved = saveRound(a.question.word, a.right, today);
 				const days = saved.words[a.question.word.toLowerCase()].due - today;
 				return a.right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word: a.question.word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word: a.question.word });
 			});
-			ended(f, answers, lines, () => start(f));
+			ended(f, answers, [...lines, ...thanked(helped)], () => start(f));
 		});
 	});
 }

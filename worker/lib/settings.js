@@ -53,6 +53,7 @@ export const SETTINGS = {
 	},
 	'ratings.open': { fallback: 'on', valid: onOff, about: 'Whether readers may rate entries and meanings; off hides the thumbs.' },
 	'quiz.open': { fallback: 'on', valid: onOff, about: 'Whether word pages offer “Test yourself” and the practice page its rounds. Questions are made and progress kept on each device.' },
+	'help.open': { fallback: 'on', valid: onOff, about: 'Whether signed-in members are asked spelling and meaning questions after a round of Test yourself, for editors to decide on.' },
 	'contact.open': { fallback: 'on', valid: onOff, about: 'Whether the contact form takes messages.' },
 	'searches.count': { fallback: 'on', valid: onOff, about: 'Whether search pages are counted (search_counts).' },
 	'searches.keep_days': { fallback: 0, valid: (v) => v === 0 || whole(30, 36500)(v), about: 'Search counts older than this many days are deleted as new ones come in; 0 keeps them all.' },

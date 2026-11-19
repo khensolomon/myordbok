@@ -13,6 +13,7 @@ import { ICONS } from '../core/icons.js';
 import { getChoice } from '../core/consent.js';
 import { lookup, popularWords, reportQuestion, sendQuizAnswers } from '../data/api.js';
 import { recentSearches } from '../data/recent.js';
+import { helpAfter } from './help.js';
 import { progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
 import { getLang, mark, num, t, tn } from '../i18n/index.js';
 
@@ -106,12 +107,12 @@ export function quizCard(data) {
 				f.body.replaceChildren(h('p', { class: 'quiz-lead' }, t('There are not enough reviewed meanings around “{word}” to make questions yet.', { word })));
 				return;
 			}
-			play(f, questions, (answers) => {
+			play(f, questions, (answers, helped) => {
 				const right = answers.every((a) => a.right);
 				const today = dayOf();
 				const saved = saveRound(word, right, today);
 				const days = saved.words[word.toLowerCase()].due - today;
-				ended(f, answers, [right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word })], intro);
+				ended(f, answers, [right && days > 1 ? tn('“{word}” comes back in {n} day.', '“{word}” comes back in {n} days.', days, { word, n: num(days) }) : t('“{word}” comes back tomorrow.', { word }), ...thanked(helped)], intro);
 			});
 		});
 	};
@@ -173,7 +174,7 @@ function steps(states) {
  * Plays questions one after another in `host`, then calls done.
  * @param {Frame} f
  * @param {Question[]} questions
- * @param {(answers: Answer[]) => void} done
+ * @param {(answers: Answer[], helped: number) => void} done  helped: questions answered to help the dictionary after the round.
  */
 export function play(f, questions, done) {
 	/** @type {Answer[]} */
@@ -206,7 +207,8 @@ export function play(f, questions, done) {
 		next.addEventListener('click', () => {
 			if (i + 1 < questions.length) return show(i + 1);
 			count(answers);
-			done(answers);
+			next.disabled = true;
+			helpAfter(f, q.word, (helped) => done(answers, helped));
 		});
 		f.head(h('span', { class: 'quiz-count' }, t('{n} of {total}', { n: num(i + 1), total: num(questions.length) })), bars);
 		f.body.replaceChildren(
@@ -349,6 +351,14 @@ function explain(q, right) {
 }
 
 /**
+ * A line for the answers that help the dictionary, if any.
+ * @param {number} helped
+ */
+export function thanked(helped) {
+	return helped ? [tn('{n} answer that helps the dictionary. Thank you.', '{n} answers that help the dictionary. Thank you.', helped, { n: num(helped) })] : [];
+}
+
+/**
  * The end of a round: the score, what comes back when, the streak and
  * words learned, and where to go next.
  * @param {Frame} f
@@ -357,6 +367,7 @@ function explain(q, right) {
  * @param {() => void} again
  */
 export function ended(f, answers, lines, again) {
+	f.body.closest('.quiz')?.classList.remove('is-helping');
 	const today = dayOf();
 	const p = progress();
 	const streak = streakOf(p, today);

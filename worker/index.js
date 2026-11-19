@@ -30,6 +30,7 @@ import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 import { pronunciation } from './routes/pronunciation.js';
 import { quiz } from './routes/quiz.js';
+import { help } from './routes/help.js';
 import { addUsage, reportUsage } from './lib/usage.js';
 import { getSetting, getSettings } from './lib/settings.js';
 
@@ -76,9 +77,9 @@ async function health(env) {
  * @param {Env} env
  */
 async function siteSwitches(env) {
-	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask', 'support.lines', 'quiz.open']);
+	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask', 'support.lines', 'quiz.open', 'help.open']);
 	return json(
-		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on' },
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on', help: s['help.open'] === 'on' },
 		{ headers: { 'cache-control': 'public, max-age=60' } },
 	);
 }
@@ -133,6 +134,7 @@ async function answer(request, env, url, parts) {
 		if (parts.length === 1 && parts[0] === 'usage') return reportUsage(request, env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
 		if (parts[0] === 'quiz') return quiz(request, env, parts);
+		if (parts[0] === 'help') return help(request, env, parts);
 	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);
@@ -156,6 +158,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'senses') return senses(request, env);
 	}
 	if (parts[0] === 'workspace') return workspace(request, env, parts);
+	if (parts[0] === 'help') return help(request, env, parts);
 	if (parts[0] === 'packs') return packs(request, env, parts);
 	if (parts[0] === 'popular' && parts.length === 1 && request.method === 'GET') return popular(env);
 	throw new AppError('not_found', `No API route for ${url.pathname}`);

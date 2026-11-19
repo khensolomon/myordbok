@@ -76,6 +76,7 @@ const GROUPS = [
 		mark('Learning'),
 		{
 			'quiz.open': { title: mark('Test yourself'), about: mark('Whether word pages offer a few questions on the word, and the practice page its rounds. Questions are made and progress kept on each device; nothing is sent.'), choices: ON_OFF },
+			'help.open': { title: mark('Help the dictionary'), about: mark('Whether signed-in members are asked a spelling or meaning question after a round, for editors to decide on in Votes. Check questions decide whose answers count.'), choices: ON_OFF },
 		},
 	],
 	[

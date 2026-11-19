@@ -17,6 +17,7 @@
  *   GET  /api/workspace/searches[/word]          every word searched, for editors (searches.js)
  *   GET  /api/workspace/comments                 comments to moderate, for editors (comments.js)
  *   GET|POST /api/workspace/questions[/{id}]     Test yourself reports and often missed questions, for editors (quiz.js)
+ *   GET|POST /api/workspace/votes[/{id}|/find]   spelling and meaning votes from readers, for editors (help.js)
  *   GET  /api/workspace/overview                 figures for the home board: the whole
  *                                             site for editors and admins (offline use
  *                                             among them), the member's own for members
@@ -52,6 +53,7 @@ import { allSettings, getSetting, setSetting } from '../lib/settings.js';
 import { BACKUP_INDEX } from '../../shared/backup.js';
 import { manageSponsors } from './support.js';
 import { questions } from './quiz.js';
+import { votes } from './help.js';
 
 /** @typedef {import('./auth.js').AuthEnv & import('../lib/dict.js').DictEnv & { STORAGE?: R2Bucket }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -93,6 +95,7 @@ export async function workspace(request, env, parts) {
 	if (what === 'searches' && parts.length <= 3) return searches(request, env, member, id);
 	if (what === 'comments' && parts.length <= 3) return moderateComments(request, env, member, id);
 	if (what === 'questions' && parts.length <= 3) return questions(request, env, member, id);
+	if (what === 'votes' && parts.length <= 3) return votes(request, env, member, id);
 	if ((what === 'sponsors' || what === 'donations') && parts.length <= 5) return manageSponsors(request, env, member, parts);
 	if (request.method === 'GET' && what === 'ratings' && parts.length === 2) return ratings(request, env, member);
 	if (request.method === 'POST' && what === 'account' && id === 'delete' && parts.length === 3) return deleteAccount(request, env, member);
@@ -560,6 +563,11 @@ async function deleteAccount(request, env, member) {
 		db.prepare('DELETE FROM messages WHERE user_id = ?1').bind(id),
 		// A report is about the dictionary, not the member: it stays, unsigned.
 		db.prepare('UPDATE quiz_reports SET user_id = NULL WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM help_votes WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM help_checks WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM help_asked WHERE user_id = ?1').bind(id),
+		db.prepare('UPDATE help_items SET created_by = 0 WHERE created_by = ?1').bind(id),
+		db.prepare('UPDATE help_items SET decided_by = 0 WHERE decided_by = ?1').bind(id),
 		db.prepare('UPDATE settings SET updated_by = 0 WHERE updated_by = ?1').bind(id),
 		db.prepare('UPDATE messages SET handled_by = 0 WHERE handled_by = ?1').bind(id),
 		db.prepare('UPDATE notices SET updated_by = 0 WHERE updated_by = ?1').bind(id),

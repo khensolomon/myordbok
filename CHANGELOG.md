@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+146
+
+- Help the dictionary: after a round, signed-in members answer spelling and meaning questions; check questions decide whose votes count; the workspace's Votes shows items ready to decide (migration 0018)
+
 ## 26.11.19+145
 
 - Test yourself: report a question; answers counted per question with the reader's consent; the workspace's Questions lists reports and often-missed questions (migration 0017)

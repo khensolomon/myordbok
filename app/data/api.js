@@ -432,7 +432,7 @@ export function moderateComment(id, status) {
 
 /**
  * The switches pages follow (worker/lib/settings.js), the same for everyone.
- * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }>, quiz: boolean }>}
+ * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }>, quiz: boolean, help: boolean }>}
  */
 export function siteSwitches() {
 	return getJSON('/api/site');
@@ -836,4 +836,76 @@ export function workspaceQuestions(f, offset = 0) {
  */
 export function setQuestionReport(id, status) {
 	return postJSON(`/api/workspace/questions/${id}`, { status });
+}
+
+/**
+ * @typedef {{ id: number, kind: 'spelling', options: string[] } | { id: number, kind: 'meaning', word: string, type: string | null, gloss: string }} HelpQuestion
+ */
+
+/**
+ * Spelling and meaning questions for a signed-in member, after a round on `word` (worker/routes/help.js).
+ * @param {string} word
+ * @returns {Promise<{ questions: HelpQuestion[] }>}
+ */
+export function helpQuestions(word) {
+	return getJSON(`/api/help/next?word=${encodeURIComponent(word)}`);
+}
+
+/**
+ * @param {number} id
+ * @param {number | 'many' | 'unsure' | 'yes' | 'no'} answer
+ */
+export function answerHelp(id, answer) {
+	return postJSON('/api/help/answer', { id, answer });
+}
+
+/**
+ * @typedef {object} VoteItem
+ * @property {number} id
+ * @property {'spelling' | 'meaning'} kind
+ * @property {string[] | null} options
+ * @property {string | null} word
+ * @property {string | null} type
+ * @property {number | null} sense_id
+ * @property {string | null} gloss
+ * @property {'search' | 'editor' | 'review'} source
+ * @property {'ready' | 'collecting' | 'split' | 'decided' | 'set_aside'} state
+ * @property {string | null} decision
+ * @property {number} votes  Counted: from members whose checks show they read Myanmar, "not sure" left out.
+ * @property {number} asked  Every answer, counted or not.
+ * @property {number} searched  Times the spellings were searched and not found.
+ * @property {Array<{ text: string, n: number }>} answers
+ * @property {number} at
+ */
+/** @typedef {{ kind: 'spelling' | 'meaning', state: VoteItem['state'], q: string }} VotesFilter */
+
+/**
+ * @param {VotesFilter} f
+ * @param {number} [offset]
+ * @returns {Promise<{ counts: Record<VoteItem['state'], number>, items: VoteItem[], more: boolean, rules: { checks: number, fluent: number, votes: number, share: number } }>}
+ */
+export function workspaceVotes(f, offset = 0) {
+	const p = new URLSearchParams({ kind: f.kind, state: f.state });
+	if (f.q) p.set('q', f.q);
+	if (offset) p.set('offset', String(offset));
+	return getJSON(`/api/workspace/votes?${p}`);
+}
+
+/**
+ * @param {number} id
+ * @param {'decided' | 'set_aside' | 'collecting'} status
+ * @param {string} [decision]
+ */
+export function decideVote(id, status, decision) {
+	return postJSON(`/api/workspace/votes/${id}`, decision === undefined ? { status } : { status, decision });
+}
+
+/** @param {string[]} options */
+export function addSpellingVote(options) {
+	return postJSON('/api/workspace/votes', { options });
+}
+
+/** @returns {Promise<{ added: number, looked: number }>} */
+export function findSpellingVotes() {
+	return postJSON('/api/workspace/votes/find', {});
 }

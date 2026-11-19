@@ -120,6 +120,7 @@ siteSwitches()
 		document.body.toggleAttribute('data-readonly', s.readonly);
 		// An answer cached before the switch existed has no quiz: on, its default.
 		document.body.toggleAttribute('data-quiz-off', s.quiz === false);
+		document.body.toggleAttribute('data-help-off', s.help === false);
 	})
 	.catch((err) => console.warn('Site switches unavailable:', err));
 
