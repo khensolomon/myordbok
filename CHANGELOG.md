@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+145
+
+- Test yourself: report a question; answers counted per question with the reader's consent; the workspace's Questions lists reports and often-missed questions (migration 0017)
+
 ## 26.11.18+144
 
 - Account menu: Sign out moves beside the account name; the page links no longer wrap

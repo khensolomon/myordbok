@@ -770,3 +770,70 @@ export function addDonation(donorId, donation) {
 export function deleteDonation(id) {
 	return postJSON(`/api/workspace/donations/${id}/delete`, {});
 }
+
+/**
+ * A round's answers, counted by question and choice (worker/routes/quiz.js).
+ * Sent only when the reader allowed usage statistics.
+ * @param {Array<{ kind: string, word: string, answer: string, chosen: string }>} answers
+ */
+export function sendQuizAnswers(answers) {
+	return postJSON('/api/quiz/answers', { answers });
+}
+
+/**
+ * @param {{ kind: string, word: string, prompt: string, answer: string, choices: string[], chosen: string | null, reason: 'answer' | 'choices' | 'spelling' | 'other', note: string | null, lang: 'en' | 'my' }} report
+ * @returns {Promise<{ ok: true, id: number }>}
+ */
+export function reportQuestion(report) {
+	return postJSON('/api/quiz/reports', report);
+}
+
+/**
+ * @typedef {object} QuestionReport
+ * @property {number} id
+ * @property {'en-my' | 'my-en' | 'gap'} kind
+ * @property {string} word
+ * @property {string} prompt
+ * @property {string} answer
+ * @property {string[]} choices
+ * @property {string | null} chosen
+ * @property {'answer' | 'choices' | 'spelling' | 'other'} reason
+ * @property {string | null} note
+ * @property {'en' | 'my'} lang
+ * @property {'new' | 'done'} status
+ * @property {number} at
+ * @property {string | null} member
+ */
+/**
+ * @typedef {object} MissedQuestion
+ * @property {'en-my' | 'my-en' | 'gap'} kind
+ * @property {string} word
+ * @property {string} answer
+ * @property {number} answers
+ * @property {number} wrong
+ * @property {number} at
+ * @property {Array<{ text: string, n: number }>} picks
+ */
+/** @typedef {{ view: 'reports' | 'missed', status: 'new' | 'done' | 'all', order: 'wrong' | 'answers', q: string }} QuestionsFilter */
+
+/**
+ * @param {QuestionsFilter} f
+ * @param {number} [offset]
+ * @returns {Promise<{ counts: { new: number, done: number, missed: number }, view: string, items: Array<QuestionReport | MissedQuestion>, more: boolean }>}
+ */
+export function workspaceQuestions(f, offset = 0) {
+	const p = new URLSearchParams({ view: f.view });
+	if (f.view === 'reports') p.set('status', f.status);
+	else p.set('order', f.order);
+	if (f.q) p.set('q', f.q);
+	if (offset) p.set('offset', String(offset));
+	return getJSON(`/api/workspace/questions?${p}`);
+}
+
+/**
+ * @param {number} id
+ * @param {'new' | 'done'} status
+ */
+export function setQuestionReport(id, status) {
+	return postJSON(`/api/workspace/questions/${id}`, { status });
+}

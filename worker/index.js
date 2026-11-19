@@ -29,6 +29,7 @@ import { robots, sitemap } from './routes/sitemap.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 import { pronunciation } from './routes/pronunciation.js';
+import { quiz } from './routes/quiz.js';
 import { addUsage, reportUsage } from './lib/usage.js';
 import { getSetting, getSettings } from './lib/settings.js';
 
@@ -131,6 +132,7 @@ async function answer(request, env, url, parts) {
 		if (parts.length === 2 && parts[0] === 'messages' && parts[1] === 'seen') return seenMessages(request, env);
 		if (parts.length === 1 && parts[0] === 'usage') return reportUsage(request, env);
 		if (parts[0] === 'comments') return comments(request, env, parts);
+		if (parts[0] === 'quiz') return quiz(request, env, parts);
 	}
 	if (request.method !== 'GET') {
 		throw new AppError('not_implemented', `${request.method} ${url.pathname} is not available yet`);

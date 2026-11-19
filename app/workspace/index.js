@@ -12,6 +12,7 @@
  *   ?s=contributions everyone: the member's own suggestions
  *   ?s=offline       everyone: the dictionary kept on this device (offline.js)
  *   ?s=ratings       everyone: what the member rated; editors also the site's (ratings.js)
+ *   ?s=questions     editors and admins: Test yourself questions reported or often missed (questions.js)
  *   ?s=inbox         admins: messages from the contact form (inbox.js);
  *                    other members: their own messages and the answers (messages.js)
  *   ?s=members       admins and owners: levels and suspending (members.js)
@@ -45,6 +46,7 @@ import { messagesPane } from './messages.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
 import { ratingsPane } from './ratings.js';
+import { questionsPane } from './questions.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
 import { searchesPanes } from './searches.js';
@@ -56,7 +58,7 @@ import { studioPanes } from './studio.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'questions' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
 const SECTIONS = /** @type {const} */ ([
@@ -67,6 +69,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: false, admin: false, stats: true },
 	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
 	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
+	{ id: 'questions', label: mark('Questions'), icon: ICONS.practice, editor: true, admin: false },
 	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
 	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: false, admin: false },
 	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
@@ -134,7 +137,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio' || asked === 'questions') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section });
@@ -159,6 +162,10 @@ export async function view(ctx) {
 	}
 	if (section === 'ratings') {
 		root.append(rail, await ratingsPane(ctx, seesStatistics(me), ago));
+		return root;
+	}
+	if (section === 'questions') {
+		root.append(rail, await questionsPane(ctx, ago));
 		return root;
 	}
 	if (section === 'comments') {

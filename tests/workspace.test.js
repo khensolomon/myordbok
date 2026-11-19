@@ -743,3 +743,49 @@ test('settings: every setting the Worker knows has a row on the Settings page', 
 	const missing = Object.keys(SETTINGS).filter((key) => !page.includes(`'${key}':`));
 	assert.deepEqual(missing, [], 'add a row (or a where: link) in app/workspace/settings.js');
 });
+
+test('test yourself: answers counted without a reader, reports kept, editors see both', async () => {
+	const e = env();
+	const one = (chosen, answer = 'ချစ်ခြင်း') => ({ kind: 'en-my', word: 'love', answer, chosen });
+	const round = { answers: [one('ကျောင်း'), one('ကျောင်း'), one('ချစ်ခြင်း'), one('ရေ'), { kind: 'gap', word: 'love', answer: 'loves', chosen: 'loves' }] };
+	assert.equal((await call(e, '/api/quiz/answers', { body: round })).status, 200);
+	assert.equal((await call(e, '/api/quiz/answers', { body: { answers: [] } })).status, 400);
+	assert.equal((await call(e, '/api/quiz/answers', { body: { answers: [{ ...one('x'), kind: 'essay' }] } })).status, 400);
+	assert.equal((await call(e, '/api/quiz/answers', { body: { answers: Array(21).fill(one('x')) } })).status, 400);
+	assert.deepEqual(
+		e.raw.prepare("SELECT chosen, n FROM quiz_answers WHERE kind = 'en-my' ORDER BY n DESC, chosen").all().map((r) => [r.chosen, r.n]),
+		[['ကျောင်း', 2], ['ချစ်ခြင်း', 1], ['ရေ', 1]],
+	);
+
+	const question = { kind: 'en-my', word: 'love', prompt: 'love', answer: 'ချစ်ခြင်း', choices: ['ချစ်ခြင်း', 'ကျောင်း', 'ရေ', 'မိသားစု'], chosen: 'ကျောင်း' };
+	assert.equal((await call(e, '/api/quiz/reports', { who: 'member', body: { ...question, reason: 'choices', note: ' ကျောင်း is close ' } })).status, 200);
+	assert.equal((await call(e, '/api/quiz/reports', { body: { ...question, reason: 'other' } })).status, 400, 'other needs a note');
+	assert.equal((await call(e, '/api/quiz/reports', { body: { ...question, chosen: 'nothing', reason: 'answer' } })).status, 400);
+	assert.equal((await call(e, '/api/quiz/reports', { body: { ...question, answer: 'nothing', reason: 'answer' } })).status, 400);
+	assert.equal((await call(e, '/api/quiz/reports', { body: { ...question, chosen: null, reason: 'spelling' } })).status, 200);
+
+	assert.equal((await call(e, '/api/workspace/questions', { who: 'member' })).status, 403);
+	const reports = (await call(e, '/api/workspace/questions', { who: 'editor' })).body;
+	assert.deepEqual(reports.counts, { new: 2, done: 0, missed: 1 });
+	assert.deepEqual(
+		reports.items.map((r) => [r.reason, r.chosen, r.note, r.member, r.choices.length]),
+		[
+			['spelling', null, null, null, 4],
+			['choices', 'ကျောင်း', 'ကျောင်း is close', 'Mya', 4],
+		],
+	);
+	const id = reports.items[1].id;
+	assert.deepEqual((await call(e, `/api/workspace/questions/${id}`, { who: 'editor', body: { status: 'done' } })).body, { id, status: 'done' });
+	assert.equal((await call(e, '/api/workspace/questions/999', { who: 'editor', body: { status: 'done' } })).status, 404);
+	assert.equal((await call(e, '/api/workspace/questions?status=done', { who: 'editor' })).body.items.length, 1);
+
+	const missed = (await call(e, '/api/workspace/questions?view=missed', { who: 'editor' })).body;
+	assert.deepEqual(missed.items.map((m) => [m.kind, m.word, m.answer, m.answers, m.wrong, m.picks]), [['en-my', 'love', 'ချစ်ခြင်း', 4, 3, [{ text: 'ကျောင်း', n: 2 }, { text: 'ရေ', n: 1 }]]]);
+
+	// A member's report stays, unsigned, when the account goes.
+	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'm@example.com' } })).status, 200);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM quiz_reports WHERE user_id IS NULL').get().n, 2);
+
+	e.raw.prepare("INSERT INTO settings (key, value) VALUES ('quiz.open', '\"off\"')").run();
+	assert.equal((await call(e, '/api/quiz/answers', { body: round })).status, 403);
+});

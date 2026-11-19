@@ -10,14 +10,15 @@
 import { dayOf, dueWords, learnedCount, makeQuestions, otherWords, streakOf } from '#shared/quiz.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
-import { lookup, popularWords } from '../data/api.js';
+import { getChoice } from '../core/consent.js';
+import { lookup, popularWords, reportQuestion, sendQuizAnswers } from '../data/api.js';
 import { recentSearches } from '../data/recent.js';
 import { progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
-import { mark, num, t, tn } from '../i18n/index.js';
+import { getLang, mark, num, t, tn } from '../i18n/index.js';
 
 /** @typedef {import('#shared/quiz.js').Question} Question */
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
-/** @typedef {{ question: Question, right: boolean }} Answer */
+/** @typedef {{ question: Question, right: boolean, chosen: string }} Answer */
 /**
  * @typedef {object} Frame  A round's place on the page, laid out like a comment: the heading above, a bubble beside the MyOrdbok mark.
  * @property {HTMLElement} section
@@ -188,7 +189,7 @@ export function play(f, questions, done) {
 		buttons.forEach((b, n) =>
 			b.addEventListener('click', () => {
 				const chosen = q.choices[n];
-				answers.push({ question: q, right: chosen.right });
+				answers.push({ question: q, right: chosen.right, chosen: chosen.text });
 				buttons.forEach((other, m) => {
 					const c = q.choices[m];
 					other.disabled = true;
@@ -202,7 +203,11 @@ export function play(f, questions, done) {
 				next.focus();
 			}),
 		);
-		next.addEventListener('click', () => (i + 1 < questions.length ? show(i + 1) : done(answers)));
+		next.addEventListener('click', () => {
+			if (i + 1 < questions.length) return show(i + 1);
+			count(answers);
+			done(answers);
+		});
 		f.head(h('span', { class: 'quiz-count' }, t('{n} of {total}', { n: num(i + 1), total: num(questions.length) })), bars);
 		f.body.replaceChildren(
 			by(),
@@ -210,6 +215,7 @@ export function play(f, questions, done) {
 			h('div', { class: 'quiz-choices', role: 'group', 'aria-label': t('Choices') }, buttons),
 			feedback,
 			h('div', { class: 'quiz-actions' }, next),
+			reportLink(q, () => answers[i]?.chosen ?? null),
 		);
 		// The question, not a choice, takes focus: a choice focused first would look picked.
 		const ask = /** @type {HTMLElement | null} */ (f.body.querySelector('.quiz-ask'));
@@ -217,6 +223,101 @@ export function play(f, questions, done) {
 		ask?.focus({ preventScroll: true });
 	};
 	show(0);
+}
+
+/**
+ * A round's answers counted on the server, by question and choice, only for
+ * a reader who allowed usage statistics; nothing else about them goes.
+ * @param {Answer[]} answers
+ */
+function count(answers) {
+	if (getChoice() !== 'granted' || !answers.length) return;
+	sendQuizAnswers(answers.map((a) => ({ kind: a.question.kind, word: a.question.word, answer: rightOf(a.question), chosen: a.chosen }))).catch((err) => console.warn('Answers not counted:', err));
+}
+
+/** @param {Question} q */
+const rightOf = (q) => q.choices.find((c) => c.right)?.text ?? '';
+
+/**
+ * The question as a line of text, as a report keeps it.
+ * @param {Question} q
+ */
+function asked(q) {
+	return q.kind === 'gap' ? `${q.before}___${q.after}` : q.prompt;
+}
+
+/** What can be wrong with a question, in the order offered. */
+const REASONS = /** @type {const} */ ([
+	['answer', mark('The right answer is wrong')],
+	['choices', mark('More than one choice is right')],
+	['spelling', mark('A spelling is wrong')],
+	['other', mark('Something else')],
+]);
+
+/**
+ * "Something wrong with this question?": a short form that sends the
+ * question as it was shown, for editors to look at.
+ * @param {Question} q
+ * @param {() => string | null} chosen  What the reader picked, if they answered.
+ */
+function reportLink(q, chosen) {
+	const wrap = h('div', { class: 'quiz-report' });
+	const open = h('button', { type: 'button', class: 'quiz-quiet' }, t('Something wrong with this question?'));
+	open.addEventListener('click', () => {
+		const name = `quiz-reason-${Math.random().toString(36).slice(2, 8)}`;
+		const radios = REASONS.map(([value, label]) => {
+			const input = /** @type {HTMLInputElement} */ (h('input', { type: 'radio', name, value }));
+			return h('label', { class: 'quiz-report-reason' }, input, t(label));
+		});
+		const note = /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: 2, maxlength: 500, placeholder: t('What is wrong? (optional)'), 'aria-label': t('Note') }));
+		const error = h('p', { class: 'quiz-report-error', role: 'alert', hidden: true });
+		const send = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'quiz-btn quiz-primary' }, t('Send')));
+		const cancel = h('button', { type: 'button', class: 'quiz-btn' }, t('Cancel'));
+		const form = /** @type {HTMLFormElement} */ (
+			h(
+				'form',
+				{ class: 'quiz-report-form' },
+				h('fieldset', null, h('legend', null, t('What is wrong with it?')), radios),
+				note,
+				error,
+				h('div', { class: 'quiz-actions' }, send, cancel),
+			)
+		);
+		cancel.addEventListener('click', () => wrap.replaceChildren(open));
+		form.addEventListener('submit', async (ev) => {
+			ev.preventDefault();
+			const picked = /** @type {HTMLInputElement | null} */ (form.querySelector('input[type=radio]:checked'));
+			const said = note.value.trim();
+			const fail = (/** @type {string} */ message) => {
+				error.textContent = message;
+				error.hidden = false;
+			};
+			if (!picked) return fail(t('Choose what is wrong.'));
+			if (picked.value === 'other' && !said) return fail(t('Say what is wrong in the note.'));
+			send.disabled = true;
+			try {
+				await reportQuestion({
+					kind: q.kind,
+					word: q.word,
+					prompt: asked(q),
+					answer: rightOf(q),
+					choices: q.choices.map((c) => c.text),
+					chosen: chosen(),
+					reason: /** @type {typeof REASONS[number][0]} */ (picked.value),
+					note: said || null,
+					lang: getLang() === 'my' ? 'my' : 'en',
+				});
+				wrap.replaceChildren(h('p', { class: 'quiz-small', role: 'status' }, t('Thank you. Editors will look at this question.')));
+			} catch (err) {
+				send.disabled = false;
+				fail(err instanceof Error ? err.message : String(err));
+			}
+		});
+		wrap.replaceChildren(form);
+		/** @type {HTMLInputElement} */ (radios[0].querySelector('input')).focus();
+	});
+	wrap.append(open);
+	return wrap;
 }
 
 /** @param {Question} q */

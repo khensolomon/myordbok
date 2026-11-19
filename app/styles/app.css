@@ -872,6 +872,17 @@ body[data-quiz-off] .practice-paused { display: block; }
 .quiz-tile strong { font-size: 22px; font-weight: 700; }
 .quiz-tile span { font-size: 12px; color: var(--muted); }
 .quiz-small { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.quiz-report { margin-top: -4px; }
+.quiz-report .quiz-quiet { padding-left: 0; color: var(--muted); font-size: 12px; }
+.quiz-report .quiz-quiet:hover { color: var(--link-hover); }
+.quiz-report-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.quiz-report-form fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px; }
+.quiz-report-form legend { margin-bottom: 6px; padding: 0; font-weight: 600; font-size: 14px; }
+.quiz-report-reason { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.quiz-report-form textarea { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; resize: vertical; }
+.quiz-report-form textarea:focus { outline: 2px solid var(--ring); outline-offset: 0; border-color: transparent; }
+.quiz-report-error { margin: 0; font-size: 13px; color: var(--danger); }
+.quiz-report-error[hidden] { display: none; }
 .practice-settings { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
 .practice-toggle { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
 @media (prefers-reduced-motion: reduce) { .quiz-choice { transition: none; } }
@@ -1242,7 +1253,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 	font-size: 14px;
 	background: var(--ground);
 }
-.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: 52px minmax(0, 1fr); }
+.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="questions"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: 52px minmax(0, 1fr); }
 
 /* Rail: icons only, the current one marked by a line and colour. */
 .ws-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-right: 1px solid var(--line-soft); min-height: 0; overflow: hidden; }
@@ -1527,6 +1538,14 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-rated-stale .ws-sense { color: var(--muted); }
 .ws-rated-gone > :not(button) { opacity: 0.45; text-decoration: line-through; }
 .ws-rated-time { font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
+.ws-question-prompt { flex-basis: 100%; font-weight: 600; }
+.ws-question-choices { flex-basis: 100%; margin: 4px 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-question-choices li { padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; display: inline-flex; align-items: baseline; gap: 6px; }
+.ws-question-choices li.is-right { border-color: var(--good); }
+.ws-question-choices li.is-chosen { border-color: var(--warn-fill); }
+.ws-question-choices small { font-size: 11px; color: var(--muted); }
+.ws-question-note { font-style: italic; }
+.ws-question-done > :not(button) { opacity: 0.55; }
 .ws-thumb { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--line-soft); color: var(--ink-2); }
 .ws-thumb-up { color: var(--brand); }
 .ws-thumb-down { color: var(--warn); }
@@ -1932,7 +1951,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
    site's person menu does. The page scrolls under them, behind a fading
    scrim. Then the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="questions"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 	.ws { --ws-bar: calc(60px + env(safe-area-inset-top)); }
 	.ws-rail {
 		position: fixed; top: 0; left: 0; right: 0; z-index: 20;

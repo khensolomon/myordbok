@@ -99,6 +99,7 @@ export function view() {
 			list(
 				'Settings such as theme, interface language and the analytics choice (local storage).',
 				'The last few searches, shown under the search box on the home page (local storage); “Clear” there removes them all, the × beside one removes that one.',
+				'Test yourself: the words practised, when each comes back, and the day streak (local storage); “Forget my progress” on the Practice page removes them.',
 				'Dictionary data kept for offline use (IndexedDB): the word lists, which arrive by themselves after the first visit (about 0.6 MB, not when the browser saves data), and the definitions chosen on the Offline page.',
 			),
 			h('p', null, 'Clearing the site data in the browser, or removing the app, deletes all of it.'),
@@ -117,6 +118,11 @@ export function view() {
 				'When allowed, Google Analytics sets the cookies _ga and _ga_<id> and records pages viewed, approximate location (country or city), device and browser type. Advertising features are switched off. Google processes this data under its own ',
 				h('a', { href: 'https://policies.google.com/privacy', rel: 'noopener', target: '_blank' }, 'privacy policy'),
 				'.',
+			),
+			h(
+				'p',
+				null,
+				'The same choice covers Test yourself: when allowed, the answers of a round are counted on MyOrdbok’s own server by question and choice (the word, the right answer and the one picked), with no account, device or address, so editors can see which questions are often missed. A question reported as wrong is kept as shown, with the note written and, when signed in, the account.',
 			),
 			choiceControl(),
 		),
