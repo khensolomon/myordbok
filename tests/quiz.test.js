@@ -138,3 +138,16 @@ test('quiz: progress read back from storage keeps only what is well formed', () 
 	assert.deepEqual(readProgress({ words: { a: { box: 1, due: 5, seen: 1 }, b: { box: 'x' } }, streak: 3, last: 4 }), { words: { a: { box: 1, due: 5, seen: 1 } }, streak: 3, last: 4 });
 	assert.equal(dayOf(new Date(Date.UTC(1970, 0, 2, 12) + new Date(Date.UTC(1970, 0, 2, 12)).getTimezoneOffset() * 60000)), 1);
 });
+
+test('quiz: two devices’ progress made one', async () => {
+	const { mergeProgress } = await import('../shared/quiz.js');
+	const phone = { words: { love: { box: 2, due: 110, seen: 3 }, go: { box: 0, due: 101, seen: 1 } }, streak: 4, last: 100 };
+	const laptop = { words: { love: { box: 1, due: 102, seen: 1 }, go: { box: 1, due: 104, seen: 1 }, big: { box: 1, due: 103, seen: 1 } }, streak: 1, last: 101 };
+	const both = mergeProgress(phone, laptop);
+	assert.deepEqual(both.words.love, phone.words.love, 'more rounds');
+	assert.deepEqual(both.words.go, laptop.words.go, 'a tie: the later return');
+	assert.deepEqual(both.words.big, laptop.words.big);
+	assert.deepEqual([both.streak, both.last], [1, 101], 'the streak of the later round');
+	assert.deepEqual(mergeProgress(laptop, phone), both, 'either way round');
+	assert.deepEqual(mergeProgress(noProgress(), phone), phone);
+});

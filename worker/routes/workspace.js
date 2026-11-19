@@ -564,6 +564,7 @@ async function deleteAccount(request, env, member) {
 		// A report is about the dictionary, not the member: it stays, unsigned.
 		db.prepare('UPDATE quiz_reports SET user_id = NULL WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM help_votes WHERE user_id = ?1').bind(id),
+		db.prepare('DELETE FROM quiz_progress WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM help_checks WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM help_asked WHERE user_id = ?1').bind(id),
 		db.prepare('UPDATE help_items SET created_by = 0 WHERE created_by = ?1').bind(id),

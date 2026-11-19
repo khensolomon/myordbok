@@ -99,7 +99,7 @@ export function view() {
 			list(
 				'Settings such as theme, interface language and the analytics choice (local storage).',
 				'The last few searches, shown under the search box on the home page (local storage); “Clear” there removes them all, the × beside one removes that one.',
-				'Test yourself: the words practised, when each comes back, and the day streak (local storage); “Forget my progress” on the Practice page removes them.',
+				'Test yourself: the words practised, when each comes back, and the day streak (local storage); “Forget my progress” on the Practice page removes them. Signed in, the same is also kept with the account, so it follows the account to every device; forgetting it there removes that copy too.',
 				'Dictionary data kept for offline use (IndexedDB): the word lists, which arrive by themselves after the first visit (about 0.6 MB, not when the browser saves data), and the definitions chosen on the Offline page.',
 			),
 			h('p', null, 'Clearing the site data in the browser, or removing the app, deletes all of it.'),

@@ -836,3 +836,16 @@ test('help the dictionary: checks decide whose votes count; editors see items re
 	assert.deepEqual({ ...e.raw.prepare("SELECT label, note FROM search_marks WHERE term = 'ခြစ်'").get() }, { label: 'misspelling', note: '→ ချစ်' });
 	assert.equal((await call(e, '/api/workspace/votes?kind=spelling&state=decided', { who: 'editor' })).body.items.length, 1);
 });
+
+test('test yourself: a member’s progress merged across devices, and forgotten', async () => {
+	const e = env();
+	const phone = { words: { love: { box: 2, due: 110, seen: 3 } }, streak: 4, last: 100 };
+	const laptop = { words: { go: { box: 1, due: 104, seen: 1 }, love: { box: 0, due: 101, seen: 1 } }, streak: 1, last: 101 };
+	assert.equal((await call(e, '/api/quiz/progress', { body: { progress: phone } })).status, 401);
+	assert.deepEqual((await call(e, '/api/quiz/progress', { who: 'member', body: { progress: phone } })).body, { progress: phone, helped: 0 });
+	const both = (await call(e, '/api/quiz/progress', { who: 'member', body: { progress: laptop } })).body.progress;
+	assert.deepEqual(both, { words: { love: phone.words.love, go: laptop.words.go }, streak: 1, last: 101 });
+	assert.equal((await call(e, '/api/quiz/progress', { who: 'member', body: { progress: 'all' } })).status, 400);
+	assert.deepEqual((await call(e, '/api/quiz/progress', { who: 'member', body: { progress: null } })).body, { progress: null });
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM quiz_progress').get().n, 0);
+});

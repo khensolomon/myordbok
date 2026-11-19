@@ -7,6 +7,9 @@
  *   POST /api/quiz/answers   { answers: [{ kind, word, answer, chosen }] }   a round's answers, up to 20;
  *        sent by the app only when the reader allowed usage statistics
  *   POST /api/quiz/reports   { kind, word, prompt, answer, choices, chosen?, reason, note?, lang? }
+ *   POST /api/quiz/progress  { progress }  signed in: merged with the progress kept for the member,
+ *        which is stored and returned with how many answers of theirs help the dictionary;
+ *        { progress: null } forgets it
  *   GET  /api/workspace/questions?view=reports&status=new|done|all&q=&offset=   editors
  *   GET  /api/workspace/questions?view=missed&order=wrong|answers&q=&offset=    editors
  *   POST /api/workspace/questions/{id}  { status: new|done }                     editors
@@ -21,6 +24,7 @@ import { refuseZawgyi } from '../../shared/zawgyi/index.js';
 import { json } from '../lib/http.js';
 import { currentMember } from '../lib/session.js';
 import { requireOn } from '../lib/settings.js';
+import { mergeProgress, readProgress } from '../../shared/quiz.js';
 
 /** @typedef {{ APP: D1Database }} Env */
 /** @typedef {import('../lib/session.js').Member} Member */
@@ -71,6 +75,7 @@ export async function quiz(request, env, parts) {
 	if (request.method !== 'POST' || parts.length !== 2) throw new AppError('not_found', `No API route for ${request.method} ${new URL(request.url).pathname}`);
 	if (parts[1] === 'answers') return answers(request, env);
 	if (parts[1] === 'reports') return report(request, env);
+	if (parts[1] === 'progress') return syncProgress(request, env);
 	throw new AppError('not_found', `No API route for ${new URL(request.url).pathname}`);
 }
 
@@ -216,4 +221,30 @@ async function setReport(request, env, id) {
 	const row = await env.APP.prepare('UPDATE quiz_reports SET status = ?1 WHERE id = ?2 RETURNING id, status').bind(data.status, Number(id)).first();
 	if (!row) throw new AppError('not_found', `No report ${id}`);
 	return json({ id: Number(row.id), status: row.status }, NO_STORE);
+}
+
+/**
+ * The device's progress merged with the one kept for the member.
+ * @param {Request} request
+ * @param {Env} env
+ */
+async function syncProgress(request, env) {
+	const member = await currentMember(request, env);
+	if (!member) throw new AppError('unauthorized', 'Sign in to keep your progress on every device.');
+	const data = await body(request);
+	const db = env.APP;
+	if (data.progress === null) {
+		await db.prepare('DELETE FROM quiz_progress WHERE user_id = ?1').bind(member.id).run();
+		return json({ progress: null }, NO_STORE);
+	}
+	if (!data.progress || typeof data.progress !== 'object') throw new AppError('bad_request', 'progress must be an object, or null to forget it');
+	const sent = readProgress(data.progress);
+	const row = /** @type {{ data: string } | null} */ (await db.prepare('SELECT data FROM quiz_progress WHERE user_id = ?1').bind(member.id).first());
+	const merged = row ? mergeProgress(readProgress(JSON.parse(row.data)), sent) : sent;
+	await db
+		.prepare('INSERT INTO quiz_progress (user_id, data) VALUES (?1, ?2) ON CONFLICT (user_id) DO UPDATE SET data = excluded.data, updated_at = unixepoch()')
+		.bind(member.id, JSON.stringify(merged))
+		.run();
+	const helped = /** @type {{ n: number }} */ (await db.prepare('SELECT (SELECT count(*) FROM help_votes WHERE user_id = ?1) + (SELECT count(*) FROM quiz_reports WHERE user_id = ?1) AS n').bind(member.id).first());
+	return json({ progress: merged, helped: Number(helped.n) }, NO_STORE);
 }

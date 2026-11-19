@@ -333,3 +333,33 @@ export function readProgress(value) {
 	}
 	return { words, streak: Number.isInteger(v.streak) ? /** @type {number} */ (v.streak) : 0, last: Number.isInteger(v.last) ? /** @type {number} */ (v.last) : null };
 }
+
+/** Words a progress keeps at most; the ones answered longest ago go first. */
+export const PROGRESS_WORDS_MAX = 5000;
+
+/**
+ * Two progresses of one learner, as two devices kept them, made one: a
+ * word answered on both keeps the record with more rounds (on a tie, the
+ * later return); the streak is the one of the later round.
+ * @param {Progress} a
+ * @param {Progress} b
+ * @returns {Progress}
+ */
+export function mergeProgress(a, b) {
+	/** @type {Record<string, WordProgress>} */
+	const words = { ...a.words };
+	for (const [k, w] of Object.entries(b.words)) {
+		const mine = words[k];
+		if (!mine || w.seen > mine.seen || (w.seen === mine.seen && w.due > mine.due)) words[k] = w;
+	}
+	const later = (a.last ?? -1) > (b.last ?? -1) ? a : (b.last ?? -1) > (a.last ?? -1) ? b : null;
+	const streak = later ? later.streak : Math.max(a.streak, b.streak);
+	const last = later ? later.last : a.last;
+	// Over the limit: the words due latest stay, those learned long ago and those never coming back soon go.
+	const kept = Object.entries(words);
+	if (kept.length > PROGRESS_WORDS_MAX) {
+		kept.sort((x, y) => y[1].due - x[1].due);
+		kept.length = PROGRESS_WORDS_MAX;
+	}
+	return { words: Object.fromEntries(kept), streak, last };
+}

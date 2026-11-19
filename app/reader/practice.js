@@ -6,9 +6,9 @@
 import { dayOf, dueWords, learnedCount, makeQuestions, otherWords, streakOf } from '#shared/quiz.js';
 import { h } from '../core/dom.js';
 import { recentSearches } from '../data/recent.js';
-import { clearProgress, progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
+import { clearProgress, helped, keptWithAccount, progress, quizShown, saveRound, showQuiz, syncProgress } from '../data/quiz-store.js';
 import { num, t, tn } from '../i18n/index.js';
-import { ended, frame, lookups, play, popular, thanked } from './quiz.js';
+import { ended, frame, keptLine, lookups, play, popular, thanked } from './quiz.js';
 
 /** Words in one round, at most. */
 const ROUND = 8;
@@ -29,6 +29,14 @@ export function view() {
 		settings(),
 	);
 	start(f);
+	// The account's words, when signed in: the start shown again with them, if not started meanwhile.
+	syncProgress()
+		.then((signed) => {
+			const kept = page.querySelector('.practice-kept');
+			if (kept) kept.textContent = keptLine();
+			if (signed && f.body.querySelector('.practice-start')) start(f);
+		})
+		.catch((err) => console.warn('Progress could not be brought from the account:', err));
 	return page;
 }
 
@@ -53,13 +61,15 @@ function start(f) {
 	const words = roundWords();
 	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'quiz-btn quiz-primary' }, tn('Start: {n} word', 'Start: {n} words', words.length, { n: num(words.length) })));
 	f.head();
+	const helpedNow = helped();
 	f.body.replaceChildren(
 		h(
 			'div',
-			{ class: 'quiz-tiles quiz-tiles-three' },
+			{ class: `quiz-tiles practice-start ${helpedNow === null ? 'quiz-tiles-three' : 'quiz-tiles-four'}` },
 			h('div', { class: 'quiz-tile' }, h('strong', null, num(dueWords(p, today).length)), h('span', null, t('due today'))),
 			h('div', { class: 'quiz-tile' }, h('strong', null, num(streakOf(p, today))), h('span', null, tn('day in a row', 'days in a row', streakOf(p, today)))),
 			h('div', { class: 'quiz-tile' }, h('strong', null, num(learnedCount(p))), h('span', null, t('words learned'))),
+			helpedNow === null ? null : h('div', { class: 'quiz-tile' }, h('strong', null, num(helpedNow)), h('span', null, t('answers that helped the dictionary'))),
 		),
 		words.length ? h('div', { class: 'quiz-actions' }, go) : h('p', { class: 'quiz-lead' }, Object.keys(p.words).length ? t('Nothing due today. Words come back on their day; new words you look up join them.') : t('Nothing to practise yet. Look up a few English words; they come back here.')),
 	);
@@ -118,20 +128,25 @@ function settings() {
 	box.addEventListener('change', () => showQuiz(box.checked));
 	const forget = h('button', { type: 'button', class: 'quiz-quiet' }, t('Forget my progress'));
 	let armed = false;
-	forget.addEventListener('click', () => {
+	forget.addEventListener('click', async () => {
 		if (!armed) {
 			armed = true;
-			forget.textContent = t('Press again to forget every word and the streak');
+			forget.textContent = keptWithAccount() ? t('Press again to forget every word and the streak, on every device') : t('Press again to forget every word and the streak');
 			return;
 		}
-		clearProgress();
-		forget.textContent = t('Forgotten.');
 		/** @type {HTMLButtonElement} */ (forget).disabled = true;
+		try {
+			await clearProgress();
+			forget.textContent = t('Forgotten.');
+		} catch (err) {
+			/** @type {HTMLButtonElement} */ (forget).disabled = false;
+			forget.textContent = err instanceof Error ? err.message : String(err);
+		}
 	});
 	return h(
 		'section',
 		{ class: 'practice-settings' },
 		h('label', { class: 'practice-toggle' }, box, t('Offer “Test yourself” on word pages')),
-		h('p', { class: 'quiz-small' }, forget),
+		h('p', { class: 'quiz-small' }, h('span', { class: 'practice-kept' }, keptLine()), ' ', forget),
 	);
 }

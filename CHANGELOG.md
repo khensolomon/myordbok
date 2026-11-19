@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+147
+
+- Test yourself progress follows a signed-in member to every device (merged on each save); Practice shows answers that helped the dictionary (migration 0019)
+
 ## 26.11.19+146
 
 - Help the dictionary: after a round, signed-in members answer spelling and meaning questions; check questions decide whose votes count; the workspace's Votes shows items ready to decide (migration 0018)

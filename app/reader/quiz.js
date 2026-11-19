@@ -14,7 +14,7 @@ import { getChoice } from '../core/consent.js';
 import { lookup, popularWords, reportQuestion, sendQuizAnswers } from '../data/api.js';
 import { recentSearches } from '../data/recent.js';
 import { helpAfter } from './help.js';
-import { progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
+import { keptWithAccount, progress, quizShown, saveRound, showQuiz } from '../data/quiz-store.js';
 import { getLang, mark, num, t, tn } from '../i18n/index.js';
 
 /** @typedef {import('#shared/quiz.js').Question} Question */
@@ -392,6 +392,11 @@ export function ended(f, answers, lines, again) {
 			location.pathname === '/practice' ? null : h('a', { class: 'quiz-btn quiz-primary', href: '/practice' }, due ? tn('Practise {n} word due', 'Practise {n} words due', due, { n: num(due) }) : t('Practise my recent words')),
 			another,
 		),
-		h('p', { class: 'quiz-small' }, t('Your progress is kept on this device only.')),
+		h('p', { class: 'quiz-small' }, keptLine()),
 	);
+}
+
+/** Where the progress is kept, as far as known now. */
+export function keptLine() {
+	return keptWithAccount() ? t('Your progress is kept with your account, on every device you sign in on.') : t('Your progress is kept on this device only. Sign in to keep it on every device.');
 }

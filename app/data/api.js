@@ -909,3 +909,12 @@ export function addSpellingVote(options) {
 export function findSpellingVotes() {
 	return postJSON('/api/workspace/votes/find', {});
 }
+
+/**
+ * The device's Test yourself progress merged with the member's (worker/routes/quiz.js); null forgets it.
+ * @param {import('#shared/quiz.js').Progress | null} progress
+ * @returns {Promise<{ progress: import('#shared/quiz.js').Progress | null, helped?: number }>}
+ */
+export function syncQuizProgress(progress) {
+	return postJSON('/api/quiz/progress', { progress });
+}

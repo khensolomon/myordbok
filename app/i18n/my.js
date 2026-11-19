@@ -1082,7 +1082,6 @@ export const MY = {
 	'words learned': 'သင်ယူပြီး စကားလုံး',
 	'Practise {n} words due': 'ပြန်လေ့ကျင့်ရမည့် စကားလုံး {n} လုံး',
 	'Practise my recent words': 'မကြာသေးမီက ရှာခဲ့သော စကားလုံးများ လေ့ကျင့်မည်',
-	'Your progress is kept on this device only.': 'သင့်တိုးတက်မှုကို ဤစက်ထဲတွင်သာ သိမ်းထားသည်။',
 	'The words you look up come back here. A word answered right waits longer each time: a day, then 3, 7 and 21 days. One answered wrong comes back the next day.': 'သင်ရှာခဲ့သော စကားလုံးများ ဤနေရာတွင် ပြန်ပေါ်လာမည်။ မှန်အောင်ဖြေသော စကားလုံးသည် တစ်ကြိမ်ထက်တစ်ကြိမ် ပိုကြာမှ ပြန်ပေါ်မည် − တစ်ရက်၊ ထို့နောက် ၃ ရက်၊ ၇ ရက်၊ ၂၁ ရက်။ မှားဖြေသော စကားလုံးကို နောက်တစ်နေ့တွင် ပြန်မေးမည်။',
 	'Practice is paused for now.': 'လေ့ကျင့်ခန်းကို ယခု ခေတ္တ ရပ်ထားသည်။',
 	'due today': 'ယနေ့ ပြန်လေ့ကျင့်ရန်',
@@ -1166,4 +1165,9 @@ export const MY = {
 	'{n} questions added from {looked} words searched.': 'ရှာခဲ့သော စကားလုံး {looked} လုံးမှ မေးခွန်း {n} ခု ထည့်ပြီး။',
 	'{n} counted votes': 'ရေတွက်သော မဲ {n} ခု',
 	'searched {n} times, not found': '{n} ကြိမ် ရှာခဲ့သော်လည်း မတွေ့',
+	// Progress kept with the account (data/quiz-store.js)
+	'Your progress is kept with your account, on every device you sign in on.': 'သင့်တိုးတက်မှုကို သင့်အကောင့်နှင့်အတူ သိမ်းထားသဖြင့် ဝင်ရောက်သော စက်တိုင်းတွင် ရှိပါသည်။',
+	'Your progress is kept on this device only. Sign in to keep it on every device.': 'သင့်တိုးတက်မှုကို ဤစက်ထဲတွင်သာ သိမ်းထားသည်။ စက်တိုင်းတွင် ရှိစေရန် ဝင်ရောက်ပါ။',
+	'answers that helped the dictionary': 'အဘိဓာန်ကို ကူညီခဲ့သော အဖြေ',
+	'Press again to forget every word and the streak, on every device': 'စက်တိုင်းမှ စကားလုံးအားလုံးနှင့် ဆက်တိုက်ရက်ကို ဖျက်ရန် ထပ်နှိပ်ပါ',
 };
