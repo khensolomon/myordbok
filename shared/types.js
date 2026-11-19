@@ -99,7 +99,8 @@
  * @typedef {({ q: string, kind: 'entry', result: LookupResult }
  *   | { q: string, kind: 'phrase', phrase: Phrase }
  *   | { q: string, kind: 'sentence', words: Array<{ text: string, known?: boolean }>, first: LookupResult | null }
- *   | { q: string, kind: 'none', close: string[], starts: string[] }) & { zawgyi?: { typed: string, as: string } }} Reading
+ *   | { q: string, kind: 'none', close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null }) & { zawgyi?: { typed: string, as: string } }} Reading
+ *   `around`: an English query that is no headword but has words around it (WordNet, Moby).
  *   For a sentence, `known` is set for Myanmar words, which are found by
  *   splitting the text into headwords; false marks syllables no headword covers.
  *   `zawgyi`: the query was typed in Zawgyi and read as `as`, its Unicode (q is `as`).

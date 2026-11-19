@@ -1192,4 +1192,19 @@ export const MY = {
 	'Nothing due today.': 'ယနေ့ ပြန်လေ့ကျင့်စရာ မရှိပါ။',
 	'{n} days in a row.': '{n} ရက် ဆက်တိုက်။',
 	'Practise': 'လေ့ကျင့်ရန်',
+	// More filters in Members and Searches
+	'Most offline downloads': 'အော့ဖ်လိုင်း ဒေါင်းလုဒ် အများဆုံး',
+	'Most devices': 'စက် အများဆုံး',
+	'In the last 24 hours': 'ပြီးခဲ့သော ၂၄ နာရီအတွင်း',
+	'In the last 3 days': 'ပြီးခဲ့သော ၃ ရက်အတွင်း',
+	'In the last week': 'ပြီးခဲ့သော တစ်ပတ်အတွင်း',
+	'seen {when}': '{when} က တွေ့ရ',
+	'never seen': 'မတွေ့ရသေး',
+	'{n} offline downloads': 'အော့ဖ်လိုင်း ဒေါင်းလုဒ် {n} ကြိမ်',
+	'signed in on {n} devices': 'စက် {n} ခုတွင် ဝင်ထား',
+	'3 days': '၃ ရက်',
+	'5 days': '၅ ရက်',
+	// Words around a word the dictionary lacks (reader/entry.js)
+	'Close in meaning': 'အဓိပ္ပာယ် နီးစပ်သော',
+	'MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:': 'MyOrdbok တွင် “{word}” ၏ မြန်မာအဓိပ္ပာယ် မရှိသေးပါ။ ဤစကားလုံးများက ၎င်းနှင့် နီးစပ်သည် −',
 };

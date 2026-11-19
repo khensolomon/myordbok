@@ -37,7 +37,8 @@ import { ICONS } from '../core/icons.js';
 import { renderMarkup, renderNote } from '../core/markup.js';
 import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
-import { lookup, read, remember, savingData, spelling } from '../data/api.js';
+import { lookup, popularWords, read, remember, savingData, spelling } from '../data/api.js';
+import { reviewed } from '#shared/quiz.js';
 import { entryFeedback, suggestWord } from './contribute.js';
 import { commentsSection } from './comments.js';
 import { pronounceButton } from './pronounce.js';
@@ -692,7 +693,7 @@ async function sentence(q, list, index) {
  * ask for it. Inline (a word of a sentence), a shorter version that fetches
  * its own "did you mean".
  * @param {string} q
- * @param {{ close: string[], starts: string[] } | null} found  From the reading.
+ * @param {{ close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null } | null} found  From the reading.
  * @param {{ inline?: boolean }} [options]
  */
 async function missing(q, found, options = {}) {
@@ -702,17 +703,88 @@ async function missing(q, found, options = {}) {
 	/** @param {string[]} words */
 	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
 
+	const around = found?.around ?? null;
 	return h(
 		'section',
 		{ class: options.inline ? 'no-result inline' : 'page no-result' },
 		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
+		around && !options.inline ? aroundWords(q, around) : null,
 		close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
 		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
-		!close.length && !prefix.length ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
-		options.inline
-			? null
-			: noEntryAsk(q),
+		!close.length && !prefix.length && !around ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
+		options.inline ? null : noEntryAsk(q),
+		options.inline ? null : keepGoing(),
 	);
+}
+
+/** The groups of words around a word that is no headword, in the order shown. */
+const AROUND = /** @type {const} */ ([
+	['similar', mark('Close in meaning')],
+	['broader', mark('Broader')],
+	['opposite', mark('Opposite')],
+	['related', mark('Related')],
+]);
+/** Words around it given their Myanmar meaning, at most (each is a lookup). */
+const AROUND_GLOSSED = 10;
+
+/**
+ * Words close to a word the dictionary lacks, from WordNet and Moby: each
+ * a link with its own Myanmar meaning, fetched after the page shows, so the
+ * reader can go on from here.
+ * @param {string} q
+ * @param {{ similar: string[], broader: string[], opposite: string[], related: string[] }} around
+ */
+function aroundWords(q, around) {
+	/** @type {Array<{ word: string, meaning: HTMLElement }>} */
+	const all = [];
+	const groups = AROUND.filter(([key]) => around[key].length).map(([key, label]) =>
+		h(
+			'div',
+			{ class: 'around-group' },
+			h('h2', { class: 'around-title' }, t(label)),
+			h(
+				'ul',
+				{ class: 'around-list' },
+				around[key].slice(0, 12).map((w) => {
+					const meaning = h('span', { class: 'around-meaning', lang: 'my' });
+					all.push({ word: w, meaning });
+					return h('li', null, h('a', { href: definitionHref(w) }, h('span', { class: 'around-word', lang: 'en' }, w), meaning));
+				}),
+			),
+		),
+	);
+	// Their meanings, a few at a time; a word without one keeps its link alone.
+	for (const { word, meaning } of all.slice(0, AROUND_GLOSSED)) {
+		lookup(word)
+			.then((r) => {
+				const gloss = r.language === 'en' ? reviewed(r)[0]?.glosses[0] : null;
+				if (gloss) meaning.textContent = gloss;
+			})
+			.catch(() => {});
+	}
+	return h(
+		'div',
+		{ class: 'no-result-around' },
+		h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:', { word: q })),
+		groups,
+	);
+}
+
+/**
+ * The words searched most this week, so a page with nothing on it still
+ * leads somewhere. Nothing when they cannot be had.
+ */
+function keepGoing() {
+	const box = h('div', { class: 'no-result-part no-result-more', hidden: true });
+	popularWords()
+		.then((p) => {
+			const words = p.words.slice(0, 12);
+			if (!words.length) return;
+			box.append(h('p', null, t('Searched most this week')), h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w.term), lang: /[\u1000-\u109f]/.test(w.term) ? 'my' : 'en' }, w.term)))));
+			box.hidden = false;
+		})
+		.catch(() => {});
+	return box;
 }
 
 /**

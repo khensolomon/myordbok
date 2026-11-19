@@ -5,7 +5,7 @@
  *
  *   GET /api/workspace/searches             the list: ?show=missed|found|all
  *                                           (missed: never found in the period),
- *                                           ?days=7|30|90|0 (0: all kept), ?lang=en|my,
+ *                                           ?days=1|3|5|7|30|90|0 (1: today, UTC; 0: all kept), ?lang=en|my,
  *                                           ?q= (contains), ?order=hits|recent|days|az
  *                                           (most searched first by default), ?offset=; 50 a page.
  *                                           ?label=open|none|add|misspelling|noise|all (open: to
@@ -54,7 +54,7 @@ const SHAPES = { '': '', word: "term NOT LIKE '% %' AND term NOT GLOB '*[0-9]*'"
 /** Most words one request labels. */
 export const MARK_MAX = 200;
 const NOTE_MAX = 500;
-const PERIODS = [7, 30, 90, 0];
+const PERIODS = [1, 3, 5, 7, 30, 90, 0];
 /** Orders of the list, and how each sorts. */
 const ORDERS = {
 	hits: 'hits DESC, last DESC, term',

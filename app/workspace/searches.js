@@ -12,7 +12,7 @@
  * The default list holds the words still to sort and those to add, so that
  * working down it leaves nothing behind; the filters narrow it further.
  *
- *   &show=missed|found|all  &days=7|30|90|0  &lang=en|my  &q=…  &order=…
+ *   &show=missed|found|all  &days=1|3|5|7|30|90|0  &lang=en|my  &q=…  &order=…
  *   &label=open|none|add|misspelling|noise|all  &min=…  &spread=…
  *   &shape=word|phrase|digits  &fresh=1  &noted=1          in the address
  */
@@ -49,6 +49,9 @@ const LABEL_VIEWS = /** @type {const} */ ([
 	['all', mark('All')],
 ]);
 const PERIODS = /** @type {const} */ ([
+	[1, mark('Today')],
+	[3, mark('3 days')],
+	[5, mark('5 days')],
 	[7, mark('7 days')],
 	[30, mark('30 days')],
 	[90, mark('90 days')],
@@ -428,7 +431,7 @@ export async function searchesPanes(ctx, root, may) {
 			h(
 				'section',
 				{ class: 'ws-box' },
-				h('h2', null, f.days ? t('Last {n} days', { n: f.days }) : t('All time')),
+				h('h2', null, f.days === 1 ? t('Today') : f.days ? t('Last {n} days', { n: f.days }) : t('All time')),
 				h('dl', { class: 'ws-facts' }, pair(t('Words'), c.words), pair(t('Never found'), c.missed), pair(t('Found'), c.found), pair(t('Searches'), c.hits)),
 			),
 			h(

@@ -1224,6 +1224,19 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 /* Nothing found. */
 .no-result-part > p { margin: 18px 0 0; color: var(--muted); }
 .no-result-ask { max-width: 560px; margin-top: 32px; border-radius: var(--radius); }
+/* Words around a word the dictionary lacks (reader/entry.js aroundWords). */
+.no-result-lead { margin: 12px 0 0; max-width: 640px; color: var(--ink-2); line-height: 1.6; }
+.no-result-around { display: flex; flex-direction: column; gap: 20px; margin-top: 8px; }
+.around-title { margin: 0 0 8px; display: flex; align-items: center; gap: 12px; font: 600 12px/1.4 var(--font-ui); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.around-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.around-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.around-list a { min-height: 48px; padding: 8px 14px; display: flex; flex-direction: column; justify-content: center; gap: 2px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); text-decoration: none; transition: border-color 0.15s, background-color 0.15s; }
+.around-list a:hover { border-color: var(--ring); background: var(--surface); }
+.around-word { font-weight: 600; color: var(--link); }
+.around-meaning { font-family: var(--font-my); font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.around-meaning:empty { display: none; }
+.no-result-more { margin-top: 28px; }
+@media (prefers-reduced-motion: reduce) { .around-list a { transition: none; } }
 .no-result-ask .aside-actions a { font-size: 14px; }
 
 /* ---------------------------------------------------------- suggestions */

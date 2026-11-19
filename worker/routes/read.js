@@ -113,7 +113,13 @@ async function readAsTyped(db, q, over) {
 
 	const [close, starts] = await Promise.all([closeWords(db, q, NONE_LIMIT), startingWith(db, q, NONE_LIMIT)]);
 	const same = (/** @type {string} */ w) => w.toLowerCase() === q.toLowerCase();
-	return { q, kind: 'none', close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)) };
+	// Not a headword, but WordNet and Moby may still know it: the words around it, so the page leads on.
+	const near =
+		result.language === 'en'
+			? { similar: [...new Set([...result.synonyms, ...result.similar])].filter((w) => !same(w)), broader: result.broader, opposite: result.opposite, related: result.related }
+			: null;
+	const around = near && Object.values(near).some((list) => list.length) ? near : null;
+	return { q, kind: 'none', close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)), around };
 }
 
 /**

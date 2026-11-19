@@ -3,9 +3,10 @@
  * Members, for admins and owners (workspace section Members).
  *
  *   GET  /api/workspace/members?q=&role=&status=   the list, newest first; q matches name or email.
- *        Also &provider=google|github, &joined=7|30|90 (days), &seen=30 (in the last 30 days)
+ *        Also &provider=google|github, &joined=7|30|90 (days), &seen=1|3|7|30 (in the last that many days)
  *        or quiet (not for 90 days, or never), &gave=yes|no (suggested or commented),
- *        &supporter=1, &insights=1, &order=joined|seen|name|gave, &offset=; 100 a page.
+ *        &supporter=1, &insights=1, &order=joined|seen|name|gave|downloads|devices, &offset=; 100 a page.
+ *        devices: the member's sign-ins still open, one a browser or app.
  *        &format=csv: every matching member as CSV
  *   GET  /api/workspace/members/{id}               one member: sign-ins, contributions, role history
  *   POST /api/workspace/members/{id}               { role?, status?, insights? }; insights:
@@ -30,7 +31,7 @@ const NO_STORE = { headers: { 'cache-control': 'no-store' } };
 const PAGE = 100;
 /** Most rows one CSV holds. */
 const CSV_MAX = 10000;
-const ORDERS = { joined: 'u.id DESC', seen: 'u.seen_at DESC NULLS LAST, u.id DESC', name: 'lower(u.name), u.id', gave: 'gave DESC, u.id DESC' };
+const ORDERS = { joined: 'u.id DESC', seen: 'u.seen_at DESC NULLS LAST, u.id DESC', name: 'lower(u.name), u.id', gave: 'gave DESC, u.id DESC', downloads: 'u.offline_total DESC, u.id DESC', devices: 'devices DESC, u.id DESC' };
 
 /**
  * @param {Request} request
@@ -68,7 +69,7 @@ async function list(request, env, actor) {
 	};
 	const provider = pick('provider', ['google', 'github']);
 	const joined = pick('joined', ['7', '30', '90']);
-	const seen = pick('seen', ['30', 'quiet']);
+	const seen = pick('seen', ['1', '3', '7', '30', 'quiet']);
 	const gave = pick('gave', ['yes', 'no']);
 	const supporter = pick('supporter', ['1']);
 	const insights = pick('insights', ['1']);
@@ -83,7 +84,7 @@ async function list(request, env, actor) {
 		"(?4 = '' OR u.status = ?4)",
 		provider ? `EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider = '${provider}')` : '',
 		joined ? `u.created_at >= unixepoch() - ${Number(joined)} * 86400` : '',
-		seen === '30' ? 'u.seen_at >= unixepoch() - 30 * 86400' : seen === 'quiet' ? '(u.seen_at IS NULL OR u.seen_at < unixepoch() - 90 * 86400)' : '',
+		['1', '3', '7', '30'].includes(seen) ? `u.seen_at >= unixepoch() - ${Number(seen)} * 86400` : seen === 'quiet' ? '(u.seen_at IS NULL OR u.seen_at < unixepoch() - 90 * 86400)' : '',
 		gave === 'yes' ? contributed : gave === 'no' ? `NOT ${contributed}` : '',
 		supporter ? 'EXISTS (SELECT 1 FROM donors d WHERE d.user_id = u.id)' : '',
 		insights ? 'u.insights = 1' : '',
@@ -94,7 +95,8 @@ async function list(request, env, actor) {
 		        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
 		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions,
 		        (SELECT count(*) FROM comments c WHERE c.user_id = u.id) AS comments,
-		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) + (SELECT count(*) FROM comments c WHERE c.user_id = u.id) AS gave
+		        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) + (SELECT count(*) FROM comments c WHERE c.user_id = u.id) AS gave,
+		        (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.expires_at > unixepoch()) AS devices
 		 FROM users u
 		 WHERE ${where}
 		 ORDER BY ${ORDERS[order]} LIMIT ?5 OFFSET ?6`,
@@ -142,6 +144,7 @@ function shape(r, actor) {
 		seen_at: r.seen_at === null ? null : Number(r.seen_at),
 		providers: r.providers ? String(r.providers).split(',') : [],
 		suggestions: Number(r.suggestions ?? 0),
+		devices: Number(r.devices ?? 0),
 		self,
 		may: { roles: levels, suspend: levels.length > 0 },
 	};
@@ -158,7 +161,8 @@ async function one(env, actor, id) {
 		.prepare(
 			`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.status, u.insights, u.offline_day, u.offline_today, u.offline_total, u.created_at, u.seen_at,
 			        (SELECT group_concat(provider) FROM identities i WHERE i.user_id = u.id) AS providers,
-			        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions
+			        (SELECT count(*) FROM dict_edits e WHERE e.user_id = u.id) AS suggestions,
+			        (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.expires_at > unixepoch()) AS devices
 			 FROM users u WHERE u.id = ?1 AND u.id > 0`,
 		)
 		.bind(id)

@@ -297,3 +297,13 @@ test('word of the day: one reviewed meaning with an example, the same all day', 
 	assert.deepEqual((await call('/api/today?day=2026-11-19', env)).body, a.body);
 	assert.equal((await call('/api/today?day=19.11.2026', env)).status, 400);
 });
+
+test('no entry: the words around a word WordNet knows lead on', async () => {
+	const live = sqlite(SAMPLE);
+	live.exec("INSERT INTO eng_word (id, word, derived) VALUES (930, 'devotion', 0); INSERT INTO wn_member (synset, word, rank) VALUES (107543288, 930, 3);");
+	const env = { ...localEnv(), LIVE: d1(live) };
+	const r = (await call('/api/read?q=devotion', env)).body;
+	assert.equal(r.kind, 'none');
+	assert.deepEqual(r.around, { similar: ['love', 'affection'], broader: [], opposite: [], related: [] });
+	assert.equal((await call('/api/read?q=zzqx', env)).body.around, null, 'nothing around a word nobody knows');
+});

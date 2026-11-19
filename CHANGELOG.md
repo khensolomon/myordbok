@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+149
+
+- Searches: periods of today, 3 and 5 days. Members: seen in the last 24 hours, 3 days or a week; sort by offline downloads or devices. No entry: the words around it from WordNet and Moby, with their Myanmar meanings, and the words searched most
+
 ## 26.11.19+148
 
 - Test yourself: listen, type the word and which meaning; rounds mix the kinds. Home: word of the day with Test yourself on it and Share, and the daily round (migration 0020)

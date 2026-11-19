@@ -10,7 +10,7 @@
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { changeMember, membersQuery, workspaceMember, workspaceMembers } from '../data/api.js';
-import { mark, num, t } from '../i18n/index.js';
+import { mark, num, t, tn } from '../i18n/index.js';
 import { listBar } from './list-bar.js';
 
 /** @param {string} f  A filter of FILTERS. */
@@ -38,8 +38,8 @@ const FILTERS = /** @type {const} */ ([
 ]);
 
 /** Further filters; the first of each is "any" and leaves the address alone. */
-const ORDERS = /** @type {const} */ ([['', mark('Newest')], ['seen', mark('Last seen')], ['name', mark('Name')], ['gave', mark('Most contributions')]]);
-const SEEN = /** @type {const} */ ([['', mark('Any')], ['30', mark('In the last 30 days')], ['quiet', mark('Not for 90 days')]]);
+const ORDERS = /** @type {const} */ ([['', mark('Newest')], ['seen', mark('Last seen')], ['name', mark('Name')], ['gave', mark('Most contributions')], ['downloads', mark('Most offline downloads')], ['devices', mark('Most devices')]]);
+const SEEN = /** @type {const} */ ([['', mark('Any')], ['1', mark('In the last 24 hours')], ['3', mark('In the last 3 days')], ['7', mark('In the last week')], ['30', mark('In the last 30 days')], ['quiet', mark('Not for 90 days')]]);
 const JOINED = /** @type {const} */ ([['', mark('Any')], ['7', mark('7 days')], ['30', mark('30 days')], ['90', mark('90 days')]]);
 const GAVE = /** @type {const} */ ([['', mark('Any')], ['yes', mark('Has contributed')], ['no', mark('Nothing yet')]]);
 const PROVIDERS = /** @type {const} */ ([['', mark('Any')], ['google', mark('Google')], ['github', mark('GitHub')]]);
@@ -86,7 +86,7 @@ export async function membersPanes(ctx, root, ago) {
 		}
 		const from = items.length;
 		items.push(...page.members);
-		const added = page.members.map((m, n) => row(m, ago, () => open(from + n)));
+		const added = page.members.map((m, n) => row(m, ago, () => open(from + n), more.order));
 		rows.push(...added);
 		ol.append(...added.map((b) => h('li', null, b)));
 		if (!items.length) ol.replaceChildren(h('li', { class: 'ws-none' }, t('Nobody here.')));
@@ -183,7 +183,7 @@ export async function membersPanes(ctx, root, ago) {
 			try {
 				const { member } = await changeMember(m.id, change);
 				items[i] = member;
-				rows[i].replaceWith((rows[i] = row(member, ago, () => open(i))));
+				rows[i].replaceWith((rows[i] = row(member, ago, () => open(i), more.order)));
 				rows[i].setAttribute('aria-current', 'true');
 				show(member, i);
 			} catch (err) {
@@ -285,15 +285,26 @@ export async function membersPanes(ctx, root, ago) {
  * @param {Row} m
  * @param {(when: number, short?: boolean) => string} ago
  * @param {() => void} onOpen
+ * @param {string} [order]  The list's sort: the row says the figure it is sorted by.
  */
-function row(m, ago, onOpen) {
+function row(m, ago, onOpen, order = '') {
+	const state =
+		m.status === 'suspended'
+			? t('suspended')
+			: order === 'downloads'
+				? tn('{n} offline download', '{n} offline downloads', m.offline.total, { n: num(m.offline.total) })
+				: order === 'devices'
+					? tn('signed in on {n} device', 'signed in on {n} devices', m.devices, { n: num(m.devices) })
+					: order === 'seen'
+						? m.seen_at ? t('seen {when}', { when: ago(m.seen_at) }) : t('never seen')
+						: t('joined {when}', { when: ago(m.created_at) });
 	const b = /** @type {HTMLButtonElement} */ (
 		h(
 			'button',
 			{ type: 'button', class: `ws-row${m.status === 'suspended' ? ' ws-row-off' : ''}`, 'aria-current': 'false' },
 			h('span', { class: 'ws-row-top' }, h('span', { class: 'ws-row-word' }, m.name), h('span', { class: `ws-role ws-role-${m.role}` }, t(ROLE_NAME[m.role]))),
 			h('span', { class: 'ws-row-sub' }, m.email ?? '—'),
-			h('span', { class: 'ws-row-state' }, m.status === 'suspended' ? t('suspended') : t('joined {when}', { when: ago(m.created_at) })),
+			h('span', { class: 'ws-row-state' }, state),
 		)
 	);
 	b.addEventListener('click', onOpen);

@@ -605,6 +605,7 @@ export function workspaceRatings(f, offset = 0) {
  * @property {number | null} seen_at
  * @property {Array<'google' | 'github'>} providers
  * @property {number} suggestions
+ * @property {number} devices  Sign-ins still open: browsers and apps.
  * @property {boolean} self
  * @property {{ roles: Array<import('#shared/roles.js').Role>, suspend: boolean }} may  What the one asking may change.
  */
