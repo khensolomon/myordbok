@@ -4,7 +4,7 @@
 #   Worker names: myordbok-local (never deployed), myordbok-beta, myordbok-live
 #   (top level)   local development only: `wrangler dev --local`
 #   beta          beta.myordbok.com — deployed from the dev branch
-#   live          myordbok.com      — deployed from master, switched on at cutover
+#   live          myordbok.com      — deployed from master
 #
 # Bindings and routes are not inherited by environments, so each one
 # declares its own. Both sites use the same three D1 databases:
@@ -141,9 +141,8 @@ binding = "STORAGE"
 bucket_name = "myordbok"
 
 # ---------------------------------------------------------------- live
-# Deploying this takes over the myordbok.com DNS record from the current
-# Django site. CI only deploys it when the repository variable
-# LIVE_ENABLED is "true" (see docs/deploy.md, Cutover).
+# CI only deploys it when the repository variable LIVE_ENABLED is "true"
+# (see docs/deploy.md, GitHub).
 
 [env.live]
 name = "myordbok-live"

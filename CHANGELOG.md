@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+156
+
+- The cutover command and the earlier site's notes are gone; a bad live version is put back from the Worker's deployments
+
 ## 26.11.19+155
 
 - Scripts and documentation checked: dataset-sync holds the dataset's lookup to what the app needs; docs describe the site as it runs

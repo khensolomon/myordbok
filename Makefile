@@ -14,7 +14,7 @@ OUT      ?= exports
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-beta data-live data-publish data-stats data-packs data-promote edits-export data-switch \
         grant deploy-beta deploy-live logs-beta logs-live release clean \
-        backup-deploy backup-now backup-list backup-pull restore sponsors-import data-release cutover cutover-undo
+        backup-deploy backup-now backup-list backup-pull restore sponsors-import data-release
 
 help: ## List the commands
 	@awk 'BEGIN {FS = ":.*## "} /^## / {printf "\n\033[1m%s\033[0m\n", substr($$0, 4)} /^[a-z-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -190,16 +190,6 @@ ifeq ($(APPLY),1)
 else
 	@echo 'Dry run. Add APPLY=1 to release.'
 endif
-
-## Cutover (docs/deploy.md, Cutover; dry run unless APPLY=1)
-
-CUTOVER := node --disable-warning=ExperimentalWarning scripts/cutover.js
-
-cutover: ## myordbok.com from the earlier site to the Worker; every check first [APPLY=1]
-	$(CUTOVER) $(if $(filter 1,$(APPLY)),--apply)
-
-cutover-undo: ## The way back: the domain off the Worker, its DNS records as they were [APPLY=1]
-	$(CUTOVER) undo $(if $(filter 1,$(APPLY)),--apply)
 
 clean: ## Remove build output (local database kept)
 	rm -rf dist

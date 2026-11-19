@@ -90,7 +90,7 @@ and both end the same way: beta first, then live.
 | take a backup now | `make backup-now APPLY=1` | [Backups](#backups) |
 | watch the logs | `make logs-beta`, `make logs-live` | |
 | release code to live | `make release APPLY=1`, then approve in GitHub | [Branches and releases](#branches-and-releases) |
-| take myordbok.com back to the earlier site, in an emergency | `make cutover-undo APPLY=1` | [Cutover](#cutover) |
+| put back an earlier code version | Workers & Pages → myordbok-live → Deployments | [Branches and releases](#branches-and-releases) |
 
 ## One-time setup
 
@@ -101,8 +101,8 @@ and both end the same way: beta first, then live.
 2. In **DNS → Records**, delete any existing record named `beta`. The Worker
    creates its own record for `beta.myordbok.com` on first deploy and fails
    if one already exists.
-3. `myordbok.com` belongs to the Worker `myordbok-live`; a domain served
-   by another site moves to it with `make cutover` ([Cutover](#cutover)).
+3. `myordbok.com` is a custom domain of the Worker `myordbok-live`. A
+   Worker cannot take a domain while a DNS record of that name exists.
 
 ### 2. Databases
 
@@ -162,8 +162,8 @@ In the repository, **Settings → Environments**:
    - The same two secrets.
 
 Then **Settings → Secrets and variables → Actions → Variables**:
-`LIVE_ENABLED` set to `true` lets a push to `master` deploy live
-(`make cutover` sets it; `make cutover-undo` sets it to `false`).
+`LIVE_ENABLED` set to `true` lets a push to `master` deploy live; any
+other value holds live deploys back.
 
 Recommended under **Settings → Branches**: protect `master` (no force push,
 no deletion, status check "Test and build" must pass).
@@ -303,6 +303,10 @@ pull request merged into `master` on GitHub: merge pull requests into `dev`.
 
 A push to `master` deploys live once the deploy is approved in GitHub
 (environment **live**).
+
+A bad version on live is put back from **Workers & Pages → myordbok-live →
+Deployments**, which lists every version; then the fix is made on `dev` and
+released again.
 
 ## Dictionary releases
 
@@ -628,86 +632,6 @@ rm ~/sponsors.json
 
 A donor marked as consenting whose note says they wish to remain anonymous
 is imported as anonymous; the dry run lists them, to check with each one.
-
-## Cutover
-
-Moves myordbok.com between the earlier site and the Worker `myordbok-live`.
-One command makes the move, one takes it back; both are dry runs until
-`APPLY=1`. The domain is on the Worker; the undo is for an emergency, and
-works while the earlier site still runs.
-
-```bash
-make cutover              # every check, nothing changed
-make cutover APPLY=1      # the cutover
-make cutover-undo         # what the way back would do
-make cutover-undo APPLY=1
-```
-
-**Before a cutover** (each is a check of the dry run, which names what is
-missing):
-
-1. The final dictionary build is on both sites: `make data-beta`, then
-   `make data-live`.
-2. The sign-in secrets are on the live Worker, and each provider knows the
-   address `https://myordbok.com/api/auth/…/callback` ([Sign-in](#sign-in)):
-   ```bash
-   npx wrangler secret put GITHUB_CLIENT_SECRET --env live
-   npx wrangler secret put GOOGLE_CLIENT_SECRET --env live
-   ```
-3. GitHub has the environment **live**
-   ([GitHub](#4-github)), and the GitHub command line is signed in on the
-   machine: `gh auth login`.
-4. A Cloudflare API token for the cutover alone (**My Profile → API Tokens →
-   Create Token → Custom**), with **Zone → DNS → Edit** on myordbok.com and
-   **Account → Workers Scripts → Edit**, given to the command as
-   `CUTOVER_TOKEN`:
-   ```bash
-   read -rs CUTOVER_TOKEN && export CUTOVER_TOKEN   # paste, Enter; it is not shown or kept in the shell history
-   ```
-   It is named apart from `CLOUDFLARE_API_TOKEN` on purpose: wrangler would
-   use that one for the deploy in place of its own login. Delete the token
-   when no cutover or undo is expected.
-5. `dev` is pushed, and beta runs the version that is to go live.
-
-**What `make cutover APPLY=1` does**, only when no check failed:
-
-1. builds the live site;
-2. fast-forwards `master` to `dev`;
-3. keeps a copy of the domain's address records (A, AAAA, CNAME; mail and
-   text records are not touched) in `~/.local/state/myordbok/cutover.json`,
-   then deletes them: a Worker cannot take a domain while a record of that
-   name exists;
-4. deploys `myordbok-live` from the machine. When the deploy fails, the
-   records are put back at once and the Django site answers again;
-5. waits, up to five minutes, until `https://myordbok.com/api/health`
-   answers with the version deployed;
-6. sets `LIVE_ENABLED` to `true`: from then on `make release APPLY=1`
-   deploys live through GitHub, after approval.
-
-Between steps 3 and 4 the domain has no record, so readers get an error for
-as long as the deploy takes, about half a minute; the earlier site answers
-again if the deploy fails. Run again after a step
-failed, the command picks up where things are: a domain already on the
-Worker is left alone and the kept copy is not written over.
-
-**Afterwards:** sign in once on myordbok.com; give
-`https://myordbok.com/sitemap.xml` to Google Search Console; keep the
-earlier site running for as long as the undo should stay possible.
-
-**The way back**, `make cutover-undo APPLY=1`: sets `LIVE_ENABLED` to
-`false`, takes the domain off the Worker and creates the kept records again.
-`master` stays where it is, and the Worker stays deployed without a domain,
-so a later `make cutover APPLY=1` puts it back. The undo works from the
-machine that made the cutover (the kept copy is there). What was written on
-the new site meanwhile (members, comments, edits) stays in `myordbok-app`
-and is there again after the next cutover.
-
-A bad version after cutover is a smaller matter than the undo: **Workers &
-Pages → myordbok-live → Deployments** lists every version; any earlier one
-can be put back from there.
-
-`tests/cutover.test.js` runs both commands against stand-ins for
-Cloudflare and GitHub.
 
 ## Analytics
 
