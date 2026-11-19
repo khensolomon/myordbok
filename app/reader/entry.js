@@ -725,7 +725,7 @@ async function sentence(q, list, index) {
  *   - not a known word, with a headword one slip away, or marked a
  *     misspelling by editors in Searches: "Did you mean …?" as the heading,
  *     with that word's meaning one press away;
- *   - not a known word and nothing close: the word, "Not a word MyOrdbok knows".
+ *   - not a known word and nothing close: the word, "Not a word we know yet".
  *
  * Then the nearest Myanmar meaning, the related words, words starting the
  * same way, and, unless it is a likely misspelling, a way to suggest it. An answer that does not say whether the
@@ -767,7 +767,7 @@ async function missing(q, found, options = {}) {
 	if (best) {
 		head = [
 			h('h1', { class: 'no-result-title' }, ...tx('Did you mean {word}?', { word: h('a', { href: definitionHref(best), lang: MYANMAR_TEXT.test(best) ? 'my' : 'en' }, best) })),
-			status('spell', meant ? t('Editors marked “{word}” as a misspelling.', { word: q }) : t('“{word}” is not a word MyOrdbok knows.', { word: q })),
+			status('spell', meant ? t('Editors marked “{word}” as a misspelling.', { word: q }) : t('“{word}” is not a word we know yet.', { word: q })),
 			meaningCard(best),
 		];
 	} else if (known === undefined) {
@@ -775,7 +775,7 @@ async function missing(q, found, options = {}) {
 	} else {
 		head = [
 			h('h1', { class: 'no-result-title no-result-word', lang: MYANMAR_TEXT.test(q) ? 'my' : 'en' }, q),
-			known ? status('known', marked?.label === 'add' ? t('Recognised word · to be added') : t('Recognised word · not yet defined')) : status('unknown', t('Not a word MyOrdbok knows')),
+			known ? status('known', marked?.label === 'add' ? t('Recognised word · to be added') : t('Recognised word · not yet defined')) : status('unknown', t('Not a word we know yet')),
 		];
 	}
 	return h(
