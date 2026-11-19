@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+152
+
+- No entry says what kind it is: a recognised word not yet defined, a likely misspelling (Did you mean …?, or marked by editors), or not a word MyOrdbok knows; Myanmar slips find the word meant; invisible characters are taken out of every search
+
 ## 26.11.19+151
 
 - No entry: the English words around the word in full (synonyms, similar, broader, opposite, related), as an entry lists them

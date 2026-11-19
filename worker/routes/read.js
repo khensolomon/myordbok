@@ -8,7 +8,9 @@
  *   phrase    not an entry, but a phrase read from its words' entries
  *   sentence  several words: the words (Myanmar split into headwords), and
  *             the first word's lookup; the others are fetched when opened
- *   none      nothing: headwords one edit away and words starting the same way
+ *   none      nothing: headwords one edit away and words starting the same way;
+ *             whether the word is known at all (in eng_word or mya_word, with or
+ *             without a meaning), and an editor's label of it from Searches
  *
  * The browser has already answered numbers, sums and the time, and taken
  * any question off, before it asks this. A Myanmar query that finds no
@@ -26,6 +28,7 @@ import { readPhrase } from './phrase.js';
 import { closeWords } from './spelling.js';
 import { startingWith } from './suggest.js';
 import { zawgyiReading } from '../../shared/zawgyi/index.js';
+import { variable, variants } from '../../shared/myanmar-variants.js';
 
 /** @typedef {import('../../shared/types.js').LookupResult} LookupResult */
 /** @typedef {import('../../shared/types.js').Reading} Reading */
@@ -111,7 +114,9 @@ async function readAsTyped(db, q, over) {
 		return { q, kind: 'sentence', words, first: found(first) ? first : null };
 	}
 
-	const [close, starts] = await Promise.all([closeWords(db, q, NONE_LIMIT), startingWith(db, q, NONE_LIMIT)]);
+	const [found1, starts, known] = await Promise.all([closeWords(db, q, NONE_LIMIT), startingWith(db, q, NONE_LIMIT), isWord(db, q, lang)]);
+	// A Myanmar word one common slip away from a headword (ျ/ြ, ိ/ီ, a tone mark…): its "did you mean".
+	const close = lang === 'my' && !found1.length ? await myanmarSlips(db, q) : found1;
 	const same = (/** @type {string} */ w) => w.toLowerCase() === q.toLowerCase();
 	// Not a headword, but WordNet and Moby may still know it: the words around it, so the page leads on.
 	const near =
@@ -119,13 +124,37 @@ async function readAsTyped(db, q, over) {
 			? { synonyms: result.synonyms.filter((w) => !same(w)), similar: result.similar.filter((w) => !same(w)), broader: result.broader, opposite: result.opposite, related: result.related }
 			: null;
 	const around = near && Object.values(near).some((list) => list.length) ? near : null;
-	const known = result.language === 'en' ? { nearest: result.nearest ?? [], with_entry: result.with_entry ?? [] } : {};
-	return { q, kind: 'none', close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)), around, ...known };
+	const more = result.language === 'en' ? { nearest: result.nearest ?? [], with_entry: result.with_entry ?? [] } : {};
+	return { q, kind: 'none', known, close: close.filter((w) => !same(w)), starts: starts.filter((w) => !same(w) && !close.includes(w)), around, ...more };
+}
+
+/**
+ * Whether the dictionary knows the word at all, defined or not: English
+ * words come from WordNet, Moby and the forms table (eng_word), so one there
+ * is a real word not yet defined; one that is not is more likely a misspelling.
+ * @param {D1Database} db
+ * @param {string} q
+ * @param {'en' | 'my'} lang
+ */
+async function isWord(db, q, lang) {
+	const sql = lang === 'en' ? 'SELECT 1 FROM eng_word WHERE word = ?1 COLLATE NOCASE LIMIT 1' : 'SELECT 1 FROM mya_word WHERE word = ?1 LIMIT 1';
+	return Boolean(await db.prepare(sql).bind(q).first());
+}
+
+/**
+ * Myanmar headwords with senses one common slip away from the text (shared/myanmar-variants.js).
+ * @param {D1Database} db
+ * @param {string} q
+ */
+async function myanmarSlips(db, q) {
+	if (!variable(q)) return [];
+	const { results } = await db.prepare(MYANMAR_KNOWN).bind(JSON.stringify(variants(q))).all();
+	return results.map((r) => String(r.word)).slice(0, NONE_LIMIT);
 }
 
 /**
  * @param {URL} url
- * @param {import('../lib/dict.js').DictEnv} env
+ * @param {import('../lib/dict.js').DictEnv & { APP: D1Database }} env
  */
 export async function read(url, env) {
 	const q = normalizeQuery(url.searchParams.get('q') ?? '');
@@ -134,5 +163,13 @@ export async function read(url, env) {
 	const body = await readQuery(db, q, layer.apply).catch((err) => {
 		throw explainDictError(err, dict, env);
 	});
+	// Nothing found: what editors decided about the word in Searches, if anything (migration 0016).
+	if (body.kind === 'none') {
+		const lang = detectLang(body.q);
+		const mark = await env.APP.prepare('SELECT label, note FROM search_marks WHERE lang = ?1 AND term = ?2')
+			.bind(lang, lang === 'en' ? body.q.toLowerCase() : body.q)
+			.first();
+		return json({ ...body, marked: mark ? { label: mark.label ?? null, note: mark.note ?? null } : null }, { cache: 300 });
+	}
 	return json(body, { cache: 300 });
 }

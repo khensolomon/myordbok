@@ -42,6 +42,8 @@ import { entryFeedback, suggestWord } from './contribute.js';
 import { commentsSection } from './comments.js';
 import { pronounceButton } from './pronounce.js';
 import { addRecent, removeRecent } from '../data/recent.js';
+import { withoutInvisible } from '#shared/validate.js';
+import { plainItem } from '#shared/quiz.js';
 import { classify, understoodHref } from './query.js';
 
 /** @typedef {import('#shared/types.js').EnglishResult} EnglishResult */
@@ -65,7 +67,14 @@ export function title(ctx) {
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
 export async function view(ctx) {
-	const q = (ctx.query.get('q') ?? '').trim();
+	const typed = (ctx.query.get('q') ?? '').trim();
+	// Invisible characters (from a copy and paste) are taken out, and the page says so (&hidden=1).
+	const q = withoutInvisible(typed).trim();
+	if (typed && q !== typed) {
+		removeRecent(typed);
+		ctx.replace(q ? `${definitionHref(q)}&hidden=1` : '/definition');
+		return h('div');
+	}
 	if (!q) return (await import('./guide.js')).guide();
 	addRecent(q);
 	const asked = ctx.query.get('asked');
@@ -89,12 +98,15 @@ export async function view(ctx) {
 		ctx.replace(`${definitionHref(reading.zawgyi.as)}&zawgyi=${encodeURIComponent(q)}`);
 		return h('div');
 	}
-	const said = zawgyi ? [t('Typed in Zawgyi, so searched in Unicode as “{word}”.', { word: q })] : [];
+	const said = [
+		...(zawgyi ? [t('Typed in Zawgyi, so searched in Unicode as “{word}”.', { word: q })] : []),
+		...(ctx.query.get('hidden') === '1' ? [t('The search had an invisible character, which was taken out.')] : []),
+	];
 	/** A phrase, a sentence or nothing read on the device says so, as an entry does. @param {Node} node */
 	const marked = (node) => {
 		const note = offlineNote(reading);
 		if (node instanceof HTMLElement) {
-			if (said.length) node.prepend(h('p', { class: 'entry-note understood' }, said[0]));
+			if (said.length) node.prepend(h('p', { class: 'entry-note understood' }, said.join(' ')));
 			if (note) node.prepend(note);
 		}
 		return node;
@@ -706,11 +718,22 @@ async function sentence(q, list, index) {
 /** @typedef {{ synonyms?: string[], similar: string[], broader: string[], opposite: string[], related: string[] }} Around  synonyms is absent from a reading made before it was apart from similar. */
 
 /**
- * Nothing for `q`: "did you mean", words starting the same way, and a way to
- * ask for it. Inline (a word of a sentence), a shorter version that fetches
- * its own "did you mean".
+ * Nothing for `q`, said as what it most likely is:
+ *
+ *   - a word the dictionary knows (eng_word, mya_word) but has not defined:
+ *     the word as the heading, "Recognised word · not yet defined";
+ *   - not a known word, with a headword one slip away, or marked a
+ *     misspelling by editors in Searches: "Did you mean …?" as the heading,
+ *     with that word's meaning one press away;
+ *   - not a known word and nothing close: the word, "Not a word MyOrdbok knows".
+ *
+ * Then the nearest Myanmar meaning, the related words, words starting the
+ * same way, and, unless it is a likely misspelling, a way to suggest it. An answer that does not say whether the
+ * word is known (an offline reading) keeps the plain "No entry" heading.
+ * Inline (a word of a sentence): a shorter version that fetches its own
+ * "did you mean".
  * @param {string} q
- * @param {{ close: string[], starts: string[], around?: Around | null, nearest?: import('#shared/types.js').NearestSense[], with_entry?: string[] } | null} found  From the reading.
+ * @param {{ close: string[], starts: string[], around?: Around | null, nearest?: import('#shared/types.js').NearestSense[], with_entry?: string[], known?: boolean, marked?: { label: string | null, note: string | null } | null } | null} found  From the reading.
  * @param {{ inline?: boolean }} [options]
  */
 async function missing(q, found, options = {}) {
@@ -718,23 +741,85 @@ async function missing(q, found, options = {}) {
 	const close = near.close;
 	const prefix = near.starts;
 	/** @param {string[]} words */
-	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w) }, w))));
+	const chips = (words) => h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w), lang: MYANMAR_TEXT.test(w) ? 'my' : 'en' }, w))));
+	if (options.inline) {
+		return h(
+			'section',
+			{ class: 'no-result inline' },
+			h('h2', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
+			close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
+			!close.length ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
+		);
+	}
 
 	const around = found?.around ?? null;
 	const nearest = found?.nearest ?? [];
 	const linked = found ? entryWords(found) : null;
+	const known = found?.known;
+	const marked = found?.marked ?? null;
+	// An editor's "misspelling" with a note "→ word" names the word meant.
+	const meant = marked?.label === 'misspelling' ? (/^→\s*(.+)$/.exec(marked.note ?? '')?.[1]?.trim() ?? null) : null;
+	const best = meant ?? (known === false && marked?.label !== 'noise' && close.length ? close[0] : null);
+	const others = close.filter((w) => w !== best);
+
+	/** @type {Node[]} */
+	let head;
+	if (best) {
+		head = [
+			h('h1', { class: 'no-result-title' }, ...tx('Did you mean {word}?', { word: h('a', { href: definitionHref(best), lang: MYANMAR_TEXT.test(best) ? 'my' : 'en' }, best) })),
+			status('spell', meant ? t('Editors marked “{word}” as a misspelling.', { word: q }) : t('“{word}” is not a word MyOrdbok knows.', { word: q })),
+			meaningCard(best),
+		];
+	} else if (known === undefined) {
+		head = [h('h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q }))];
+	} else {
+		head = [
+			h('h1', { class: 'no-result-title no-result-word', lang: MYANMAR_TEXT.test(q) ? 'my' : 'en' }, q),
+			known ? status('known', marked?.label === 'add' ? t('Recognised word · to be added') : t('Recognised word · not yet defined')) : status('unknown', t('Not a word MyOrdbok knows')),
+		];
+	}
 	return h(
 		'section',
-		{ class: options.inline ? 'no-result inline' : 'page no-result' },
-		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
+		{ class: 'page no-result' },
+		h('header', { class: 'no-result-head' }, head),
 		nearest.length ? nearestMeanings(q, nearest) : null,
-		around && !options.inline ? aroundWords(q, around, linked, nearest.length > 0) : null,
-		close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
-		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
-		!close.length && !prefix.length && !around ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
-		options.inline ? null : noEntryAsk(q),
-		options.inline ? null : keepGoing(),
+		around ? aroundWords(around, linked, nearest.length === 0) : null,
+		others.length ? h('div', { class: 'no-result-part' }, h('h2', { class: 'around-title' }, best ? t('Other spellings close to it') : t('Did you mean')), chips(others)) : null,
+		prefix.length ? h('div', { class: 'no-result-part' }, h('h2', { class: 'around-title' }, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
+		!close.length && !prefix.length && !around && !nearest.length ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
+		// A likely misspelling is not asked for: the word meant is above.
+		best ? null : noEntryAsk(q),
+		keepGoing(),
 	);
+}
+
+const MYANMAR_TEXT = /[\u1000-\u109f]/;
+
+/**
+ * The line under a no-entry heading that says what kind of "no entry" it is.
+ * @param {'known' | 'unknown' | 'spell'} kind
+ * @param {string} text
+ */
+function status(kind, text) {
+	return h('p', { class: 'no-result-status' }, h('span', { class: `no-result-pill no-result-${kind}` }, icon(kind === 'known' ? ICONS.dictionary : kind === 'spell' ? ICONS.suggest : ICONS.info, 15), text));
+}
+
+/**
+ * The word meant, with its first meaning, one press away; filled in when its lookup arrives.
+ * @param {string} word
+ */
+function meaningCard(word) {
+	const card = h('a', { class: 'no-result-meant', href: definitionHref(word) }, h('span', { class: 'no-result-meant-word', lang: MYANMAR_TEXT.test(word) ? 'my' : 'en' }, word), h('span', { class: 'no-result-meant-open' }, t('Open the entry →')));
+	lookup(word)
+		.then((r) => {
+			const first = r.entries[0];
+			if (!first) return;
+			const gloss = itemsOf(first.sense).find((it) => it.t === 'text');
+			const glossLang = r.language === 'en' ? 'my' : 'en';
+			card.insertBefore(h('span', { class: 'no-result-meant-gloss', lang: glossLang }, h('em', null, `${posName(first.type)} `), gloss && gloss.t === 'text' ? plainItem(gloss.text, word) : ''), card.lastChild);
+		})
+		.catch(() => {});
+	return card;
 }
 
 /** How a nearby word's meaning relates to the word asked about. */
@@ -754,7 +839,8 @@ function nearestMeanings(q, nearest) {
 	return h(
 		'div',
 		{ class: 'no-result-nearest' },
-		h('p', { class: 'no-result-lead' }, t('“{word}” has no entry of its own. Nearest meaning:', { word: q })),
+		h('h2', { class: 'around-title' }, t('Nearest meaning')),
+		h('p', { class: 'no-result-lead' }, t('From words close to it; “{word}” has no meaning of its own yet.', { word: q })),
 		h(
 			'ul',
 			{ class: 'nearest-list' },
@@ -784,20 +870,20 @@ const AROUND = /** @type {const} */ ([
  * in full and laid out as an entry's related words: a Myanmar meaning is
  * only ever near, and the English words may be what the reader needs. Those
  * with an entry of their own link; the others are said.
- * @param {string} q
  * @param {Around} around
  * @param {Set<string> | null} linked  Words with an entry (with_entry); null: all of them.
- * @param {boolean} afterNearest  The nearest meanings are shown above.
+ * @param {boolean} first  Nothing above it: it says why it is there.
  */
-function aroundWords(q, around, linked, afterNearest) {
+function aroundWords(around, linked, first) {
 	const rows = AROUND.filter(([key]) => around[key]?.length);
 	if (!rows.length) return null;
 	return h(
 		'section',
 		{ class: 'no-result-around' },
-		h('h2', { class: 'around-title' }, t('English words around “{word}”', { word: q })),
-		afterNearest ? null : h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet, but these English words are close to it.', { word: q })),
+		h('h2', { class: 'around-title' }, t('Related words')),
+		first ? h('p', { class: 'no-result-lead' }, t('No meaning yet, but these words are close to it.')) : null,
 		h('ul', { class: 'related-list' }, rows.map(([key, name]) => h('li', null, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words', lang: 'en' }, wordLinks(around[key], linked))))),
+		h('p', { class: 'no-result-source' }, linked ? t('From WordNet and the Moby Thesaurus. Words without a link have no entry yet.') : t('From WordNet and the Moby Thesaurus.')),
 	);
 }
 
@@ -811,7 +897,7 @@ function keepGoing() {
 		.then((p) => {
 			const words = p.words.slice(0, 12);
 			if (!words.length) return;
-			box.append(h('p', null, t('Searched most this week')), h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w.term), lang: /[\u1000-\u109f]/.test(w.term) ? 'my' : 'en' }, w.term)))));
+			box.append(h('h2', { class: 'around-title' }, t('Searched most this week')), h('ul', { class: 'chips' }, words.map((w) => h('li', null, h('a', { href: definitionHref(w.term), lang: /[\u1000-\u109f]/.test(w.term) ? 'my' : 'en' }, w.term)))));
 			box.hidden = false;
 		})
 		.catch(() => {});

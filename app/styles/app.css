@@ -1224,12 +1224,30 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 /* Nothing found. */
 .no-result-part > p { margin: 18px 0 0; color: var(--muted); }
 .no-result-ask { max-width: 560px; margin-top: 32px; border-radius: var(--radius); }
+/* The no-entry page (reader/entry.js missing): a heading that says what kind of "no entry" it is. */
+.no-result-head { display: flex; flex-direction: column; gap: 10px; }
+.no-result-title { margin: 0; font-size: 34px; line-height: 1.2; letter-spacing: -0.02em; }
+.no-result-word { font-size: 40px; }
+.no-result-status { margin: 0; }
+.no-result-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 500; }
+.no-result-known { background: color-mix(in srgb, var(--brand) 12%, transparent); color: var(--link); }
+.no-result-unknown { background: var(--line-soft); color: var(--ink-2); }
+.no-result-spell { background: color-mix(in srgb, var(--warn-fill) 14%, transparent); color: var(--warn); }
+.no-result-meant { max-width: 560px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); text-decoration: none; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 2px rgba(23, 32, 43, 0.04), 0 6px 18px rgba(23, 32, 43, 0.05); }
+.no-result-meant:hover { border-color: var(--ring); }
+.no-result-meant-word { font-size: 22px; font-weight: 700; color: var(--link); }
+.no-result-meant-gloss { font-size: 18px; line-height: 1.6; }
+.no-result-meant-gloss[lang="my"] { font-family: var(--font-my); }
+.no-result-meant-gloss em { font-family: var(--font-ui); font-size: 14px; color: var(--muted); }
+.no-result-meant-open { font-size: 13px; color: var(--muted); }
+.no-result-source { margin: 10px 0 0; font-size: 12px; color: var(--faint); }
+.no-result .no-result-part, .no-result-nearest, .no-result-around { margin-top: 28px; }
+.no-result-part .chips { margin-top: 10px; }
 /* Words around a word the dictionary lacks (reader/entry.js aroundWords). */
 .no-result-lead { margin: 12px 0 0; max-width: 640px; color: var(--ink-2); line-height: 1.6; }
 .around-title { margin: 0; display: flex; align-items: center; gap: 12px; font: 600 12px/1.4 var(--font-ui); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .around-title::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .no-result-more { margin-top: 28px; }
-.no-result-nearest { margin-top: 8px; }
 .no-result-around { margin-top: 28px; max-width: 900px; }
 .no-result-around .related-list { margin-top: 12px; }
 .nearest-list { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 720px; }

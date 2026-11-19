@@ -310,3 +310,20 @@ test('no entry: the words around a word WordNet knows lead on', async () => {
 	assert.ok(r.with_entry.includes('love'));
 	assert.equal((await call('/api/read?q=zzqx', env)).body.around, null, 'nothing around a word nobody knows');
 });
+
+test('no entry: known or not, close spellings, editors’ marks, invisible characters', async () => {
+	const live = sqlite(SAMPLE);
+	live.exec("INSERT INTO eng_word (id, word, derived) VALUES (931, 'fondness', 0);");
+	const app = sqlite(MIGRATION);
+	app.exec("INSERT INTO search_marks (lang, term, label, note) VALUES ('en', 'lovv', 'misspelling', '→ love');");
+	const env = { ...localEnv(), LIVE: d1(live), APP: d1(app) };
+	const read = async (q) => (await call(`/api/read?q=${encodeURIComponent(q)}`, env)).body;
+	assert.deepEqual(((r) => [r.kind, r.known])(await read('fondness')), ['none', true], 'a word WordNet or Moby has, not defined');
+	const typo = await read('lovr');
+	assert.deepEqual([typo.known, typo.close[0], typo.marked], [false, 'love', null], 'one slip from a headword');
+	assert.deepEqual((await read('lovv')).marked, { label: 'misspelling', note: '→ love' });
+	assert.equal((await read('lo​ve')).kind, 'entry', 'a zero-width space taken out');
+	assert.equal((await read('love­')).kind, 'entry', 'a soft hyphen taken out');
+	// Myanmar: a headword one common slip away (ျ for ြ).
+	assert.deepEqual((await read('ခြစ်')).close, ['ချစ်']);
+});

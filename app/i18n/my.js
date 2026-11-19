@@ -1205,11 +1205,24 @@ export const MY = {
 	'3 days': '၃ ရက်',
 	'5 days': '၅ ရက်',
 	// Words around a word the dictionary lacks (reader/entry.js)
-	'MyOrdbok has no Myanmar meaning for “{word}” yet, but these English words are close to it.': 'MyOrdbok တွင် “{word}” ၏ မြန်မာအဓိပ္ပာယ် မရှိသေးသော်လည်း ဤအင်္ဂလိပ်စကားလုံးများက ၎င်းနှင့် နီးစပ်သည်။',
-	'English words around “{word}”': '“{word}” နှင့် ဆက်စပ်သော အင်္ဂလိပ်စကားလုံးများ',
 	// Nearest meaning of a word without an entry (reader/entry.js)
 	'same as {word}': '{word} နှင့် အတူတူ',
 	'similar to {word}': '{word} နှင့် ဆင်တူ',
 	'a kind of {word}': '{word} ၏ အမျိုးအစားတစ်ခု',
-	'“{word}” has no entry of its own. Nearest meaning:': '“{word}” အတွက် သီးခြား အဓိပ္ပာယ် မရှိပါ။ အနီးစပ်ဆုံး အဓိပ္ပာယ် −',
+	// What kind of "no entry" (reader/entry.js missing)
+	'The search had an invisible character, which was taken out.': 'ရှာဖွေမှုတွင် မမြင်ရသော စာလုံးတစ်လုံး ပါနေ၍ ဖယ်ရှားလိုက်ပါသည်။',
+	'Did you mean {word}?': '{word} ကို ဆိုလိုပါသလား။',
+	'Editors marked “{word}” as a misspelling.': 'တည်းဖြတ်သူများက “{word}” ကို စာလုံးပေါင်းမှားအဖြစ် မှတ်ထားသည်။',
+	'“{word}” is not a word MyOrdbok knows.': '“{word}” သည် MyOrdbok သိသော စကားလုံး မဟုတ်ပါ။',
+	'Recognised word · to be added': 'သိရှိထားသော စကားလုံး · ထည့်သွင်းရန်',
+	'Recognised word · not yet defined': 'သိရှိထားသော စကားလုံး · အဓိပ္ပာယ် မဖွင့်ရသေး',
+	'Not a word MyOrdbok knows': 'MyOrdbok သိသော စကားလုံး မဟုတ်ပါ',
+	'Other spellings close to it': 'နီးစပ်သော အခြား စာလုံးပေါင်းများ',
+	'Open the entry →': 'အဓိပ္ပာယ် ဖွင့်ရန် →',
+	'Nearest meaning': 'အနီးစပ်ဆုံး အဓိပ္ပာယ်',
+	'From words close to it; “{word}” has no meaning of its own yet.': '၎င်းနှင့် နီးစပ်သော စကားလုံးများမှ ဖြစ်သည်၊ “{word}” တွင် ကိုယ်ပိုင် အဓိပ္ပာယ် မရှိသေးပါ။',
+	'Related words': 'ဆက်စပ်သော စကားလုံးများ',
+	'No meaning yet, but these words are close to it.': 'အဓိပ္ပာယ် မရှိသေးသော်လည်း ဤစကားလုံးများက ၎င်းနှင့် နီးစပ်သည်။',
+	'From WordNet and the Moby Thesaurus. Words without a link have no entry yet.': 'WordNet နှင့် Moby Thesaurus မှ ဖြစ်သည်။ လင့်ခ်မပါသော စကားလုံးများတွင် အဓိပ္ပာယ် မရှိသေးပါ။',
+	'From WordNet and the Moby Thesaurus.': 'WordNet နှင့် Moby Thesaurus မှ ဖြစ်သည်။',
 };
