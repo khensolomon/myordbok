@@ -38,7 +38,6 @@ import { renderMarkup, renderNote } from '../core/markup.js';
 import { getLang, list, mark, posName, t, tn, tx } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { lookup, popularWords, read, remember, savingData, spelling } from '../data/api.js';
-import { reviewed } from '#shared/quiz.js';
 import { entryFeedback, suggestWord } from './contribute.js';
 import { commentsSection } from './comments.js';
 import { pronounceButton } from './pronounce.js';
@@ -704,12 +703,14 @@ async function sentence(q, list, index) {
 	);
 }
 
+/** @typedef {{ synonyms?: string[], similar: string[], broader: string[], opposite: string[], related: string[] }} Around  synonyms is absent from a reading made before it was apart from similar. */
+
 /**
  * Nothing for `q`: "did you mean", words starting the same way, and a way to
  * ask for it. Inline (a word of a sentence), a shorter version that fetches
  * its own "did you mean".
  * @param {string} q
- * @param {{ close: string[], starts: string[], around?: { similar: string[], broader: string[], opposite: string[], related: string[] } | null, nearest?: import('#shared/types.js').NearestSense[], with_entry?: string[] } | null} found  From the reading.
+ * @param {{ close: string[], starts: string[], around?: Around | null, nearest?: import('#shared/types.js').NearestSense[], with_entry?: string[] } | null} found  From the reading.
  * @param {{ inline?: boolean }} [options]
  */
 async function missing(q, found, options = {}) {
@@ -727,24 +728,13 @@ async function missing(q, found, options = {}) {
 		{ class: options.inline ? 'no-result inline' : 'page no-result' },
 		h(options.inline ? 'h2' : 'h1', { class: 'notice-title' }, t('No entry for “{word}”', { word: q })),
 		nearest.length ? nearestMeanings(q, nearest) : null,
-		around && !options.inline ? aroundWords(q, withoutNearest(around, nearest), linked, nearest.length > 0) : null,
+		around && !options.inline ? aroundWords(q, around, linked, nearest.length > 0) : null,
 		close.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Did you mean')), chips(close)) : null,
 		prefix.length ? h('div', { class: 'no-result-part' }, h('p', null, t('Words that start like “{word}”', { word: q })), chips(prefix)) : null,
 		!close.length && !prefix.length && !around ? h('p', { class: 'notice' }, t('Check the spelling, or try the root form of the word.')) : null,
 		options.inline ? null : noEntryAsk(q),
 		options.inline ? null : keepGoing(),
 	);
-}
-
-/**
- * The words around a word, less those whose meaning is already shown as nearest.
- * @param {{ similar: string[], broader: string[], opposite: string[], related: string[] }} around
- * @param {import('#shared/types.js').NearestSense[]} nearest
- */
-function withoutNearest(around, nearest) {
-	const shown = new Set(nearest.map((n) => n.word.toLowerCase()));
-	const keep = (/** @type {string[]} */ list) => list.filter((w) => !shown.has(w.toLowerCase()));
-	return { similar: keep(around.similar), broader: keep(around.broader), opposite: around.opposite, related: keep(around.related) };
 }
 
 /** How a nearby word's meaning relates to the word asked about. */
@@ -780,60 +770,34 @@ function nearestMeanings(q, nearest) {
 	);
 }
 
-/** The groups of words around a word that is no headword, in the order shown. */
+/** The lists of English words around a word that is no headword, in the order shown (as an entry's). */
 const AROUND = /** @type {const} */ ([
-	['similar', mark('Close in meaning')],
+	['synonyms', mark('Synonyms')],
+	['similar', mark('Similar')],
 	['broader', mark('Broader')],
 	['opposite', mark('Opposite')],
 	['related', mark('Related')],
 ]);
-/** Words around it given their Myanmar meaning, at most (each is a lookup). */
-const AROUND_GLOSSED = 10;
 
 /**
- * Words close to a word the dictionary lacks, from WordNet and Moby: each
- * a link with its own Myanmar meaning, fetched after the page shows, so the
- * reader can go on from here.
+ * The English words around a word the dictionary lacks (WordNet and Moby),
+ * in full and laid out as an entry's related words: a Myanmar meaning is
+ * only ever near, and the English words may be what the reader needs. Those
+ * with an entry of their own link; the others are said.
  * @param {string} q
- * @param {{ similar: string[], broader: string[], opposite: string[], related: string[] }} around
+ * @param {Around} around
  * @param {Set<string> | null} linked  Words with an entry (with_entry); null: all of them.
- * @param {boolean} afterNearest  The nearest meanings are shown above: these are more words, not the only ones.
+ * @param {boolean} afterNearest  The nearest meanings are shown above.
  */
 function aroundWords(q, around, linked, afterNearest) {
-	/** @type {Array<{ word: string, meaning: HTMLElement }>} */
-	const all = [];
-	const groups = AROUND.filter(([key]) => around[key].length).map(([key, label]) =>
-		h(
-			'div',
-			{ class: 'around-group' },
-			h('h2', { class: 'around-title' }, t(label)),
-			h(
-				'ul',
-				{ class: 'around-list' },
-				around[key].slice(0, 12).map((w) => {
-					// A word without an entry of its own is said, not linked: its page would be another "no entry".
-					if (linked && !linked.has(w.toLowerCase())) return h('li', { class: 'around-plain' }, h('span', { class: 'around-word', lang: 'en' }, w));
-					const meaning = h('span', { class: 'around-meaning', lang: 'my' });
-					all.push({ word: w, meaning });
-					return h('li', null, h('a', { href: definitionHref(w) }, h('span', { class: 'around-word', lang: 'en' }, w), meaning));
-				}),
-			),
-		),
-	);
-	// Their meanings, a few at a time; a word without one keeps its link alone.
-	for (const { word, meaning } of all.slice(0, AROUND_GLOSSED)) {
-		lookup(word)
-			.then((r) => {
-				const gloss = r.language === 'en' ? reviewed(r)[0]?.glosses[0] : null;
-				if (gloss) meaning.textContent = gloss;
-			})
-			.catch(() => {});
-	}
+	const rows = AROUND.filter(([key]) => around[key]?.length);
+	if (!rows.length) return null;
 	return h(
-		'div',
+		'section',
 		{ class: 'no-result-around' },
-		afterNearest ? null : h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet. These words are close to it:', { word: q })),
-		groups,
+		h('h2', { class: 'around-title' }, t('English words around “{word}”', { word: q })),
+		afterNearest ? null : h('p', { class: 'no-result-lead' }, t('MyOrdbok has no Myanmar meaning for “{word}” yet, but these English words are close to it.', { word: q })),
+		h('ul', { class: 'related-list' }, rows.map(([key, name]) => h('li', null, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words', lang: 'en' }, wordLinks(around[key], linked))))),
 	);
 }
 

@@ -116,7 +116,7 @@ async function readAsTyped(db, q, over) {
 	// Not a headword, but WordNet and Moby may still know it: the words around it, so the page leads on.
 	const near =
 		result.language === 'en'
-			? { similar: [...new Set([...result.synonyms, ...result.similar])].filter((w) => !same(w)), broader: result.broader, opposite: result.opposite, related: result.related }
+			? { synonyms: result.synonyms.filter((w) => !same(w)), similar: result.similar.filter((w) => !same(w)), broader: result.broader, opposite: result.opposite, related: result.related }
 			: null;
 	const around = near && Object.values(near).some((list) => list.length) ? near : null;
 	const known = result.language === 'en' ? { nearest: result.nearest ?? [], with_entry: result.with_entry ?? [] } : {};

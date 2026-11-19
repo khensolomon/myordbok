@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+151
+
+- No entry: the English words around the word in full (synonyms, similar, broader, opposite, related), as an entry lists them
+
 ## 26.11.19+150
 
 - Lookup from dataset 1f3373b: a word without an entry shows its nearest Myanmar meaning (same as, similar to, a kind of); related words link only when they have an entry

@@ -304,7 +304,7 @@ test('no entry: the words around a word WordNet knows lead on', async () => {
 	const env = { ...localEnv(), LIVE: d1(live) };
 	const r = (await call('/api/read?q=devotion', env)).body;
 	assert.equal(r.kind, 'none');
-	assert.deepEqual(r.around, { similar: ['love', 'affection'], broader: [], opposite: [], related: [] });
+	assert.deepEqual(r.around, { synonyms: ['love', 'affection'], similar: [], broader: [], opposite: [], related: [] });
 	// love's first sense is linked to that same meaning: the nearest Myanmar meaning, said to be love's.
 	assert.deepEqual(r.nearest.map((n) => [n.word, n.via, n.exact]), [['love', 'synonym', true], ['affection', 'synonym', true]]);
 	assert.ok(r.with_entry.includes('love'));
