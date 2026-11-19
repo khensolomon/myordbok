@@ -3,8 +3,9 @@
  * The workspace's API. Roles are read from the database on every request
  * (worker/lib/session.js); a member sees only their own suggestions.
  *
- *   GET  /api/workspace/summary                  suggestion counts by status, the role, and
- *                                             for admins the Inbox's unread count
+ *   GET  /api/workspace/summary                  suggestion counts by status, the role, the
+ *                                             answers to the member's own messages not yet
+ *                                             seen, and for admins the Inbox's unread count
  *   GET  /api/workspace/edits?status=&mine=1&before=
  *                                             suggestions, newest first, 30 at a time;
  *                                             each with the sense as the dictionary has it now
@@ -32,9 +33,11 @@
  *                                             the Inbox, admins (routes/messages.js)
  *   GET|POST /api/workspace/notices[/{id}[/delete]]
  *                                             site notices, admins (routes/notices.js)
+ *   GET|POST /api/workspace/sponsors…, /donations…  supporters, the owner (routes/support.js)
  *
  * Only a waiting suggestion can be reviewed or withdrawn; what happens after
- * approval (export, merge) is make edits-export and the next release.
+ * approval (export, merge) is make data-release, or make edits-export and
+ * the next release.
  */
 import { AppError } from '../../shared/errors.js';
 import { EDIT_TEXT_MAX } from '../../shared/limits.js';

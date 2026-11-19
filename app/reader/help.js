@@ -86,7 +86,7 @@ export async function helpAfter(f, word, done) {
 				buttons.forEach((x) => (x.disabled = true));
 				b.classList.add('is-picked');
 				try {
-					await answerHelp(q.id, value);
+					await answerHelp(q.id, /** @type {number | 'many' | 'unsure' | 'yes' | 'no'} */ (value));
 					helped++;
 					status.textContent = t('Thank you.');
 					setTimeout(() => show(i + 1), 700);

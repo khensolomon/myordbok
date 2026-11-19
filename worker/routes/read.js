@@ -59,8 +59,9 @@ export async function myanmarWords(db, text) {
 }
 
 /**
- * @param {any} result  A lookup.
- * @returns {result is LookupResult}
+ * Whether a lookup found something to show: senses, or the word as a form of another.
+ * @param {LookupResult} result
+ * @returns {boolean}
  */
 function found(result) {
 	return result.entries.length > 0 || (result.language === 'en' && result.forms_of.length > 0);

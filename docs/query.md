@@ -14,13 +14,13 @@ Code: `shared/query/` (browser and Worker), `app/reader/query.js`,
 
 | Step | Runs in | Does |
 |---|---|---|
-| 0. Tidy | browser | Unicode NFC, invisible characters removed, spaces collapsed; capitals kept (`AI` and `ai` differ). |
+| 0. Tidy | browser and Worker | Unicode NFC, invisible characters removed (zero-width space and joiners, soft hyphen, direction marks; the page says so, `&hidden=1`), spaces collapsed; capitals kept (`AI` and `ai` differ). |
 | 1. Answer locally | browser | Number, sum, percentage, time, date; a sum read two ways asks; a sum without an answer says why. Nothing is fetched. |
 | 2. Take the question off | browser | The words around the subject are removed and the subject kept, with the part asked about (`#synonyms`, `#opposite`, `#forms`). The question stays in the address (`asked=`). |
 | 3. Entry | Worker | The subject as a headword, ignoring case; a form leads to its root (went → go); punctuation around a single word ignored (`love!`, `ချစ်။`). |
 | 4. Phrase | Worker | Not an entry, but one of the phrase patterns: each part found as typed, as a form's root or by spelling; the sense that fits chosen; the Myanmar put together. |
 | 5. Sentence | Worker, then browser | Several words: English split at spaces, Myanmar split into headwords (below). The first word's entry comes with the answer; each other word is fetched when opened. |
-| 6. Nothing | Worker | Did you mean (one edit away), words that start the same way, a way to suggest it. |
+| 6. Nothing | Worker | Whether the word is known undefined (`eng_word`, `mya_word`) or not; did you mean (one edit away; Myanmar: one common slip away); an editors' label from Searches; the nearest Myanmar meaning and the related words (`nearest`, `with_entry`); words that start the same way; a way to suggest it. |
 
 Steps 3 to 6 are one request, `/api/read` (`worker/routes/read.js`), so a
 slow connection waits once for any query.
@@ -47,7 +47,9 @@ slow connection waits once for any query.
 | `king of the castle` | the idiom | the entry: a whole phrase that is a headword wins |
 | `love is good, love is an open door` | each word | one word at a time |
 | `ချစ်သူရေသောက်`, `အချစ်ဆိုတာဘာလဲ` (no spaces) | each word | split into headwords, one word at a time |
-| `lvoe` | love | did you mean, then a way to suggest it |
+| `lvoe` | love | “Did you mean love?”, with love's first meaning |
+| `abstractive` | a word not yet defined | the word, “Recognised word · not yet defined”, the nearest Myanmar meaning and the related words |
+| `ခြစ်` | ချစ် | “Did you mean ချစ်?” |
 
 ## Phrases
 

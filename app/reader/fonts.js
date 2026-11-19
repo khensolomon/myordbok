@@ -1,8 +1,8 @@
 // @ts-check
 /**
- * /myanmar-fonts: the Myanmar fonts page has been retired. The address stays
- * so links to it still land somewhere useful: why it went, where good
- * Myanmar fonts are found today, and a way to tell MyOrdbok if it is missed.
+ * /myanmar-fonts: an address that links still lead to, for a fonts page the
+ * site does not offer. It says why, where maintained Myanmar fonts are
+ * found, and how to tell MyOrdbok if the page is missed.
  */
 import { CONTACT } from '../core/config.js';
 import { h } from '../core/dom.js';

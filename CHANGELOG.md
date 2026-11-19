@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.19+155
+
+- Scripts and documentation checked: dataset-sync holds the dataset's lookup to what the app needs; docs describe the site as it runs
+
 ## 26.11.19+154
 
 - No entry: the nearest meanings as wide as the rest of the page

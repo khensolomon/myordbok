@@ -1,17 +1,17 @@
 // @ts-check
 /**
- * Moves the old sponsors file (docs/sponsors.json, once in the public
- * repository) into myordbok-app, where the owner keeps supporters from now on
- * (workspace → Sponsors). Run once; refused when donors are already there.
- * Node standard library only; D1 through wrangler. Dry run unless --apply.
+ * Imports a sponsors file (sponsors.json, the format of the earlier site)
+ * into myordbok-app, where the owner keeps supporters (workspace →
+ * Sponsors). Refused when donors are already there. Node standard library
+ * only; D1 through wrangler. Dry run unless --apply.
  *
  *   node scripts/sponsors.js import --file PATH/sponsors.json [--apply] [--local]
  *
  * A donor is shown on the Support page only when the file says they agreed
  * (displayConsent) and their note does not say they wish to remain
  * anonymous; the report lists every donor where the two disagree, to check
- * with them and change in the workspace. Old donor ids are kept as the new
- * ones. No member account is linked: that is done by hand in the workspace.
+ * with them and change in the workspace. The file's donor ids are kept. No
+ * member account is linked: that is done by hand in the workspace.
  */
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

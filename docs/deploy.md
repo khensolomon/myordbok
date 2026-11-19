@@ -13,13 +13,12 @@ databases, each with one fixed role:
 |---|---|---|---|
 | local | localhost | `make api` | the local `myordbok-live`: the public sample, or a build loaded by hand |
 | beta | beta.myordbok.com | every push to `dev` | `myordbok-beta` |
-| live | myordbok.com | push to `master`, once switched on | `myordbok-live` (`myordbok-beta` only while a promotion runs) |
+| live | myordbok.com | push to `master`, after approval | `myordbok-live` (`myordbok-beta` only while a promotion runs) |
 
 Both sites are bound to all three databases; `dict_release` in
 `myordbok-app` records which dictionary database each one reads.
 
-Until cutover, myordbok.com keeps serving the previous Django site and
-`master` keeps its code. Beta stays up permanently as the test site.
+Beta stays up permanently as the test site.
 
 ## What to do
 
@@ -90,9 +89,8 @@ and both end the same way: beta first, then live.
 | get deleted rows back | `make restore TABLE=… WHERE="…"` | [Restoring rows](#restoring-rows) |
 | take a backup now | `make backup-now APPLY=1` | [Backups](#backups) |
 | watch the logs | `make logs-beta`, `make logs-live` | |
-| release code to live (after cutover) | `make release APPLY=1` | [Branches and releases](#branches-and-releases) |
-| replace the Django site | `make cutover`, then with `APPLY=1` | [Cutover](#cutover) |
-| go back to the Django site | `make cutover-undo APPLY=1` | [Cutover](#cutover) |
+| release code to live | `make release APPLY=1`, then approve in GitHub | [Branches and releases](#branches-and-releases) |
+| take myordbok.com back to the earlier site, in an emergency | `make cutover-undo APPLY=1` | [Cutover](#cutover) |
 
 ## One-time setup
 
@@ -103,7 +101,8 @@ and both end the same way: beta first, then live.
 2. In **DNS → Records**, delete any existing record named `beta`. The Worker
    creates its own record for `beta.myordbok.com` on first deploy and fails
    if one already exists.
-3. Leave the `myordbok.com` record alone until cutover.
+3. `myordbok.com` belongs to the Worker `myordbok-live`; a domain served
+   by another site moves to it with `make cutover` ([Cutover](#cutover)).
 
 ### 2. Databases
 
@@ -162,8 +161,9 @@ In the repository, **Settings → Environments**:
      approval).
    - The same two secrets.
 
-Then **Settings → Secrets and variables → Actions → Variables**: leave
-`LIVE_ENABLED` unset until cutover.
+Then **Settings → Secrets and variables → Actions → Variables**:
+`LIVE_ENABLED` set to `true` lets a push to `master` deploy live
+(`make cutover` sets it; `make cutover-undo` sets it to `false`).
 
 Recommended under **Settings → Branches**: protect `master` (no force push,
 no deletion, status check "Test and build" must pass).
@@ -199,17 +199,15 @@ Client ids are public and live in `wrangler.toml` (`GITHUB_CLIENT_ID`,
 ```bash
 npx wrangler secret put GITHUB_CLIENT_SECRET --env beta
 npx wrangler secret put GOOGLE_CLIENT_SECRET --env beta
-# the same with --env live at cutover
+npx wrangler secret put GITHUB_CLIENT_SECRET --env live
+npx wrangler secret put GOOGLE_CLIENT_SECRET --env live
 ```
 
-Locally: `make db-migrate` (the local app database needs 0002 too), copy
+Locally: `make db-migrate`, copy
 `.dev.vars.example` to `.dev.vars` and fill in the secrets, then `make api`.
 Sign in from `http://localhost:8787` or from the dev server on :8000; either
 way the sign-in ends on :8787, the registered callback. Use `localhost`, not
 `127.0.0.1`: cookies and the registered callbacks are on `localhost`.
-
-The app database needs migration 0002 (members' email) before sign-in works:
-`make db-migrate-remote APPLY=1`.
 
 Offline packs: once, create the bucket the packs live in. `make data-beta`
 uploads each build's packs; on their own (a promotion needs none; the packs
@@ -225,24 +223,23 @@ Packs are written next to the build (`build/packs/<build>/`), never inside
 this repository. Who may download the definitions is a setting admins
 change in the workspace (Settings).
 
-Every new file in `assets/db/migrations/` is applied the same way, on each
-site's database and locally: `make db-migrate-remote APPLY=1` and
-`make db-migrate`. 0003 adds ratings per meaning; 0004 adds search counts
-(the workspace overview) and user 0, "Former member", which deleted
-accounts' reviewed suggestions are moved to; 0005 adds the contact form's
-messages (the Inbox) and site settings (offline access). 0006 gives messages
-their states (unread, read, replied, done) and notes, and adds the build
-statistics the workspace shows: `make data-publish` keeps them for each new
-build; for the build already published, once: `make data-stats FILE=…/build/myordbok.db APPLY=1`.
-0007 adds the owner level above admin; the first admin (the one who set the
-site up) becomes owner. Owners give and take every level in the workspace
-(Members); `make grant EMAIL=… ROLE=owner APPLY=1` remains for emergencies.
+Every file in `assets/db/migrations/` is applied the same way, to
+`myordbok-app` on Cloudflare and locally: `make db-migrate-remote APPLY=1`
+and `make db-migrate`. Each file says at its top what it adds. Apply a
+migration before the code that uses it reaches beta or live; until then
+only the features that use its tables fail.
 
-After signing in once, give the owner the admin role:
+The build statistics the workspace shows are kept by `make data-publish`
+for each build; `make data-stats FILE=…/build/myordbok.db APPLY=1` keeps
+them for a build published without them.
+
+On a new site, after signing in once, make yourself owner; owners then give
+and take every level in the workspace (Members), and `make grant` remains
+for emergencies:
 
 ```bash
-make grant EMAIL=you@example.com ROLE=admin            # dry run
-make grant EMAIL=you@example.com ROLE=admin APPLY=1
+make grant EMAIL=you@example.com ROLE=owner            # dry run
+make grant EMAIL=you@example.com ROLE=owner APPLY=1
 ```
 
 How members are recognised: a provider account seen before is its member; a
@@ -301,10 +298,11 @@ make release APPLY=1    # runs the tests, then fast-forwards master
 ```
 
 Fixes for a released version are made on `dev` and released again; a fix
-committed straight to `master` would break the fast-forward.
+committed straight to `master` would break the fast-forward, and so would a
+pull request merged into `master` on GitHub: merge pull requests into `dev`.
 
-Do not release to `master` before cutover: `master` still represents the
-live Django site until then.
+A push to `master` deploys live once the deploy is approved in GitHub
+(environment **live**).
 
 ## Dictionary releases
 
@@ -315,7 +313,7 @@ change. A build reaches readers in two steps: beta first, then live.
 
 ```bash
 # In the dataset checkout
-python3 scripts/db_build.py --apply          # build/myordbok.sql, 75 search checks
+python3 scripts/db_build.py --apply          # build/myordbok.sql, after its search checks
 
 # Here
 make data-status                                                  # the build in each database, who reads it
@@ -362,8 +360,10 @@ promotion (`npx wrangler d1 time-travel restore myordbok-live
 at one database by hand, for repairs only.
 
 When the dataset changes its lookup code (`search/search.mjs`,
-`search/search.sql`), copy it here; the same command checks that the public
-sample still has the build's tables and columns:
+`search/search.sql`), copy it here. The command first runs the dataset's
+lookup on the sample and refuses one that lacks what the app relies on (a
+sense id on every entry; the unary `+` in `similar` and `broader`), then
+checks that the public sample still has the build's tables and columns:
 
 ```bash
 make dataset-sync DATASET=../lai/myordbok            # dry run
@@ -616,12 +616,11 @@ the Support page, link their member account by id or sign-in email if they
 have one, and add each donation as it arrives (the amount after fees, in US
 dollars). The Support page shows totals and consenting names only.
 
-The list used to be `docs/sponsors.json` in this repository. To move it in,
-once, from a copy outside the repository:
+`make sponsors-import` brings in a list of supporters kept as a
+`sponsors.json` file (the format of the earlier site), from a copy outside
+the repository:
 
 ```bash
-git show <a commit that has it>:docs/sponsors.json > ~/sponsors.json
-make db-migrate-remote APPLY=1                     # migration 0012
 make sponsors-import FILE=~/sponsors.json          # dry run: each donor, shown or anonymous
 make sponsors-import FILE=~/sponsors.json APPLY=1
 rm ~/sponsors.json
@@ -630,44 +629,12 @@ rm ~/sponsors.json
 A donor marked as consenting whose note says they wish to remain anonymous
 is imported as anonymous; the dry run lists them, to check with each one.
 
-## Moving to the beta and live names (once)
-
-The dictionary databases were first named `myordbok-dataset` and
-`myordbok-dictionary`, and the live site `production`. D1 cannot rename a
-database, so the move creates the new ones, fills them, and retires the old
-ones once beta reads the new. `myordbok-app` keeps its name and its data.
-
-```bash
-make data-setup                     # dry run: myordbok-beta and myordbok-live missing, the old two retired
-make data-setup APPLY=1             # creates them, writes their ids into wrangler.toml
-make db-migrate-remote APPLY=1      # 0013: dict_release under the beta and live names
-make data-beta FILE=../lai/myordbok/build/myordbok.sql APPLY=1
-make data-live APPLY=1
-make data-status                    # myordbok-beta ← beta, myordbok-live ← live, same build
-git commit -am "Database ids for myordbok-beta and myordbok-live" && git push
-```
-
-The commit with the new ids goes to `dev`; beta then deploys bound to the new
-databases. Until then the beta already deployed reads `myordbok-dictionary`,
-which holds the same build. Once beta.myordbok.com answers from
-`myordbok-beta` (`/api/health` names the database):
-
-```bash
-npx wrangler d1 delete myordbok-dataset
-npx wrangler d1 delete myordbok-dictionary
-make data-sample                    # the local myordbok-live starts empty (new id)
-```
-
-In GitHub, the environment **production** and the variable
-`PRODUCTION_ENABLED` become **live** and `LIVE_ENABLED` (same branch rule,
-reviewers and secrets). A Worker named `myordbok`, if one was ever created
-by `wrangler secret put --env production`, has no route and can be deleted;
-its secrets go to `myordbok-live` with `--env live` at cutover.
-
 ## Cutover
 
-The day myordbok.com leaves the Django site for the Worker `myordbok-live`.
-One command makes it, one takes it back; both are dry runs until `APPLY=1`.
+Moves myordbok.com between the earlier site and the Worker `myordbok-live`.
+One command makes the move, one takes it back; both are dry runs until
+`APPLY=1`. The domain is on the Worker; the undo is for an emergency, and
+works while the earlier site still runs.
 
 ```bash
 make cutover              # every check, nothing changed
@@ -676,7 +643,7 @@ make cutover-undo         # what the way back would do
 make cutover-undo APPLY=1
 ```
 
-**Before the day** (each is a check of the dry run, which names what is
+**Before a cutover** (each is a check of the dry run, which names what is
 missing):
 
 1. The final dictionary build is on both sites: `make data-beta`, then
@@ -699,7 +666,7 @@ missing):
    ```
    It is named apart from `CLOUDFLARE_API_TOKEN` on purpose: wrangler would
    use that one for the deploy in place of its own login. Delete the token
-   once the fallback weeks are over.
+   when no cutover or undo is expected.
 5. `dev` is pushed, and beta runs the version that is to go live.
 
 **What `make cutover APPLY=1` does**, only when no check failed:
@@ -718,13 +685,14 @@ missing):
    deploys live through GitHub, after approval.
 
 Between steps 3 and 4 the domain has no record, so readers get an error for
-as long as the deploy takes, about half a minute. Run again after a step
+as long as the deploy takes, about half a minute; the earlier site answers
+again if the deploy fails. Run again after a step
 failed, the command picks up where things are: a domain already on the
 Worker is left alone and the kept copy is not written over.
 
 **Afterwards:** sign in once on myordbok.com; give
-`https://myordbok.com/sitemap.xml` to Google Search Console; keep the Django
-site running for a few weeks, since the undo needs it.
+`https://myordbok.com/sitemap.xml` to Google Search Console; keep the
+earlier site running for as long as the undo should stay possible.
 
 **The way back**, `make cutover-undo APPLY=1`: sets `LIVE_ENABLED` to
 `false`, takes the domain off the Worker and creates the kept records again.
@@ -738,9 +706,8 @@ A bad version after cutover is a smaller matter than the undo: **Workers &
 Pages → myordbok-live → Deployments** lists every version; any earlier one
 can be put back from there.
 
-The commands were tested against stand-ins for Cloudflare and GitHub
-(`tests/cutover.test.js`), not against the real accounts: the dry run is
-the first real meeting, so run it some days ahead.
+`tests/cutover.test.js` runs both commands against stand-ins for
+Cloudflare and GitHub.
 
 ## Analytics
 
@@ -809,9 +776,10 @@ The API serves the app, not the public. On beta and live
   Browsers older than about 2023 (Safari before iOS 16.4) do not send the
   header; for them a `Referer` on the site itself counts instead.
 - **Rate limits per visitor (IP address)**, counted by Cloudflare at each
-  location: 120 a minute for lookups and suggestions (`RATE_LOOKUP`), 40 a
-  minute for `read`, `phrase` and `spelling` (`RATE_HEAVY`), which read many
-  rows each. Over the limit: 429, and the app says to wait a minute. Change
+  location: 120 a minute for lookups, suggestions and the rest
+  (`RATE_LOOKUP`); 40 a minute for `read`, `phrase` and `spelling`, which
+  read many rows each, and for `messages`, `pronunciation`, `quiz` and
+  `help`, which write or fetch from elsewhere (`RATE_HEAVY`). Over the limit: 429, and the app says to wait a minute. Change
   the numbers in `wrangler.toml`; each environment has its own counters.
 - **Edge cache.** Dictionary answers are kept at the Cloudflare location for
   as long as their Cache-Control allows (5 minutes; spelling 1 hour), so a
@@ -830,9 +798,9 @@ In the Cloudflare dashboard, **Security → Bots → Block AI bots** keeps AI
 crawlers off the site. Leave Bot Fight Mode off: it can challenge the app's
 own requests.
 
-Still to come with sign-in: every route that writes requires the session
-cookie (HttpOnly, Secure, SameSite=Lax) and a matching `Origin` header. A
-native app (Tauri) will need its own way in, as it is not a same-origin page.
+Writes: every `POST` must carry the site's own `Origin`; those a member
+makes also need the session cookie (HttpOnly, Secure, SameSite=Lax). A
+native app (Tauri) needs its own way in, as it is not a same-origin page.
 
 ## Marker entries
 

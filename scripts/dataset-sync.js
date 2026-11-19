@@ -10,6 +10,12 @@
  * sample (assets/db/seed.dev.sql) is also compared with it, so the sample
  * never drifts from the real tables.
  *
+ * Before anything is written, the dataset's lookup is run on the sample and
+ * held to what the app relies on (appRequirements): a sense id on every
+ * entry, which suggestions, ratings and live edits are keyed by, and the
+ * unary + in similar and broader, which keeps D1 from reading a whole index
+ * per lookup. A dataset without them is refused, never copied over the app.
+ *
  * Dry run by default: reports what differs. --apply writes the copies.
  *
  *   node scripts/dataset-sync.js --dataset ../lai/myordbok
@@ -106,6 +112,36 @@ export function schemaDiff(sampleSql, realDbPath) {
 	return problems;
 }
 
+/**
+ * What the app needs of the dataset's lookup, checked on the sample.
+ * @param {string} sql  The dataset's search.sql.
+ * @param {string} mjsPath  The dataset's search.mjs.
+ * @returns {Promise<string[]>}  Problems; none when it fits.
+ */
+export async function appRequirements(sql, mjsPath) {
+	const { search, sqliteDatabase } = await import(pathToFileURL(mjsPath).href);
+	const statements = parseStatements(sql);
+	/** @type {string[]} */
+	const problems = [];
+	const db = new DatabaseSync(':memory:');
+	db.exec(await readFile(SAMPLE, 'utf8'));
+	try {
+		for (const [q, statement] of [['love', 'entries'], ['ရေ', 'my_entries']]) {
+			const r = await search(sqliteDatabase(db), statements, q);
+			if (!r.entries.length) problems.push(`the sample has no entries for ${q}; is the sample current?`);
+			else if (!r.entries.every((/** @type {{ id?: unknown }} */ e) => Number.isInteger(e.id))) {
+				problems.push(`${statement}: every entry needs its sense id (s.id), which suggestions, ratings and live edits are keyed by`);
+			}
+		}
+	} finally {
+		db.close();
+	}
+	for (const name of ['similar', 'broader']) {
+		if (!/\+word = 0/.test(statements[name] ?? '')) problems.push(`${name}: keep the unary + (+word, +type), or D1 walks the wn_link_2 index for every lookup`);
+	}
+	return problems;
+}
+
 async function main() {
 	const args = process.argv.slice(2);
 	const i = args.indexOf('--dataset');
@@ -123,6 +159,10 @@ async function main() {
 
 	const mjs = await readFile(files.mjs, 'utf8');
 	const sql = await readFile(files.sql, 'utf8');
+	const unmet = await appRequirements(sql, files.mjs);
+	if (unmet.length) {
+		throw new Error(`the dataset's lookup lacks what the app needs; change it in the dataset first:\n  ${unmet.join('\n  ')}`);
+	}
 	const generated = statementsModule(sql, 'khensolomon/lai dataset:myordbok/search/search.sql');
 	const wanted = {
 		'search.mjs': mjs,

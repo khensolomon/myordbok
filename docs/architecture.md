@@ -11,8 +11,8 @@ app/                  client: plain ES modules, JSDoc types, no framework
   index.html          page shell (header, footer, import map)
   main.js             start-up and router
   core/               dom helper, router, routes, store, icons, link markup
-  reader/             home, definition, info pages, <mo-search>
-  workspace/          workspace for editors and admins (lazy, never precached)
+  reader/             home, definition, Test yourself and practice, info pages, <mo-search>
+  workspace/          workspace for every member (lazy, never precached)
   data/               dictionary access; offline packs plug in here
   platform/web/       browser adapters: boot, http
   platform/tauri/     reserved: same exports, native implementations
@@ -21,7 +21,7 @@ app/                  client: plain ES modules, JSDoc types, no framework
   sw.js               service worker (web build only)
 worker/               Cloudflare Worker: /api routes, static assets
 backup/               Worker myordbok-backup: weekly backup of myordbok-app to R2 (deployed by hand)
-shared/               used by app and worker: errors, roles, validation, version, markup
+shared/               used by app and worker: errors, roles, validation, version, markup, quiz, Myanmar spelling slips
   query/              reads what was typed: numbers, maths, time, questions
   zawgyi/             Google's Zawgyi detector and converter (Apache 2.0, its own LICENSE)
   search/             lookup code copied from the dataset (make dataset-sync)
@@ -148,9 +148,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   like a studio**: a rail of sections, a list, the work area and an
   inspector; on phones the rail becomes a bar at the top with the section's
   name and a menu button that opens the sections, and the list and the item
-  take turns. The rail follows the role: members see Overview,
-  Contributions and Account; editors and admins also Suggestions, the
-  Studio and Comments. Overview
+  take turns. The rail follows the role: every member has Overview,
+  Contributions, Ratings, the offline copy, the Inbox and Account; editors
+  also Suggestions, the Studio, Comments, Questions and Votes; members shown
+  the statistics, and editors, Searches; admins Members, Notices and
+  Settings; the owner Sponsors. Overview
   is the home: a member's own figures, or for editors and admins searches
   per day, the words searched most and searched but missing, suggestions,
   members and the meanings rated down most (`/api/workspace/overview`).
@@ -171,9 +173,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   signs the member out everywhere.
 - **One person menu holds everything personal** (`app/core/menu.js`). The
   header keeps the navigation and the person button; the button opens a
-  panel pointed at it: sign-in (or the account and the workspace, with what
-  waits there), language, theme, usage statistics, the offline copy, About
-  and Contact. The footer keeps About, Privacy and Terms. The button stays a
+  panel pointed at it: sign-in (or the account, with Sign out beside it, and
+  the workspace, with what waits there), language, theme, usage statistics,
+  the offline copy, Practice, About and Contact. The footer keeps About, Privacy and Terms. The button stays a
   link to the workspace when scripts do not run. Members manage the offline
   copy in the workspace (Offline); visitors see what the device keeps and,
   while definitions are for members, a sign-in that leads there.
@@ -213,7 +215,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   Downloads cost R2 reads and one Worker request per file, and one counter
   row write.
 - **Long lists get their own section.** Searches (`?s=searches`, editors)
-  lists every word in `search_counts` over 7, 30 or 90 days or all time,
+  lists every word in `search_counts` today, over 3, 5, 7, 30 or 90 days or
+  all time,
   not found first, 50 a page with offset paging, and opens a word with its
   days; a word never found that is now an `eng_word`/`mya_word` headword is
   marked, so the list shrinks as words are added, with no table of its own.
@@ -225,8 +228,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   a key the browser makes on that device and keeps non-extractable
   (`app/data/seal.js`, IndexedDB version 2 adds its `keys` store); storage
   tools show random bytes, and only the site running there opens them. Word
-  lists stay plain (public through suggestions anyway); answers kept before
-  version 2 stay readable until the next download seals them. This stops a
+  lists stay plain (public through suggestions anyway); an answer stored
+  unsealed is read as it is and sealed by the next download. This stops a
   glance, not the owner of the device, who can run the site's code: hence a
   member downloads definitions at most `offline.daily` times a day
   (`users.offline_today`, `offline_total`, shown in Members), and marker
@@ -239,7 +242,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   account's first day; the same text twice a day is refused), the contact
   form, counting searches and how long counts are kept, the home page's
   most-searched list and its threshold, offline access and whether word
-  lists arrive by themselves. Pages learn the switches from `/api/site`
+  lists arrive by themselves, Test yourself and Help the dictionary. Pages learn the switches from `/api/site`
   (kept at the edge for a minute) and hide controls that would fail; the
   Worker refuses the writes either way.
 - **Comments sit under the entry.** `comments` (lang, word, body) holds
@@ -326,22 +329,62 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   refused when it is made. A rating holds while the glosses stay the same:
   the notes, the English explanation and the separator are not the meaning
   (`worker/lib/meaning.js`).
-- **Nothing found is still an answer.** A word the dictionary lacks gets
-  "did you mean" (`/api/spelling`: headwords one edit away, checked in one
-  query), words that start the same way, and a way to ask for it. A sentence
-  is shown one word at a time (`&w=`), each word fetched only when opened and
-  kept for the session, the next fetched ahead unless the reader saves data.
+- **Nothing found is still an answer, and says which kind.** `/api/read`
+  tells a word the dictionary knows but has not defined (it is in `eng_word`
+  or `mya_word`: WordNet, Moby and the forms table) from one it does not know.
+  A known word is the heading, "Recognised word · not yet defined"; an
+  unknown word with a headword one slip away, or one editors marked a
+  misspelling in Searches, is "Did you mean …?" with that word's meaning one
+  press away; otherwise "Not a word we know yet". Myanmar slips (ျ/ြ, ိ/ီ, a
+  tone mark) come from `shared/myanmar-variants.js`. Below come the nearest
+  Myanmar meaning of a word with the same meaning (`nearest`, said to be
+  that word's, never shown as the word's own), the related words in full
+  (only those with an entry, `with_entry`, link), words starting the same
+  way, and a way to suggest it. Invisible characters (zero-width space, soft
+  hyphen, direction marks) are taken out of every query, and the page says
+  so. A sentence is shown one word at a time (`&w=`), each word fetched only
+  when opened and kept for the session, the next fetched ahead unless the
+  reader saves data.
+- **Test yourself is made on the device.** Under an English entry, a round
+  of three questions is made from its reviewed meanings and a few other
+  words' (`shared/quiz.js`): which Myanmar meaning is the word's, which word
+  a Myanmar meaning is, or hearing it, or typing it; a gap in its own example
+  with its own forms; which of its meanings an example uses. Wrong choices
+  are never meanings the word has. Nothing is fetched until the reader
+  starts. Words come back after 1, 3, 7 and 21 days (`/practice`); progress
+  is kept in the browser and, signed in, merged with the account's copy on
+  every save (`quiz_progress`, migration 0019). With the reader's consent
+  for usage statistics, answers are counted per question and choice, with no
+  reader kept (`quiz_answers`); a question can be reported as wrong
+  (`quiz_reports`); editors see both in the workspace's Questions.
+- **Native readers help, and checks decide whose help counts.** After a
+  round, a signed-in member is asked a spelling question (a word searched and
+  not found against dictionary words one slip away, or spellings an editor
+  typed) or whether a meaning not yet reviewed is right
+  (`worker/routes/help.js`, migration 0018). Some spelling questions are
+  checks with a known answer (a dictionary word against slips of it that are
+  no words), alike to the reader and graded on the server; a member's votes
+  count after 3 checks with 80% right. An item is ready at 5 counted votes
+  with 80% agreeing; an editor decides in the workspace's Votes. A decision
+  never changes the dictionary: a spelling labels the searched misspellings
+  in Searches, a meaning is changed in the studio.
+- **The home page has a word of the day** (`/api/today?day=`): one reviewed
+  meaning with an example, the same for everyone that day, the day turning in
+  the reader's own time zone; with a link that starts Test yourself on it,
+  sharing, and the reader's daily round of words due.
 - **A headword can be heard.** The button beside it plays
   `/api/pronunciation?q=…&tl=en|my`, which the Worker fetches from Google
   Translate's speech address and keeps at the edge and in the browser for a
   month (`worker/routes/pronunciation.js`). That address is not a documented
   service: it may refuse or end without notice, and then the button says so.
-- **Ids belong to a build, words do not.** Reactions and comments name the
-  headword by spelling, so they survive any rebuild.
+- **Words outlive builds.** Ratings of a whole entry and comments name the
+  headword by spelling; ratings of a meaning name its sense id, which the
+  dataset keeps across builds, and the meaning's text (`text_hash`).
 - **Roles are checked on the server on every write**, reading the role from
   D1: `member` reacts, comments and suggests; `editor` edits and reviews;
-  `admin` also grants and removes levels, and makes edits live. The first admin is created from the
-  command line, never by the app.
+  `admin` also grants and removes levels, and makes edits live; `owner` also
+  gives and takes every level. The first owner is given from the command
+  line (`make grant`), never by the app.
 - **Offline.** The service worker keeps the app shell. Dictionary data is
   downloaded on request as versioned packs and stored in IndexedDB
   (`app/data/offline.js`); a Tauri build needs that behind a storage adapter
@@ -357,16 +400,15 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   screen or the log; nothing falls back silently.
 - **Analytics only with consent.** Google Analytics loads on the public
   hosts after the visitor allows it (`app/core/consent.js`); the choice
-  stays on the device and can be changed on the privacy page.
+  stays on the device and can be changed on the privacy page. The same
+  choice decides whether Test yourself answers are counted.
 - **Deployment.** Beta and live are Wrangler environments bound to the
   same three databases. Every push to `dev` is tested and deployed to beta by
-  GitHub Actions (`.github/workflows/deploy.yml`); live is first deployed by
-  `make cutover`, then by each release to `master`. See [deploy.md](deploy.md).
+  GitHub Actions (`.github/workflows/deploy.yml`); each release to `master`
+  is deployed to live after approval. See [deploy.md](deploy.md).
 
 ## Next
 
 1. Tauri adapters.
 2. Query: multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.
-4. The Myanmar fonts page (`/myanmar-fonts`): likely dropped, keeping a
-   download link for the fonts.

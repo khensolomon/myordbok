@@ -314,7 +314,7 @@ export function withdrawEdit(id) {
 
 /**
  * @typedef {'add' | 'misspelling' | 'noise'} SearchLabel  What a word never found is (migration 0016).
- * @typedef {{ show: 'missed' | 'found' | 'all', days: 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string, order: 'hits' | 'recent' | 'days' | 'az',
+ * @typedef {{ show: 'missed' | 'found' | 'all', days: 1 | 3 | 5 | 7 | 30 | 90 | 0, lang: '' | 'en' | 'my', q: string, order: 'hits' | 'recent' | 'days' | 'az',
  *   label: 'open' | 'none' | SearchLabel | 'all', min: 1 | 2 | 5 | 10 | 25, spread: 1 | 2 | 5, shape: '' | 'word' | 'phrase' | 'digits', fresh: boolean, noted: boolean }} SearchFilter
  * @typedef {{ lang: 'en' | 'my', term: string, hits: number, days: number, first: string, last: string, found: boolean, now: boolean, label: SearchLabel | null, note: string | null }} SearchedWord
  * @typedef {{ show: string, days: number, counts: { words: number, missed: number, found: number, hits: number, listed: number, labels: Record<'none' | SearchLabel, number> }, words: SearchedWord[], more: boolean }} SearchesPage

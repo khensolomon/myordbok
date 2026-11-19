@@ -154,7 +154,7 @@ restore: ## Put back rows that are gone: TABLE=… [WHERE="…"] [BACKUP=name|fi
 
 ## Supporters
 
-sponsors-import: ## Once: the old sponsors.json into myordbok-app (workspace → Sponsors): FILE=… [APPLY=1] [LOCAL=1]
+sponsors-import: ## A sponsors.json file into myordbok-app (workspace → Sponsors): FILE=… [APPLY=1] [LOCAL=1]
 	@test -n "$(FILE)" || { echo 'Give FILE=path/to/sponsors.json, outside this repository'; exit 1; }
 	node --disable-warning=ExperimentalWarning scripts/sponsors.js import --file "$(FILE)" $(if $(filter 1,$(APPLY)),--apply) $(if $(LOCAL),--local)
 
@@ -165,7 +165,7 @@ deploy-beta: test ## Build and deploy beta.myordbok.com [APPLY=1]
 	$(WRANGLER) deploy --env beta $(if $(filter 1,$(APPLY)),,--dry-run)
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy.'
 
-deploy-live: test ## Build and deploy myordbok.com by hand, after cutover [APPLY=1]
+deploy-live: test ## Build and deploy myordbok.com from this machine, without GitHub [APPLY=1]
 	node scripts/build.js $(if $(NOMINIFY),--no-minify)
 	$(WRANGLER) deploy --env live $(if $(filter 1,$(APPLY)),,--dry-run)
 	@test "$(APPLY)" = 1 || echo 'Dry run. Add APPLY=1 to deploy. This replaces the live site.'
@@ -195,7 +195,7 @@ endif
 
 CUTOVER := node --disable-warning=ExperimentalWarning scripts/cutover.js
 
-cutover: ## Once: myordbok.com from the earlier site to the Worker; every check first [APPLY=1]
+cutover: ## myordbok.com from the earlier site to the Worker; every check first [APPLY=1]
 	$(CUTOVER) $(if $(filter 1,$(APPLY)),--apply)
 
 cutover-undo: ## The way back: the domain off the Worker, its DNS records as they were [APPLY=1]

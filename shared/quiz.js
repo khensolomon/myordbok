@@ -92,8 +92,10 @@ export function otherWords(result, more = []) {
 }
 
 /**
- * @param {Choice[]} list
+ * @template T
+ * @param {T[]} list
  * @param {() => number} random
+ * @returns {T[]}
  */
 function shuffle(list, random) {
 	const out = [...list];
@@ -217,7 +219,7 @@ function whichSense(target, senses, random) {
 	const distinct = [];
 	for (const s of senses) if (!distinct.some((d) => d.glosses[0] === s.glosses[0])) distinct.push(s);
 	if (distinct.length < 2) return null;
-	for (const sense of shuffle(/** @type {any[]} */ (distinct), random)) {
+	for (const sense of shuffle(distinct, random)) {
 		if (!sense.example) continue;
 		const item = itemsOf(sense.example)
 			.flatMap((it) => (it.t === 'text' ? [it.text] : []))

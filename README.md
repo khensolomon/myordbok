@@ -21,9 +21,11 @@ The browser-based version of [MyOrdbok][home] — designed for fast, accessible 
 | Definitions     | Meanings grouped by part of speech on a timeline, with each part's forms (`loves, loved, loving`) beside it, and synonyms and opposites |
 | Smart search    | Suggestions while typing, "did you mean", phrases (`king of Norway`) read from their words, sentences one word at a time, Myanmar typed in Zawgyi read in Unicode |
 | Answers         | Numbers read in words both ways (`10000`, `၁၀၀၀၀`, `ten thousand`), sums (`x=3/4*12`, `10% of 70`), shares, the time and date, laid out like an entry with copy buttons |
-| Home            | Recent searches (kept on the device) and the words searched most this week |
-| Members         | Sign in with Google or GitHub to rate meanings, comment on entries, suggest corrections and new meanings, and download the definitions for offline use |
-| Workspace       | Overview and usage statistics, contributions, ratings, offline copy, account and an inbox with the answers to their own messages for every member; suggestion review, comment moderation and the studio (a word's meanings, examples, parts of speech and statuses on one sheet) for editors; members, notices, settings and the contact inbox for admins, whose approved edits are live for readers within minutes |
+| Home            | The word of the day, the reader's daily round, recent searches (kept on the device) and the words searched most this week |
+| Learning        | Test yourself under an entry (meanings both ways, listening, typing, fill the gap, which meaning), and Practice, where words come back after 1, 3, 7 and 21 days; progress follows a signed-in member to every device |
+| No entry        | A word not yet defined still gets its nearest Myanmar meaning and its related words; a likely misspelling gets "Did you mean …?" |
+| Members         | Sign in with Google or GitHub to rate meanings, comment on entries, suggest corrections and new meanings, answer spelling and meaning questions that help the dictionary, and download the definitions for offline use |
+| Workspace       | Overview and usage statistics, contributions, ratings, offline copy, account and an inbox with the answers to their own messages for every member; suggestion review, comment moderation, the studio (a word's meanings, examples, parts of speech and statuses on one sheet), searches, questions readers reported or often miss, and the spelling and meaning votes for editors; members, notices, settings and the contact inbox for admins, whose approved edits are live for readers within minutes |
 | Grammar         | Instant Myanmar [grammar][grammar] lookup                               |
 | Apps            | Available on the [App Store][appstore], [Google play][playStore].       |
 
@@ -64,8 +66,8 @@ make grant EMAIL=… ROLE=member|editor|admin|owner APPLY=1   # LOCAL=1 for the 
 ```
 
 Every push to `dev` is tested and deployed to beta by GitHub Actions.
-`make release APPLY=1` fast-forwards `master` to `dev`; live is deployed
-with `make deploy-live APPLY=1` once it replaces the current site.
+`make release APPLY=1` fast-forwards `master` to `dev`, and the push to
+`master` deploys live after approval in GitHub.
 Versions are `yy.mm.dd+N` (`make version NOTE="…" APPLY=1`). `make` lists
 every command; deployment, branches and releases are described in
 [docs/deploy.md](docs/deploy.md).

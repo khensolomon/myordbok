@@ -1,7 +1,7 @@
 // @ts-check
 /**
- * /offline moved into the workspace (?s=offline); the address stays for old
- * links and goes there.
+ * /offline: an address for links and bookmarks that goes to the
+ * workspace's offline copy (/workspace?s=offline).
  */
 import { t } from '../i18n/index.js';
 

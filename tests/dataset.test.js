@@ -24,3 +24,12 @@ test('the sample is marked as a sample, never as a real build', () => {
 	const db = sqlite(SAMPLE);
 	assert.equal(db.prepare("SELECT value FROM meta WHERE key = 'source'").get()?.value, 'sample');
 });
+
+test('dataset-sync holds a dataset lookup to what the app needs', async () => {
+	const { appRequirements } = await import('../scripts/dataset-sync.js');
+	const mjs = join(ROOT, 'shared/search/search.mjs');
+	assert.deepEqual(await appRequirements(SQL, mjs), [], 'the app’s own copy fits');
+	const noIds = SQL.replace('s.exam, s.synset, s.id\n', 's.exam, s.synset\n').replace('s.sense, s.exam, s.id\n', 's.sense, s.exam\n');
+	const unmet = await appRequirements(noIds.replace(/\+word/g, 'word'), mjs);
+	assert.equal(unmet.length, 4, unmet.join('\n'));
+});

@@ -158,7 +158,7 @@ export function frame() {
 	const body = h('div', { class: 'quiz-bubble' });
 	const row = h('div', { class: 'quiz-row' }, h('span', { class: 'quiz-avatar', 'aria-hidden': 'true' }, icon(ICONS.practice, 16)), body);
 	const section = h('section', { class: 'quiz', 'aria-label': t('Test yourself') }, heading, row);
-	const head = (/** @type {Array<Node | string | null>} */ ...extra) => heading.replaceChildren(h('span', null, t('Test yourself')), ...extra);
+	const head = (/** @type {Array<Node | string | null>} */ ...extra) => heading.replaceChildren(h('span', null, t('Test yourself')), ...extra.filter((x) => x !== null));
 	head();
 	const fold = (/** @type {boolean} */ folded) => {
 		row.hidden = folded;

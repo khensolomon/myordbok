@@ -203,6 +203,7 @@ async function english(data, asked, said = []) {
 
 	const extra = data.entries.length ? extras(data) : null;
 	const read = understood(data.query, asked, extra?.present ?? null, said);
+	/** @type {Array<HTMLElement | null>} */
 	const notes = [offlineNote(data), read];
 	if (data.variant_of.length) notes.push(h('p', { class: 'entry-note' }, tx('A spelling of {words}.', { words: h('span', null, wordLinks(data.variant_of)) })));
 	/** What the query is a form of, not yet said beside a part of speech on the page. */
@@ -882,7 +883,7 @@ function aroundWords(around, linked, first) {
 		{ class: 'no-result-around' },
 		h('h2', { class: 'around-title' }, t('Related words')),
 		first ? h('p', { class: 'no-result-lead' }, t('No meaning yet, but these words are close to it.')) : null,
-		h('ul', { class: 'related-list' }, rows.map(([key, name]) => h('li', null, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words', lang: 'en' }, wordLinks(around[key], linked))))),
+		h('ul', { class: 'related-list' }, rows.map(([key, name]) => h('li', null, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words', lang: 'en' }, wordLinks(around[key] ?? [], linked))))),
 		h('p', { class: 'no-result-source' }, linked ? t('From WordNet and the Moby Thesaurus. Words without a link have no entry yet.') : t('From WordNet and the Moby Thesaurus.')),
 	);
 }
