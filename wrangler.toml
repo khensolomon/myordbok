@@ -39,8 +39,10 @@ preview_urls = false
 [assets]
 directory = "./dist/web"
 binding = "ASSETS"
-# Unknown app paths get index.html, so deep links like /definition?q=love work.
-not_found_handling = "single-page-application"
+# A path the build lacks goes to the Worker (worker/index.js, asset()): an app
+# page such as /practice gets index.html, a missing file a 404. The assets'
+# own single-page fallback would answer a missing script with the page.
+not_found_handling = "none"
 # The Worker answers the API, the definition page (it writes what the page is
 # about into it: worker/routes/page.js), robots.txt and the sitemap
 # (worker/routes/sitemap.js), and the earlier site's addresses.

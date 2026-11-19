@@ -327,3 +327,23 @@ test('no entry: known or not, close spellings, editors’ marks, invisible chara
 	// Myanmar: a headword one common slip away (ျ for ြ).
 	assert.deepEqual((await read('ခြစ်')).close, ['ချစ်']);
 });
+
+test('assets: a missing file is a 404, never the app page; app pages get index.html', async () => {
+	const { asset } = await import('../worker/index.js');
+	const files = { '/': 'text/html', '/reader/home.086af577.js': 'text/javascript' };
+	const env = {
+		ASSETS: /** @type {any} */ ({
+			fetch: (/** @type {Request} */ r) => {
+				const type = files[/** @type {keyof typeof files} */ (new URL(r.url).pathname)];
+				return type ? new Response('x', { headers: { 'content-type': type } }) : new Response('', { status: 404 });
+			},
+		}),
+	};
+	const gone = await asset(new Request('https://myordbok.com/reader/home.0ld0ld00.js'), env);
+	assert.deepEqual([gone.status, gone.headers.get('cache-control')], [404, 'no-store']);
+	assert.equal((await asset(new Request('https://myordbok.com/reader/home.086af577.js'), env)).headers.get('content-type'), 'text/javascript');
+	for (const path of ['/practice', '/grammar/noun', '/nothing/here', '/old.html']) {
+		const res = await asset(new Request(`https://myordbok.com${path}`), env);
+		assert.deepEqual([res.status, res.headers.get('content-type')], [200, 'text/html'], path);
+	}
+});

@@ -37,7 +37,13 @@ export function startRouter(outlet, onRoute) {
 		const ctx = { query: url.searchParams, go, replace };
 		startProgress();
 		try {
-			const mod = await route.load();
+			let mod;
+			try {
+				mod = await route.load();
+			} catch (err) {
+				if (mine === token && reloadOnce()) return;
+				throw err;
+			}
 			const node = await mod.view(ctx);
 			if (mine !== token) return; // a newer navigation won
 			endProgress();
@@ -105,6 +111,29 @@ export function startRouter(outlet, onRoute) {
 /** @param {string} path */
 function notFound(path) {
 	return h('section', { class: 'page notice' }, h('h1', null, t('Page not found')), h('p', null, t('Nothing lives at {path}.', { path })), h('a', { href: '/' }, t('Go to the dictionary')));
+}
+
+/** Session key: when the page was last loaded again for a script it lacked. */
+const RELOADED = 'mo:reloaded';
+
+/**
+ * A page's script that cannot be loaded is, online, most often one a release
+ * replaced while this page was open: the page is loaded again, once, after a
+ * moment (a release takes a few seconds to reach every server). A second
+ * failure within a minute, or one offline, is shown as it is.
+ * @returns {boolean}  Whether the page is being loaded again.
+ */
+function reloadOnce() {
+	if (!navigator.onLine) return false;
+	try {
+		const last = Number(sessionStorage.getItem(RELOADED));
+		if (last && Date.now() - last < 60_000) return false;
+		sessionStorage.setItem(RELOADED, String(Date.now()));
+	} catch {
+		return false; // storage blocked: no guard against a loop, so no reload
+	}
+	setTimeout(() => location.reload(), 2000);
+	return true;
 }
 
 /** @param {unknown} err */

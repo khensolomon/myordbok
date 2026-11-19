@@ -1,8 +1,9 @@
 // @ts-check
 /**
  * Worker entry: `/api/*` is handled here, everything else is a static asset.
- * Unknown app paths fall back to index.html (wrangler.toml
- * `not_found_handling`), which is what makes deep links work.
+ * A path the build lacks comes here too (wrangler.toml `not_found_handling`
+ * "none"): an app page gets index.html, which makes deep links work, and a
+ * missing file a 404 (asset()).
  * Bindings stay in this file and worker/lib; route modules receive env.
  */
 import pkg from '../package.json' with { type: 'json' };
@@ -166,6 +167,26 @@ async function answer(request, env, url, parts) {
 	throw new AppError('not_found', `No API route for ${url.pathname}`);
 }
 
+/**
+ * A file of the build; for a path it lacks, the app page or a 404. A path
+ * with an extension other than .html names a file, and a missing file is a
+ * 404: a page open across a release asks for scripts the release no longer
+ * has, and the app page in their place would break the import, and the
+ * service worker's copy. Any other path is an app page (/practice,
+ * /grammar/noun): index.html, whose router shows the page or "Page not found".
+ * @param {Request} request
+ * @param {{ ASSETS: Fetcher }} env
+ */
+export async function asset(request, env) {
+	const res = await env.ASSETS.fetch(request);
+	if (res.status !== 404) return res;
+	const url = new URL(request.url);
+	if (/\.[A-Za-z0-9]+$/.test(url.pathname) && !url.pathname.endsWith('.html')) {
+		return new Response('Not found', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } });
+	}
+	return env.ASSETS.fetch(new Request(new URL('/', url), { headers: { accept: 'text/html' } }));
+}
+
 export default {
 	/**
 	 * @param {Request} request
@@ -190,7 +211,7 @@ export default {
 			if (pathname === '/definition' && request.method === 'GET') return definitionPage(request, env);
 			if (pathname === '/robots.txt') return robots(env, url);
 			if (pathname === '/sitemap.xml' || pathname.startsWith('/sitemap/')) return sitemap(request, env, ctx).catch(errorResponse);
-			return env.ASSETS.fetch(request);
+			return asset(request, env);
 		}
 		let res;
 		try {

@@ -55,6 +55,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   adapter stops the build, and a test compares adapter exports.
 - **Deep links.** Every route is a real URL. The Worker serves `index.html`
   for any unknown app path, and the service worker does the same offline.
+  A missing file (a path with an extension other than `.html`) is a 404,
+  never the page: a script import or the service worker would take the page
+  for the file.
   Paths keep the previous site's URLs (`/definition?q=…`, `/grammar`,
   `/myanmar-fonts`) so existing links and search rankings carry over.
 - **The dataset is the source of truth.** The dictionary is a set of TSV
@@ -385,6 +388,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   `admin` also grants and removes levels, and makes edits live; `owner` also
   gives and takes every level. The first owner is given from the command
   line (`make grant`), never by the app.
+- **Releases while a page is open.** The service worker of a release takes
+  over open pages at once and keeps the shell of the release before beside
+  its own, so a page opened earlier still finds its own files. A copy that
+  is a page standing in for a file is never used. A route whose script
+  cannot be loaded, online, loads the page again once; a second failure
+  within a minute is shown.
 - **Offline.** The service worker keeps the app shell. Dictionary data is
   downloaded on request as versioned packs and stored in IndexedDB
   (`app/data/offline.js`); a Tauri build needs that behind a storage adapter
