@@ -1250,7 +1250,7 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .no-result-more { margin-top: 28px; }
 .no-result-around { margin-top: 28px; max-width: 900px; }
 .no-result-around .related-list { margin-top: 12px; }
-.nearest-list { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
+.nearest-list { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .nearest-item { padding: 12px 16px; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 12px; background: var(--card); }
 .nearest-loose { border-left-color: var(--line); }
 .nearest-loose .gloss { color: var(--ink-2); }
