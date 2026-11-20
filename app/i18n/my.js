@@ -1223,6 +1223,5 @@ export const MY = {
 	'From words close to it; “{word}” has no meaning of its own yet.': '၎င်းနှင့် နီးစပ်သော စကားလုံးများမှ ဖြစ်သည်၊ “{word}” တွင် ကိုယ်ပိုင် အဓိပ္ပာယ် မရှိသေးပါ။',
 	'Related words': 'ဆက်စပ်သော စကားလုံးများ',
 	'No meaning yet, but these words are close to it.': 'အဓိပ္ပာယ် မရှိသေးသော်လည်း ဤစကားလုံးများက ၎င်းနှင့် နီးစပ်သည်။',
-	'From WordNet and the Moby Thesaurus. Words without a link have no entry yet.': 'WordNet နှင့် Moby Thesaurus မှ ဖြစ်သည်။ လင့်ခ်မပါသော စကားလုံးများတွင် အဓိပ္ပာယ် မရှိသေးပါ။',
 	'From WordNet and the Moby Thesaurus.': 'WordNet နှင့် Moby Thesaurus မှ ဖြစ်သည်။',
 };

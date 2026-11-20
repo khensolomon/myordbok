@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.20+158
+
+- Every related word links, those without an entry in a lighter colour; sign-in addresses are new each time; Settings has a gear icon
+
 ## 26.11.19+157
 
 - A release no longer breaks pages left open: a missing file is a 404, never the app page; the service worker keeps the release before and refuses a page cached as a file; a script that fails to load reloads the page once

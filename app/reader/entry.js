@@ -554,15 +554,16 @@ function kindBadge(kind) {
 	);
 }
 
-/** @param {string[]} words */
 /**
- * Words as links, separated by commas; with `linked`, only the words in it
- * link (those with an entry of their own) and the others are plain text.
+ * Words as links, separated by commas. Every word links: a word without an
+ * entry opens its no-entry page, where it can be asked for and its nearest
+ * meanings are shown. With `linked`, the words not in it (no entry of their
+ * own) are set apart in a lighter colour.
  * @param {string[]} words
  * @param {Set<string> | null} [linked]  Lower case.
  */
 function wordLinks(words, linked = null) {
-	return words.flatMap((w, i) => [i ? ', ' : null, !linked || linked.has(w.toLowerCase()) ? h('a', { href: definitionHref(w) }, w) : h('span', { class: 'word-plain' }, w)]);
+	return words.flatMap((w, i) => [i ? ', ' : null, h('a', { href: definitionHref(w), class: !linked || linked.has(w.toLowerCase()) ? null : 'word-new' }, w)]);
 }
 
 /**
@@ -884,7 +885,7 @@ function aroundWords(around, linked, first) {
 		h('h2', { class: 'around-title' }, t('Related words')),
 		first ? h('p', { class: 'no-result-lead' }, t('No meaning yet, but these words are close to it.')) : null,
 		h('ul', { class: 'related-list' }, rows.map(([key, name]) => h('li', null, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words', lang: 'en' }, wordLinks(around[key] ?? [], linked))))),
-		h('p', { class: 'no-result-source' }, linked ? t('From WordNet and the Moby Thesaurus. Words without a link have no entry yet.') : t('From WordNet and the Moby Thesaurus.')),
+		h('p', { class: 'no-result-source' }, t('From WordNet and the Moby Thesaurus.')),
 	);
 }
 

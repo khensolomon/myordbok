@@ -38,12 +38,15 @@ export function member(options = {}) {
 }
 
 /**
- * Where a sign-in with `provider` starts; back to `back` afterwards.
+ * Where a sign-in with `provider` starts; back to `back` afterwards. Each
+ * address is new (`n`, which the server ignores): a browser that once kept
+ * a permanent redirect for a sign-in address, as a misplaced domain rule
+ * can leave, never finds it again.
  * @param {'google' | 'github'} provider
  * @param {string} [back]
  */
 export function signInHref(provider, back = '/workspace') {
-	return `/api/auth/${provider}/start?return=${encodeURIComponent(back)}`;
+	return `/api/auth/${provider}/start?return=${encodeURIComponent(back)}&n=${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
 export async function signOut() {

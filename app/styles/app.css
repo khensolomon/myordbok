@@ -1258,7 +1258,7 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .nearest-via a { font-weight: 600; }
 .nearest-senses { margin: 0; padding: 0; list-style: none; }
 .nearest-senses .sense { margin: 0; }
-.word-plain { color: var(--ink-2); }
+.related-words a.word-new { color: color-mix(in srgb, var(--link) 55%, var(--muted)); }
 .no-result-ask .aside-actions a { font-size: 14px; }
 
 /* ---------------------------------------------------------- suggestions */
