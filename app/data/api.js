@@ -792,7 +792,7 @@ export function reportQuestion(report) {
 /**
  * @typedef {object} QuestionReport
  * @property {number} id
- * @property {'en-my' | 'my-en' | 'gap'} kind
+ * @property {'en-my' | 'my-en' | 'gap' | 'listen' | 'type' | 'sense'} kind
  * @property {string} word
  * @property {string} prompt
  * @property {string} answer
@@ -807,7 +807,7 @@ export function reportQuestion(report) {
  */
 /**
  * @typedef {object} MissedQuestion
- * @property {'en-my' | 'my-en' | 'gap'} kind
+ * @property {'en-my' | 'my-en' | 'gap' | 'listen' | 'type' | 'sense'} kind
  * @property {string} word
  * @property {string} answer
  * @property {number} answers

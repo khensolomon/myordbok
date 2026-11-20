@@ -1,24 +1,33 @@
 // @ts-check
 /**
- * Ratings (?s=ratings): the entries and meanings the member rated, newest
- * first, each with a way to take the rating back; for editors and admins
- * also the whole site's (?view=site), not helpful most first. One list at a
- * time (meanings or whole entries), filtered, searched by the word's start,
- * and 50 rows a page. A meaning rated before its text changed shows as
- * changed: its rating no longer counts, and rating it again does.
+ * Ratings (?s=ratings), in three columns (columns.js): the entries and
+ * meanings the member rated, newest first; for editors and members shown
+ * the statistics also the whole site's (&view=site), not helpful most first.
+ * One list at a time (meanings or whole entries), filtered, searched by the
+ * word's start, 50 rows a page. A rating opens with the meaning in its entry
+ * as the dictionary has it now, and beside it a way to take one's own rating
+ * back. A meaning rated before its text changed shows as changed: its rating
+ * no longer counts, and rating it again does.
  *
- *   &kind=senses|entries  &value=up|down (yours)  &order=down|up|new (site)  &q=…
+ *   &view=site  &kind=senses|entries  &value=up|down (yours)  &order=down|up|new (site)  &q=…
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
 import { react, workspaceRatings } from '../data/api.js';
 import { mark, num, posName, t } from '../i18n/index.js';
+import { entryMeanings, fact, listColumns, plainSense } from './columns.js';
 
 /** @typedef {import('../data/api.js').RatedSense} RatedSense */
 /** @typedef {import('../data/api.js').RatedEntry} RatedEntry */
 /** @typedef {import('../data/api.js').RatingsFilter} Filter */
+/** @typedef {{ lang?: 'en' | 'my', dict?: 'emd' | 'med', sense_id?: number, word: string, type?: string, sense?: string, up: number, down: number, at?: number }} Score */
+/** @typedef {RatedSense | RatedEntry | Score} Item */
 
+const WHOSE = /** @type {const} */ ([
+	['mine', mark('Yours')],
+	['site', mark('Whole site')],
+]);
 const KINDS = /** @type {const} */ ([
 	['senses', mark('Meanings')],
 	['entries', mark('Whole entries')],
@@ -36,10 +45,12 @@ const ORDERS = /** @type {const} */ ([
 
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
+ * @param {HTMLElement} root
  * @param {boolean} editor  Sees the whole site's ratings (editors and up, or a member shown the statistics).
+ * @param {boolean} studio  Opens words in the studio (editors and up).
  * @param {(when: number, short?: boolean) => string} ago
  */
-export async function ratingsPane(ctx, editor, ago) {
+export async function ratingsPanes(ctx, root, editor, studio, ago) {
 	const q = ctx.query;
 	/** @type {Filter} */
 	const f = {
@@ -61,181 +72,118 @@ export async function ratingsPane(ctx, editor, ago) {
 		if (n.q) p.set('q', n.q);
 		return `/workspace?${p}`;
 	};
-	const segments = (/** @type {string} */ label, /** @type {ReadonlyArray<readonly [string, string]>} */ options, /** @type {string} */ now, /** @type {(v: any) => Partial<Filter>} */ change) =>
-		h('nav', { class: 'ws-segments', 'aria-label': label }, options.map(([v, text]) => h('a', { href: href(change(v)), 'aria-current': v === now ? 'true' : null }, t(text))));
-
-	const main = h('main', { class: 'ws-main ws-overview ws-ratings', 'aria-label': t('Ratings') });
-	const head = h(
-		'header',
-		{ class: 'ws-ov-head' },
-		h('h1', null, t('Ratings')),
-		editor
-			? h(
-					'nav',
-					{ class: 'ws-segments', 'aria-label': t('Whose') },
-					h('a', { href: href({ scope: 'mine', q: '' }), 'aria-current': site ? null : 'true' }, t('Yours')),
-					h('a', { href: href({ scope: 'site', q: '' }), 'aria-current': site ? 'true' : null }, t('Whole site')),
-				)
-			: '',
-	);
-	const tiles = h('div', { class: 'ws-tiles' });
 	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Word starts with…'), 'aria-label': t('Find a word'), value: f.q }));
-	const list = h('ul', { class: 'ws-rated' });
-	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
-	const card = h(
-		'section',
-		{ class: 'ws-card ws-card-wide ws-rated-card' },
-		h(
-			'div',
-			{ class: 'ws-rated-bar' },
-			segments(t('Kind'), KINDS, f.kind, (v) => ({ kind: v })),
-			site ? segments(t('Order'), ORDERS, f.order, (v) => ({ order: v })) : segments(t('Show'), VALUES, f.value, (v) => ({ value: v })),
-			h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
-		),
-		site && f.kind === 'senses' ? h('p', { class: 'ws-quiet' }, t('Only ratings of a meaning as it reads now count; a meaning edited since starts again.')) : '',
-		list,
-		more,
-	);
-	let shown = 0;
+	/** Ratings taken back here, by row key, so the row stays and reads so. */
+	const taken = new Set();
+	const key = (/** @type {Item} */ r) => `${'sense_id' in r ? r.sense_id : ''}|${r.word}`;
+	/** @type {(r: Item) => 'en' | 'my'} */
+	const langOf = (r) => ('dict' in r && r.dict ? (r.dict === 'emd' ? 'en' : 'my') : 'lang' in r && r.lang ? r.lang : 'en');
+	const other = (/** @type {'en' | 'my'} */ lang) => (lang === 'en' ? 'my' : 'en');
 
-	/** @param {boolean} [again] */
-	const load = async (again = false) => {
-		const page = await workspaceRatings(f, again ? shown : 0);
-		const c = page.counts;
-		tiles.replaceChildren(tile(t('Meanings rated'), c.senses), tile(t('Entries rated'), c.entries), tile(t('Helpful'), c.up), tile(t('Not helpful'), c.down));
-		if (!again) {
-			list.replaceChildren();
-			shown = 0;
-		}
-		shown += page.items.length;
-		list.append(
-			...page.items.map((r) =>
+	return listColumns({
+		root,
+		title: t('Ratings'),
+		choose: t('Choose a rating from the list.'),
+		nothing: (filtered) => (filtered || f.value !== 'all' ? t('Nothing matches.') : site ? t('None yet.') : t('Nothing rated yet. On any entry, the thumbs beside a meaning, or beside the whole entry, rate it; what you rate shows up here.')),
+		search,
+		fetch: async (offset) => {
+			const page = await workspaceRatings({ ...f, q: search.value.trim() }, offset);
+			return { items: /** @type {Item[]} */ (page.items), more: page.more, counts: page.counts };
+		},
+		count: (page) => t('{n} in all', { n: num(/** @type {any} */ (page).counts[f.kind]) }),
+		bar: () => ({
+			groups: [
+				...(editor ? [{ title: t('Whose'), current: f.scope, fallback: 'mine', href: (/** @type {string} */ v) => href({ scope: /** @type {Filter['scope']} */ (v), q: '' }), choices: WHOSE.map(([v, l]) => ({ value: v, label: t(l) })) }] : []),
+				{ title: t('Kind'), current: f.kind, fallback: 'senses', href: (v) => href({ kind: /** @type {Filter['kind']} */ (v) }), choices: KINDS.map(([v, l]) => ({ value: v, label: t(l) })) },
 				site
-					? scoreRow(/** @type {any} */ (r), f.kind, ago)
-					: f.kind === 'senses'
-						? senseRow(/** @type {RatedSense} */ (r), ago)
-						: entryRow(/** @type {RatedEntry} */ (r), ago),
-			),
-		);
-		if (!shown) {
-			const nothing = f.q || f.value !== 'all' ? t('Nothing matches.') : site ? t('None yet.') : t('Nothing rated yet. On any entry, the thumbs beside a meaning, or beside the whole entry, rate it; what you rate shows up here.');
-			list.replaceChildren(h('li', { class: 'ws-quiet ws-rated-none' }, nothing));
-		}
-		more.hidden = !page.more;
-	};
-
-	more.addEventListener('click', () => {
-		more.disabled = true;
-		load(true)
-			.catch((err) => list.append(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))))
-			.finally(() => (more.disabled = false));
+					? { title: t('Order'), current: f.order, fallback: 'down', href: (v) => href({ order: /** @type {Filter['order']} */ (v) }), choices: ORDERS.map(([v, l]) => ({ value: v, label: t(l) })) }
+					: { title: t('Show'), current: f.value, fallback: 'all', href: (v) => href({ value: /** @type {Filter['value']} */ (v) }), choices: VALUES.map(([v, l]) => ({ value: v, label: t(l) })) },
+			],
+			search,
+			reset: href({ kind: 'senses', value: 'all', order: 'down', q: '' }),
+		}),
+		row: (r) => {
+			const lang = langOf(r);
+			const sense = 'sense' in r && r.sense ? plainSense(r.sense) || r.sense : undefined;
+			if ('up' in r) {
+				return { word: r.word, lang, aside: `${num(r.down)} ↓  ${num(r.up)} ↑`, sub: sense ?? t('The whole entry'), subLang: sense ? other(lang) : undefined, state: [r.type ? posName(r.type) : '', r.at ? ago(r.at, true) : ''].filter(Boolean).join(' · ') };
+			}
+			const gone = taken.has(key(r));
+			const changed = 'state' in r && r.state === 'changed';
+			return {
+				word: r.word ?? t('A meaning no longer in the dictionary'),
+				lang,
+				tag: r.value > 0 ? t('Helpful') : t('Not helpful'),
+				sub: f.kind === 'senses' ? sense ?? '—' : t('The whole entry'),
+				subLang: sense ? other(lang) : undefined,
+				state: gone ? t('Taken back') : changed ? t('changed since you rated it') : ago(r.at, true),
+				off: gone || ('state' in r && r.state === 'gone'),
+			};
+		},
+		show: (r, then) => {
+			const lang = langOf(r);
+			const sense = 'sense' in r && r.sense ? plainSense(r.sense) || r.sense : null;
+			const senseId = 'sense_id' in r ? r.sense_id : null;
+			const type = 'type' in r && r.type ? r.type : null;
+			const head = h('header', { class: 'ws-item-head' }, h('h1', { lang }, r.word ?? t('A meaning no longer in the dictionary')), type ? h('em', null, posName(type)) : null);
+			const what = sense ? h('p', { class: 'ws-item-sense', lang: other(lang) }, sense) : h('p', { class: 'ws-quiet' }, t('The whole entry'));
+			/** @type {Array<Node | null>} */
+			const side = [];
+			if ('up' in r) {
+				const all = r.up + r.down;
+				side.push(
+					h(
+						'section',
+						{ class: 'ws-box' },
+						h('h2', null, t('Ratings')),
+						h('dl', { class: 'ws-facts ws-facts-side' }, ...fact(t('Not helpful'), r.down), ...fact(t('Helpful'), r.up), ...fact(t('Helpful share'), all ? `${num(Math.round((r.up / all) * 100))}%` : '—'), ...(r.at ? fact(t('Last rated'), ago(r.at)) : [])),
+						f.kind === 'senses' ? h('p', { class: 'ws-quiet' }, t('Only ratings of a meaning as it reads now count; a meaning edited since starts again.')) : null,
+					),
+				);
+			} else {
+				const gone = taken.has(key(r));
+				const undo = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary', disabled: gone || !r.word ? true : null }, gone ? t('Taken back') : t('Take back')));
+				const out = h('p', { class: 'ws-result', role: 'status' });
+				undo.addEventListener('click', async () => {
+					undo.disabled = true;
+					try {
+						await react(lang, /** @type {string} */ (r.word), 0, senseId ?? undefined);
+						taken.add(key(r));
+						then.update(r);
+					} catch (err) {
+						undo.disabled = false;
+						out.textContent = err instanceof Error ? err.message : String(err);
+					}
+				});
+				side.push(
+					h(
+						'section',
+						{ class: 'ws-box ws-item-side-act' },
+						h('h2', null, t('Your rating')),
+						h('p', { class: `ws-rating-is ${r.value > 0 ? 'ws-thumb-up' : 'ws-thumb-down'}` }, icon(r.value > 0 ? ICONS.thumbUp : ICONS.thumbDown, 16), r.value > 0 ? t('Helpful') : t('Not helpful'), h('span', { class: 'ws-quiet' }, ` · ${ago(r.at)}`)),
+						'state' in r && r.state === 'changed' ? h('p', { class: 'ws-quiet' }, t('The meaning changed since you rated it; the rating no longer counts. Rating it again on the entry does.')) : null,
+						undo,
+						out,
+					),
+				);
+			}
+			if (r.word) {
+				side.push(
+					h(
+						'section',
+						{ class: 'ws-box ws-links' },
+						h('h2', null, t('Entry')),
+						h('a', { href: definitionHref(r.word) }, t('Open the entry')),
+						studio ? h('a', { href: `/workspace?s=studio&word=${encodeURIComponent(r.word)}` }, t('Open in the studio')) : null,
+					),
+				);
+			}
+			return {
+				name: r.word ?? '—',
+				lang,
+				main: [head, what, r.word ? entryMeanings(r.word, { id: senseId, type }) : null],
+				side,
+			};
+		},
 	});
-	let timer = 0;
-	search.addEventListener('input', () => {
-		clearTimeout(timer);
-		timer = window.setTimeout(() => {
-			f.q = search.value.trim();
-			history.replaceState(history.state, '', href({}));
-			load().catch((err) => list.replaceChildren(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))));
-		}, 250);
-	});
-
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, tiles, card)));
-	await load();
-	return main;
-}
-
-/**
- * A meaning or an entry of the whole site, with its counts.
- * @param {{ lang?: 'en' | 'my', dict?: 'emd' | 'med', word: string, type?: string, sense?: string, up: number, down: number, at?: number }} r
- * @param {'senses' | 'entries'} kind
- * @param {(when: number, short?: boolean) => string} ago
- */
-function scoreRow(r, kind, ago) {
-	const lang = kind === 'senses' ? (r.dict === 'emd' ? 'en' : 'my') : /** @type {'en' | 'my'} */ (r.lang);
-	return h(
-		'li',
-		{ class: 'ws-rated-row ws-scored-row' },
-		h('span', { class: 'ws-score', title: t('{down} down, {up} up', { down: r.down, up: r.up }) }, h('span', { class: 'ws-score-down' }, `${num(r.down)} ↓`), h('span', { class: 'ws-score-up' }, `${num(r.up)} ↑`)),
-		h(
-			'div',
-			{ class: 'ws-rated-text' },
-			h('a', { href: definitionHref(r.word), lang }, r.word),
-			r.type ? h('em', null, ` ${posName(r.type)}`) : '',
-			r.sense ? h('span', { class: 'ws-sense', lang: lang === 'en' ? 'my' : 'en' }, r.sense) : '',
-		),
-		h('span', { class: 'ws-rated-time' }, r.at ? ago(r.at, true) : ''),
-	);
-}
-
-/**
- * @param {RatedSense} s
- * @param {(when: number, short?: boolean) => string} ago
- */
-function senseRow(s, ago) {
-	const lang = s.dict === 'emd' ? 'en' : 'my';
-	const undo = takeBack(() => react(lang, /** @type {string} */ (s.word), 0, s.sense_id));
-	return h(
-		'li',
-		{ class: `ws-rated-row${s.state === 'current' ? '' : ' ws-rated-stale'}` },
-		thumb(s.value),
-		h(
-			'div',
-			{ class: 'ws-rated-text' },
-			s.word ? h('a', { href: definitionHref(s.word), lang }, s.word) : h('span', null, t('A meaning no longer in the dictionary')),
-			s.type ? h('em', null, ` ${posName(s.type)}`) : '',
-			s.sense ? h('span', { class: 'ws-sense', lang: lang === 'en' ? 'my' : 'en' }, s.sense) : '',
-			s.state === 'changed' ? h('span', { class: 'ws-flag' }, t('changed since you rated it; the rating no longer counts')) : '',
-		),
-		h('span', { class: 'ws-rated-time' }, ago(s.at, true)),
-		s.word ? undo : '',
-	);
-}
-
-/**
- * @param {RatedEntry} e
- * @param {(when: number, short?: boolean) => string} ago
- */
-function entryRow(e, ago) {
-	return h(
-		'li',
-		{ class: 'ws-rated-row' },
-		thumb(e.value),
-		h('div', { class: 'ws-rated-text' }, h('a', { href: definitionHref(e.word), lang: e.lang }, e.word)),
-		h('span', { class: 'ws-rated-time' }, ago(e.at, true)),
-		takeBack(() => react(e.lang, e.word, 0)),
-	);
-}
-
-/** @param {number} value */
-function thumb(value) {
-	return h('span', { class: `ws-thumb ${value > 0 ? 'ws-thumb-up' : 'ws-thumb-down'}`, title: value > 0 ? t('Helpful') : t('Not helpful'), role: 'img', 'aria-label': value > 0 ? t('Helpful') : t('Not helpful') }, icon(value > 0 ? ICONS.thumbUp : ICONS.thumbDown, 16));
-}
-
-/**
- * A button that takes a rating back and then strikes the row through.
- * @param {() => Promise<unknown>} undo
- */
-function takeBack(undo) {
-	const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-link-button' }, t('Take back')));
-	b.addEventListener('click', async () => {
-		b.disabled = true;
-		try {
-			await undo();
-			b.closest('li')?.classList.add('ws-rated-gone');
-			b.textContent = t('Taken back');
-		} catch (err) {
-			b.disabled = false;
-			b.title = err instanceof Error ? err.message : String(err);
-		}
-	});
-	return b;
-}
-
-/**
- * @param {string} label
- * @param {number} value
- */
-function tile(label, value) {
-	return h('div', { class: 'ws-tile' }, h('span', { class: 'ws-tile-label' }, label), h('strong', { class: 'ws-tile-value' }, num(value)), h('span', { class: 'ws-tile-sub' }, ''));
 }

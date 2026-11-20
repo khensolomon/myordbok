@@ -1326,7 +1326,7 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 	font-size: 14px;
 	background: var(--ground);
 }
-.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="questions"], .ws[data-section="votes"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: 52px minmax(0, 1fr); }
+.ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: 52px minmax(0, 1fr); }
 
 /* Rail: icons only, the current one marked by a line and colour. */
 .ws-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-right: 1px solid var(--line-soft); min-height: 0; overflow: hidden; }
@@ -1589,37 +1589,49 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 /* Segment labels never wrap: "Whole site" stays on one line. */
 .ws-segments a { white-space: nowrap; padding-inline: 10px; }
 /* Ratings: one list with its filters on top. */
-.ws-rated-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
-.ws-rated-bar .ws-segments, .ws-rated-bar .ws-search { margin: 0; }
-.ws-rated-bar .ws-segments a { flex: none; }
-.ws-rated-bar .ws-search { flex: 1 1 200px; max-width: 320px; margin-left: auto; }
-.ws-rated-card .ws-more { margin: 12px 0 0; padding: 0 18px; }
-.ws-rated-none { padding: 12px 0; }
-.ws-scored-row { grid-template-columns: 92px minmax(0, 1fr) auto; }
-.ws-score { display: flex; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; padding-top: 2px; }
-.ws-score-down { color: var(--warn); font-weight: 600; }
-.ws-score-up { color: var(--brand); }
-.ws-rated { list-style: none; margin: 0; padding: 0; }
-.ws-rated-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line-soft); }
-.ws-rated-row:first-child { border-top: none; }
-.ws-rated-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; min-width: 0; }
-.ws-rated-text em { color: var(--muted); font-size: 13px; }
-.ws-rated-text .ws-sense { flex-basis: 100%; white-space: normal; }
-.ws-rated-stale .ws-sense { color: var(--muted); }
-.ws-rated-gone > :not(button) { opacity: 0.45; text-decoration: line-through; }
-.ws-rated-time { font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
-.ws-question-prompt { flex-basis: 100%; font-weight: 600; }
+.ws-question-prompt { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
 .ws-question-choices { flex-basis: 100%; margin: 4px 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .ws-question-choices li { padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; display: inline-flex; align-items: baseline; gap: 6px; }
 .ws-question-choices li.is-right { border-color: var(--good); }
 .ws-question-choices li.is-chosen { border-color: var(--warn-fill); }
+/* Ratings, Questions and Votes (columns.js): a row's second line on one line; the item in the middle. */
+.ws-row-line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-row-sub:lang(my), .ws-row-word:lang(my) { font-family: var(--font-my); }
+.ws-item { display: flex; flex-direction: column; gap: 18px; max-width: 760px; }
+.ws-item h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.ws-item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.ws-item-head h1 { margin: 0; font-size: 26px; }
+.ws-item-head h1:lang(my) { font-family: var(--font-my); line-height: 1.7; }
+.ws-item-head em { color: var(--muted); }
+.ws-item-sense { margin: 0; font-size: 18px; line-height: 1.7; }
+.ws-item-sense:lang(my) { font-family: var(--font-my); }
+.ws-question, .ws-question-said, .ws-meanings { padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 10px; }
+.ws-question .ws-quiet, .ws-question-said .ws-quiet { margin: 8px 0 0; }
+.ws-question-said blockquote { margin: 0; font-style: italic; }
+.ws-picks { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: minmax(0, max-content) minmax(80px, 1fr) auto; gap: 8px 12px; align-items: center; }
+.ws-picks li { display: contents; }
+.ws-pick-text:lang(my) { font-family: var(--font-my); }
+.ws-picks li.is-right .ws-pick-text { font-weight: 600; }
+.ws-pick-bar { height: 8px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
+.ws-pick-bar span { display: block; height: 100%; border-radius: 4px; background: var(--warn-fill); }
+.ws-picks li.is-right .ws-pick-bar span { background: var(--good); }
+.ws-picks small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ws-meanings h2 { display: flex; justify-content: space-between; gap: 12px; }
+.ws-meanings-open { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.ws-meanings ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.ws-meanings li :lang(my) { font-family: var(--font-my); }
+.ws-meanings li em { color: var(--muted); font-size: 13px; }
+.ws-meanings li.is-marked { font-weight: 600; }
+.ws-meanings li.is-marked::marker { color: var(--brand); }
+.ws-facts-side { margin: 0; gap: 6px 16px; font-size: 13px; }
+.ws-links a { font-size: 14px; }
+.ws-rating-is { display: flex; align-items: center; gap: 6px; }
+.ws-item-side-act > button { align-self: flex-start; }
+.ws-list-foot .ws-votes-tools { flex: 1 1 100%; min-width: 0; width: 100%; padding: 0; border: none; border-radius: 0; background: none; box-shadow: none; }
+.ws-list-foot .ws-votes-tools .ws-quiet { margin: 0; font-size: 12px; }
+.ws-list-foot .ws-votes-add { flex: 1 1 100%; min-width: 0; }
+.ws-list-foot .ws-votes-add .ws-secondary { flex: none; }
 .ws-question-choices small { font-size: 11px; color: var(--muted); }
-.ws-question-note { font-style: italic; }
-.ws-question-done > :not(button) { opacity: 0.55; }
-.ws-vote-title { flex-basis: 100%; font-size: 18px; line-height: 1.7; }
-.ws-vote-bar { flex-basis: 100%; max-width: 420px; height: 6px; margin: 4px 0; border-radius: 3px; background: var(--line-soft); display: flex; overflow: hidden; gap: 2px; }
-.ws-vote-bar span { background: var(--warn-fill); }
-.ws-vote-bar span.is-top { background: var(--good); }
 .ws-vote-actions { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
 .ws-vote-actions .ws-primary, .ws-vote-actions .ws-secondary { flex: none; }
 .ws-vote-actions .ws-secondary:lang(my), .ws-vote-actions [lang="my"] { font-family: var(--font-my); }
@@ -1628,7 +1640,6 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-votes-tools-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ws-votes-add { display: flex; gap: 8px; flex: 1 1 320px; }
 .ws-votes-add input { flex: 1; min-width: 0; height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; font-family: var(--font-my), var(--font-ui); }
-.ws-thumb { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--line-soft); color: var(--ink-2); }
 .ws-thumb-up { color: var(--brand); }
 .ws-thumb-down { color: var(--warn); }
 .ws-flag { flex-basis: 100%; font-size: 12px; color: var(--warn); }
@@ -2031,7 +2042,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
    site's person menu does. The page scrolls under them, behind a fading
    scrim. Then the list, then the item. */
 @media (max-width: 760px) {
-	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="ratings"], .ws[data-section="questions"], .ws[data-section="votes"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+	.ws, .ws[data-section="account"], .ws[data-section="overview"], .ws[data-section="settings"], .ws[data-section="offline"], .ws[data-section="messages"], .ws[data-section="notices"], .ws[data-section="sponsors"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 	.ws { --ws-bar: calc(60px + env(safe-area-inset-top)); }
 	.ws-rail {
 		position: fixed; top: 0; left: 0; right: 0; z-index: 20;

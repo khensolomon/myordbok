@@ -155,7 +155,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   Contributions, Ratings, the offline copy, the Inbox and Account; editors
   also Suggestions, the Studio, Comments, Questions and Votes; members shown
   the statistics, and editors, Searches; admins Members, Notices and
-  Settings; the owner Sponsors. Overview
+  Settings; the owner Sponsors. A section that is a long list (Suggestions,
+  Comments, Searches, Ratings, Questions, Votes, the Inbox, Members) has the
+  three columns: the list with its filters and search, the chosen row, and
+  its facts and actions (`app/workspace/list-bar.js`, `columns.js`).
+  Ratings, Questions and Votes show the entry concerned as the dictionary
+  has it now beside the row. Overview
   is the home: a member's own figures, or for editors and admins searches
   per day, the words searched most and searched but missing, suggestions,
   members and the meanings rated down most (`/api/workspace/overview`).

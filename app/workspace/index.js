@@ -46,9 +46,9 @@ import { inboxPanes } from './inbox.js';
 import { messagesPane } from './messages.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
-import { ratingsPane } from './ratings.js';
-import { questionsPane } from './questions.js';
-import { votesPane } from './votes.js';
+import { ratingsPanes } from './ratings.js';
+import { questionsPanes } from './questions.js';
+import { votesPanes } from './votes.js';
 import { offlinePane } from './offline.js';
 import { membersPanes } from './members.js';
 import { searchesPanes } from './searches.js';
@@ -164,15 +164,18 @@ export async function view(ctx) {
 		return root;
 	}
 	if (section === 'ratings') {
-		root.append(rail, await ratingsPane(ctx, seesStatistics(me), ago));
+		root.append(rail, ...(await ratingsPanes(ctx, root, seesStatistics(me), editor, ago)));
+		resizable();
 		return root;
 	}
 	if (section === 'votes') {
-		root.append(rail, await votesPane(ctx, ago));
+		root.append(rail, ...(await votesPanes(ctx, root, ago)));
+		resizable();
 		return root;
 	}
 	if (section === 'questions') {
-		root.append(rail, await questionsPane(ctx, ago));
+		root.append(rail, ...(await questionsPanes(ctx, root, ago)));
+		resizable();
 		return root;
 	}
 	if (section === 'comments') {

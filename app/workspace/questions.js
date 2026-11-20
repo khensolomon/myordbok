@@ -1,22 +1,28 @@
 // @ts-check
 /**
- * Questions (?s=questions), for editors: what readers said is wrong with a
- * Test yourself question, and the questions they often get wrong
- * (worker/routes/quiz.js). Both point at an entry to look at: an unclear or
- * wrong meaning, a choice that is right too, a misspelling.
+ * Questions (?s=questions), for editors, in three columns (columns.js): what
+ * readers said is wrong with a Test yourself question, and the questions
+ * they often get wrong (worker/routes/quiz.js). Both point at an entry to
+ * look at: an unclear or wrong meaning, a choice that is right too, a
+ * misspelling. A question opens as the reader saw it, with the entry as the
+ * dictionary has it now; a report is set done, or looked at again, beside it.
  *
  *   &view=reports|missed  &status=new|done|all (reports)  &order=wrong|answers (missed)  &q=…
  */
-import { h, icon } from '../core/dom.js';
-import { ICONS } from '../core/icons.js';
+import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { setQuestionReport, workspaceQuestions } from '../data/api.js';
 import { mark, num, t } from '../i18n/index.js';
+import { entryMeanings, fact, listColumns } from './columns.js';
 
 /** @typedef {import('../data/api.js').QuestionsFilter} Filter */
 /** @typedef {import('../data/api.js').QuestionReport} Report */
 /** @typedef {import('../data/api.js').MissedQuestion} Missed */
 
+const VIEWS = /** @type {const} */ ([
+	['reports', mark('Reported')],
+	['missed', mark('Often missed')],
+]);
 const STATUSES = /** @type {const} */ ([
 	['new', mark('To look at')],
 	['done', mark('Done')],
@@ -44,10 +50,17 @@ const REASON_NAMES = {
 };
 
 /**
+ * The language a choice of this kind of question is written in.
+ * @param {string} kind
+ */
+const choiceLang = (kind) => (kind === 'en-my' || kind === 'sense' ? 'my' : 'en');
+
+/**
  * @param {import('../core/routes.js').ViewContext} ctx
+ * @param {HTMLElement} root
  * @param {(when: number, short?: boolean) => string} ago
  */
-export async function questionsPane(ctx, ago) {
+export async function questionsPanes(ctx, root, ago) {
 	const q = ctx.query;
 	/** @type {Filter} */
 	const f = {
@@ -56,6 +69,7 @@ export async function questionsPane(ctx, ago) {
 		order: q.get('order') === 'answers' ? 'answers' : 'wrong',
 		q: (q.get('q') ?? '').trim(),
 	};
+	const reports = f.view === 'reports';
 	/** @param {Partial<Filter>} change */
 	const href = (change) => {
 		const n = { ...f, ...change };
@@ -66,176 +80,162 @@ export async function questionsPane(ctx, ago) {
 		if (n.q) p.set('q', n.q);
 		return `/workspace?${p}`;
 	};
-	const segments = (/** @type {string} */ label, /** @type {ReadonlyArray<readonly [string, string]>} */ options, /** @type {string} */ now, /** @type {(v: any) => Partial<Filter>} */ change) =>
-		h('nav', { class: 'ws-segments', 'aria-label': label }, options.map(([v, text]) => h('a', { href: href(change(v)), 'aria-current': v === now ? 'true' : null }, t(text))));
-
-	const main = h('main', { class: 'ws-main ws-overview ws-ratings ws-questions', 'aria-label': t('Questions') });
-	const reports = f.view === 'reports';
-	const head = h(
-		'header',
-		{ class: 'ws-ov-head' },
-		h('h1', null, t('Questions')),
-		h(
-			'nav',
-			{ class: 'ws-segments', 'aria-label': t('Show') },
-			h('a', { href: href({ view: 'reports', q: '' }), 'aria-current': reports ? 'true' : null }, t('Reported')),
-			h('a', { href: href({ view: 'missed', q: '' }), 'aria-current': reports ? null : 'true' }, t('Often missed')),
-		),
-	);
-	const tiles = h('div', { class: 'ws-tiles' });
 	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Word starts with…'), 'aria-label': t('Find a word'), value: f.q }));
-	const list = h('ul', { class: 'ws-rated' });
-	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
-	const card = h(
-		'section',
-		{ class: 'ws-card ws-card-wide ws-rated-card' },
-		h(
-			'div',
-			{ class: 'ws-rated-bar' },
-			reports ? segments(t('Status'), STATUSES, f.status, (v) => ({ status: v })) : segments(t('Order'), ORDERS, f.order, (v) => ({ order: v })),
-			h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search),
-		),
-		h(
-			'p',
-			{ class: 'ws-quiet' },
-			reports
-				? t('What readers said is wrong with a question, as it was shown to them. Fix the entry if it needs it, then set the report done.')
-				: t('Questions answered at least 3 times and missed at least once, counted only from readers who allowed usage statistics. A wrong choice picked often may be a meaning the word is missing.'),
-		),
-		list,
-		more,
+	/** @type {{ new: number, done: number, missed: number }} */
+	let counts = { new: 0, done: 0, missed: 0 };
+
+	return listColumns(
+		/** @type {import('./columns.js').Columns<Report | Missed>} */ ({
+			root,
+			title: t('Questions'),
+			choose: t('Choose a question from the list.'),
+			nothing: (filtered) => (filtered ? t('Nothing matches.') : t('None yet.')),
+			search,
+			fetch: async (/** @type {number} */ offset) => {
+				const page = await workspaceQuestions({ ...f, q: search.value.trim() }, offset);
+				counts = page.counts;
+				return { items: page.items, more: page.more };
+			},
+			count: () => t('{n} in all', { n: num(reports ? (f.status === 'all' ? counts.new + counts.done : counts[f.status]) : counts.missed) }),
+			bar: () => ({
+				groups: [
+					{ title: t('Show'), current: f.view, fallback: 'reports', href: (/** @type {string} */ v) => href({ view: /** @type {Filter['view']} */ (v), q: '' }), choices: VIEWS.map(([v, l]) => ({ value: v, label: t(l), count: v === 'missed' ? counts.missed : counts.new })) },
+					reports
+						? { title: t('Status'), current: f.status, fallback: 'new', href: (/** @type {string} */ v) => href({ status: /** @type {Filter['status']} */ (v) }), choices: STATUSES.map(([v, l]) => ({ value: v, label: t(l) })) }
+						: { title: t('Order'), current: f.order, fallback: 'wrong', href: (/** @type {string} */ v) => href({ order: /** @type {Filter['order']} */ (v) }), choices: ORDERS.map(([v, l]) => ({ value: v, label: t(l) })) },
+				],
+				search,
+				reset: href({ status: 'new', order: 'wrong', q: '' }),
+			}),
+			row: (/** @type {Report | Missed} */ item) => {
+				if ('picks' in item) {
+					const share = Math.round((item.wrong / item.answers) * 100);
+					return { word: item.word, lang: 'en', aside: `${num(share)}%`, sub: t(KIND_NAMES[item.kind] ?? item.kind), state: t('{wrong} of {answers} wrong', { wrong: num(item.wrong), answers: num(item.answers) }) };
+				}
+				return { word: item.word, lang: 'en', tag: t(KIND_NAMES[item.kind] ?? item.kind), sub: t(REASON_NAMES[item.reason] ?? item.reason), state: [item.status === 'done' ? t('Done') : '', ago(item.at, true)].filter(Boolean).join(' · '), off: item.status === 'done' };
+			},
+			show: (/** @type {Report | Missed} */ item, /** @type {{ update: (item: Report | Missed) => void }} */ then) => ('picks' in item ? missed(item, ago) : reported(item, ago, then.update)),
+		}),
 	);
-	let shown = 0;
-
-	/** @param {boolean} [again] */
-	const load = async (again = false) => {
-		const page = await workspaceQuestions(f, again ? shown : 0);
-		const c = page.counts;
-		tiles.replaceChildren(tile(t('To look at'), c.new), tile(t('Done'), c.done), tile(t('Often missed'), c.missed));
-		if (!again) {
-			list.replaceChildren();
-			shown = 0;
-		}
-		shown += page.items.length;
-		list.append(...page.items.map((r) => (reports ? reportRow(/** @type {Report} */ (r), ago) : missedRow(/** @type {Missed} */ (r), ago))));
-		if (!shown) list.replaceChildren(h('li', { class: 'ws-quiet ws-rated-none' }, f.q ? t('Nothing matches.') : t('None yet.')));
-		more.hidden = !page.more;
-	};
-
-	more.addEventListener('click', () => {
-		more.disabled = true;
-		load(true)
-			.catch((err) => list.append(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))))
-			.finally(() => (more.disabled = false));
-	});
-	let timer = 0;
-	search.addEventListener('input', () => {
-		clearTimeout(timer);
-		timer = window.setTimeout(() => {
-			f.q = search.value.trim();
-			history.replaceState(history.state, '', href({}));
-			load().catch((err) => list.replaceChildren(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))));
-		}, 250);
-	});
-
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, tiles, card)));
-	await load();
-	return main;
 }
 
 /**
- * The language a choice of this kind of question is written in.
- * @param {string} kind
- */
-const choiceLang = (kind) => (kind === 'en-my' || kind === 'sense' ? 'my' : 'en');
-
-/**
  * A reported question: as the reader saw it, the right answer and what they
- * picked marked, then what they said.
+ * picked marked, then what they said; set done beside it.
  * @param {Report} r
  * @param {(when: number, short?: boolean) => string} ago
+ * @param {(r: Report) => void} update
+ * @returns {import('./columns.js').ItemView}
  */
-function reportRow(r, ago) {
-	const toggle = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-link-button' }, r.status === 'new' ? t('Set done') : t('Look again')));
-	const row = h(
-		'li',
-		{ class: `ws-rated-row ws-question-row${r.status === 'done' ? ' ws-question-done' : ''}` },
-		h('span', { class: 'ws-thumb ws-thumb-down', 'aria-hidden': 'true' }, icon(ICONS.info, 16)),
-		h(
-			'div',
-			{ class: 'ws-rated-text' },
-			h('a', { href: definitionHref(r.word), lang: 'en' }, r.word),
-			h('em', null, ` ${t(KIND_NAMES[r.kind] ?? r.kind)}`),
-			h('span', { class: 'ws-question-prompt', lang: r.kind === 'my-en' ? 'my' : 'en' }, r.prompt),
-			h(
-				'ul',
-				{ class: 'ws-question-choices' },
-				r.choices.map((c) =>
-					h(
-						'li',
-						{ class: c === r.answer ? 'is-right' : c === r.chosen ? 'is-chosen' : '' },
-						h('span', { lang: choiceLang(r.kind) }, c),
-						c === r.answer ? h('small', null, t('right')) : c === r.chosen ? h('small', null, t('picked')) : '',
-					),
-				),
-			),
-			h('span', { class: 'ws-flag' }, t(REASON_NAMES[r.reason] ?? r.reason)),
-			r.note ? h('span', { class: 'ws-sense ws-question-note' }, `“${r.note}”`) : '',
-			h('span', { class: 'ws-sense ws-quiet' }, r.member ? t('From {name}', { name: r.member }) : t('From a visitor')),
-		),
-		h('span', { class: 'ws-rated-time' }, ago(r.at, true)),
-		toggle,
-	);
+function reported(r, ago, update) {
+	const toggle = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: r.status === 'new' ? 'ws-primary' : 'ws-secondary' }, r.status === 'new' ? t('Set done') : t('Look again')));
+	const out = h('p', { class: 'ws-result', role: 'status' });
 	toggle.addEventListener('click', async () => {
 		toggle.disabled = true;
 		const next = r.status === 'new' ? 'done' : 'new';
 		try {
 			await setQuestionReport(r.id, next);
-			r.status = next;
-			row.classList.toggle('ws-question-done', next === 'done');
-			toggle.textContent = next === 'new' ? t('Set done') : t('Look again');
+			update({ ...r, status: next });
 		} catch (err) {
-			toggle.title = err instanceof Error ? err.message : String(err);
-		} finally {
 			toggle.disabled = false;
+			out.textContent = err instanceof Error ? err.message : String(err);
 		}
 	});
-	return row;
+	return {
+		name: r.word,
+		lang: 'en',
+		main: [
+			h('header', { class: 'ws-item-head' }, h('h1', { lang: 'en' }, r.word), h('em', null, t(KIND_NAMES[r.kind] ?? r.kind))),
+			h(
+				'section',
+				{ class: 'ws-question' },
+				h('p', { class: 'ws-question-prompt', lang: r.kind === 'my-en' ? 'my' : 'en' }, r.prompt),
+				h(
+					'ul',
+					{ class: 'ws-question-choices' },
+					r.choices.map((c) =>
+						h(
+							'li',
+							{ class: c === r.answer ? 'is-right' : c === r.chosen ? 'is-chosen' : '' },
+							h('span', { lang: choiceLang(r.kind) }, c),
+							c === r.answer ? h('small', null, t('right')) : c === r.chosen ? h('small', null, t('picked')) : '',
+						),
+					),
+				),
+				r.kind === 'type' && r.chosen && !r.choices.includes(r.chosen) ? h('p', { class: 'ws-quiet' }, t('Typed:'), ' ', h('b', { lang: 'en' }, r.chosen)) : null,
+			),
+			h(
+				'section',
+				{ class: 'ws-question-said' },
+				h('h2', null, t(REASON_NAMES[r.reason] ?? r.reason)),
+				r.note ? h('blockquote', null, r.note) : null,
+				h('p', { class: 'ws-quiet' }, r.member ? t('From {name}', { name: r.member }) : t('From a visitor'), ` · ${ago(r.at)}`),
+			),
+			entryMeanings(r.word),
+		],
+		side: [
+			h(
+				'section',
+				{ class: 'ws-box ws-item-side-act' },
+				h('h2', null, t('Status')),
+				h('p', null, r.status === 'new' ? t('To look at') : t('Done')),
+				toggle,
+				out,
+				h('p', { class: 'ws-quiet' }, t('What readers said is wrong with a question, as it was shown to them. Fix the entry if it needs it, then set the report done.')),
+			),
+			links(r.word),
+		],
+	};
 }
 
 /**
  * A question often missed: how often, and the wrong choices picked most.
  * @param {Missed} m
  * @param {(when: number, short?: boolean) => string} ago
+ * @returns {import('./columns.js').ItemView}
  */
-function missedRow(m, ago) {
-	const share = Math.round((m.wrong / m.answers) * 100);
-	return h(
-		'li',
-		{ class: 'ws-rated-row ws-question-row' },
-		h('span', { class: 'ws-score', title: t('{wrong} of {answers} wrong', { wrong: num(m.wrong), answers: num(m.answers) }) }, h('span', { class: 'ws-score-down' }, `${num(share)}%`)),
+function missed(m, ago) {
+	const lang = choiceLang(m.kind);
+	const most = Math.max(m.answers - m.wrong, ...m.picks.map((p) => p.n), 1);
+	const line = (/** @type {string} */ text, /** @type {number} */ n, right = false) =>
 		h(
-			'div',
-			{ class: 'ws-rated-text' },
-			h('a', { href: definitionHref(m.word), lang: 'en' }, m.word),
-			h('em', null, ` ${t(KIND_NAMES[m.kind] ?? m.kind)}`),
-			h('span', { class: 'ws-sense' }, t('Right answer:'), ' ', h('b', { lang: choiceLang(m.kind) }, m.answer), ` · ${t('{wrong} of {answers} wrong', { wrong: num(m.wrong), answers: num(m.answers) })}`),
+			'li',
+			{ class: right ? 'is-right' : null },
+			h('span', { class: 'ws-pick-text', lang }, text),
+			h('span', { class: 'ws-pick-bar', 'aria-hidden': 'true' }, h('span', { style: `width: ${(n / most) * 100}%` })),
+			h('small', null, num(n)),
+		);
+	return {
+		name: m.word,
+		lang: 'en',
+		main: [
+			h('header', { class: 'ws-item-head' }, h('h1', { lang: 'en' }, m.word), h('em', null, t(KIND_NAMES[m.kind] ?? m.kind))),
+			h('section', { class: 'ws-question' }, h('h2', null, t('Answers')), h('ul', { class: 'ws-picks' }, line(m.answer, m.answers - m.wrong, true), ...m.picks.map((p) => line(p.text, p.n)))),
+			entryMeanings(m.word),
+		],
+		side: [
 			h(
-				'span',
-				{ class: 'ws-sense' },
-				t('Picked instead:'),
-				' ',
-				...m.picks.slice(0, 4).flatMap((p, i) => [i ? ', ' : '', h('span', { lang: choiceLang(m.kind) }, p.text), ` ×${num(p.n)}`]),
+				'section',
+				{ class: 'ws-box' },
+				h('h2', null, t('Answers')),
+				h('dl', { class: 'ws-facts ws-facts-side' }, ...fact(t('Answered'), m.answers), ...fact(t('Wrong'), m.wrong), ...fact(t('Missed'), `${num(Math.round((m.wrong / m.answers) * 100))}%`), ...fact(t('Last answered'), ago(m.at))),
+				h('p', { class: 'ws-quiet' }, t('Questions answered at least 3 times and missed at least once, counted only from readers who allowed usage statistics. A wrong choice picked often may be a meaning the word is missing.')),
 			),
-		),
-		h('span', { class: 'ws-rated-time' }, ago(m.at, true)),
-	);
+			links(m.word),
+		],
+	};
 }
 
 /**
- * @param {string} label
- * @param {number} value
+ * The entry, on the site and in the studio.
+ * @param {string} word
  */
-function tile(label, value) {
-	return h('div', { class: 'ws-tile' }, h('span', { class: 'ws-tile-label' }, label), h('strong', { class: 'ws-tile-value' }, num(value)), h('span', { class: 'ws-tile-sub' }, ''));
+function links(word) {
+	return h(
+		'section',
+		{ class: 'ws-box ws-links' },
+		h('h2', null, t('Entry')),
+		h('a', { href: definitionHref(word) }, t('Open the entry')),
+		h('a', { href: `/workspace?s=studio&word=${encodeURIComponent(word)}` }, t('Open in the studio')),
+	);
 }

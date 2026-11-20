@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.20+159
+
+- Ratings, Questions and Votes in three columns like Members: the list, the item with its entry as the dictionary has it now, and its actions; a lighter gear for Settings
+
 ## 26.11.20+158
 
 - Every related word links, those without an entry in a lighter colour; sign-in addresses are new each time; Settings has a gear icon

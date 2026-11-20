@@ -1,7 +1,10 @@
 // @ts-check
 /**
- * Votes (?s=votes), for editors: what members who read Myanmar answered to
- * the spelling and meaning questions (worker/routes/help.js), to decide on.
+ * Votes (?s=votes), for editors, in three columns (columns.js): what members
+ * who read Myanmar answered to the spelling and meaning questions
+ * (worker/routes/help.js), to decide on. A question opens with how the
+ * answers split and, for a meaning, the entry as the dictionary has it now;
+ * the decision is made beside it.
  * Only members whose check answers show they read Myanmar are counted, and
  * "not sure" never is. A decision never changes the dictionary by itself:
  * a spelling decided labels the other spellings searched as misspellings
@@ -9,11 +12,11 @@
  *
  *   &kind=spelling|meaning  &state=ready|split|collecting|decided|set_aside  &q=…
  */
-import { h, icon } from '../core/dom.js';
-import { ICONS } from '../core/icons.js';
+import { h } from '../core/dom.js';
 import { definitionHref } from '../core/routes.js';
 import { addSpellingVote, decideVote, findSpellingVotes, workspaceVotes } from '../data/api.js';
 import { mark, num, posName, t, tn } from '../i18n/index.js';
+import { entryMeanings, listColumns } from './columns.js';
 
 /** @typedef {import('../data/api.js').VoteItem} Item */
 /** @typedef {import('../data/api.js').VotesFilter} Filter */
@@ -46,9 +49,10 @@ const SOURCES = {
 
 /**
  * @param {import('../core/routes.js').ViewContext} ctx
+ * @param {HTMLElement} root
  * @param {(when: number, short?: boolean) => string} ago
  */
-export async function votesPane(ctx, ago) {
+export async function votesPanes(ctx, root, ago) {
 	const q = ctx.query;
 	/** @type {Filter} */
 	const f = {
@@ -65,106 +69,53 @@ export async function votesPane(ctx, ago) {
 		if (n.q) p.set('q', n.q);
 		return `/workspace?${p}`;
 	};
-	const main = h('main', {
-		class: 'ws-main ws-overview ws-ratings ws-votes',
-		'aria-label': t('Votes'),
-	});
-	const head = h(
-		'header',
-		{ class: 'ws-ov-head' },
-		h('h1', null, t('Votes')),
-		h(
-			'nav',
-			{ class: 'ws-segments', 'aria-label': t('Kind') },
-			KINDS.map(([v, text]) =>
-				h(
-					'a',
-					{
-						href: href({ kind: v, state: 'ready', q: '' }),
-						'aria-current': v === f.kind ? 'true' : null,
-					},
-					t(text),
-				),
-			),
-		),
-	);
-	const tiles = h('div', { class: 'ws-tiles' });
-	const states = h('nav', { class: 'ws-segments', 'aria-label': t('Status') });
-	const search = /** @type {HTMLInputElement} */ (
-		h('input', {
-			type: 'search',
-			placeholder: t('Find a word…'),
-			'aria-label': t('Find a word'),
-			value: f.q,
-		})
-	);
-	const rules = h('p', { class: 'ws-quiet' });
-	const list = h('ul', { class: 'ws-rated' });
-	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-more', hidden: true }, t('Show more')));
-	const tools = f.kind === 'spelling' ? spellingTools(() => load().catch(shout)) : '';
-	const card = h(
-		'section',
-		{ class: 'ws-card ws-card-wide ws-rated-card' },
-		h('div', { class: 'ws-rated-bar' }, states, h('label', { class: 'ws-search' }, icon(ICONS.search, 14), search)),
-		rules,
-		list,
-		more,
-	);
-	let shown = 0;
-	const shout = (/** @type {unknown} */ err) => list.replaceChildren(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err)));
+	const search = /** @type {HTMLInputElement} */ (h('input', { type: 'search', placeholder: t('Find a word…'), 'aria-label': t('Find a word'), value: f.q }));
+	/** @type {Record<Item['state'], number>} */
+	let counts = { ready: 0, split: 0, collecting: 0, decided: 0, set_aside: 0 };
+	let rules = '';
+	const answerName = (/** @type {string} */ a) => (ANSWERS[a] ? t(ANSWERS[a]) : a);
+	/** @type {() => void} */
+	let reload = () => {};
 
-	/** @param {boolean} [again] */
-	const load = async (again = false) => {
-		const page = await workspaceVotes(f, again ? shown : 0);
-		const c = page.counts;
-		states.replaceChildren(
-			...STATES.map(([v, text]) =>
-				h(
-					'a',
-					{
-						href: href({ state: v }),
-						'aria-current': v === f.state ? 'true' : null,
-					},
-					t(text),
-					' ',
-					h('span', { class: 'ws-count' }, num(c[v])),
-				),
-			),
-		);
-		tiles.replaceChildren(tile(t('Ready'), c.ready), tile(t('Split'), c.split), tile(t('Collecting'), c.collecting), tile(t('Decided'), c.decided));
-		rules.textContent = t('Ready at {votes} counted votes with {share}% agreeing. Counted: members who answered {checks} check questions with {fluent}% or more right; “not sure” is left out.', {
-			votes: num(page.rules.votes),
-			share: num(Math.round(page.rules.share * 100)),
-			checks: num(page.rules.checks),
-			fluent: num(Math.round(page.rules.fluent * 100)),
-		});
-		if (!again) {
-			list.replaceChildren();
-			shown = 0;
-		}
-		shown += page.items.length;
-		list.append(...page.items.map((item) => row(item, ago, () => load().catch(shout))));
-		if (!shown) list.replaceChildren(h('li', { class: 'ws-quiet ws-rated-none' }, f.q ? t('Nothing matches.') : t('None yet.')));
-		more.hidden = !page.more;
-	};
-	more.addEventListener('click', () => {
-		more.disabled = true;
-		load(true)
-			.catch((err) => list.append(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err))))
-			.finally(() => (more.disabled = false));
+	return listColumns({
+		root,
+		title: t('Votes'),
+		choose: t('Choose a question from the list.'),
+		nothing: (filtered) => (filtered ? t('Nothing matches.') : t('None yet.')),
+		search,
+		fetch: async (offset) => {
+			const page = await workspaceVotes({ ...f, q: search.value.trim() }, offset);
+			counts = page.counts;
+			rules = t('Ready at {votes} counted votes with {share}% agreeing. Counted: members who answered {checks} check questions with {fluent}% or more right; “not sure” is left out.', {
+				votes: num(page.rules.votes),
+				share: num(Math.round(page.rules.share * 100)),
+				checks: num(page.rules.checks),
+				fluent: num(Math.round(page.rules.fluent * 100)),
+			});
+			return { items: page.items, more: page.more };
+		},
+		count: () => t('{n} in all', { n: num(counts[f.state]) }),
+		bar: () => ({
+			groups: [
+				{ title: t('Kind'), current: f.kind, fallback: 'spelling', href: (v) => href({ kind: /** @type {Filter['kind']} */ (v), state: 'ready', q: '' }), choices: KINDS.map(([v, l]) => ({ value: v, label: t(l) })) },
+				{ title: t('Status'), current: f.state, fallback: 'ready', href: (v) => href({ state: /** @type {Filter['state']} */ (v) }), choices: STATES.map(([v, l]) => ({ value: v, label: t(l), count: counts[v] })) },
+			],
+			search,
+			reset: href({ state: 'ready', q: '' }),
+		}),
+		foot: [f.kind === 'spelling' ? spellingTools(() => reload()) : null],
+		row: (item) => {
+			const total = item.answers.reduce((a, x) => a + x.n, 0);
+			const top = item.answers[0];
+			const share = top && total ? `${num(Math.round((top.n / total) * 100))}%` : '—';
+			const votes = tn('{n} counted vote', '{n} counted votes', item.votes, { n: num(item.votes) });
+			return item.kind === 'spelling'
+				? { word: (item.options ?? []).join(' / '), lang: 'my', aside: share, sub: top ? answerName(top.text) : t('No answers yet'), subLang: top && !ANSWERS[top.text] ? 'my' : undefined, state: votes, off: item.state === 'decided' || item.state === 'set_aside' }
+				: { word: /** @type {string} */ (item.word), lang: 'en', aside: share, sub: item.gloss ?? '', subLang: 'my', state: [item.type ? posName(item.type) : '', votes].filter(Boolean).join(' · '), off: item.state === 'decided' || item.state === 'set_aside' };
+		},
+		ready: (list) => (reload = list.reload),
+		show: (item, then) => view(item, ago, rules, then.reload),
 	});
-	let timer = 0;
-	search.addEventListener('input', () => {
-		clearTimeout(timer);
-		timer = window.setTimeout(() => {
-			f.q = search.value.trim();
-			history.replaceState(history.state, '', href({}));
-			load().catch(shout);
-		}, 250);
-	});
-	main.append(h('div', { class: 'ws-work' }, head, h('div', { class: 'ws-ov' }, tiles, tools, card)));
-	await load();
-	return main;
 }
 
 /**
@@ -224,25 +175,19 @@ function spellingTools(reload) {
 }
 
 /**
+ * A question opened: how the answers split, and the decision beside it.
  * @param {Item} item
  * @param {(when: number, short?: boolean) => string} ago
- * @param {() => void} reload
+ * @param {string} rules  How votes are counted.
+ * @param {() => void} reload  The list again, after a decision.
+ * @returns {import('./columns.js').ItemView}
  */
-function row(item, ago, reload) {
+function view(item, ago, rules, reload) {
 	const total = item.answers.reduce((a, x) => a + x.n, 0);
 	const answerName = (/** @type {string} */ a) => (ANSWERS[a] ? t(ANSWERS[a]) : a);
 	const top = item.answers[0];
-	const bar = h(
-		'div',
-		{ class: 'ws-vote-bar', 'aria-hidden': 'true' },
-		item.answers.map((a, n) =>
-			h('span', {
-				class: n === 0 ? 'is-top' : '',
-				style: `width: ${total ? (a.n / total) * 100 : 0}%`,
-			}),
-		),
-	);
-	const status = h('span', { class: 'ws-quiet', role: 'status' });
+	const most = Math.max(1, ...item.answers.map((a) => a.n));
+	const out = h('p', { class: 'ws-result', role: 'status' });
 	const act = (/** @type {'decided' | 'set_aside' | 'collecting'} */ s, /** @type {string | undefined} */ decision) => async (/** @type {Event} */ ev) => {
 		const b = /** @type {HTMLButtonElement} */ (ev.currentTarget);
 		b.disabled = true;
@@ -251,7 +196,7 @@ function row(item, ago, reload) {
 			reload();
 		} catch (err) {
 			b.disabled = false;
-			status.textContent = err instanceof Error ? err.message : String(err);
+			out.textContent = err instanceof Error ? err.message : String(err);
 		}
 	};
 	const button = (/** @type {string} */ label, /** @type {(ev: Event) => void} */ onClick, primary = false) => {
@@ -272,89 +217,67 @@ function row(item, ago, reload) {
 	} else {
 		actions = [button(t('Right'), act('decided', 'right'), top?.text === 'yes'), button(t('Wrong'), act('decided', 'wrong'), top?.text === 'no'), button(t('Set aside'), act('set_aside'))];
 	}
-	const share = top && total ? Math.round((top.n / total) * 100) : 0;
 	const facts = [
-		tn('{n} counted vote', '{n} counted votes', item.votes, {
-			n: num(item.votes),
-		}),
+		tn('{n} counted vote', '{n} counted votes', item.votes, { n: num(item.votes) }),
 		item.asked > item.votes ? t('{n} answers in all', { n: num(item.asked) }) : '',
-		top
-			? t('{share}% {answer}', {
-					share: num(share),
-					answer: answerName(top.text),
-				})
-			: '',
 		item.searched ? tn('searched {n} time, not found', 'searched {n} times, not found', item.searched, { n: num(item.searched) }) : t(SOURCES[item.source] ?? item.source),
+		ago(item.at),
 	].filter(Boolean);
-	return h(
-		'li',
-		{ class: 'ws-rated-row ws-vote-row' },
-		h('span', { class: 'ws-thumb', 'aria-hidden': 'true' }, icon(item.kind === 'spelling' ? ICONS.document : ICONS.dictionary, 16)),
-		h(
-			'div',
-			{ class: 'ws-rated-text' },
-			item.kind === 'spelling'
-				? h('span', { class: 'ws-vote-title', lang: 'my' }, (item.options ?? []).join(' / '))
-				: [
-						h(
-							'a',
-							{
-								href: definitionHref(/** @type {string} */ (item.word)),
-								lang: 'en',
-							},
-							item.word,
-						),
-						item.type ? h('em', null, ` ${posName(item.type)}`) : '',
-						h('span', { class: 'ws-vote-title', lang: 'my' }, item.gloss),
-					],
-			bar,
-			item.answers.length === 0
-				? ''
-				: h(
-						'ul',
-						{ class: 'ws-question-choices' },
-						item.answers.map((a) =>
-							h(
-								'li',
-								null,
-								h(
-									'span',
-									{
-										lang: item.kind === 'spelling' && !ANSWERS[a.text] ? 'my' : 'en',
-									},
-									answerName(a.text),
-								),
-								h('small', null, num(a.n)),
-							),
-						),
-					),
-			h('span', { class: 'ws-sense ws-quiet' }, facts.join(' · ')),
-			item.decision ? h('span', { class: 'ws-flag' }, t('Decided: {answer}', { answer: answerName(item.decision) })) : '',
+	const name = item.kind === 'spelling' ? (item.options ?? []).join(' / ') : /** @type {string} */ (item.word);
+	return {
+		name,
+		lang: item.kind === 'spelling' ? 'my' : 'en',
+		main: [
 			h(
-				'div',
-				{ class: 'ws-vote-actions' },
-				...actions,
-				item.kind === 'meaning'
-					? h(
-							'a',
-							{
-								class: 'ws-link-button',
-								href: `/workspace?s=studio&word=${encodeURIComponent(/** @type {string} */ (item.word))}`,
-							},
-							t('Open in the studio'),
-						)
-					: '',
+				'header',
+				{ class: 'ws-item-head' },
+				h('h1', { lang: item.kind === 'spelling' ? 'my' : 'en' }, name),
+				h('em', null, item.kind === 'spelling' ? t('Spelling') : [t('Meaning'), item.type ? ` · ${posName(item.type)}` : '']),
 			),
-			status,
-		),
-		h('span', { class: 'ws-rated-time' }, ago(item.at, true)),
-	);
-}
-
-/**
- * @param {string} label
- * @param {number} value
- */
-function tile(label, value) {
-	return h('div', { class: 'ws-tile' }, h('span', { class: 'ws-tile-label' }, label), h('strong', { class: 'ws-tile-value' }, num(value)), h('span', { class: 'ws-tile-sub' }, ''));
+			item.kind === 'meaning' ? h('p', { class: 'ws-item-sense', lang: 'my' }, item.gloss) : null,
+			h(
+				'section',
+				{ class: 'ws-question' },
+				h('h2', null, t('Answers')),
+				item.answers.length
+					? h(
+							'ul',
+							{ class: 'ws-picks' },
+							item.answers.map((a, n) =>
+								h(
+									'li',
+									{ class: n === 0 ? 'is-right' : null },
+									h('span', { class: 'ws-pick-text', lang: item.kind === 'spelling' && !ANSWERS[a.text] ? 'my' : null }, answerName(a.text)),
+									h('span', { class: 'ws-pick-bar', 'aria-hidden': 'true' }, h('span', { style: `width: ${(a.n / most) * 100}%` })),
+									h('small', null, total ? `${num(a.n)} · ${num(Math.round((a.n / total) * 100))}%` : num(a.n)),
+								),
+							),
+						)
+					: h('p', { class: 'ws-quiet' }, t('No answers yet')),
+				h('p', { class: 'ws-quiet' }, facts.join(' · ')),
+			),
+			item.kind === 'meaning' && item.word ? entryMeanings(item.word, { id: item.sense_id, type: item.type }) : null,
+		],
+		side: [
+			h(
+				'section',
+				{ class: 'ws-box ws-item-side-act' },
+				h('h2', null, t('Decision')),
+				item.decision ? h('p', null, t('Decided: {answer}', { answer: answerName(item.decision) })) : null,
+				h('div', { class: 'ws-vote-actions' }, ...actions),
+				out,
+				h('p', { class: 'ws-quiet' }, item.kind === 'spelling' ? t('Deciding a spelling labels the other spellings searched as misspellings of it, as Searches does.') : t('A decision changes nothing by itself: the meaning is changed in the studio.')),
+			),
+			item.kind === 'meaning' && item.word
+				? h(
+						'section',
+						{ class: 'ws-box ws-links' },
+						h('h2', null, t('Entry')),
+						h('a', { href: definitionHref(item.word) }, t('Open the entry')),
+						h('a', { href: `/workspace?s=studio&word=${encodeURIComponent(item.word)}` }, t('Open in the studio')),
+					)
+				: null,
+			h('section', { class: 'ws-box' }, h('h2', null, t('How votes count')), h('p', { class: 'ws-quiet' }, rules)),
+		],
+	};
 }
