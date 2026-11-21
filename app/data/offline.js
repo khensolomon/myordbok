@@ -20,7 +20,7 @@
  * it keeps and that tally. No words and nothing identifying the device.
  */
 import { newSealKey, seal, unseal } from './seal.js';
-import { getJSON, postJSON } from '#platform/http.js';
+import { getJSON, postJSON, request } from '#platform/http.js';
 import { AppError } from '#shared/errors.js';
 
 const DB_NAME = 'myordbok-offline';
@@ -144,9 +144,7 @@ export async function installed() {
 export async function install(pack, build, onProgress) {
 	// Counted on the server as a first download or an update (worker/index.js).
 	const had = (await installed().catch(() => [])).some((p) => p.id === pack.id);
-	const res = await fetch(`/api/packs/${pack.id}`, { credentials: 'same-origin', headers: had ? { 'x-pack-update': '1' } : {} }).catch(() => {
-		throw new AppError('unavailable', 'Could not reach MyOrdbok. Check the connection.');
-	});
+	const res = await request(`/api/packs/${pack.id}`, { headers: had ? { 'x-pack-update': '1' } : {} });
 	if (!res.ok || !res.body) {
 		const err = /** @type {{ error?: { code: string, message: string } } | null} */ (await res.json().catch(() => null))?.error;
 		throw new AppError(/** @type {import('#shared/errors.js').ErrorCode} */ (err?.code ?? 'internal'), err?.message ?? `Downloading ${pack.id} failed with status ${res.status}`);

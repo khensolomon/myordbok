@@ -1,56 +1,56 @@
 // @ts-check
 /**
- * Web adapter: HTTP. The Tauri adapter exports the same functions.
- * Server errors arrive as `{ error: { code, message } }` and are rethrown as
- * AppError; a failed connection becomes `unavailable`.
+ * Web adapter: HTTP. The page and the API share one origin, so every path is
+ * fetched as it is, with the session cookie. The Tauri adapter exports the
+ * same functions.
  */
-import { AppError } from '#shared/errors.js';
-import { errorText } from '../../i18n/index.js';
+import { answerOf, unreachable } from '../../core/answer.js';
+
+/**
+ * A request as it is answered, for what is not JSON (an offline pack, a
+ * CSV); a connection that fails becomes `unavailable`.
+ * @param {string} path  A same-origin path, e.g. "/api/packs/en-1".
+ * @param {RequestInit} [init]
+ * @returns {Promise<Response>}
+ */
+export async function request(path, init = {}) {
+	try {
+		return await fetch(path, { credentials: 'same-origin', ...init });
+	} catch {
+		throw unreachable();
+	}
+}
 
 /**
  * @param {string} path  Same-origin API path, e.g. "/api/lookup?q=love".
  * @returns {Promise<any>}
  */
 export async function getJSON(path) {
-	let res;
-	try {
-		res = await fetch(path, { headers: { accept: 'application/json' }, credentials: 'same-origin' });
-	} catch {
-		throw new AppError('unavailable', errorText('unavailable', 'Could not reach MyOrdbok. Check the connection.'));
-	}
-	const body = await res.json().catch(() => null);
-	if (!res.ok) {
-		const err = body?.error;
-		if (err?.code && err?.message) throw new AppError(err.code, errorText(err.code, err.message));
-		throw new AppError('internal', `Request to ${path} failed with status ${res.status}`);
-	}
-	if (body === null) throw new AppError('internal', `Response from ${path} was not JSON`);
-	return body;
+	return answerOf(await request(path, { headers: { accept: 'application/json' } }), path);
 }
 
 /**
- * A same-origin POST with an optional JSON body; the answer as getJSON gives it.
+ * A same-origin POST with an optional JSON body; the answer as getJSON gives
+ * it, or null when it has no body.
  * @param {string} path
  * @param {unknown} [data]
  * @returns {Promise<any>}
  */
 export async function postJSON(path, data) {
-	let res;
-	try {
-		res = await fetch(path, {
-			method: 'POST',
-			headers: { accept: 'application/json', ...(data === undefined ? {} : { 'content-type': 'application/json' }) },
-			body: data === undefined ? undefined : JSON.stringify(data),
-			credentials: 'same-origin',
-		});
-	} catch {
-		throw new AppError('unavailable', errorText('unavailable', 'Could not reach MyOrdbok. Check the connection.'));
-	}
-	const body = await res.json().catch(() => null);
-	if (!res.ok) {
-		const err = body?.error;
-		if (err?.code && err?.message) throw new AppError(err.code, errorText(err.code, err.message));
-		throw new AppError('internal', `Request to ${path} failed with status ${res.status}`);
-	}
-	return body;
+	const res = await request(path, {
+		method: 'POST',
+		headers: { accept: 'application/json', ...(data === undefined ? {} : { 'content-type': 'application/json' }) },
+		body: data === undefined ? undefined : JSON.stringify(data),
+	});
+	return answerOf(res, path, { empty: true });
+}
+
+/**
+ * An address an <audio> element can play: on the web the path itself, which
+ * the browser streams.
+ * @param {string} path
+ * @returns {Promise<string>}
+ */
+export async function mediaUrl(path) {
+	return path;
 }

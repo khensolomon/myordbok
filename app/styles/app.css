@@ -2495,3 +2495,11 @@ body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var
 .ws-csv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ws-csv-row button { white-space: nowrap; }
 .ws-csv-row select { flex: 1 1 96px; min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: 400 13px/1.4 var(--font-ui); }
+
+/* The app (app/platform/tauri/boot.js): no asking for gifts on iOS; an update asked for, over everything. */
+html[data-app="ios"] [data-store-hidden] { display: none !important; }
+.app-update { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--ground) 80%, transparent); backdrop-filter: blur(4px); }
+.app-update-box { max-width: 360px; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); text-align: center; box-shadow: 0 12px 40px rgb(0 0 0 / 0.15); }
+.app-update-box h2 { margin: 0 0 8px; font-size: 20px; }
+.app-update-box p { margin: 0 0 18px; color: var(--ink-2); }
+.app-update-go { display: inline-block; padding: 10px 22px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 600; text-decoration: none; }

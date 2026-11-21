@@ -9,7 +9,13 @@
  *    (Safari before iOS 16.4) are recognised by a Referer on this site;
  *    requests with neither (scripts) are refused. The header can be forged by a script,
  *    so this keeps the API to the app in browsers; the rate limits are what
- *    slow a script down.
+ *    slow a script down. The MyOrdbok app (Tauri, iOS and Android) is no
+ *    page of this site: its requests are made natively, carry no
+ *    Sec-Fetch-Site, and name themselves in X-MyOrdbok-App ("android/26.11.21+161").
+ *    That header too can be copied out of the app; it opens no more than
+ *    the pages have, within the same limits, and is logged apart. A browser
+ *    page on another site cannot send it without a CORS preflight, which
+ *    this Worker never answers.
  * 2. Rate limits per visitor (IP address), counted by Cloudflare at each
  *    location: a generous one for lookups and suggestions, a stricter one
  *    for the routes that read many rows (read, phrase, spelling). A visitor
@@ -47,7 +53,8 @@ const CACHED = new Set(['lookup', 'suggest', 'read', 'phrase', 'spelling', 'popu
 export async function guard(request, env, route) {
 	if (env.API_GUARD !== '1') return;
 	const site = request.headers.get('sec-fetch-site');
-	if (!OPEN.has(route) && !ownPage(request, site)) {
+	const app = appOf(request);
+	if (!OPEN.has(route) && !app && !ownPage(request, site)) {
 		console.warn(JSON.stringify({ event: 'api_refused', route, site: site ?? 'none', referer: refererKind(request), country: country(request) }));
 		throw new AppError('forbidden', 'Access denied.');
 	}
@@ -57,7 +64,7 @@ export async function guard(request, env, route) {
 	const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
 	const { success } = await limiter.limit({ key: ip });
 	if (!success) {
-		console.warn(JSON.stringify({ event: 'rate_limited', route, limit: name, visitor: await shortHash(ip), country: country(request) }));
+		console.warn(JSON.stringify({ event: 'rate_limited', route, limit: name, visitor: await shortHash(ip), country: country(request), app }));
 		throw new AppError('rate_limited', 'Too many searches in a short time. Wait a minute, then try again.');
 	}
 }
@@ -96,6 +103,20 @@ function ownPage(request, site) {
 	if (site !== null) return site === 'same-origin';
 	return refererKind(request) === 'own';
 }
+
+/**
+ * The app a request names itself as, "android/26.11.21+161", or null: the
+ * header is set by the MyOrdbok app (app/platform/tauri/http.js). A value of
+ * another shape counts as none.
+ * @param {Request} request
+ */
+export function appOf(request) {
+	const value = request.headers.get('x-myordbok-app');
+	return value && APP_HEADER.test(value) ? value : null;
+}
+
+/** "android/26.11.21+161": the platform, then the app's version. */
+const APP_HEADER = /^(android|ios|desktop)\/\d{1,4}\.\d{1,4}\.\d{1,4}\+\d{1,7}$/;
 
 /**
  * @param {Request} request

@@ -1,0 +1,85 @@
+# The MyOrdbok app (Tauri), built on request: Actions → App → Run workflow.
+#
+#   server  beta (default) or live: the API the app asks
+#
+# Android: an APK for testing on a phone, signed with a key made for this
+# run only. It installs beside nothing else and cannot update a store
+# install; Play builds (an AAB signed with the upload key) come once that key
+# is in the repository's secrets (docs/deploy.md, The app).
+
+name: App
+
+on:
+  workflow_dispatch:
+    inputs:
+      server:
+        description: The API the app asks
+        type: choice
+        options: [beta, live]
+        default: beta
+
+permissions:
+  contents: read
+
+env:
+  NDK_VERSION: 27.2.12479018
+  TAURI_CLI: '@tauri-apps/cli@2.12.6'
+
+jobs:
+  android:
+    name: Android APK (test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      - name: Build the app's files
+        run: node scripts/build.js --target tauri --api "https://${{ inputs.server == 'live' && 'myordbok.com' || 'beta.myordbok.com' }}"
+      - name: Version
+        run: |
+          node scripts/app-config.js > src-tauri/tauri.ci.json
+          cat src-tauri/tauri.ci.json
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Android NDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION" > /dev/null
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: The Android project, then its icons
+        run: |
+          npx --yes "$TAURI_CLI" android init --ci
+          npx --yes "$TAURI_CLI" icon src-tauri/app-icon.png
+      - name: Build
+        run: npx --yes "$TAURI_CLI" android build --apk --target aarch64 armv7 --config src-tauri/tauri.ci.json
+
+      - name: Sign for testing
+        run: |
+          apk=$(find src-tauri/gen/android/app/build/outputs/apk -name '*-release-unsigned.apk' | head -n 1)
+          test -n "$apk" || { echo "::error::No unsigned APK was built"; exit 1; }
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+          keytool -genkeypair -keystore test.jks -alias test -keyalg RSA -keysize 2048 -validity 30 \
+            -storepass testpass -keypass testpass -dname "CN=MyOrdbok test" > /dev/null
+          version=$(node -p "require('./package.json').version.replace('+', '-')")
+          "$tools/zipalign" -f 4 "$apk" aligned.apk
+          "$tools/apksigner" sign --ks test.jks --ks-pass pass:testpass --key-pass pass:testpass \
+            --out "myordbok-${{ inputs.server }}-$version-test.apk" aligned.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: myordbok-android-${{ inputs.server }}
+          path: myordbok-*-test.apk
+          if-no-files-found: error

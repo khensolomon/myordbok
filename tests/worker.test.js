@@ -221,6 +221,11 @@ test('guard: own pages only, a limit per visitor, open health; off without API_G
 		assert.equal((await call('/api/lookup?q=love', env, { headers: { referer: 'https://evil.test/' } })).status, 403, 'a Referer from another site');
 		assert.equal((await call('/api/lookup?q=love', env, { headers: { 'sec-fetch-site': 'cross-site', referer: 'https://myordbok.test/' } })).status, 403, 'Sec-Fetch-Site decides when sent');
 		assert.equal((await call('/api/health', env, { headers: { 'cf-connecting-ip': '192.0.2.9' } })).status, 200, 'health is open');
+		const app = (v) => ({ headers: { 'x-myordbok-app': v, 'cf-connecting-ip': '192.0.2.7' } });
+		assert.equal((await call('/api/lookup?q=love', env, app('android/26.11.21+161'))).status, 200, 'the app, which sends no Sec-Fetch-Site');
+		assert.equal((await call('/api/lookup?q=love', env, app('ios/26.11.21+161'))).status, 200);
+		assert.equal((await call('/api/lookup?q=love', env, app('android'))).status, 403, 'an app header of another shape counts as none');
+		assert.equal((await call('/api/lookup?q=love', env, app('web/1.0.0+1'))).status, 403);
 
 		env = guarded();
 		assert.equal((await call('/api/read?q=love', env, own)).status, 200);
@@ -234,9 +239,21 @@ test('guard: own pages only, a limit per visitor, open health; off without API_G
 		assert.match((await call('/api/lookup?q=love', missing, own)).body.error.message, /RATE_LOOKUP is missing/);
 
 		assert.equal((await call('/api/lookup?q=love', localEnv())).status, 200, 'local development: off');
+
+		// Writes: this site's Origin, or the app's header.
+		const post = (headers) => call('/api/usage', localEnv(), { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify({ packs: [], lookups: 0 }) });
+		assert.equal((await post({})).status, 403, 'no Origin');
+		assert.notEqual((await post({ 'x-myordbok-app': 'android/26.11.21+161' })).status, 403, 'the app writes without an Origin');
+
 	} finally {
 		console.warn = warn;
 	}
+});
+
+test('site: the lowest app build still served, from APP_MIN', async () => {
+	assert.deepEqual((await call('/api/site', localEnv())).body.app, { min: 0 });
+	assert.deepEqual((await call('/api/site', localEnv({ APP_MIN: '170' }))).body.app, { min: 170 });
+	assert.equal((await call('/api/site', localEnv({ APP_MIN: 'soon' }))).status, 500, 'a value that is no build number stops');
 });
 
 test('wrangler.toml: beta and live turn the guard on with their own limits', async () => {

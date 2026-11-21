@@ -1243,4 +1243,6 @@ export const MY = {
 	'Columns': 'ကော်လံများ',
 	'All columns': 'ကော်လံ အားလုံး',
 	'Word only': 'စကားလုံးသာ',
+	'Update MyOrdbok': 'MyOrdbok ကို အဆင့်မြှင့်ပါ',
+	'This version of the app is no longer supported. The new version is in the store.': 'ဤအက်ပ်ဗားရှင်းကို ပံ့ပိုးမှု မပေးတော့ပါ။ ဗားရှင်းအသစ်ကို စတိုးတွင် ရယူနိုင်ပါသည်။',
 };

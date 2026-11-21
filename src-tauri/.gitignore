@@ -1,0 +1,7 @@
+# Made by the build: Rust output, the generated Android and iOS projects
+# (tauri android init / tauri ios init), the schemas and the icons
+# (tauri icon app-icon.png).
+/target/
+/gen/
+/icons/
+/tauri.ci.json

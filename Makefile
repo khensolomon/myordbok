@@ -55,8 +55,8 @@ build: ## Live build → dist/web, minified (NOMINIFY=1 keeps the files as writt
 build-beta: ## Beta build → dist/web, marked noindex
 	node scripts/build.js --noindex
 
-build-tauri: ## Tauri build → dist/tauri (needs the Tauri adapters)
-	node scripts/build.js --target tauri
+build-tauri: ## The app's files → dist/tauri, asking API (default https://beta.myordbok.com)
+	node scripts/build.js --target tauri --api $(or $(API),https://beta.myordbok.com)
 
 version: ## Next version + CHANGELOG entry: NOTE="…" [APPLY=1]
 	@test -n "$(NOTE)" || { echo 'Give NOTE="what changed"'; exit 1; }

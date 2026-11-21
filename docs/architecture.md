@@ -1,7 +1,8 @@
 # Architecture
 
 MyOrdbok is a single-page HTML5 app (PWA) backed by a Cloudflare Worker and
-D1. One codebase serves the web today and Tauri desktop and mobile later.
+D1. One codebase serves the web and the MyOrdbok app for iOS and Android
+(Tauri).
 The dictionary data comes from a separate, private dataset.
 
 ## Layout
@@ -15,10 +16,11 @@ app/                  client: plain ES modules, JSDoc types, no framework
   workspace/          workspace for every member (lazy, never precached)
   data/               dictionary access; offline packs plug in here
   platform/web/       browser adapters: boot, http
-  platform/tauri/     reserved: same exports, native implementations
+  platform/tauri/     app adapters: same exports, through the Tauri plugins
   styles/             tokens, base, app
   static/             logo, icon, app icons, Noto Sans Myanmar (400, 600)
   sw.js               service worker (web build only)
+src-tauri/            the app (Tauri 2): Rust start-up, config, permissions, icon source
 worker/               Cloudflare Worker: /api routes, static assets
 backup/               Worker myordbok-backup: weekly backup of myordbok-app to R2 (deployed by hand)
 shared/               used by app and worker: errors, roles, validation, version, markup, quiz, Myanmar spelling slips
@@ -401,8 +403,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   within a minute is shown.
 - **Offline.** The service worker keeps the app shell. Dictionary data is
   downloaded on request as versioned packs and stored in IndexedDB
-  (`app/data/offline.js`); a Tauri build needs that behind a storage adapter
-  (files or SQLite), written with the Tauri work. `/api` is never served
+  (`app/data/offline.js`), in the app as on the web. `/api` is never served
   from the service worker cache.
 - **The definition page says what it is about before any script runs.**
   The Worker writes a title, a description, the address to index and one
@@ -421,8 +422,21 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   GitHub Actions (`.github/workflows/deploy.yml`); each release to `master`
   is deployed to live after approval. See [deploy.md](deploy.md).
 
+- **The app holds its own files.** The iOS and Android app (`src-tauri/`)
+  carries the build of `app/` (`--target tauri`); only the dictionary and
+  what readers send go over the network. A change to the pages reaches
+  phones with a store update, so the API keeps answering older builds; the
+  lowest build it serves is `APP_MIN` (`wrangler.toml`), and an app below
+  it asks to be updated. The app's requests are made natively (the HTTP
+  plugin) and name the app in `X-MyOrdbok-App`, which the guard accepts
+  within the same limits (`worker/lib/guard.js`). The app is used signed
+  out: the workspace and signing in open the website. On iOS, nothing asks
+  for gifts.
+
 ## Next
 
-1. Tauri adapters.
+1. The app: the Play upload key, then signed Play builds; the iOS build;
+   signing in inside the app (with Sign in with Apple, which Apple requires
+   beside Google on iOS); a content security policy once tried on phones.
 2. Query: multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.

@@ -119,7 +119,7 @@ export async function view() {
 			),
 		),
 
-		part(
+		withAttr(part(
 			'Support',
 			h(
 				'p',
@@ -127,7 +127,7 @@ export async function view() {
 				'MyOrdbok is free, without advertising, kept going by readers who give. Gifts pay for the servers and for further development, and for nothing else. ',
 				h('a', { href: '/support' }, 'Support MyOrdbok →'),
 			),
-		),
+		), 'data-store-hidden'),
 
 		part(
 			'Version',
@@ -177,6 +177,17 @@ function versionExample(version) {
  */
 function part(heading, ...body) {
 	return h('section', null, h('h2', null, heading), body);
+}
+
+/**
+ * The element with an attribute set: data-store-hidden keeps a part about
+ * giving out of the iPhone app (platform/tauri/boot.js).
+ * @param {HTMLElement} el
+ * @param {string} name
+ */
+function withAttr(el, name) {
+	el.setAttribute(name, '');
+	return el;
 }
 
 /**

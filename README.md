@@ -39,9 +39,10 @@ git clone https://github.com/khensolomon/myordbok.git
 
 A single-page HTML5 app (PWA) in plain JavaScript modules with JSDoc, served
 by a Cloudflare Worker with D1 and R2. No framework and no bundler; Node
-22.13+, wrangler, and esbuild to minify the build are the only tools. Tauri desktop and mobile builds reuse
-the same code through platform adapters (see
-[docs/architecture.md](docs/architecture.md)).
+22.13+, wrangler, and esbuild to minify the build are the only tools. The
+iOS and Android app (`src-tauri/`, Tauri 2) holds the same code, through
+platform adapters (see [docs/architecture.md](docs/architecture.md) and
+[docs/deploy.md](docs/deploy.md), The app).
 
 ```bash
 make install              # wrangler and esbuild

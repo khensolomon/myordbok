@@ -17,6 +17,7 @@
  *   &label=open|none|add|misspelling|noise|all  &min=…  &spread=…
  *   &shape=word|phrase|digits  &fresh=1  &noted=1          in the address
  */
+import { request } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { definitionHref } from '../core/routes.js';
@@ -428,7 +429,7 @@ export async function searchesPanes(ctx, root, may) {
 			download.disabled = true;
 			out.textContent = t('Preparing…');
 			try {
-				const res = await fetch(`/api/workspace/searches?${searchesQuery(f)}&format=csv&columns=${columns.value}`, { credentials: 'same-origin' });
+				const res = await request(`/api/workspace/searches?${searchesQuery(f)}&format=csv&columns=${columns.value}`);
 				if (!res.ok) throw new Error((await res.json().catch(() => null))?.error?.message ?? `Download failed with status ${res.status}`);
 				const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'searches.csv';
 				const url = URL.createObjectURL(await res.blob());

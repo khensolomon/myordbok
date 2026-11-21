@@ -61,8 +61,20 @@ test('beta build asks search engines not to index, without precaching the rule f
 	await assert.rejects(readFile(join(out, '_headers')), 'live build has no noindex rule');
 });
 
-test('tauri build stops until its adapters exist', async () => {
-	await assert.rejects(build({ target: 'tauri', out: join(out, 'tauri') }), /app\/platform\/tauri\/ is missing/);
+test('tauri build: the server and version in the page, the Tauri adapters, no service worker', async () => {
+	await assert.rejects(build({ target: 'tauri', out: join(out, 'tauri') }), /needs --api/);
+	await assert.rejects(build({ target: 'tauri', out: join(out, 'tauri'), api: 'https://myordbok.com/' }), /without a trailing slash/);
+	const dist = join(out, '..', 'tauri-build');
+	await build({ target: 'tauri', out: dist, api: 'https://beta.myordbok.com', minify: false });
+	const html = await readFile(join(dist, 'index.html'), 'utf8');
+	const { version } = JSON.parse(await readFile(join(import.meta.dirname, '..', 'package.json'), 'utf8'));
+	assert.match(html, /<meta name="mo-api" content="https:\/\/beta\.myordbok\.com">/);
+	assert.match(html, new RegExp(`<meta name="mo-version" content="${version.replace(/[.+]/g, '\\$&')}">`));
+	assert.doesNotMatch(html, /mo-sw/);
+	const map = JSON.parse(/<script type="importmap">(.*?)<\/script>/.exec(html)?.[1] ?? '{}');
+	assert.match(map.imports['#platform/http.js'], /^\/platform\/tauri\/http\.[0-9a-f]{8}\.js$/);
+	await assert.rejects(readFile(join(dist, 'sw.js')), /ENOENT/);
+	await assert.rejects(build({ target: 'web', out: dist, api: 'https://myordbok.com' }), /tauri target only/);
 });
 
 test('web build minifies each module, with a source map beside it', async () => {

@@ -722,9 +722,70 @@ In the Cloudflare dashboard, **Security → Bots → Block AI bots** keeps AI
 crawlers off the site. Leave Bot Fight Mode off: it can challenge the app's
 own requests.
 
-Writes: every `POST` must carry the site's own `Origin`; those a member
-makes also need the session cookie (HttpOnly, Secure, SameSite=Lax). A
-native app (Tauri) needs its own way in, as it is not a same-origin page.
+Writes: every `POST` must carry the site's own `Origin`, or the app's
+`X-MyOrdbok-App` header; those a member makes also need the session cookie
+(HttpOnly, Secure, SameSite=Lax). The app sends no cookie, and a page on
+another site cannot send the app's header without a CORS preflight, which
+the Worker never answers.
+
+## The app
+
+The MyOrdbok app for iOS and Android is `src-tauri/` (Tauri 2) holding the
+build of `app/` (`node scripts/build.js --target tauri --api …`). It takes
+over the store listings of the earlier Flutter app: package name and bundle
+ID `com.myordbok.app` (Play, App Store id1570959654).
+
+### Building
+
+GitHub → **Actions → App → Run workflow**, choosing the server the app asks
+(beta or live). The run tests, builds the app's files, then the Android app,
+and leaves `myordbok-<server>-<version>-test.apk` among the run's artifacts.
+That APK is signed with a key made for the run: it installs on a phone for
+testing (allow installing from the browser or file manager), and cannot
+update an install from Play.
+
+Version: the store version is the site's date part (`26.11.21`); the
+Android version code is 1000 plus the build number (`scripts/app-config.js`),
+above every Flutter upload (44) and rising with every release.
+
+### Play upload key
+
+Play builds (an AAB) are signed with the upload key, kept as repository
+secrets. The Flutter app's upload key is lost, so Play has to accept a new
+one first (Play Console → the app → **Test and release → App integrity →
+App signing → Request upload key reset**):
+
+1. On a computer with a JDK, make the key, and keep the file and the
+   passwords somewhere safe outside the repository:
+   `keytool -genkeypair -v -keystore myordbok-upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000`
+2. Export its certificate for Play:
+   `keytool -export -rfc -keystore myordbok-upload.jks -alias upload -file upload_certificate.pem`
+3. Request the reset with that `.pem`. Play answers within a few days. This
+   needs Play App Signing on the app, which apps uploaded as AABs have.
+4. Once accepted, add the secrets (GitHub → Settings → Secrets → Actions):
+   `ANDROID_UPLOAD_KEYSTORE` (the `.jks` as base64: `base64 -w0 myordbok-upload.jks`),
+   `ANDROID_UPLOAD_PASSWORD`, `ANDROID_UPLOAD_ALIAS`.
+
+The signed Play build is added to the workflow once these exist.
+
+### Old builds
+
+`APP_MIN` in `wrangler.toml` (per environment) is the lowest app build the
+API still serves; an app below it shows **Update MyOrdbok** over everything,
+with a link to its store. It stays `0` until a change to the API would break
+an older app: then set it to the first build that works with the change,
+and release the app before the Worker.
+
+### What the app does differently
+
+- The API through the HTTP plugin, naming the app in `X-MyOrdbok-App`
+  (`android/26.11.21+161`); the guard lets it through within the same
+  limits and logs it apart (`app` in `rate_limited`).
+- Signed out: the workspace and signing in open the website.
+- On iOS, no asking for gifts (`data-store-hidden`).
+- No Google Analytics (the consent banner and Analytics belong to the
+  website's hosts only).
+- Links to other sites open in the system browser.
 
 ## Marker entries
 

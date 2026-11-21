@@ -16,7 +16,10 @@
 - [ ] Studio: a new Myanmar headword with its pronunciation (IPA, MLC)
 - [ ] Offline copies take live edits at check-in (today they follow the release)
 - [ ] Search suggestions for headwords only the live layer has
-- [ ] Tauri adapters (http, boot, and a storage adapter for the offline data); the Tauri mobile apps are to replace the Flutter apps on the App Store and Google Play
+- [x] Tauri adapters (http, boot) and the app project (`src-tauri/`), with an Android test build in GitHub Actions
+- [ ] The app on Play: new upload key (requested in Play Console), then signed AAB builds
+- [ ] The app on the App Store: the iOS build in GitHub Actions (macOS runner, signing secrets)
+- [ ] Signing in inside the app, with Sign in with Apple on iOS
 - [x] A sitemap of the headwords, following each data release; robots.txt naming it
 - [ ] CI secrets
 - [ ] LICENSE: copyright holder's name

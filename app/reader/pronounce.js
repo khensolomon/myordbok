@@ -6,10 +6,13 @@
  * button stops the first. The sound starts within the press itself (a
  * browser plays nothing it was not asked for by the reader). When it cannot
  * play, the reason is asked of the server and shown on the button for a
- * few seconds; without a connection it says so at once.
+ * few seconds; without a connection it says so at once. The address comes
+ * from the platform (mediaUrl): on the web the API's own, in the app the
+ * sound fetched with the app's header.
  *
  * The icon's waves move on hover and for as long as the sound plays (app.css).
  */
+import { mediaUrl, request } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { t } from '../i18n/index.js';
@@ -52,7 +55,7 @@ export function pronounceButton(word, lang) {
 	/** Why the sound did not play: the server's own words when it has some. */
 	const reason = async () => {
 		try {
-			const res = await fetch(url);
+			const res = await request(url);
 			if (!res.ok) {
 				const body = await res.json().catch(() => null);
 				if (body?.error?.message) return String(body.error.message);
@@ -71,18 +74,23 @@ export function pronounceButton(word, lang) {
 		button.title = label;
 		said.textContent = '';
 		if (!navigator.onLine) return failed(t('The pronunciation needs a connection.'));
-		const audio = new Audio(url);
+		const audio = new Audio();
 		playing = { audio, button };
 		button.dataset.state = 'loading';
 		const mineStill = () => playing?.audio === audio;
 		audio.addEventListener('playing', () => mineStill() && (button.dataset.state = 'playing'));
 		audio.addEventListener('ended', () => mineStill() && stop());
-		audio.play().catch(async (err) => {
-			if (!mineStill()) return; // stopped by another press
-			playing = null;
-			// Refused by the browser itself (not by the network): its own reason is the one to show.
-			failed(err instanceof DOMException && err.name === 'NotAllowedError' ? t('The pronunciation could not be played.') : await reason());
-		});
+		mediaUrl(url)
+			.then((src) => {
+				audio.src = src;
+				return audio.play();
+			})
+			.catch(async (err) => {
+				if (!mineStill()) return; // stopped by another press
+				playing = null;
+				// Refused by the browser itself (not by the network): its own reason is the one to show.
+				failed(err instanceof DOMException && err.name === 'NotAllowedError' ? t('The pronunciation could not be played.') : await reason());
+			});
 	});
 	return button;
 }

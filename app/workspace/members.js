@@ -7,6 +7,7 @@
  * every level, an admin member and editor. Suspending signs them out
  * everywhere and asks twice.
  */
+import { request } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { changeMember, membersQuery, workspaceMember, workspaceMembers } from '../data/api.js';
@@ -109,7 +110,7 @@ export async function membersPanes(ctx, root, ago) {
 		try {
 			const p = membersQuery(asking());
 			p.set('format', 'csv');
-			const res = await fetch(`/api/workspace/members?${p}`, { credentials: 'same-origin' });
+			const res = await request(`/api/workspace/members?${p}`);
 			if (!res.ok) throw new Error((await res.json().catch(() => null))?.error?.message ?? `Download failed with status ${res.status}`);
 			const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'members.csv';
 			const url = URL.createObjectURL(await res.blob());

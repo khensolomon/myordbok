@@ -1,0 +1,14 @@
+{
+	"$schema": "../gen/schemas/mobile-schema.json",
+	"identifier": "default",
+	"description": "What the app's pages may ask of the native side: the MyOrdbok API, and opening links in the system browser.",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"opener:default",
+		{
+			"identifier": "http:default",
+			"allow": [{ "url": "https://myordbok.com/api/*" }, { "url": "https://beta.myordbok.com/api/*" }]
+		}
+	]
+}

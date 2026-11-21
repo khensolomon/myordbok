@@ -21,5 +21,11 @@ export const GIVE = Object.freeze({
 	github: 'https://github.com/sponsors/khensolomon',
 });
 
+/** The app in the stores, by platform (platform/tauri/boot.js: an update asked for). */
+export const STORES = Object.freeze({
+	android: 'https://play.google.com/store/apps/details?id=com.myordbok.app',
+	ios: 'https://apps.apple.com/app/id1570959654',
+});
+
 /** The open-source repository: code, issues. */
 export const REPOSITORY = 'https://github.com/khensolomon/myordbok';

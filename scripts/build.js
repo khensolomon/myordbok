@@ -5,7 +5,9 @@
  *
  *   node scripts/build.js                  web build (PWA, service worker)
  *   node scripts/build.js --noindex        web build for beta: X-Robots-Tag noindex on every file
- *   node scripts/build.js --target tauri   Tauri build (no service worker)
+ *   node scripts/build.js --target tauri --api https://myordbok.com
+ *                                          Tauri build (no service worker): the app's
+ *                                          files, which reach the API at --api
  *   node scripts/build.js --no-minify      any of these with the files as written, for debugging
  *
  * Steps: copy app/ and shared/, minify every .js and .css file (comments,
@@ -16,6 +18,9 @@
  * write an import map from the original paths to the hashed ones (so source
  * imports never change), add modulepreload links, and for the web target fill
  * the service worker's precache list. Workspace code is never precached.
+ * The Tauri build writes the server and the version into the page
+ * (<meta name="mo-api">, <meta name="mo-version">) for
+ * app/platform/tauri/.
  */
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -82,9 +87,12 @@ export async function minify(code, url) {
  * @param {boolean} [options.noindex]  Ask search engines not to index (beta).
  * @param {string} [options.grammar]  Grammar source folder (tests use a fixture).
  * @param {boolean} [options.minify]  Minify .js and .css (default); off to debug.
+ * @param {string} [options.api]  Tauri: the server the app asks, "https://myordbok.com".
  */
-export async function build({ target, out, root = ROOT, noindex = false, grammar = GRAMMAR_DIR, minify: small = true }) {
+export async function build({ target, out, root = ROOT, noindex = false, grammar = GRAMMAR_DIR, minify: small = true, api }) {
 	if (!TARGETS.includes(target)) throw new Error(`build: unknown target "${target}" (expected ${TARGETS.join(' or ')})`);
+	if (target === 'tauri' && !/^https:\/\/[a-z0-9.-]+$/.test(api ?? '')) throw new Error('build: the tauri target needs --api, the server the app asks (https://myordbok.com or https://beta.myordbok.com), without a trailing slash');
+	if (target !== 'tauri' && api) throw new Error('build: --api applies to the tauri target only');
 	const app = join(root, 'app');
 	const shared = join(root, 'shared');
 	const dist = out ?? join(root, 'dist', target);
@@ -173,7 +181,9 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 	html = replaceOnce(
 		html,
 		/<!--importmap[\s\S]*?<!--\/importmap-->/,
-		`<script type="importmap">${JSON.stringify({ imports })}</script>\n${preload}${target === 'web' ? '\n\t<meta name="mo-sw" content="1">' : ''}`,
+		`<script type="importmap">${JSON.stringify({ imports })}</script>\n${preload}${
+			target === 'web' ? '\n\t<meta name="mo-sw" content="1">' : `\n\t<meta name="mo-api" content="${api}">\n\t<meta name="mo-version" content="${pkg.version}">`
+		}`,
 		'import map block in index.html',
 	);
 	html = replaceOnce(html, /src="\/main\.js"/, `src="${main}"`, 'main.js script tag in index.html');
@@ -210,7 +220,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
 	const i = process.argv.indexOf('--target');
 	const target = /** @type {'web' | 'tauri'} */ (i > -1 ? process.argv[i + 1] : 'web');
 	const noindex = process.argv.includes('--noindex');
-	build({ target, noindex, minify: !process.argv.includes('--no-minify') })
+	const a = process.argv.indexOf('--api');
+	build({ target, noindex, minify: !process.argv.includes('--no-minify'), api: a > -1 ? process.argv[a + 1] : undefined })
 		.then(({ dist, count, hashed }) => console.log(`build: ${target} → ${relative(ROOT, dist).split(sep).join('/')} (${count} files, ${hashed} hashed)`))
 		.catch((err) => {
 			console.error(err.message);

@@ -30,7 +30,7 @@ export function view() {
 			most.replaceWith(group(t('Searched most this week'), p.words.map((w) => w.term), false));
 		})
 		.catch(() => {});
-	const ask = h('div', { class: 'home-support', hidden: true });
+	const ask = h('div', { class: 'home-support', hidden: true, 'data-store-hidden': '' });
 	supportLine(ask);
 	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, todaySection(), mine, most, ask);
 }

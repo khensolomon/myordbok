@@ -108,7 +108,9 @@ preview_urls = false
 routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
 # NOINDEX keeps beta out of search results (static files get the same header
 # from _headers). DICT_DB empty: the database comes from dict_release.
-vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
+# APP_MIN: the lowest app build (the N of 26.11.21+N) still served; older
+# apps ask to be updated (GET /api/site).
+vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
 
 [[env.beta.ratelimits]]
 name = "RATE_LOOKUP"
@@ -151,7 +153,7 @@ name = "myordbok-live"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
-vars = { ENV_NAME = "live", DICT_DB = "", API_GUARD = "1", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
+vars = { ENV_NAME = "live", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
 
 [[env.live.ratelimits]]
 name = "RATE_LOOKUP"

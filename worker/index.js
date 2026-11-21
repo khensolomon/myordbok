@@ -10,7 +10,7 @@ import pkg from '../package.json' with { type: 'json' };
 import { AppError } from '../shared/errors.js';
 import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { countSearch } from './lib/counts.js';
-import { cached, guard } from './lib/guard.js';
+import { appOf, cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { auth, me } from './routes/auth.js';
 import { publicSupport } from './routes/support.js';
@@ -40,8 +40,10 @@ import { getSetting, getSettings } from './lib/settings.js';
  * @typedef {import('./lib/dict.js').DictEnv & import('./lib/guard.js').GuardEnv & import('./routes/auth.js').AuthEnv & {
  *   ASSETS: Fetcher,
  *   NOINDEX?: string,
+ *   APP_MIN?: string,
  * }} Env
  * NOINDEX is "1" on beta: every API response tells search engines not to index.
+ * APP_MIN is the lowest app build still served (GET /api/site).
  * API_GUARD is "1" on beta and live: own pages only, rate limits, edge
  * cache (worker/lib/guard.js).
  */
@@ -75,13 +77,17 @@ async function health(env) {
 
 /**
  * GET /api/site: the switches the pages follow (worker/lib/settings.js), the
- * same for everyone, kept at the edge for a minute.
+ * same for everyone, kept at the edge for a minute; and the lowest app build
+ * still served (APP_MIN in wrangler.toml, a build number: "161" of
+ * 26.11.21+161), below which the app asks to be updated.
  * @param {Env} env
  */
 async function siteSwitches(env) {
+	const min = Number(env.APP_MIN ?? '0');
+	if (!Number.isInteger(min) || min < 0) throw new AppError('internal', `APP_MIN must be a build number, not "${env.APP_MIN}"`);
 	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask', 'support.lines', 'quiz.open', 'help.open']);
 	return json(
-		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on', help: s['help.open'] === 'on' },
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on', help: s['help.open'] === 'on', app: { min } },
 		{ headers: { 'cache-control': 'public, max-age=60' } },
 	);
 }
@@ -121,8 +127,10 @@ async function api(request, env, ctx) {
 async function answer(request, env, url, parts) {
 	if (parts[0] === 'auth') return auth(request, env, parts);
 	if (request.method === 'POST') {
-		// Writes come only from this site's own pages (sign-out checks the same itself).
-		if (request.headers.get('origin') !== url.origin) throw new AppError('forbidden', 'Access denied.');
+		// Writes come only from this site's own pages (sign-out checks the same
+		// itself), or from the app, which has no origin of this site and sends no
+		// cookies; another site's page cannot send the app's header (guard.js).
+		if (request.headers.get('origin') !== url.origin && !appOf(request)) throw new AppError('forbidden', 'Access denied.');
 		// Read-only (setting site.readonly): every write waits, but changing that setting.
 		const settingsWrite = parts[0] === 'workspace' && parts[1] === 'settings';
 		if (!settingsWrite && (await getSetting(env, 'site.readonly')) === 'on') {
