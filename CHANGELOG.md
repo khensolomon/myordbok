@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.21+160
+
+- Overview: meanings rated down most wrap within their card, as plain text
+
 ## 26.11.20+159
 
 - Ratings, Questions and Votes in three columns like Members: the list, the item with its entry as the dictionary has it now, and its actions; a lighter gear for Settings

@@ -19,6 +19,7 @@ import { workspaceOverview } from '../data/api.js';
 import { atLeast } from '#shared/roles.js';
 import { STALE_DAYS } from '#shared/backup.js';
 import { num, posName, shortDate, t, tn } from '../i18n/index.js';
+import { plainSense } from './columns.js';
 
 /** @typedef {import('../data/api.js').Overview} Overview */
 /** @typedef {import('../data/api.js').DictStats} DictStats */
@@ -523,7 +524,7 @@ function disliked(list) {
 						h(
 							'li',
 							null,
-							h('span', null, h('a', { href: definitionHref(s.word), lang: s.dict === 'emd' ? 'en' : 'my' }, s.word), h('span', { class: 'ws-sense', lang: s.dict === 'emd' ? 'my' : 'en' }, s.sense)),
+							h('span', null, h('a', { href: definitionHref(s.word), lang: s.dict === 'emd' ? 'en' : 'my' }, s.word), h('span', { class: 'ws-sense', lang: s.dict === 'emd' ? 'my' : 'en', title: plainSense(s.sense) || s.sense }, plainSense(s.sense) || s.sense)),
 							h('span', { title: t('{down} down, {up} up', { down: s.down, up: s.up }) }, `${num(s.down)} ↓ ${num(s.up)} ↑`),
 						),
 					),

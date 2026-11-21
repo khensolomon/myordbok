@@ -1909,7 +1909,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 	.ws-figure + .ws-figure { padding-left: 10px; }
 	.ws-figure-note { display: none; }
 }
-.ws-words { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: w; }
+.ws-words { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; counter-reset: w; }
 .ws-words li { display: flex; justify-content: space-between; gap: 10px; margin: 0 -8px; padding: 6px 8px; border-radius: 8px; counter-increment: w; font-variant-numeric: tabular-nums; }
 .ws-words li:hover { background: var(--surface); }
 .ws-words li::before { content: counter(w); width: 18px; flex: none; color: var(--faint); font-size: 12px; }
@@ -1918,6 +1918,7 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-words li > :last-child { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .ws-words :lang(my) { font-family: var(--font-my); }
 .ws-disliked li > span:first-child { display: flex; flex-direction: column; }
+.ws-disliked .ws-sense { white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .ws-sense { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ws-pairs { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 0; }
 .ws-pairs dt { color: var(--ink-2); }
