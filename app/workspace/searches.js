@@ -4,7 +4,8 @@
  * period, most searched first, 50 at a time (worker/routes/searches.js).
  * Not found is the default view: it is the list of what the dictionary
  * lacks. A word opens with its searches day by day; a word never found that
- * has since become a headword says so. The list as filtered downloads as CSV.
+ * has since become a headword says so. The list as filtered downloads as CSV,
+ * every column or the word alone (the choice kept on the device).
  *
  * Labels: an editor says what a word never found is (to add, a misspelling,
  * not a word), one word at a time on its page (keys 1 2 3, 0 takes it off;
@@ -28,6 +29,8 @@ import { listBar } from './list-bar.js';
 /** @typedef {import('../data/api.js').SearchedWord} Word */
 /** @typedef {import('../data/api.js').SearchLabel} Label */
 
+/** Device key: what a CSV holds, every column or the word alone. */
+const CSV_KEY = 'mo:searches-csv';
 const SHOWS = /** @type {const} */ ([
 	['missed', mark('Not found')],
 	['found', mark('Found')],
@@ -408,11 +411,24 @@ export async function searchesPanes(ctx, root, may) {
 	const summary = (c) => {
 		const out = h('p', { class: 'ws-result', role: 'status' });
 		const download = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, icon(ICONS.download, 15), t('Download as CSV')));
+		const columns = /** @type {HTMLSelectElement} */ (h('select', { 'aria-label': t('Columns') }, h('option', { value: 'all' }, t('All columns')), h('option', { value: 'word' }, t('Word only'))));
+		try {
+			columns.value = localStorage.getItem(CSV_KEY) === 'word' ? 'word' : 'all';
+		} catch {
+			// storage blocked: every column, as by default
+		}
+		columns.addEventListener('change', () => {
+			try {
+				localStorage.setItem(CSV_KEY, columns.value);
+			} catch {
+				// storage blocked: the choice holds for this page only
+			}
+		});
 		download.addEventListener('click', async () => {
 			download.disabled = true;
 			out.textContent = t('Preparing…');
 			try {
-				const res = await fetch(`/api/workspace/searches?${searchesQuery(f)}&format=csv`, { credentials: 'same-origin' });
+				const res = await fetch(`/api/workspace/searches?${searchesQuery(f)}&format=csv&columns=${columns.value}`, { credentials: 'same-origin' });
 				if (!res.ok) throw new Error((await res.json().catch(() => null))?.error?.message ?? `Download failed with status ${res.status}`);
 				const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'searches.csv';
 				const url = URL.createObjectURL(await res.blob());
@@ -441,7 +457,7 @@ export async function searchesPanes(ctx, root, may) {
 				h('dl', { class: 'ws-facts' }, sorted(t('To sort'), 'none', c.labels.none), sorted(t('To add'), 'add', c.labels.add), sorted(t('Misspelling'), 'misspelling', c.labels.misspelling), sorted(t('Not a word'), 'noise', c.labels.noise)),
 				h('p', { class: 'ws-quiet' }, t('Within the period and the other filters. A word added to the dictionary since shows as such whatever its label.')),
 			),
-			h('section', { class: 'ws-box' }, h('h2', null, t('This list')), h('p', { class: 'ws-quiet' }, t('Every word that matches the filter, with its figures and its label, for a spreadsheet.')), download, out),
+			h('section', { class: 'ws-box' }, h('h2', null, t('This list')), h('p', { class: 'ws-quiet' }, t('Every word that matches the filter, with its figures and its label, or the words alone.')), h('div', { class: 'ws-csv-row' }, columns, download), out),
 			may.admin ? pruneBox(() => load()) : '',
 			h('section', { class: 'ws-box' }, h('p', { class: 'ws-quiet' }, may.editor ? t('1 2 3 label · 0 no label · J K next, previous · Shift and a click selects a range') : t('J K next, previous')), h('p', { class: 'ws-quiet' }, t('Search counts keep the word, the day and whether it was found; nothing about who searched.'))),
 		);

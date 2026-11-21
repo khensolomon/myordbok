@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.21+161
+
+- Searches: the CSV holds every column or the word alone
+
 ## 26.11.21+160
 
 - Overview: meanings rated down most wrap within their card, as plain text

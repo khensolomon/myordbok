@@ -2492,3 +2492,6 @@ body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var
 .entry-summary h1 { margin: 0 0 10px; font: 650 clamp(30px, 5vw, 40px)/1.2 var(--font-ui); color: var(--ink); }
 .entry-summary h1:lang(my) { font-family: var(--font-my); line-height: 1.6; }
 .entry-summary p { margin: 0; max-width: 60ch; font-size: 17px; line-height: 1.7; color: var(--ink-2); }
+.ws-csv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ws-csv-row button { white-space: nowrap; }
+.ws-csv-row select { flex: 1 1 96px; min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: 400 13px/1.4 var(--font-ui); }

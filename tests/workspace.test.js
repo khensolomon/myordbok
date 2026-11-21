@@ -499,6 +499,13 @@ test('searches: every word over a period, not found first, paged; one word day b
 	const csv = (await res.text()).trim().split('\r\n');
 	assert.equal(csv[0], 'language,word,searches,days,first,last,found,now_in_dictionary,label,note');
 	assert.ok(csv.some((l) => l.startsWith("en,'=sum,1,")), 'a leading = is defused for spreadsheets');
+
+	const words = await worker.fetch(new Request(`${SITE}/api/workspace/searches?lang=en&format=csv&columns=word`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e);
+	assert.match(words.headers.get('content-disposition'), /-words-/);
+	const list = (await words.text()).trim().split('\r\n');
+	assert.equal(list[0], 'word');
+	assert.deepEqual(list.slice(1), csv.slice(1).map((l) => l.split(',')[1]), 'the same words, in the same order');
+	assert.equal((await worker.fetch(new Request(`${SITE}/api/workspace/searches?format=csv&columns=hits`, { headers: { origin: SITE, cookie: '__Host-mo_session=editor' } }), e)).status, 400);
 });
 
 test('searches: editors label words; the default list keeps those to sort and to add; filters narrow it', async () => {

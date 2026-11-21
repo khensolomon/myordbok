@@ -12,7 +12,8 @@
  *                                           sort or to add, the default), ?min= searches at least,
  *                                           ?spread= days at least, ?shape=word|phrase|digits,
  *                                           ?fresh=1 first searched in the period, ?noted=1
- *                                           ?format=csv: every matching word as CSV
+ *                                           ?format=csv: every matching word as CSV;
+ *                                           &columns=word: the word column alone
  *   GET /api/workspace/searches/word        ?lang=&term=: one word, day by day, its label
  *                                           and note, and headwords spelled nearly the same
  *   POST /api/workspace/searches/mark       { words: [{ lang, term }], label?, note? }: editors
@@ -43,6 +44,8 @@ const NO_STORE = { headers: { 'cache-control': 'no-store' } };
 const PAGE = 50;
 /** Most rows one CSV holds. */
 export const CSV_MAX = 10000;
+/** What a CSV holds: every column, or the word alone. */
+const CSV_COLUMNS = ['all', 'word'];
 const SHOWS = ['missed', 'found', 'all'];
 export const LABELS = /** @type {const} */ (['add', 'misspelling', 'noise']);
 /** What ?label= takes: a label, none (to sort), open (to sort or to add), all. */
@@ -162,14 +165,21 @@ async function list(env, url) {
 	const g = grouped(f);
 	const order = `ORDER BY ${ORDERS[f.order]}`;
 	if (url.searchParams.get('format') === 'csv') {
+		const columns = url.searchParams.get('columns') ?? 'all';
+		if (!CSV_COLUMNS.includes(columns)) throw new AppError('bad_request', `columns must be one of ${CSV_COLUMNS.join(', ')}`);
 		const { results } = await env.APP.prepare(`SELECT * FROM (${g.sql}) ${having(f)} ${order} LIMIT ${CSV_MAX}`).bind(...g.args).all();
+		const name = `searches-${f.show}-${f.days ? `${f.days}days` : 'all'}${columns === 'word' ? '-words' : ''}-${new Date().toISOString().slice(0, 10)}.csv`;
+		const headers = { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'no-store' };
+		if (columns === 'word') {
+			const words = ['word', ...(/** @type {any[]} */ (results)).map((r) => csvCell(String(r.term)))];
+			return new Response(`${words.join('\r\n')}\r\n`, { headers });
+		}
 		const now = await headwords(env, /** @type {any[]} */ (results).filter((r) => !r.found));
 		const lines = [['language', 'word', 'searches', 'days', 'first', 'last', 'found', 'now_in_dictionary', 'label', 'note'].join(',')];
 		for (const r of /** @type {any[]} */ (results)) {
 			lines.push([r.lang, csvCell(String(r.term)), r.hits, r.days, r.first, r.last, r.found ? 'yes' : 'no', r.found ? '' : now.has(`${r.lang}:${r.term}`) ? 'yes' : 'no', r.label ?? '', csvCell(String(r.note ?? ''))].join(','));
 		}
-		const name = `searches-${f.show}-${f.days ? `${f.days}days` : 'all'}-${new Date().toISOString().slice(0, 10)}.csv`;
-		return new Response(`${lines.join('\r\n')}\r\n`, { headers: { 'content-type': 'text/csv; charset=utf-8', 'content-disposition': `attachment; filename="${name}"`, 'cache-control': 'no-store' } });
+		return new Response(`${lines.join('\r\n')}\r\n`, { headers });
 	}
 	const [page, totals, shown0, labelled] = await Promise.all([
 		env.APP.prepare(`SELECT * FROM (${g.sql}) ${having(f)} ${order} LIMIT ${PAGE + 1} OFFSET ${f.offset}`).bind(...g.args).all(),
