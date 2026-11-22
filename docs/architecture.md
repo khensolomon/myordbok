@@ -204,7 +204,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   phone's own momentum while the tab bar stays put; scripts only watch
   touches (passive), never hold a scroll. The bar over a definition is
   fixed there, so the page bounces under it, and a pull down at the top
-  of a page asks it again (`app/core/pull.js`).
+  of a page asks it again (`app/core/pull.js`): the phone's own activity
+  spinner in the gap the pull opens, its spokes appearing with the pull, a
+  light tap at the mark, the gap held open while the page loads.
 - **Forms are named** under their part of speech: plural, third person,
   past, past participle, -ing form, comparative, superlative, as the
   dataset labels them (one word that is two forms shows both names).

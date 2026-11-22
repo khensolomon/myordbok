@@ -2594,20 +2594,29 @@ html[data-app] :is(button, .app-tab, .bar-back, .home-chips a, .you-action, .ws-
 html[data-app] body[data-route="definition"] .search-bar { position: fixed; top: 0; left: var(--nav-room); right: 0; }
 html[data-app] body[data-route="definition"] main#view { padding-top: calc(var(--bar-h, 64px) + 20px); }
 
-/* Pull to refresh (core/pull.js): a round mark under the bar that follows
-   the finger, fills as the pull nears the mark, and turns while loading. */
+/* Pull to refresh (core/pull.js), as the phone's own: an activity spinner,
+   no card under it, centred in the gap the pull opens between the bar (or
+   the top of the screen) and the page; its spokes appear as the pull goes,
+   and turn while the page loads, the gap held open (data-pull-hold). */
 .pull {
-	position: fixed; z-index: 4; left: calc(50% + var(--nav-room) / 2); top: calc(var(--safe-t) + 4px);
-	width: 36px; height: 36px; margin-left: -18px;
-	display: grid; place-items: center; border-radius: 50%;
-	background: var(--card); color: var(--muted); box-shadow: var(--chrome-shadow);
-	opacity: 0; pointer-events: none;
-	transform: translateY(calc(var(--pull, 0) * 1px)) rotate(calc(var(--ready, 0) * 270deg));
+	--pull-base: var(--safe-t);
+	position: fixed; z-index: 4; left: calc(50% + var(--nav-room) / 2);
+	top: calc(var(--pull-base) + var(--gap, 0) * 0.5px - 14px);
+	width: 28px; height: 28px; margin-left: -14px;
+	color: var(--muted); opacity: 0; pointer-events: none;
 }
-body[data-route="definition"] .pull { top: calc(var(--bar-h, 64px) - 24px); }
-.pull[data-shown] { opacity: calc(var(--ready, 0) * 1); }
-.pull[data-ready] { color: var(--brand); }
-.pull[data-busy] { opacity: 1; color: var(--brand); transition: transform 0.2s; animation: pull-turn 0.8s linear infinite; }
-.pull:not([data-shown]):not([data-busy]) { transition: opacity 0.2s, transform 0.25s; }
-.pull .icon { stroke-width: 2; }
-@keyframes pull-turn { from { rotate: 0deg; } to { rotate: 360deg; } }
+body[data-route="definition"] .pull { --pull-base: var(--bar-h, 64px); }
+.pull svg { display: block; }
+.pull-spoke { stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+/* Turning: the spokes fade from the leading one back, and the wheel steps round. */
+.pull[data-busy] svg { animation: pull-turn 0.9s steps(8) infinite; }
+.pull[data-busy] .pull-spoke:nth-child(1) { opacity: 1; }
+.pull[data-busy] .pull-spoke:nth-child(2) { opacity: 0.86; }
+.pull[data-busy] .pull-spoke:nth-child(3) { opacity: 0.72; }
+.pull[data-busy] .pull-spoke:nth-child(4) { opacity: 0.6; }
+.pull[data-busy] .pull-spoke:nth-child(5) { opacity: 0.48; }
+.pull[data-busy] .pull-spoke:nth-child(6) { opacity: 0.38; }
+.pull[data-busy] .pull-spoke:nth-child(7) { opacity: 0.3; }
+.pull[data-busy] .pull-spoke:nth-child(8) { opacity: 0.24; }
+@keyframes pull-turn { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+main#view[data-pull-hold] { margin-top: var(--pull-hold, 52px); }

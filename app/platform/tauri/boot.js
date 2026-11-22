@@ -56,6 +56,8 @@ export async function boot() {
 	document.querySelector('meta[name="viewport"]')?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
 	document.addEventListener('click', leaving, true);
 	document.addEventListener('click', felt, true);
+	// A tap felt when the page asks for one (pull to refresh reaching its mark, core/pull.js).
+	document.addEventListener('mo:haptic', () => tap('plugin:haptics|impact_feedback', { style: 'light' }));
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));
 }
 
@@ -97,11 +99,20 @@ const FELT = '.app-tab, .search-done, .bar-back, .thumb, .segmented a, .you-choi
 function felt(ev) {
 	const target = ev.target instanceof Element ? ev.target.closest(FELT) : null;
 	if (!target || /** @type {HTMLButtonElement} */ (target).disabled) return;
+	const thumb = target.classList.contains('thumb');
+	tap(thumb ? 'plugin:haptics|impact_feedback' : 'plugin:haptics|selection_feedback', thumb ? { style: 'light' } : {});
+}
+
+/**
+ * One haptic tap, where the device has the motor for it.
+ * @param {string} command
+ * @param {object} args
+ */
+function tap(command, args) {
 	/** @type {((cmd: string, args?: object) => Promise<unknown>) | undefined} */
 	const invoke = /** @type {any} */ (window).__TAURI__?.core?.invoke;
 	if (!invoke) return;
-	const thumb = target.classList.contains('thumb');
-	invoke(thumb ? 'plugin:haptics|impact_feedback' : 'plugin:haptics|selection_feedback', thumb ? { style: 'light' } : {}).catch((err) => console.warn('No haptic tap:', err));
+	invoke(command, args).catch((err) => console.warn('No haptic tap:', err));
 }
 
 /**

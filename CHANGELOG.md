@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+179
+
+- App icon: a blue M in a white circle on blue; pull to refresh drawn as the phone's own spinner
+
 ## 26.11.22+178
 
 - Forms named under each part of speech; in the app, the definition bar stays put and a pull down refreshes
