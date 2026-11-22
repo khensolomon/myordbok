@@ -503,24 +503,24 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 			),
 		);
 	};
-	/** A part of speech, then its forms. @param {string} pos */
-	const head = (pos) => [h('header', { class: 'pos-head' }, h('h2', { class: 'pos-name' }, posName(pos))), formsLine(pos)];
-	const sections = groups.map(([type, senses]) =>
-		h(
-			'section',
-			{ class: 'pos' },
-			head(type),
-			formOfLine(type),
-			asFormLine(type),
-			h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))),
-		),
-	);
+	/** A part of speech's name. @param {string} pos */
+	const head = (pos) => h('header', { class: 'pos-head' }, h('h2', { class: 'pos-name' }, posName(pos)));
+	// Under the name, one body (on phones, one grouped box): forms, then meanings.
+	let hinted = false;
+	const sections = groups.map(([type, senses]) => {
+		const body = h('div', { class: 'pos-body' }, formsLine(type), formOfLine(type), asFormLine(type), h('ul', { class: 'senses' }, senses.map((s) => sense(s, glossLang, headword, s === fit ? fitLabel : ''))));
+		// Once, under the first meanings: how to rate one (phones, contribute.js holdMenu).
+		const hint = hinted ? null : h('p', { class: 'hold-hint' }, t('Touch and hold a meaning to rate it or suggest a change.'));
+		hinted = true;
+		return h('section', { class: 'pos' }, head(type), body, hint);
+	});
 	// Forms of a part of speech that has no meanings here (a noun's plural when only the verb is defined) get a section of their own.
-	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
+	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), h('div', { class: 'pos-body' }, formsLine(pos), asFormLine(pos))));
 	// A part of speech the headword is only a form in (loathing, the -ing of the verb loathe).
-	for (const pos of [...ownForm.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
+	for (const pos of [...ownForm.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), h('div', { class: 'pos-body' }, asFormLine(pos))));
 	if (extra && (extra.related.length || extra.family.size)) {
 		// The family first: words made from this one, each under its part of speech.
+		// Each word with its part of speech after it: rows on phones, a line on wide screens.
 		const family = extra.family.size
 			? h(
 					'li',
@@ -529,7 +529,17 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 					h(
 						'span',
 						{ class: 'related-words' },
-						[...extra.family].flatMap(([pos, words], i) => [i ? h('span', { class: 'family-sep', 'aria-hidden': 'true' }, ' · ') : null, h('em', { class: 'family-pos' }, posName(pos)), ' ', ...wordLinks(words, extra.linked)]),
+						[...extra.family].flatMap(([pos, words]) =>
+							words.map((w) =>
+								h(
+									'a',
+									{ href: definitionHref(w), class: `family-item${!extra.linked || extra.linked.has(w.toLowerCase()) ? '' : ' word-new'}` },
+									h('span', null, w),
+									h('em', { class: 'family-pos' }, posName(pos)),
+									icon(ICONS.chevron, 14),
+								),
+							),
+						),
 					),
 				)
 			: null;

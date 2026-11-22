@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+181
+
+- Phones: the entry as a grouped list; touch and hold a meaning to rate it or suggest a change
+
 ## 26.11.22+180
 
 - The word's family on the entry: words made from it, each under its part of speech

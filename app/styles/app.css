@@ -1090,37 +1090,84 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .related em { color: var(--faint); }
 /* The word's family: each part of speech, small and quiet, before its words. */
 .family-pos { font-style: italic; font-size: 0.82em; color: var(--muted); }
-.family-sep { color: var(--faint); }
 
-/* Phones: one card per part of speech with the curved corner tab. */
+/* The hint under the first meanings (entry.js), and the meaning's menu
+   (hold.js): phones only, where the rows carry no buttons of their own. */
+.hold-hint { display: none; }
+
+/* Phones: the entry as the phone's own grouped list. Each part of speech a
+   small heading over one box on a grey ground: its forms first, then a row
+   per meaning, hairlines between. Rating and suggesting move into the menu
+   a meaning opens when touched and held. Related words: a box per kind,
+   the family as rows, the others as words to tap. */
 @media (max-width: 640px) {
-	.timeline { margin: 20px -4px 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 18px; }
-	.pos {
-		margin: 0; padding: 0 0 6px; border: 0.5px solid var(--line);
-		border-radius: 18px; background: var(--card); box-shadow: var(--shadow); overflow: hidden;
-	}
+	body[data-route="definition"] { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
+	.timeline { margin: 14px 0 0; padding: 0; border: none; display: flex; flex-direction: column; gap: 0; }
+	.pos { margin: 0; padding: 0; border: none; background: none; }
+	.pos-head { display: block; }
 	.pos-name {
-		display: inline-block; padding: 6px 26px 7px 22px;
-		border-right: 0.5px solid var(--line); border-bottom: 0.5px solid var(--line);
-		border-bottom-right-radius: 22px; background: var(--surface);
+		display: block; margin: 20px 4px 7px; padding: 0;
+		font: 600 13px/18px var(--font-ui); font-style: normal; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
 	}
+	.pos-name:lang(my) { text-transform: none; letter-spacing: 0; font-family: var(--font-my); }
 	.pos-name::before { content: none; }
-	.senses { margin: 14px 16px 0; }
-	/* The forms under the tab that names their part of speech, in line with the meanings' text. */
-	.pos-head { flex-wrap: nowrap; align-items: center; gap: 0 12px; }
-	.pos-name { flex: none; }
-	.pos-forms { margin: 12px 16px 0; padding-bottom: 12px; border-bottom: 0.5px solid var(--line); gap: 10px 20px; }
-	.pos-only-forms .pos-forms { border-bottom: none; padding-bottom: 6px; }
-	.pos-form-of { margin: 12px 16px 0 6px; font-size: 15px; }
-	.related-list { margin: 14px 16px 6px; grid-template-columns: 1fr; gap: 16px; }
-	/* Related words are tapped more than read: a size up, and room between
-	   the lines so a finger finds the word it means. */
-	.related-list li { font-size: 19px; line-height: 1.8; }
-	.related-words a { display: inline-block; padding: 1px 0; }
-	.related-name { margin-bottom: 0; }
-	.gloss { font-size: 19px; }
+	.pos-body { background: var(--group); border-radius: 12px; overflow: hidden; }
+	.pos-forms { margin: 0; padding: 11px 16px; border-bottom: 0.5px solid var(--line); gap: 8px 22px; }
+	.pos-body > :last-child { border-bottom: none; }
+	.pos-form dd { font-size: 17px; }
+	.pos-form-of { margin: 0; padding: 11px 16px; border-bottom: 0.5px solid var(--line); font-size: 15px; }
+	.senses { margin: 0; }
+	.sense { padding: 12px 16px; border-bottom: 0.5px solid var(--line); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+	.sense:last-child { border-bottom: none; }
+	.sense::before, .gloss-line + .gloss-line::before { content: none; }
+	.sense-tools { display: none; }
+	.gloss { font-size: 20px; }
+	.sense-explained { font-size: 15px; color: var(--ink-2); }
+	.example { margin: 6px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--guide); font-size: 15px; line-height: 1.5; color: var(--muted); }
+	.example::before { content: none; }
+	.kind { border: none; background: var(--glass-fill); color: var(--ink-2); padding: 1px 8px; }
+	.hold-hint { display: block; margin: 7px 4px 0; font-size: 13px; line-height: 1.4; color: var(--muted); }
+	body[data-ratings-off][data-suggestions-off] .hold-hint { display: none; }
+	/* Related words: a heading and a box per kind. */
+	.pos-related > .pos-name { display: none; }
+	.related-list { margin: 0; grid-template-columns: 1fr; gap: 0; }
+	.related-list li { padding: 0; font-size: 17px; line-height: 1.4; }
+	.related-list li::before { content: none; }
+	.related-name { display: block; margin: 20px 4px 7px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
+	.related-words { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; background: var(--group); border-radius: 12px; font-size: 0; }
+	.related-words a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--glass-fill); font-size: 16px; text-decoration: none; }
+	/* The family: a row per word, its part of speech at the end, as a list one taps through. */
+	.related-family .related-words { display: block; padding: 0; }
+	.related-family .related-words a.family-item { display: flex; gap: 10px; min-height: 48px; padding: 0 14px 0 16px; border-radius: 0; background: none; border-bottom: 0.5px solid var(--line); color: var(--ink); }
+	.related-family .related-words a.family-item:last-child { border-bottom: none; }
+	.family-item .family-pos { margin-left: auto; font-style: normal; font-size: 15px; color: var(--muted); }
+	.family-item .icon { color: var(--faint); }
+	.family-item.word-new { color: var(--muted); }
 	.related { grid-template-columns: 1fr; gap: 2px; margin: 20px 4px 0; }
 	.related dd { margin-bottom: 10px; }
+}
+
+/* The meaning held (hold.js): the page dimmed, the meaning lifted as it
+   reads, its actions in a menu beside it. */
+.hold-layer { position: fixed; inset: 0; z-index: 60; }
+.hold-shade { position: absolute; inset: 0; background: rgb(23 32 43 / 0.22); animation: hold-in 0.18s ease-out; }
+.hold-card { position: absolute; background: var(--group, var(--card)); border-radius: 14px; box-shadow: 0 18px 50px rgb(16 24 40 / 0.28); animation: hold-lift 0.22s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.hold-card .sense { border: none; list-style: none; }
+.hold-menu { position: absolute; width: 250px; border-radius: 14px; overflow: hidden; background: var(--glass-solid); box-shadow: 0 18px 50px rgb(16 24 40 / 0.28); animation: hold-in 0.2s ease-out; }
+.hold-item { display: flex; align-items: center; gap: 12px; width: 100%; height: 46px; padding: 0 16px; border: none; border-bottom: 0.5px solid var(--line); background: none; color: var(--ink); font: 400 17px var(--font-ui); text-align: left; cursor: pointer; }
+.hold-item:last-child { border-bottom: none; }
+.hold-item:active { background: var(--glass-fill); }
+.hold-item .icon { margin-left: auto; flex: none; stroke-width: 1.6; }
+.hold-item[aria-checked="true"] { color: var(--brand); }
+.hold-item[aria-checked="true"] .icon { fill: currentColor; fill-opacity: 0.2; }
+@keyframes hold-in { from { opacity: 0; } }
+@keyframes hold-lift { from { transform: scale(0.97); opacity: 0.6; } }
+
+/* Wide screens: the family on one line, each word with its part of speech. */
+@media (min-width: 641px) {
+	.related-family .related-words { display: flex; flex-wrap: wrap; gap: 2px 16px; }
+	.family-item .family-pos { margin-left: 5px; }
+	.family-item .icon { display: none; }
 }
 
 /* ---------------------------------------------------------- how to search (/definition with no word) */

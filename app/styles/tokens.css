@@ -93,6 +93,10 @@
 	--tab-on: rgba(49, 142, 215, 0.13);
 	/* A search field, as the phone fills its own. */
 	--field-fill: rgba(118, 128, 142, 0.12);
+	/* A grouped list (an entry on a phone): boxes on a grey ground. */
+	--grouped: #f2f4f7;
+	--grouped-scrim: rgba(242, 244, 247, 0.86);
+	--group: #ffffff;
 
 	--icon-line: 1.1;
 	--radius: 16px;
@@ -160,6 +164,9 @@
 	--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	--tab-on: rgba(109, 179, 242, 0.18);
 	--field-fill: rgba(150, 165, 185, 0.16);
+	--grouped: #0d1116;
+	--grouped-scrim: rgba(13, 17, 22, 0.86);
+	--group: #18202a;
 	color-scheme: dark;
 }
 
@@ -210,6 +217,9 @@
 		--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 		--tab-on: rgba(109, 179, 242, 0.18);
 		--field-fill: rgba(150, 165, 185, 0.16);
+		--grouped: #0d1116;
+		--grouped-scrim: rgba(13, 17, 22, 0.86);
+		--group: #18202a;
 		color-scheme: dark;
 	}
 }

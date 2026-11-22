@@ -210,6 +210,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Forms are named** under their part of speech: plural, third person,
   past, past participle, -ing form, comparative, superlative, as the
   dataset labels them (one word that is two forms shows both names).
+- **On phones an entry is a grouped list**, as the phone's own (`app.css`,
+  640px): each part of speech a small heading over one box on a grey
+  ground, its forms first, then a row per meaning. A meaning touched and
+  held (or right-clicked) lifts and opens its menu, Helpful, Not helpful,
+  Suggest a change, Copy (`app/reader/hold.js`); the rows carry no buttons
+  of their own there, and a line under the first box says so. Related
+  words: a box per kind, the family as rows to tap through. Wider screens
+  keep the open timeline with the buttons beside each meaning.
 - **The word's family** heads the related words: words made from it or it
   from them, each under its part of speech (*noun* lover · *adjective*
   lovable), from the dataset's lookup (`family`, WordNet's links between

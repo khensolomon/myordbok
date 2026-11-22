@@ -1296,4 +1296,5 @@ export const MY = {
 	'comparative': 'နှိုင်းယှဉ်ပုံစံ',
 	'superlative': 'အသာလွန်ဆုံးပုံစံ',
 	'Word family': 'မူရင်းတူ စကားလုံးများ',
+	'Touch and hold a meaning to rate it or suggest a change.': 'အဓိပ္ပာယ်တစ်ခုကို ဖိထားပြီး အဆင့်သတ်မှတ်ရန် သို့မဟုတ် ပြင်ဆင်ရန် အကြံပြုနိုင်သည်။',
 };

@@ -21,6 +21,7 @@ import { mark, num, posName, t } from '../i18n/index.js';
 import { member } from '../core/member.js';
 import { editableSenses, react, reactions, suggestEdit } from '../data/api.js';
 import { noZawgyi } from '../core/zawgyi.js';
+import { holdMenu } from './hold.js';
 
 /** @typedef {import('../data/api.js').OwnEdit} OwnEdit */
 /** @typedef {{ likes: number, dislikes: number, mine: number }} Counts */
@@ -59,6 +60,15 @@ function open(path) {
 /** To signing in, and back to this page afterwards. */
 function signIn() {
 	open(`/you?return=${encodeURIComponent(location.pathname + location.search)}`);
+}
+
+/**
+ * The meaning as shown, glosses and the English, to the clipboard.
+ * @param {HTMLElement} row
+ */
+function copyMeaning(row) {
+	const text = [...row.querySelectorAll(':scope > .gloss .gloss-line, :scope > .sense-explained')].map((el) => (el.textContent ?? '').trim()).filter(Boolean).join('\n');
+	navigator.clipboard?.writeText(text).catch((err) => console.warn('Not copied:', err));
 }
 
 /** @param {unknown} err */
@@ -210,6 +220,13 @@ export function entryFeedback(lang, word) {
 				});
 				// Beside the last gloss, on its line.
 				(row.querySelector('.gloss > .gloss-line:last-child') ?? row.querySelector('.gloss'))?.append(h('span', { class: 'sense-tools' }, pair.up, pair.down, edit));
+				// On phones the buttons give way to a menu: the meaning touched and held (hold.js).
+				holdMenu(row, [
+					{ label: t('Helpful'), glyph: ICONS.thumbUp, on: () => pair.up.getAttribute('aria-pressed') === 'true', run: () => pair.up.click() },
+					{ label: t('Not helpful'), glyph: ICONS.thumbDown, on: () => pair.down.getAttribute('aria-pressed') === 'true', run: () => pair.down.click() },
+					{ label: t('Suggest a change'), glyph: ICONS.suggest, run: () => edit.click() },
+					{ label: t('Copy'), glyph: ICONS.copy, run: () => copyMeaning(row) },
+				]);
 			}
 		},
 	};
