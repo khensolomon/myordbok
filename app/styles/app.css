@@ -642,6 +642,12 @@ body[data-route="home"] .site-footer { display: none; }
 /* ---------------------------------------------------------- entry */
 
 .entry-head { display: flex; align-items: center; gap: 14px; }
+/* A headword longer than the line (a long word, a phrase) wraps, at its
+   spaces first, hyphenated where the language allows, and only then
+   anywhere: the sound and the thumb always stay on screen. */
+.entry-head > .headword, .entry-head > div { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+.entry-head > :is(.lang-badge, .pronounce, .entry-like) { flex: none; }
+@media (max-width: 640px) { .entry-head { gap: 10px; } }
 /* The thumb for the whole entry, at the end of the headword's line
    (entry.js): pressed, the entry is in Liked. */
 .entry-head .entry-like {

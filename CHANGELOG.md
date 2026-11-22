@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+177
+
+- Long headwords and phrases wrap; the sound and thumb stay on screen
+
 ## 26.11.22+176
 
 - Search screen always closes on a search, a suggestion, Cancel or a new page; no off-screen skipping of entry parts
