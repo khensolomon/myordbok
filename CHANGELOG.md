@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+176
+
+- Search screen always closes on a search, a suggestion, Cancel or a new page; no off-screen skipping of entry parts
+
 ## 26.11.22+175
 
 - App: no zoom, taps answer at once, pressed rows show it; search field keeps the word as typed

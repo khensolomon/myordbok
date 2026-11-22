@@ -2581,6 +2581,4 @@ html[data-app] :is(button, .app-tab, .bar-back, .home-chips a, .you-action, .ws-
 		-webkit-backdrop-filter: none; backdrop-filter: none;
 	}
 	body[data-route="definition"] .bar-back { background: var(--card); }
-	/* Long pages: what is far off screen is not drawn until it comes near. */
-	main#view .entry > * { content-visibility: auto; contain-intrinsic-size: auto 320px; }
 }

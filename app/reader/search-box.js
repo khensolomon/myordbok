@@ -130,13 +130,24 @@ export class SearchBox extends HTMLElement {
 		// search screen with it.
 		this.list.addEventListener('click', () => {
 			this.show([]);
-			if (NARROW.matches) /** @type {HTMLElement | null} */ (document.activeElement)?.blur();
+			if (NARROW.matches) this.leave();
 		});
 		// While the field has focus, under 1024px, the search is a screen of
-		// its own (app.css, body[data-searching]). Closing it waits a moment,
-		// so a tap that moved focus lands where it was aimed.
+		// its own (app.css, body[data-searching]). Focus leaving closes it
+		// after a moment, so a tap that moved focus lands where it was aimed;
+		// a search, a suggestion, Cancel or a new page close it at once
+		// (leave), whatever focus does: iOS does not always report focus
+		// leaving the field, and a screen left open covers the page.
 		/** @type {number | undefined} */
 		let settle;
+		this.closeScreen = () => {
+			clearTimeout(settle);
+			document.body.removeAttribute('data-searching');
+			document.documentElement.style.setProperty('--vv-top', '0px');
+		};
+		window.addEventListener('mo:navigated', () => {
+			if (document.activeElement !== this.input) this.closeScreen?.();
+		});
 		/** What the field held when focus came in; Cancel puts it back. */
 		this.valueBefore = value;
 		this.addEventListener('focusin', (e) => {
@@ -187,7 +198,14 @@ export class SearchBox extends HTMLElement {
 	/** Cancel (phones): what was typed goes, the list closes, the keyboard goes away. */
 	cancel() {
 		this.setValue(this.valueBefore);
+		this.leave();
+	}
+
+	/** The keyboard away and the search screen closed. */
+	leave() {
+		/** @type {HTMLElement | null} */ (document.activeElement)?.blur();
 		this.input?.blur();
+		this.closeScreen?.();
 	}
 
 	/** Empties the field, keeps the cursor in it, and lists this device's recent searches. */
@@ -284,7 +302,7 @@ export class SearchBox extends HTMLElement {
 		if (!q) return;
 		this.show([]);
 		// Enter and the search button alike: the search screen closes with the keyboard.
-		if (NARROW.matches) this.input?.blur();
+		if (NARROW.matches) this.leave();
 		this.dispatchEvent(new CustomEvent('mo-search', { detail: q, bubbles: true }));
 	}
 }
