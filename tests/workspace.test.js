@@ -681,7 +681,7 @@ test('settings: switches pause parts of the site at once, and numbers set the li
 	const set = async (key, value) => assert.equal((await call(e, '/api/workspace/settings', { who: 'editor', body: { key, value } })).status, 200, key);
 	const site = async () => (await call(e, '/api/site')).body;
 	const { support_lines, ...switches } = await site();
-	assert.deepEqual(switches, { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true, support_ask: true, quiz: true, help: true, app: { min: 0 } });
+	assert.deepEqual(switches, { readonly: false, comments: 'on', contact: true, ratings: true, suggestions: true, support_ask: true, quiz: true, help: true, app: { min: 0 }, signin: [] });
 	assert.ok(support_lines.length >= 1 && support_lines.every((l) => l.en));
 
 	// Read-only: writes wait, the setting itself can be changed back.

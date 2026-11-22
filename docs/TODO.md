@@ -21,7 +21,8 @@
 - [ ] The app on Play: first bundle on the internal testing track, then production
 - [x] The iOS build in GitHub Actions (macOS runner, App Store Connect API key), uploaded to TestFlight
 - [ ] The app on the App Store: TestFlight on a phone, screenshots (iPhone and iPad), App Privacy answers, review
-- [ ] Signing in inside the app, with Sign in with Apple on iOS
+- [x] Sign in with Apple on the website, removable (setting signin.apple)
+- [ ] Linking the app to an account (myordbok.com/link)
 - [x] A sitemap of the headwords, following each data release; robots.txt naming it
 - [ ] CI secrets
 - [ ] LICENSE: copyright holder's name

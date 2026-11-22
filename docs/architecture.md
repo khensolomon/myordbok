@@ -132,11 +132,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   refuses requests that are not from its own pages (`Sec-Fetch-Site`),
   limits each visitor per minute, and answers repeated lookups from the edge
   cache (`worker/lib/guard.js`; docs/deploy.md, The API).
-- **Sign-in is Google or GitHub, one member per person.** The Worker runs
-  the OAuth code flow with PKCE; members are recognised by the provider
-  account or, when the provider has verified it, the email, so likes and
-  suggestions stay with one person whichever provider is used. Sessions are
-  random tokens kept only as hashes (docs/deploy.md, Sign-in).
+- **Sign-in is Google, GitHub or Apple, one member per person.** The Worker
+  runs the OAuth code flow (PKCE for Google and GitHub); members are
+  recognised by the provider account or, when the provider has verified it,
+  the email, so likes and suggestions stay with one person whichever
+  provider is used. Sessions are random tokens kept only as hashes
+  (docs/deploy.md, Sign-in). Apple sits apart (`worker/lib/apple.js`) and
+  behind its own setting, down to existing accounts only and then off, so
+  it can be removed without locking anyone out.
 - **Members contribute on the entry itself, at two levels.** Each sense has
   its own thumbs up and down and ✎, which opens an editor for that sense
   alone under its row; the side card rates the entry as a whole and adds a
@@ -435,8 +438,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 
 ## Next
 
-1. The app: the Play upload key, then signed Play builds; the iOS build;
-   signing in inside the app (with Sign in with Apple, which Apple requires
-   beside Google on iOS); a content security policy once tried on phones.
+1. The app: linking it to an account made on the website (a device code
+   approved at myordbok.com/link); the new look by screen size (large titles,
+   Liquid Glass header and tab bar, search as its own screen, Liked; a
+   sidebar on wide screens); a content security policy once tried on phones.
 2. Query: multi-word headwords inside sentences.
 3. Myanmar text for About, Privacy and Terms.

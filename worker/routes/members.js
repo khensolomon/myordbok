@@ -3,7 +3,7 @@
  * Members, for admins and owners (workspace section Members).
  *
  *   GET  /api/workspace/members?q=&role=&status=   the list, newest first; q matches name or email.
- *        Also &provider=google|github, &joined=7|30|90 (days), &seen=1|3|7|30 (in the last that many days)
+ *        Also &provider=google|github|apple|apple-only (signs in with Apple alone), &joined=7|30|90 (days), &seen=1|3|7|30 (in the last that many days)
  *        or quiet (not for 90 days, or never), &gave=yes|no (suggested or commented),
  *        &supporter=1, &insights=1, &order=joined|seen|name|gave|downloads|devices, &offset=; 100 a page.
  *        devices: the member's sign-ins still open, one a browser or app.
@@ -67,7 +67,7 @@ async function list(request, env, actor) {
 		if (v && !allowed.includes(v)) throw new AppError('bad_request', `${name} must be one of ${allowed.join(', ')}`);
 		return v;
 	};
-	const provider = pick('provider', ['google', 'github']);
+	const provider = pick('provider', ['google', 'github', 'apple', 'apple-only']);
 	const joined = pick('joined', ['7', '30', '90']);
 	const seen = pick('seen', ['1', '3', '7', '30', 'quiet']);
 	const gave = pick('gave', ['yes', 'no']);
@@ -82,7 +82,11 @@ async function list(request, env, actor) {
 		"(?1 = '' OR lower(u.name) LIKE ?2 ESCAPE '\\' OR u.email LIKE ?2 ESCAPE '\\')",
 		"(?3 = '' OR u.role = ?3)",
 		"(?4 = '' OR u.status = ?4)",
-		provider ? `EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider = '${provider}')` : '',
+		provider === 'apple-only'
+			? "EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider = 'apple') AND NOT EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider <> 'apple')"
+			: provider
+				? `EXISTS (SELECT 1 FROM identities i WHERE i.user_id = u.id AND i.provider = '${provider}')`
+				: '',
 		joined ? `u.created_at >= unixepoch() - ${Number(joined)} * 86400` : '',
 		['1', '3', '7', '30'].includes(seen) ? `u.seen_at >= unixepoch() - ${Number(seen)} * 86400` : seen === 'quiet' ? '(u.seen_at IS NULL OR u.seen_at < unixepoch() - 90 * 86400)' : '',
 		gave === 'yes' ? contributed : gave === 'no' ? `NOT ${contributed}` : '',

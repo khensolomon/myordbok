@@ -180,7 +180,8 @@ make deploy-beta APPLY=1    # real deploy from this machine
 
 ## Sign-in
 
-Google and GitHub sign-in (`worker/routes/auth.js`). One GitHub OAuth App
+Google, GitHub and Apple sign-in (`worker/routes/auth.js`,
+`worker/lib/apple.js`). One GitHub OAuth App
 serves beta, live and local development (localhost is one of its
 callbacks), so its secret is also in the maintainer's `.dev.vars`. One Google
 OAuth client serves beta and live, and a separate one local
@@ -194,14 +195,36 @@ development.
 | Google local client | `http://localhost:8787/api/auth/google/callback` |
 
 Client ids are public and live in `wrangler.toml` (`GITHUB_CLIENT_ID`,
-`GOOGLE_CLIENT_ID`). Secrets never enter the repository:
+`GOOGLE_CLIENT_ID`; Apple's `APPLE_SIGNIN_SERVICE_ID`, `APPLE_SIGNIN_KEY_ID`,
+`APPLE_TEAM_ID`). Secrets never enter the repository:
 
 ```bash
 npx wrangler secret put GITHUB_CLIENT_SECRET --env beta
 npx wrangler secret put GOOGLE_CLIENT_SECRET --env beta
 npx wrangler secret put GITHUB_CLIENT_SECRET --env live
 npx wrangler secret put GOOGLE_CLIENT_SECRET --env live
+npx wrangler secret put APPLE_SIGNIN_KEY --env beta < AuthKey_<key id>.p8
+npx wrangler secret put APPLE_SIGNIN_KEY --env live < AuthKey_<key id>.p8
 ```
+
+Sign in with Apple, at developer.apple.com (Certificates, Identifiers &
+Profiles): the App ID `com.myordbok.app` with Sign In with Apple, as the
+primary App ID; the Services ID `com.myordbok.web`, configured with the
+domains `myordbok.com`, `beta.myordbok.com` and their return URLs
+`https://<domain>/api/auth/apple/callback` (Apple takes no localhost, so
+Apple is tried on beta); a key with Sign in with Apple, whose `.p8` is
+`APPLE_SIGNIN_KEY`. Without all four values Apple is not offered.
+
+Apple is meant to be removable. The setting **Sign in with Apple**
+(workspace Settings, `signin.apple`): **On**; **Existing accounts only**,
+where members who already use Apple still sign in and their Account page
+asks them to add Google or GitHub, and no new account or link uses Apple;
+**Off**, where it is not offered. Members → Sign-in → **Apple only** shows
+who would be locked out. Before ending the Apple Developer membership: a
+few weeks on Existing accounts only, then Off, then the secret and the
+wrangler.toml values removed. An email Apple relays (Hide My Email) is
+neither stored nor matched, so those members link other providers from
+their Account page while signed in.
 
 Locally: `make db-migrate`, copy
 `.dev.vars.example` to `.dev.vars` and fill in the secrets, then `make api`.
@@ -241,6 +264,9 @@ for emergencies:
 make grant EMAIL=you@example.com ROLE=owner            # dry run
 make grant EMAIL=you@example.com ROLE=owner APPLY=1
 ```
+
+The sign-in buttons follow `GET /api/site` (`signin`): the providers
+configured, and Apple unless its setting is Off.
 
 How members are recognised: a provider account seen before is its member; a
 second provider used while signed in is linked to that member; otherwise a

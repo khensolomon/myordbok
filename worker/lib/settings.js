@@ -42,6 +42,11 @@ export const SETTINGS = {
 		about: 'Read-only: every write but signing in and this setting is refused (ratings, suggestions, comments, messages, reviews); reading and searching go on.',
 	},
 	'signup.open': { fallback: 'on', valid: onOff, about: 'Whether a sign-in may create a new account. Members who have one still sign in.' },
+	'signin.apple': {
+		fallback: 'on',
+		valid: (v) => v === 'on' || v === 'existing' || v === 'off',
+		about: 'Sign in with Apple: on; existing (members who already sign in with Apple still do, and are asked to add Google or GitHub; no new Apple accounts or links); off (not offered). Needs the Apple configuration (docs/deploy.md, Sign-in).',
+	},
 	'comments.open': { fallback: 'on', valid: (v) => v === 'on' || v === 'off' || v === 'hidden', about: 'Comments on entries: on, closed to new ones (off), or hidden from entries altogether (hidden).' },
 	'comments.daily': { fallback: 30, valid: whole(1, 500), about: 'Most comments one member posts in a day.' },
 	'comments.newcomer': { fallback: 3, valid: whole(0, 100), about: 'Most comments an account posts on its first day; 0: none until a day has passed.' },

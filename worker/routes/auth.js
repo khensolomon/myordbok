@@ -1,9 +1,12 @@
 // @ts-check
 /**
- * Sign-in with Google or GitHub (OAuth 2.0, authorization code with PKCE).
+ * Sign-in with Google or GitHub (OAuth 2.0, authorization code with PKCE),
+ * and with Apple when it is configured and switched on (worker/lib/apple.js:
+ * no PKCE, and its callback arrives as a form POST, turned into the GET).
  *
  *   GET  /api/auth/{provider}/start?return=/path   → the provider's sign-in page
  *   GET  /api/auth/{provider}/callback             ← back from the provider
+ *   POST /api/auth/apple/callback                  ← Apple's form, answered with a 303 to the GET
  *   POST /api/auth/signout
  *   GET  /api/me                                   the member signed in, or null
  *
@@ -23,6 +26,7 @@
  * belong to someone else.
  */
 import { AppError } from '../../shared/errors.js';
+import { APPLE, appleClientSecret, appleMissing, appleProfile } from '../lib/apple.js';
 import { json } from '../lib/http.js';
 import { getSetting } from '../lib/settings.js';
 import { base64url, currentMember, endSession, randomToken, readCookie, setCookie, sha256, startSession } from '../lib/session.js';
@@ -35,6 +39,10 @@ import { isSupporter } from './support.js';
  * @property {string} [GITHUB_CLIENT_SECRET]
  * @property {string} [GOOGLE_CLIENT_ID]
  * @property {string} [GOOGLE_CLIENT_SECRET]
+ * @property {string} [APPLE_SIGNIN_SERVICE_ID]
+ * @property {string} [APPLE_SIGNIN_KEY_ID]
+ * @property {string} [APPLE_TEAM_ID]
+ * @property {string} [APPLE_SIGNIN_KEY]
  */
 
 /**
@@ -70,7 +78,22 @@ const PROVIDERS = /** @type {const} */ ({
 	},
 });
 
-/** @typedef {keyof typeof PROVIDERS} Provider */
+/** @typedef {keyof typeof PROVIDERS | 'apple'} Provider */
+
+/**
+ * The providers this site offers now, for the sign-in buttons (GET /api/site):
+ * Google and GitHub when configured; Apple when configured and its setting
+ * (signin.apple) is not off.
+ * @param {AuthEnv} env
+ * @returns {Promise<Provider[]>}
+ */
+export async function providersOffered(env) {
+	/** @type {Provider[]} */
+	const list = [];
+	for (const p of /** @type {Array<keyof typeof PROVIDERS>} */ (Object.keys(PROVIDERS))) if (env[PROVIDERS[p].id] && env[PROVIDERS[p].secret]) list.push(p);
+	if (!appleMissing(env) && (await getSetting(env, 'signin.apple')) !== 'off') list.push('apple');
+	return list;
+}
 
 /** A failure the account page explains; `code` goes into the address. */
 class SignInError extends Error {
@@ -94,12 +117,14 @@ class SignInError extends Error {
 export async function auth(request, env, parts) {
 	const [, which, action] = parts;
 	if (which === 'signout' && parts.length === 2) return signOut(request, env);
-	if (!Object.hasOwn(PROVIDERS, which) || (action !== 'start' && action !== 'callback') || parts.length !== 3) {
+	if ((!Object.hasOwn(PROVIDERS, which) && which !== 'apple') || (action !== 'start' && action !== 'callback') || parts.length !== 3) {
 		throw new AppError('not_found', `No API route for ${new URL(request.url).pathname}`);
 	}
+	if (which === 'apple' && action === 'callback' && request.method === 'POST') return appleForm(request);
 	if (request.method !== 'GET') throw new AppError('bad_request', `${action} is a GET`);
 	const provider = /** @type {Provider} */ (which);
 	try {
+		if (provider === 'apple') await appleOpen(env);
 		return action === 'start' ? await start(request, env, provider) : await callback(request, env, provider);
 	} catch (err) {
 		if (!(err instanceof SignInError)) throw err;
@@ -127,12 +152,26 @@ export async function me(request, env) {
  * @param {Provider} provider
  */
 async function start(request, env, provider) {
-	const { clientId } = credentials(env, provider);
 	const url = new URL(request.url);
 	const state = randomToken();
 	const verifier = randomToken(48);
 	const back = safeReturn(url.searchParams.get('return'));
 	const saved = base64url(new TextEncoder().encode(JSON.stringify({ state, verifier, provider, back })));
+	if (provider === 'apple') {
+		const target = new URL(APPLE.authorize);
+		for (const [key, value] of Object.entries({
+			client_id: /** @type {string} */ (env.APPLE_SIGNIN_SERVICE_ID),
+			redirect_uri: callbackUrl(url, provider),
+			response_type: 'code',
+			response_mode: 'form_post',
+			scope: 'name email',
+			state,
+		})) {
+			target.searchParams.set(key, value);
+		}
+		return redirect(target.href, [setCookie(STATE_COOKIE, saved, STATE_SECONDS)]);
+	}
+	const { clientId } = credentials(env, provider);
 	const p = PROVIDERS[provider];
 	const target = new URL(p.authorize);
 	for (const [key, value] of Object.entries({
@@ -165,10 +204,13 @@ async function callback(request, env, provider) {
 	const code = url.searchParams.get('code');
 	if (!code) throw new SignInError('provider', 'no code');
 
-	const token = await exchange(env, provider, code, callbackUrl(url, provider), saved.verifier);
-	const profile = provider === 'github' ? await githubProfile(token) : await googleProfile(token);
+	const profile =
+		provider === 'apple'
+			? await appleSignIn(env, code, callbackUrl(url, provider), url.searchParams.get('user'))
+			: await profileOf(provider, await exchange(env, provider, code, callbackUrl(url, provider), saved.verifier));
 	const signedIn = await currentMember(request, env);
-	const userId = await memberFor(env, provider, profile, signedIn?.id ?? null);
+	const fresh = provider === 'apple' && (await getSetting(env, 'signin.apple')) === 'existing' ? false : true;
+	const userId = await memberFor(env, provider, profile, signedIn?.id ?? null, fresh);
 	const session = await startSession(env, userId);
 	return redirect(saved.back, [session, setCookie(STATE_COOKIE, '', 0)]);
 }
@@ -192,9 +234,11 @@ async function signOut(request, env) {
  * @param {Provider} provider
  * @param {Profile} profile
  * @param {number | null} signedIn
+ * @param {boolean} [fresh]  Whether a provider account not seen before may be
+ *   taken in (linked or a new member); false for Apple on existing accounts only.
  * @returns {Promise<number>}
  */
-export async function memberFor(env, provider, profile, signedIn) {
+export async function memberFor(env, provider, profile, signedIn, fresh = true) {
 	const db = env.APP;
 	const known = /** @type {{ user_id: number, status: string } | null} */ (
 		await db.prepare('SELECT i.user_id, u.status FROM identities i JOIN users u ON u.id = i.user_id WHERE i.provider = ?1 AND i.provider_user_id = ?2').bind(provider, profile.id).first()
@@ -206,6 +250,7 @@ export async function memberFor(env, provider, profile, signedIn) {
 		return known.user_id;
 	}
 
+	if (!fresh) throw new SignInError('apple_closed', `no new ${provider} accounts (signin.apple: existing)`);
 	let userId = signedIn;
 	if (userId === null && profile.email) {
 		const byEmail = /** @type {{ id: number, status: string } | null} */ (await db.prepare('SELECT id, status FROM users WHERE email = ?1').bind(profile.email).first());
@@ -247,8 +292,67 @@ async function fillIn(db, userId, profile) {
 }
 
 /**
+ * Apple's form POST (response_mode=form_post): the same fields as a GET to
+ * the callback, which the browser makes as a top-level navigation carrying
+ * this site's cookies (worker/lib/apple.js). Nothing else is done with it.
+ * @param {Request} request
+ */
+async function appleForm(request) {
+	const form = await request.formData().catch(() => null);
+	if (!form) throw new AppError('bad_request', 'Apple’s callback is a form');
+	const back = new URL('/api/auth/apple/callback', request.url);
+	for (const key of ['code', 'state', 'user', 'error']) {
+		const value = form.get(key);
+		if (typeof value === 'string' && value) back.searchParams.set(key, value);
+	}
+	return new Response(null, { status: 303, headers: { location: back.href, 'cache-control': 'no-store' } });
+}
+
+/**
+ * Apple is offered: configured, and its setting is not off.
  * @param {AuthEnv} env
- * @param {Provider} provider
+ */
+async function appleOpen(env) {
+	const missing = appleMissing(env);
+	if (missing) throw new SignInError('not_configured', `${missing} is not set on this site`, missing);
+	if ((await getSetting(env, 'signin.apple')) === 'off') throw new SignInError('not_configured', 'signin.apple is off', 'signin.apple');
+}
+
+/**
+ * The Apple account a code belongs to.
+ * @param {AuthEnv} env
+ * @param {string} code
+ * @param {string} redirectUri
+ * @param {string | null} user  The form's `user` field (first sign-in only).
+ * @returns {Promise<Profile>}
+ */
+async function appleSignIn(env, code, redirectUri, user) {
+	const clientId = /** @type {string} */ (env.APPLE_SIGNIN_SERVICE_ID);
+	const res = await fetch(APPLE.token, {
+		method: 'POST',
+		headers: { accept: 'application/json', 'content-type': 'application/x-www-form-urlencoded', 'user-agent': USER_AGENT },
+		body: new URLSearchParams({ client_id: clientId, client_secret: await appleClientSecret(env), code, grant_type: 'authorization_code', redirect_uri: redirectUri }),
+	});
+	const body = /** @type {{ id_token?: string, error?: string, error_description?: string }} */ (await res.json().catch(() => ({})));
+	if (!res.ok || !body.id_token) throw new SignInError('provider', `apple token exchange: ${res.status} ${body.error ?? ''} ${body.error_description ?? ''}`.trim());
+	try {
+		return appleProfile(body.id_token, clientId, user);
+	} catch (err) {
+		throw new SignInError('provider', `apple identity token: ${err instanceof Error ? err.message : String(err)}`);
+	}
+}
+
+/**
+ * @param {keyof typeof PROVIDERS} provider
+ * @param {string} token
+ */
+function profileOf(provider, token) {
+	return provider === 'github' ? githubProfile(token) : googleProfile(token);
+}
+
+/**
+ * @param {AuthEnv} env
+ * @param {keyof typeof PROVIDERS} provider
  */
 function credentials(env, provider) {
 	const p = PROVIDERS[provider];
@@ -263,7 +367,7 @@ function credentials(env, provider) {
 
 /**
  * @param {AuthEnv} env
- * @param {Provider} provider
+ * @param {keyof typeof PROVIDERS} provider
  * @param {string} code
  * @param {string} redirectUri
  * @param {string} verifier

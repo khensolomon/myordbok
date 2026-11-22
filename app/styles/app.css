@@ -137,6 +137,14 @@ main {
 .you-providers { display: grid; gap: 8px; }
 .you-provider { display: block; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--surface); }
 .you-provider:hover { border-color: var(--ink-2); }
+/* Sign in with Apple in Apple's own style (its guidelines): black, white
+   words, the logo before them; white on black in the dark theme. */
+.you-provider.is-apple, .ws-provider.is-apple { display: flex; align-items: center; justify-content: center; gap: 8px; background: #000; border-color: #000; color: #fff; }
+.you-provider.is-apple:hover, .ws-provider.is-apple:hover { border-color: #000; background: #1d1d1f; }
+:root[data-theme="dark"] .you-provider.is-apple, :root[data-theme="dark"] .ws-provider.is-apple { background: #fff; border-color: #fff; color: #000; }
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) .you-provider.is-apple, :root:not([data-theme="light"]) .ws-provider.is-apple { background: #fff; border-color: #fff; color: #000; }
+}
 .you-who { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
 .you-who img, .you-face { width: 40px; height: 40px; border-radius: 50%; flex: none; }
 .you-face { display: inline-flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font-weight: 700; }
@@ -2032,6 +2040,11 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 .ws-providers { display: grid; gap: 10px; width: min(320px, 100%); margin: 10px 0 4px; }
 .ws-provider { display: block; padding: 11px 18px; font-weight: 600; color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .ws-provider:hover { border-color: var(--ink-2); }
+.ws-provider { text-align: center; }
+.ws-another-way { max-width: 520px; }
+.ws-another-way h2 { margin: 0 0 6px; font-size: 16px; }
+.ws-another-way p { margin: 0 0 6px; }
+.ws-also .ws-providers:empty, .ws-also:has(.ws-providers[hidden]) { display: none; }
 
 /* The phone bar's parts (below), hidden on wider screens. */
 .ws-rail-head { display: contents; }

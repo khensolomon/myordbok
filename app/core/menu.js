@@ -21,7 +21,7 @@
 import { analyticsAvailable, getChoice, setChoice } from './consent.js';
 import { h, icon } from './dom.js';
 import { ICONS } from './icons.js';
-import { member, signInHref, signOut } from './member.js';
+import { member, providerLinks, signOut } from './member.js';
 import { getTheme, setTheme } from './prefs.js';
 import { workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
@@ -29,8 +29,6 @@ import { MYANMAR_OPEN, getLang, num, setLang, t } from '../i18n/index.js';
 
 /** @typedef {import('./member.js').Member} Member */
 
-/** @type {Record<'google' | 'github', string>} */
-const PROVIDERS = { google: 'Google', github: 'GitHub' };
 const DEFINITION_PACKS = ['senses-en', 'senses-my', 'related-en'];
 
 /**
@@ -124,11 +122,7 @@ function signIn(here) {
 		{ class: 'you-head' },
 		h('strong', null, t('Sign in')),
 		h('p', null, t('To rate meanings, suggest corrections and keep the definitions offline. Reading never needs an account.')),
-		h(
-			'div',
-			{ class: 'you-providers' },
-			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'you-provider', href: signInHref(p, here) }, t('Continue with {provider}', { provider: PROVIDERS[p] }))),
-		),
+		providerLinks('you-provider', here),
 	);
 }
 

@@ -8,6 +8,7 @@
  * everywhere and asks twice.
  */
 import { request } from '#platform/http.js';
+import { PROVIDER_NAMES } from '../core/member.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { changeMember, membersQuery, workspaceMember, workspaceMembers } from '../data/api.js';
@@ -43,7 +44,7 @@ const ORDERS = /** @type {const} */ ([['', mark('Newest')], ['seen', mark('Last 
 const SEEN = /** @type {const} */ ([['', mark('Any')], ['1', mark('In the last 24 hours')], ['3', mark('In the last 3 days')], ['7', mark('In the last week')], ['30', mark('In the last 30 days')], ['quiet', mark('Not for 90 days')]]);
 const JOINED = /** @type {const} */ ([['', mark('Any')], ['7', mark('7 days')], ['30', mark('30 days')], ['90', mark('90 days')]]);
 const GAVE = /** @type {const} */ ([['', mark('Any')], ['yes', mark('Has contributed')], ['no', mark('Nothing yet')]]);
-const PROVIDERS = /** @type {const} */ ([['', mark('Any')], ['google', mark('Google')], ['github', mark('GitHub')]]);
+const PROVIDERS = /** @type {const} */ ([['', mark('Any')], ['google', mark('Google')], ['github', mark('GitHub')], ['apple', mark('Apple')], ['apple-only', mark('Apple only')]]);
 const YES = /** @type {const} */ ([['', mark('Any')], ['1', mark('Yes')]]);
 
 /**
@@ -157,7 +158,7 @@ export async function membersPanes(ctx, root, ago) {
 					h('dt', null, t('Level')),
 					h('dd', null, t(ROLE_NAME[m.role]), m.status === 'suspended' ? h('span', { class: 'ws-flag ws-suspended' }, ` · ${t('suspended')}`) : ''),
 					h('dt', null, t('Signs in with')),
-					h('dd', null, m.providers.map((p) => (p === 'google' ? 'Google' : 'GitHub')).join(', ') || '—'),
+					h('dd', null, m.providers.map((p) => PROVIDER_NAMES[p] ?? p).join(', ') || '—'),
 					h('dt', null, t('Joined')),
 					h('dd', null, ago(m.created_at)),
 					h('dt', null, t('Last seen')),

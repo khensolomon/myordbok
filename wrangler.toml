@@ -61,6 +61,12 @@ DICT_DB = "live"
 # its callbacks); its secret goes in .dev.vars.
 GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a"
 GOOGLE_CLIENT_ID = "75095486220-gknegpg2ba3jnkjtat8a54i3gpkor15m.apps.googleusercontent.com"
+# Sign in with Apple (worker/lib/apple.js): public ids; the key is the secret
+# APPLE_SIGNIN_KEY. Apple takes no localhost return address, so locally
+# Apple stays unoffered unless the key is in .dev.vars.
+APPLE_SIGNIN_SERVICE_ID = "com.myordbok.web"
+APPLE_SIGNIN_KEY_ID = "AAFA5JU2G2"
+APPLE_TEAM_ID = "AY23P8UZ8P"
 
 # Rate limits per visitor, counted at each Cloudflare location. Lookups and
 # suggestions get the generous one, read/phrase/spelling (many rows each) the
@@ -110,7 +116,7 @@ routes = [{ pattern = "beta.myordbok.com", custom_domain = true }]
 # from _headers). DICT_DB empty: the database comes from dict_release.
 # APP_MIN: the lowest app build (the N of 26.11.21+N) still served; older
 # apps ask to be updated (GET /api/site).
-vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
+vars = { NOINDEX = "1", ENV_NAME = "beta", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com", APPLE_SIGNIN_SERVICE_ID = "com.myordbok.web", APPLE_SIGNIN_KEY_ID = "AAFA5JU2G2", APPLE_TEAM_ID = "AY23P8UZ8P" }
 
 [[env.beta.ratelimits]]
 name = "RATE_LOOKUP"
@@ -153,7 +159,7 @@ name = "myordbok-live"
 workers_dev = false
 preview_urls = false
 routes = [{ pattern = "myordbok.com", custom_domain = true }]
-vars = { ENV_NAME = "live", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com" }
+vars = { ENV_NAME = "live", DICT_DB = "", API_GUARD = "1", APP_MIN = "0", GITHUB_CLIENT_ID = "fa6b2eaa13cd8623ac9a", GOOGLE_CLIENT_ID = "75095486220-bfoeemmgp0l9tm6roh2rneerbnv6crkr.apps.googleusercontent.com", APPLE_SIGNIN_SERVICE_ID = "com.myordbok.web", APPLE_SIGNIN_KEY_ID = "AAFA5JU2G2", APPLE_TEAM_ID = "AY23P8UZ8P" }
 
 [[env.live.ratelimits]]
 name = "RATE_LOOKUP"

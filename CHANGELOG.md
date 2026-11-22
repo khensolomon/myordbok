@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+167
+
+- Sign in with Apple on the website, removable: its own module and setting (on, existing accounts only, off), Add another way to sign in for Apple-only accounts, and Members filtered by Apple only
+
 ## 26.11.22+166
 
 - The app's icon: the M on a full blue square, opaque as the App Store requires

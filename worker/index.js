@@ -12,7 +12,7 @@ import { DATABASE_NAME, dictionary, explainDictError } from './lib/dict.js';
 import { countSearch } from './lib/counts.js';
 import { appOf, cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
-import { auth, me } from './routes/auth.js';
+import { auth, me, providersOffered } from './routes/auth.js';
 import { publicSupport } from './routes/support.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
@@ -77,7 +77,8 @@ async function health(env) {
 
 /**
  * GET /api/site: the switches the pages follow (worker/lib/settings.js), the
- * same for everyone, kept at the edge for a minute; and the lowest app build
+ * same for everyone, kept at the edge for a minute; the sign-in providers
+ * offered (routes/auth.js, providersOffered); and the lowest app build
  * still served (APP_MIN in wrangler.toml, a build number: "161" of
  * 26.11.21+161), below which the app asks to be updated.
  * @param {Env} env
@@ -87,7 +88,7 @@ async function siteSwitches(env) {
 	if (!Number.isInteger(min) || min < 0) throw new AppError('internal', `APP_MIN must be a build number, not "${env.APP_MIN}"`);
 	const s = await getSettings(env, ['site.readonly', 'comments.open', 'contact.open', 'ratings.open', 'suggestions.open', 'support.ask', 'support.lines', 'quiz.open', 'help.open']);
 	return json(
-		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on', help: s['help.open'] === 'on', app: { min } },
+		{ readonly: s['site.readonly'] === 'on', comments: s['comments.open'], contact: s['contact.open'] === 'on', ratings: s['ratings.open'] === 'on', suggestions: s['suggestions.open'] === 'on', support_ask: s['support.ask'] === 'on', support_lines: s['support.lines'], quiz: s['quiz.open'] === 'on', help: s['help.open'] === 'on', app: { min }, signin: await providersOffered(env) },
 		{ headers: { 'cache-control': 'public, max-age=60' } },
 	);
 }

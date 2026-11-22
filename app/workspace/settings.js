@@ -47,6 +47,15 @@ const GROUPS = [
 				about: mark('Whether signing in may create a new account. Members who have one still sign in. Close it if fake accounts appear.'),
 				choices: OPEN_CLOSED,
 			},
+			'signin.apple': {
+				title: mark('Sign in with Apple'),
+				about: mark('Existing accounts only: members who already sign in with Apple still do and are asked to add Google or GitHub, and no new account or link uses Apple; the step before switching it off, so nobody is locked out.'),
+				choices: [
+					['on', mark('On')],
+					['existing', mark('Existing accounts only')],
+					['off', mark('Off')],
+				],
+			},
 		},
 	],
 	[

@@ -39,7 +39,7 @@ import { renderMarkup } from '../core/markup.js';
 import { atLeast, seesStatistics } from '#shared/roles.js';
 import { EDIT_TEXT_MAX } from '#shared/limits.js';
 import { ago, list, mark, num, posName, t, tx } from '../i18n/index.js';
-import { member, signInHref, signOut } from '../core/member.js';
+import { PROVIDER_NAMES, member, providerLinks, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, liveEdit, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
 import { inboxPanes } from './inbox.js';
@@ -108,10 +108,9 @@ const ERRORS = {
 	suspended: mark('This account is suspended.'),
 	linked_elsewhere: mark('That account is already linked to another MyOrdbok account.'),
 	signups_closed: mark('New accounts are paused for now. Members who already have an account can sign in.'),
+	apple_closed: mark('Sign in with Apple now takes only accounts that already use it. Sign in with Google or GitHub instead.'),
 };
 
-/** @type {Record<'google' | 'github', string>} */
-const PROVIDERS = { google: 'Google', github: 'GitHub' };
 
 /** Contributions, grouped in this order. */
 const GROUPS = /** @type {const} */ ([
@@ -789,7 +788,7 @@ function accountPane(me, ctx, alert) {
 			note.textContent = err instanceof Error ? err.message : String(err);
 		}
 	});
-	const others = (/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).filter((p) => !me.providers.includes(p));
+	const appleOnly = me.providers.length === 1 && me.providers[0] === 'apple';
 	return h(
 		'main',
 		{ class: 'ws-main ws-account', 'aria-label': t('Account') },
@@ -798,10 +797,21 @@ function accountPane(me, ctx, alert) {
 			{ class: 'ws-work' },
 			h('header', { class: 'ws-account-head' }, me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 56, height: 56, referrerpolicy: 'no-referrer' }) : null, h('div', null, h('h1', null, me.name), me.email ? h('p', { class: 'ws-quiet' }, me.email) : null)),
 			alert,
-			h('dl', { class: 'ws-facts' }, h('dt', null, t('Role')), h('dd', null, roleName(me.role)), h('dt', null, t('Signs in with')), h('dd', null, list(me.providers.map((p) => PROVIDERS[p])) || '—')),
-			others.length
-				? h('p', null, tx('Also sign in with {providers}: it is linked to this account.', { providers: h('span', null, others.flatMap((p, i) => [i ? ` ${t('or')} ` : '', h('a', { href: signInHref(p, '/workspace?s=account') }, PROVIDERS[p])])) }))
-				: null,
+			h('dl', { class: 'ws-facts' }, h('dt', null, t('Role')), h('dd', null, roleName(me.role)), h('dt', null, t('Signs in with')), h('dd', null, list(me.providers.map((p) => PROVIDER_NAMES[p])) || '—')),
+			appleOnly
+				? h(
+						'section',
+						{ class: 'ws-card ws-another-way', role: 'note' },
+						h('h2', null, t('Add another way to sign in')),
+						h('p', null, t('This account signs in with Apple only. With Google or GitHub added too, it stays yours should Sign in with Apple ever end here.')),
+						providerLinks('ws-provider', '/workspace?s=account', (p) => p !== 'apple'),
+					)
+				: h(
+						'div',
+						{ class: 'ws-also' },
+						h('p', { class: 'ws-quiet' }, t('Also sign in with these: each is linked to this account.')),
+						providerLinks('ws-provider', '/workspace?s=account', (p) => !me.providers.includes(p)),
+					),
 			h('p', null, h('a', { href: '/privacy' }, t('What is stored')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
 			out,
 			note,
@@ -878,12 +888,8 @@ function signedOut(back, alert) {
 		h('h1', null, t('Sign in')),
 		h('p', null, t('To rate meanings and suggest corrections or new ones. Reading and searching never need an account.')),
 		alert,
-		h(
-			'div',
-			{ class: 'ws-providers' },
-			(/** @type {Array<'google' | 'github'>} */ (['google', 'github'])).map((p) => h('a', { class: 'ws-provider', href: signInHref(p, to) }, t('Continue with {provider}', { provider: PROVIDERS[p] }))),
-		),
-		h('p', { class: 'ws-quiet' }, t('The same verified email through either provider is the same account.'), ' ', h('a', { href: '/privacy' }, t('Privacy')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
+		providerLinks('ws-provider', to),
+		h('p', { class: 'ws-quiet' }, t('The same verified email through any of them is the same account.'), ' ', h('a', { href: '/privacy' }, t('Privacy')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
 		h('a', { href: '/' }, t('Back to the dictionary')),
 	);
 }

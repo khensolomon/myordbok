@@ -432,7 +432,7 @@ export function moderateComment(id, status) {
 
 /**
  * The switches pages follow (worker/lib/settings.js), the same for everyone.
- * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }>, quiz: boolean, help: boolean }>}
+ * @returns {Promise<{ readonly: boolean, comments: 'on' | 'off' | 'hidden', contact: boolean, ratings: boolean, suggestions: boolean, support_ask: boolean, support_lines: Array<{ en: string, my?: string }>, quiz: boolean, help: boolean, app: { min: number }, signin: Array<import('../core/member.js').Provider> }>}
  */
 export function siteSwitches() {
 	return getJSON('/api/site');
@@ -603,7 +603,7 @@ export function workspaceRatings(f, offset = 0) {
  * @property {{ today: number, total: number }} offline  Downloads of the offline definitions.
  * @property {number} created_at
  * @property {number | null} seen_at
- * @property {Array<'google' | 'github'>} providers
+ * @property {Array<import('../core/member.js').Provider>} providers
  * @property {number} suggestions
  * @property {number} devices  Sign-ins still open: browsers and apps.
  * @property {boolean} self
