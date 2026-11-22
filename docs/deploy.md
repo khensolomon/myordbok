@@ -737,12 +737,19 @@ ID `com.myordbok.app` (Play, App Store id1570959654).
 
 ### Building
 
-GitHub → **Actions → App → Run workflow**, choosing the server the app asks
-(beta or live). The run tests, builds the app's files, then the Android app,
-and leaves `myordbok-<server>-<version>-test.apk` among the run's artifacts.
-That APK is signed with a key made for the run: it installs on a phone for
-testing (allow installing from the browser or file manager), and cannot
-update an install from Play.
+GitHub → **Actions → App → Run workflow** (listed once the workflow is on
+`master`, after a release). The run tests, builds the app's files, then the
+Android app, and leaves it among the run's artifacts:
+
+- **test-apk**, asking beta or live: `myordbok-<server>-<version>-test.apk`,
+  signed with a key made for the run. It installs on a phone for testing
+  (allow installing from the browser or file manager) and cannot update an
+  install from Play.
+- **play-aab**, always asking live: `myordbok-play-<version>.aab`, signed
+  with the upload key, for Play Console → the app → **Test and release** →
+  a track (internal testing first) → **Create new release** → upload.
+  Play accepts each version code once: the next bundle comes from a later
+  version (`make release`).
 
 Version: the store version is the site's date part (`26.11.21`); the
 Android version code is 1000 plus the build number (`scripts/app-config.js`),
@@ -762,11 +769,13 @@ App signing → Request upload key reset**):
    `keytool -export -rfc -keystore myordbok-upload.jks -alias upload -file upload_certificate.pem`
 3. Request the reset with that `.pem`. Play answers within a few days. This
    needs Play App Signing on the app, which apps uploaded as AABs have.
-4. Once accepted, add the secrets (GitHub → Settings → Secrets → Actions):
+4. Add the secrets (GitHub → Settings → Secrets and variables → Actions):
    `ANDROID_UPLOAD_KEYSTORE` (the `.jks` as base64: `base64 -w0 myordbok-upload.jks`),
    `ANDROID_UPLOAD_PASSWORD`, `ANDROID_UPLOAD_ALIAS`.
 
-The signed Play build is added to the workflow once these exist.
+Play takes bundles signed with the new key from the date its email gives.
+A **play-aab** run stops at its first step when a secret is missing or the
+keystore does not open with them.
 
 ### Old builds
 

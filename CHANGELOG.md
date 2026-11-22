@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+163
+
+- App workflow: a Play bundle signed with the upload key, beside the test APK
+
 ## 26.11.21+162
 
 - The MyOrdbok app (Tauri) for iOS and Android: the app's adapters, the API's way in for the app, an update asked for below APP_MIN, and an Android test build in GitHub Actions
