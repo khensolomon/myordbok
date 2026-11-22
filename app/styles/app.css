@@ -2522,3 +2522,12 @@ html[data-app="ios"] [data-store-hidden] { display: none !important; }
 .app-link-status { margin: 14px 0 6px !important; font-size: 14px; }
 .app-link-cancel { margin-top: 4px; padding: 8px 16px; border: none; background: none; color: var(--brand); font: 600 15px var(--font-ui); cursor: pointer; }
 .app-update-go { display: inline-block; padding: 10px 22px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 600; text-decoration: none; }
+
+/* ---------------------------------------------------------- the app */
+
+/* In the MyOrdbok app (html[data-app], platform/tauri/boot.js) the page
+   behaves as the rest of the phone: no scrollbar drawn, no grey flash on a
+   tap, and controls that are not text to select. */
+html[data-app] { scrollbar-width: none; -webkit-tap-highlight-color: transparent; }
+html[data-app]::-webkit-scrollbar, html[data-app] body::-webkit-scrollbar { display: none; }
+html[data-app] :is(.app-nav, button, .app-tab, .bar-back, .segmented, .you-links a, .liked-list a, .home-chips a) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

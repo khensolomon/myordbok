@@ -14,6 +14,10 @@
  *   sign-in on the website with /link?code=… to come back to, and asks
  *   after the code until the member approves it there; the session token
  *   it is given is kept for the HTTP adapter (http.js, mo:app-token).
+ * - A light tap is felt (the haptics plugin) on the tabs, the search
+ *   button and the thumbs; the page is marked so the stylesheet hides the
+ *   scrollbar and the browser's tap and selection marks (app.css,
+ *   html[data-app]).
  * - The app asks to be updated once the server no longer serves its build
  *   (GET /api/site, app.min; worker/index.js).
  */
@@ -48,6 +52,7 @@ export async function boot() {
 	const os = platform();
 	document.documentElement.dataset.app = os;
 	document.addEventListener('click', leaving, true);
+	document.addEventListener('click', felt, true);
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));
 }
 
@@ -77,6 +82,23 @@ function leaving(ev) {
 	if (out === null) return;
 	ev.preventDefault();
 	open(out);
+}
+
+/** What a light tap is felt on: the tabs, searching, and the thumbs. */
+const FELT = '.app-tab, .search-go, .search-cancel, .bar-back, .thumb, .segmented a, .you-choice, .you-switch';
+
+/**
+ * A light tap on the controls above, when the device has the motor for it.
+ * @param {MouseEvent} ev
+ */
+function felt(ev) {
+	const target = ev.target instanceof Element ? ev.target.closest(FELT) : null;
+	if (!target || /** @type {HTMLButtonElement} */ (target).disabled) return;
+	/** @type {((cmd: string, args?: object) => Promise<unknown>) | undefined} */
+	const invoke = /** @type {any} */ (window).__TAURI__?.core?.invoke;
+	if (!invoke) return;
+	const thumb = target.classList.contains('thumb');
+	invoke(thumb ? 'plugin:haptics|impact_feedback' : 'plugin:haptics|selection_feedback', thumb ? { style: 'light' } : {}).catch((err) => console.warn('No haptic tap:', err));
 }
 
 /**

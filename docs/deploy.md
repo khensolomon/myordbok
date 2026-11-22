@@ -849,6 +849,9 @@ and release the app before the Worker.
 - No Google Analytics (the consent banner and Analytics belong to the
   website's hosts only).
 - Links to other sites open in the system browser.
+- A light haptic tap on the tabs, searching and the thumbs
+  (tauri-plugin-haptics); no scrollbar drawn and no tap highlight
+  (`html[data-app]`); in the iOS app, a swipe from the left edge goes back.
 
 ## Marker entries
 

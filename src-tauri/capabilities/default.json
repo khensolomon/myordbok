@@ -1,11 +1,13 @@
 {
 	"$schema": "../gen/schemas/mobile-schema.json",
 	"identifier": "default",
-	"description": "What the app's pages may ask of the native side: the MyOrdbok API, and opening links in the system browser.",
+	"description": "What the app's pages may ask of the native side: the MyOrdbok API, opening links in the system browser, and light haptic taps.",
 	"windows": ["main"],
 	"permissions": [
 		"core:default",
 		"opener:default",
+		"haptics:allow-selection-feedback",
+		"haptics:allow-impact-feedback",
 		{
 			"identifier": "http:default",
 			"allow": [{ "url": "https://myordbok.com/api/*" }, { "url": "https://beta.myordbok.com/api/*" }]

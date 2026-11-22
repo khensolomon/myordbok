@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+171
+
+- App: haptic taps, no scrollbar, native touch feel
+
 ## 26.11.22+170
 
 - Definition bar with Back and the entry's thumb; pages slide in; back swipe in the iOS app
