@@ -21,3 +21,10 @@ test('app: the Tauri project names the app and reaches only the MyOrdbok API', a
 	const lib = await readFile(new URL('../src-tauri/src/lib.rs', import.meta.url), 'utf8');
 	for (const plugin of ['tauri_plugin_http', 'tauri_plugin_opener']) assert.match(lib, new RegExp(`${plugin}::init\\(\\)`));
 });
+
+test('app: the icon source is opaque, as the App Store requires', async () => {
+	const png = await readFile(new URL('../src-tauri/app-icon.png', import.meta.url));
+	assert.equal(png.toString('ascii', 12, 16), 'IHDR');
+	assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1024, 1024], '1024 × 1024');
+	assert.equal(png[25], 2, 'colour type 2: RGB, no alpha channel');
+});

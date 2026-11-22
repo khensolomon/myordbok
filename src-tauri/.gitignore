@@ -1,6 +1,7 @@
 # Made by the build: Rust output, the generated Android and iOS projects
 # (tauri android init / tauri ios init), the schemas and the icons
-# (tauri icon app-icon.png).
+# (tauri icon app-icon.png; app-icon.png is drawn from app-icon.svg, opaque
+# as the App Store requires).
 /target/
 /gen/
 /icons/
