@@ -2367,6 +2367,7 @@ checksum = "743fb55ba31b18fb1ecef6bdc9aa2743314978ac084044301a7eee33fb99a20d"
 name = "myordbok"
 version = "0.0.0"
 dependencies = [
+ "objc2",
  "tauri",
  "tauri-build",
  "tauri-plugin-haptics",

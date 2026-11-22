@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+174
+
+- iOS: the web view's own back swipe; builds made with Xcode 27 (iOS 27 SDK)
+
 ## 26.11.22+173
 
 - Native scrolling in the app, a phone-style search field with Cancel inside, Home tab, the entry's thumb on the headword line

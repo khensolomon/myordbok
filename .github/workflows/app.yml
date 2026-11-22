@@ -149,8 +149,17 @@ jobs:
   ios:
     name: iOS (TestFlight)
     if: inputs.build == 'ios-testflight'
-    runs-on: macos-latest
+    # Apple takes only builds made with the current SDK (iOS 27 from April
+    # 2027); this image carries Xcode 27 (github.blog changelog 2026-10-16).
+    runs-on: xcode-27
     steps:
+      - name: The iOS SDK is 27 or later
+        run: |
+          xcodebuild -version
+          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "iOS SDK $sdk"
+          test "${sdk%%.*}" -ge 27 || { echo "::error::iOS SDK $sdk: App Store Connect takes only builds made with the iOS 27 SDK or later"; exit 1; }
+
       # Xcode signs through this key: it makes the distribution certificate and
       # profile itself, so none is kept in the repository.
       - name: The App Store Connect API key

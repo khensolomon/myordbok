@@ -20,6 +20,10 @@ tauri-plugin-http = "2.9.0"
 tauri-plugin-opener = "2.7.3"
 tauri-plugin-haptics = "2.4.2"
 
+# iOS: turning on the web view's own back and forward swipe (src/lib.rs).
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2 = "0.6.5"
+
 [profile.release]
 codegen-units = 1
 lto = true
