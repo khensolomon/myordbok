@@ -785,8 +785,11 @@ Android app, and leaves it among the run's artifacts:
   a track (internal testing first) → **Create new release** → upload.
   Play accepts each version code once: the next bundle comes from a later
   version (`make release`).
-- **ios-testflight**, asking beta or live: the iOS app, built on a macOS
-  runner, signed and uploaded to App Store Connect. After Apple's processing
+- **ios-testflight**, asking beta or live: the iOS app, built on GitHub's
+  Xcode 27 image (`runs-on: xcode-27`; the run stops unless the iOS SDK is
+  27 or later, which App Store Connect requires from April 2027), signed
+  and uploaded to App Store Connect. When Apple asks for a newer SDK, the
+  label and the Rust cache key move to the next Xcode image together. After Apple's processing
   (minutes to an hour, with an email) it is under **TestFlight**, to install
   on an iPhone with the TestFlight app; the same build is the one submitted
   for review. Each build number is accepted once, as on Play.
