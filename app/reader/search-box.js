@@ -49,8 +49,8 @@ function shortcut(e) {
 }
 document.addEventListener('keydown', shortcut);
 
-/** A touch screen (the bar's touchstart below). */
-const COARSE = window.matchMedia('(pointer: coarse)');
+/** Under 1024px the search is a screen of its own while the field has focus (app.css): a search made closes it. */
+const NARROW = window.matchMedia('(max-width: 1023px)');
 
 export class SearchBox extends HTMLElement {
 	connectedCallback() {
@@ -108,11 +108,15 @@ export class SearchBox extends HTMLElement {
 		this.addEventListener('focusout', (e) => {
 			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget))) this.show([]);
 		});
-		// A chosen suggestion navigates; the list closes behind it.
-		this.list.addEventListener('click', () => this.show([]));
-		// While the field has focus the page may make room for it (on a phone's
-		// home page the logo steps aside, see app.css). Giving the room back
-		// waits a moment, so a tap that moved focus lands where it was aimed.
+		// A chosen suggestion navigates; the list closes behind it, and the
+		// search screen with it.
+		this.list.addEventListener('click', () => {
+			this.show([]);
+			if (NARROW.matches) /** @type {HTMLElement | null} */ (document.activeElement)?.blur();
+		});
+		// While the field has focus, under 1024px, the search is a screen of
+		// its own (app.css, body[data-searching]). Closing it waits a moment,
+		// so a tap that moved focus lands where it was aimed.
 		/** @type {number | undefined} */
 		let settle;
 		/** What the field held when focus came in; Cancel puts it back. */
@@ -123,19 +127,6 @@ export class SearchBox extends HTMLElement {
 			document.body.toggleAttribute('data-searching', true);
 			if (e.target === this.input && !this.input?.value) this.show(recentSearches(), [], true);
 		});
-		// On a touch screen the bar stops sticking while the field has focus
-		// (app.css): iOS Safari draws a sticky field's text cursor off the field
-		// once the keyboard moves the page. A tap on the bar stuck over a
-		// scrolled page first brings the page to its top, where the bar sits
-		// in place, so it does not move from under the finger.
-		this.addEventListener(
-			'touchstart',
-			() => {
-				const bar = this.closest('.search-bar');
-				if (COARSE.matches && bar && window.scrollY > 0 && getComputedStyle(bar).position === 'sticky') window.scrollTo(0, 0);
-			},
-			{ passive: true },
-		);
 		this.addEventListener('focusout', (e) => {
 			if (this.contains(/** @type {Node | null} */ (e.relatedTarget))) return;
 			clearTimeout(settle);
@@ -157,6 +148,11 @@ export class SearchBox extends HTMLElement {
 		if (this.input && this.input.value !== value) this.input.value = value;
 		this.seq++; // a suggestion request still under way is no longer wanted
 		this.show([]);
+	}
+
+	/** The cursor in the field (the Search tab, tapped on home). */
+	focus() {
+		this.input?.focus();
 	}
 
 	/** Cancel (phones): what was typed goes, the list closes, the keyboard goes away. */
@@ -258,6 +254,8 @@ export class SearchBox extends HTMLElement {
 		const q = this.input?.value.trim();
 		if (!q) return;
 		this.show([]);
+		// Enter and the search button alike: the search screen closes with the keyboard.
+		if (NARROW.matches) this.input?.blur();
 		this.dispatchEvent(new CustomEvent('mo-search', { detail: q, bubbles: true }));
 	}
 }

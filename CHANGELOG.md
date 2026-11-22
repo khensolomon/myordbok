@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+169
+
+- New look by screen size: tab bar and sidebar, You and Liked, search as its own screen
+
 ## 26.11.22+168
 
 - Link the app to an account through the website

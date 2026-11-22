@@ -1,118 +1,69 @@
 // @ts-check
 /**
- * The person button in the header opens one panel, pointed at it by a small
- * arrow, holding everything personal so the header and footer stay quiet:
+ * /you: everything personal, one tab of the navigation (index.html):
  *
- *   signed out   sign in with Google or GitHub (back to this page)
+ *   signed out   sign in with Google, GitHub or Apple (back to this page)
  *   signed in    who, the role, the workspace (with what waits there), sign out
- *   everyone     interface language, theme, usage statistics, the offline
- *                copy, contact
+ *   this device  the offline copy, theme, interface language, usage statistics
+ *   MyOrdbok     grammar, fonts, about, contact, privacy, terms, support
  *
  * The offline copy: word lists arrive by themselves (app/data/offline.js);
- * the definitions are a member's to manage in the workspace. A visitor sees
- * what this device keeps and, while definitions are for members, a sign-in
- * that leads to them; when an admin opens them to everyone, one button
- * keeps them all.
- *
- * The button stays a link to /workspace for when scripts do not run. Esc,
- * a click outside or following a link closes the panel; focus returns to
- * the button.
+ * the definitions are a member's to manage at /offline. A visitor sees what
+ * this device keeps and, while definitions are for members, a sign-in that
+ * leads to them; when an admin opens them to everyone, one button keeps
+ * them all.
  */
-import { analyticsAvailable, getChoice, setChoice } from './consent.js';
-import { h, icon } from './dom.js';
-import { ICONS } from './icons.js';
-import { member, providerLinks, signOut } from './member.js';
-import { getTheme, setTheme } from './prefs.js';
+import { analyticsAvailable, getChoice, setChoice } from '../core/consent.js';
+import { h, icon } from '../core/dom.js';
+import { ICONS } from '../core/icons.js';
+import { member, providerLinks, signOut } from '../core/member.js';
+import { getTheme, setTheme } from '../core/prefs.js';
 import { workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
 import { MYANMAR_OPEN, getLang, num, setLang, t } from '../i18n/index.js';
 
-/** @typedef {import('./member.js').Member} Member */
+/** @typedef {import('../core/member.js').Member} Member */
 
 const DEFINITION_PACKS = ['senses-en', 'senses-my', 'related-en'];
 
-/**
- * Turns the header's person link into the menu's button.
- * @param {HTMLAnchorElement} you
- */
-export function initMenu(you) {
-	const panel = h('div', { class: 'you-menu', id: 'you-menu', role: 'dialog', 'aria-label': t('Account and settings'), hidden: true });
-	you.setAttribute('aria-haspopup', 'dialog');
-	you.setAttribute('aria-controls', 'you-menu');
-	you.setAttribute('aria-expanded', 'false');
-	// In <body>, not the header: the header and the search bar each stack on their own.
-	document.body.append(panel);
+export function title() {
+	return t('You');
+}
 
-	const close = (/** @type {boolean} */ refocus) => {
-		if (panel.hidden) return;
-		panel.hidden = true;
-		you.setAttribute('aria-expanded', 'false');
-		if (refocus) you.focus();
-	};
-	const open = async () => {
-		panel.hidden = false;
-		you.setAttribute('aria-expanded', 'true');
-		place(panel, you);
-		panel.replaceChildren(h('p', { class: 'you-loading' }, t('Loading…')));
-		const me = await member().catch(() => null);
-		panel.replaceChildren(...(await contents(me, () => close(false))));
-		place(panel, you);
-		/** @type {HTMLElement | null} */ (panel.querySelector('a, button, [tabindex]'))?.focus();
-	};
-
-	you.addEventListener('click', (e) => {
-		e.preventDefault();
-		if (panel.hidden) open().catch((err) => panel.replaceChildren(h('p', { class: 'you-loading' }, err instanceof Error ? err.message : String(err))));
-		else close(true);
-	});
-	document.addEventListener('keydown', (e) => {
-		if (e.key === 'Escape' && !panel.hidden) close(true);
-	});
-	document.addEventListener('pointerdown', (e) => {
-		const target = /** @type {Node} */ (e.target);
-		if (!panel.hidden && !panel.contains(target) && !you.contains(target)) close(false);
-	});
-	// Following a link inside closes it; the router takes over from there.
-	panel.addEventListener('click', (e) => {
-		if (/** @type {HTMLElement} */ (e.target).closest('a')) close(false);
-	});
-	// A scrollbar appearing or going away (a page change while open) moves the
-	// button without a resize event; the page's width changes, so watch that.
-	const follow = () => !panel.hidden && place(panel, you);
-	window.addEventListener('resize', follow);
-	new ResizeObserver(follow).observe(document.documentElement);
+export async function view() {
+	const me = await member().catch(() => null);
+	return h(
+		'section',
+		{ class: 'page you-page' },
+		h('h1', { class: 'large-title' }, t('You')),
+		me ? account(me) : signIn('/you'),
+		h('h2', { class: 'you-section' }, t('This device')),
+		await offlineRow(me),
+		h('div', { class: 'you-group' }, themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
+		h('h2', { class: 'you-section' }, 'MyOrdbok'),
+		h(
+			'nav',
+			{ class: 'you-group you-links', 'aria-label': 'MyOrdbok' },
+			link('/grammar', ICONS.grammar, t('Grammar')),
+			link('/myanmar-fonts', ICONS.document, t('Myanmar fonts')),
+			link('/about', ICONS.info, t('About')),
+			link('/contact', ICONS.inbox, t('Contact')),
+			link('/privacy', ICONS.document, t('Privacy')),
+			link('/terms', ICONS.document, t('Terms of Use')),
+			h('a', { href: '/support', 'data-store-hidden': '' }, icon(ICONS.like, 18), h('span', null, t('Support MyOrdbok')), icon(ICONS.chevron, 14)),
+		),
+		h('p', { class: 'you-copy' }, '© MyOrdbok'),
+	);
 }
 
 /**
- * Under the button, its right edge with the page's, the arrow at the button.
- * @param {HTMLElement} panel
- * @param {HTMLElement} you
+ * A row of the links list.
+ * @param {string} href
+ * @param {string} glyph
+ * @param {string} text
  */
-function place(panel, you) {
-	const b = you.getBoundingClientRect();
-	// A fixed box's `right` counts from the page's edge, inside any scrollbar;
-	// innerWidth would include the scrollbar and push the box off the button.
-	const page = document.documentElement.clientWidth;
-	const width = Math.min(340, page - 24);
-	const right = Math.max(12, page - b.right - 4);
-	panel.style.top = `${b.bottom + 10}px`;
-	panel.style.right = `${right}px`;
-	panel.style.width = `${width}px`;
-	panel.style.setProperty('--arrow-right', `${page - right - (b.left + b.width / 2) - 7}px`);
-}
-
-/**
- * @param {Member | null} me
- * @param {() => void} done
- */
-async function contents(me, done) {
-	const here = location.pathname + location.search;
-	return [
-		me ? account(me, done) : signIn(here),
-		h('div', { class: 'you-group' }, languageRow(), themeRow(), analyticsAvailable() ? statsRow() : ''),
-		await offlineRow(me, here),
-		h('nav', { class: 'you-links', 'aria-label': t('More') }, h('a', { href: '/practice' }, icon(ICONS.practice, 16), t('Practice')), h('a', { href: '/about' }, icon(ICONS.info, 16), t('About')), h('a', { href: '/contact' }, icon(ICONS.inbox, 16), t('Contact'))),
-	];
+function link(href, glyph, text) {
+	return h('a', { href }, icon(glyph, 18), h('span', null, text), icon(ICONS.chevron, 14));
 }
 
 /** @param {string} here */
@@ -126,11 +77,8 @@ function signIn(here) {
 	);
 }
 
-/**
- * @param {Member} me
- * @param {() => void} done
- */
-function account(me, done) {
+/** @param {Member} me */
+function account(me) {
 	const badge = h('span', { class: 'you-badge', hidden: true });
 	// What waits in the workspace: for a member, answers to their own messages;
 	// for editors and admins also suggestions to review and unread messages.
@@ -153,21 +101,19 @@ function account(me, done) {
 			me.avatar_url ? h('img', { src: me.avatar_url, alt: '', width: 40, height: 40, referrerpolicy: 'no-referrer' }) : h('span', { class: 'you-face' }, me.name.slice(0, 1).toUpperCase()),
 			h('div', null, h('strong', null, me.name), h('span', null, me.role === 'owner' ? t('Owner') : me.role === 'admin' ? t('Administrator') : me.role === 'editor' ? t('Editor') : t('Member'))),
 			// Beside the account it ends, not among the page links, where it had no room.
-			signOutButton(done),
+			signOutButton(),
 		),
-		h('a', { class: 'you-workspace', href: '/workspace', onClick: done }, icon(ICONS.overview, 18), t('Open the workspace'), badge),
+		h('a', { class: 'you-workspace', href: '/workspace' }, icon(ICONS.overview, 18), t('Open the workspace'), badge),
 	);
 }
 
-/** @param {() => void} done */
-function signOutButton(done) {
+function signOutButton() {
 	const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'you-signout' }, t('Sign out')));
 	b.addEventListener('click', async () => {
 		b.disabled = true;
 		try {
 			await signOut();
-			done();
-			location.assign('/');
+			location.assign('/you');
 		} catch (err) {
 			b.disabled = false;
 			b.title = err instanceof Error ? err.message : String(err);
@@ -239,16 +185,15 @@ function statsRow() {
 /**
  * What this device keeps, and the way to keep more.
  * @param {Member | null} me
- * @param {string} here
  */
-async function offlineRow(me, here) {
+async function offlineRow(me) {
 	const have = await installed().catch(() => []);
 	const words = have.some((p) => p.id.startsWith('words-'));
 	const defs = have.filter((p) => DEFINITION_PACKS.includes(p.id));
 	const status = defs.length ? t('Definitions kept on this device') : words ? t('Word lists kept on this device') : t('Nothing kept on this device yet');
 	const row = h('div', { class: 'you-group you-offline' }, h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, icon(ICONS.download, 16), t('Offline')), h('span', { class: 'you-status' }, status)));
 	if (me) {
-		row.append(h('a', { class: 'you-action', href: '/workspace?s=offline' }, defs.length ? t('Manage the offline copy') : t('Keep the definitions offline')));
+		row.append(h('a', { class: 'you-action', href: '/offline' }, defs.length ? t('Manage the offline copy') : t('Keep the definitions offline')));
 		return row;
 	}
 	const info = await packsInfo().catch(() => null);
@@ -258,7 +203,7 @@ async function offlineRow(me, here) {
 	if (info.access === 'members') {
 		row.append(
 			h('p', { class: 'you-note' }, t('Members can keep every definition on the device, {size}, and look words up without a connection.', { size: megabytes(size) })),
-			h('a', { class: 'you-action you-invite', href: `/workspace?s=account&return=${encodeURIComponent('/workspace?s=offline')}` }, t('Sign in to download')),
+			h('p', { class: 'you-note' }, t('Sign in above to download.')),
 		);
 		return row;
 	}

@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Whether this device has a connection, on <html data-online="true|false">,
- * kept up to date. The person button on the site and in the workspace shows
+ * kept up to date. The You tab on the site and in the workspace shows
  * it as a small dot (app.css): green with a connection, grey without, when
  * the dictionary reads from the copy on the device.
  *

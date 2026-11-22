@@ -58,7 +58,7 @@ export async function boot() {
 function leaving(ev) {
 	if (ev.defaultPrevented || ev.button !== 0) return;
 	const a = /** @type {Element | null} */ (ev.target instanceof Element ? ev.target : null)?.closest('a[href]');
-	// A link that opens a menu of the page (the account button) is the page's.
+	// A link that opens a menu of the page is the page's.
 	if (!(a instanceof HTMLAnchorElement) || a.hasAttribute('aria-haspopup')) return;
 	const url = new URL(a.href, location.href);
 	/** @type {string | null} */

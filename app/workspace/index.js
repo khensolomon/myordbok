@@ -631,7 +631,7 @@ function railFor(me, editor, section, summary) {
 	const current = section === 'account' ? t('Account') : t(SECTIONS.find((s) => s.id === section)?.label ?? 'Overview');
 
 	// Phones: a bar at the top with the section's name, and the sections in a
-	// menu from the button on the right, as the person menu on the site.
+	// menu from the button on the right, as the You page on the site.
 	const waiting = sections.reduce((n, s) => n + countOf(s.id), 0);
 	const button = /** @type {HTMLButtonElement} */ (
 		h('button', { type: 'button', class: 'ws-menu-button', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': 'ws-menu', 'aria-label': t('Workspace sections') }, h('span', { class: 'ws-rail-face' }, face()), waiting ? h('span', { class: 'ws-menu-dot', 'aria-hidden': 'true' }) : '')

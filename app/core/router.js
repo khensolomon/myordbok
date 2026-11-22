@@ -93,7 +93,7 @@ export function startRouter(outlet, onRoute) {
 
 	document.addEventListener('click', (event) => {
 		const a = /** @type {HTMLElement} */ (event.target).closest?.('a');
-		// A link something else already handled (the person menu's button) is left alone.
+		// A link something else already handled (the Search tab on home) is left alone.
 		if (event.defaultPrevented || !a || a.target || a.hasAttribute('download') || event.metaKey || event.ctrlKey || event.shiftKey) return;
 		const url = new URL(a.href, location.href);
 		if (url.origin !== location.origin || !match(url.pathname)) return;

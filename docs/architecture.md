@@ -188,14 +188,23 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   the site always keeps an active owner. Changes are made in the workspace's
   Members section, each kept in `role_grants` with who made it; suspending
   signs the member out everywhere.
-- **One person menu holds everything personal** (`app/core/menu.js`). The
-  header keeps the navigation and the person button; the button opens a
-  panel pointed at it: sign-in (or the account, with Sign out beside it, and
-  the workspace, with what waits there), language, theme, usage statistics,
-  the offline copy, Practice, About and Contact. The footer keeps About, Privacy and Terms. The button stays a
-  link to the workspace when scripts do not run. Members manage the offline
-  copy in the workspace (Offline); visitors see what the device keeps and,
-  while definitions are for members, a sign-in that leads there.
+- **One navigation, laid out by the window's width, not the device**
+  (`index.html`, `app.css`): under 1024px a floating glass tab bar of four
+  icons (Search, Liked, Practice, You); from 1024px a glass sidebar with
+  words, the name above and Grammar, fonts and Support below. The website
+  and the app share it. Under 1024px the search is a screen of its own
+  while the field has focus, closed by its ✕, by a search (Enter and the
+  search button alike) or by a suggestion; the page under it stays put.
+- **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
+  (or the account, with Sign out and the workspace), the offline copy,
+  theme, language, usage statistics, and the site's pages (on phones the
+  footer gives way to it). Members manage the offline copy at `/offline`;
+  visitors see what the device keeps and, while definitions are for
+  members, a sign-in.
+- **Liked (`/liked`, `app/reader/liked.js`) is the member's own ratings:**
+  entries and meanings rated helpful, or not helpful, newest first; a
+  meaning changed since it was rated is marked Updated. No list of its own
+  is kept.
 - **Keyboard:** `/` or Ctrl+K (⌘K) puts the cursor in the search field;
   the workspace has J/K to move, A/D to approve or decline, 1–4 for a
   message's state.
@@ -203,7 +212,7 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   text is written in English inside `t()`, and `my.js` gives the Myanmar
   for each; a text with no Myanmar is an error, and `tests/i18n.test.js`
   checks every `t()` against `my.js` (missing, unused, placeholders). The
-  device's language decides until the header's language button is used
+  device's language decides until the language is chosen on You
   (`mo:lang`); `<html lang>` is set before the first paint and the page
   reloads on a change. While `MYANMAR_OPEN` is false (`app/i18n/index.js`)
   the Myanmar interface is paused for review: readers get English and no

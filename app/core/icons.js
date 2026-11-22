@@ -28,6 +28,7 @@ export const ICONS = Object.freeze({
 	notice: '<path d="M4.5 10v4a1 1 0 0 0 1 1H8l6 4V5L8 9H5.5a1 1 0 0 0-1 1z"/><path d="M17.5 9.5a3.5 3.5 0 0 1 0 5"/>',
 	clock: '<circle cx="12" cy="12" r="7.5"/><path d="M12 8v4.5l3 1.8"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
+	chevron: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 	// Three paths: the cone, then the near and the far wave, moved one by one (app.css, .pronounce).
 	speaker: '<path d="M4.5 9.5h2.8l4.2-3.4v11.8l-4.2-3.4H4.5z"/><path d="M14.8 9.4a3.6 3.6 0 0 1 0 5.2"/><path d="M17.4 6.9a7.2 7.2 0 0 1 0 10.2"/>',

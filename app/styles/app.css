@@ -1,25 +1,26 @@
 /* Layout and components. Mobile first; wider screens add room. */
 
 /* Widths that line the definition up with the search bar: the logo, the gap
-   after it, and the search box. Tablets use the icon, phones no logo. */
+   after it, and the search box. The sidebar (1024px and up) carries the
+   name, so the bar itself has no logo there but on home. */
 :root {
-	--logo-w: 180px;
-	--bar-gap: 20px;
+	--logo-w: 0px;
+	--bar-gap: 0px;
 	--search-w: 640px;
 	--aside-w: 300px;
 	--aside-gap: 48px;
 	--header-h: 58px;
+	/* The sidebar's width with its margins (1024px and up). */
+	--nav-room: 0px;
+	/* Room the tab bar keeps at the bottom (under 1024px). */
+	--tabs-room: calc(96px + var(--safe-b));
 }
-@media (max-width: 1023px) {
-	:root { --logo-w: 40px; --bar-gap: 14px; }
-}
-@media (max-width: 640px) {
-	:root { --logo-w: 0px; --bar-gap: 0px; }
+@media (min-width: 1024px) {
+	:root { --nav-room: 256px; --tabs-room: 0px; }
 }
 
-/* Header and footer span the window. The search bar and the content start
-   at the same left edge and stop at a reading width. */
-.site-header,
+/* The search bar and the content start at the same left edge and stop at
+   a reading width. */
 .site-footer {
 	width: 100%;
 	padding-left: var(--edge-l); padding-right: var(--edge-r);
@@ -30,14 +31,23 @@ main {
 	max-width: var(--page);
 	padding-left: var(--edge-l); padding-right: var(--edge-r);
 }
+body { padding-left: var(--nav-room); padding-bottom: var(--tabs-room); }
 
-/* Liquid Glass surfaces: blurred, tinted, a bright top edge. */
-.site-header,
+/* Glass bands (wide screens): blurred, tinted. */
 .site-footer,
 .search-bar {
 	background: var(--glass);
 	-webkit-backdrop-filter: saturate(180%) blur(20px);
 	backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Liquid glass: what floats over the page. */
+.liquid {
+	background: var(--liquid);
+	-webkit-backdrop-filter: var(--liquid-blur);
+	backdrop-filter: var(--liquid-blur);
+	border: 0.5px solid var(--liquid-edge);
+	box-shadow: var(--liquid-shadow);
 }
 
 /* ---------------------------------------------------------- header */
@@ -58,85 +68,113 @@ main {
 	.progress { transition: opacity 0.2s; }
 }
 
-/* Text navigation that scrolls away with the page. */
-.site-header {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding-top: max(8px, env(safe-area-inset-top));
-	padding-bottom: 8px;
-}
-/* Plain text links. Two pale shapes move behind them (nav.js): one on the
-   page you are on, which glides to the new link on navigation, and a paler
-   one that follows the pointer from link to link. Phones put the links in a
-   glass capsule instead (below). */
-.site-nav {
-	position: relative;
-	display: flex; gap: 0;
-	margin-left: -14px;
-	font-size: 14px; font-weight: 500;
-}
-.site-nav a {
-	position: relative; z-index: 1;
-	display: flex; align-items: center; justify-content: center;
-	padding: 7px 14px; border-radius: 999px; color: var(--ink-2);
-	transition: color 0.2s;
-}
-.site-nav a:hover { text-decoration: none; color: var(--ink); }
-.site-nav a[aria-current="page"] { color: var(--ink); }
-.nav-icon { display: none; }
-/* Support: the heart shows on every screen, in the one warm colour. */
-.site-nav .nav-support { gap: 6px; }
-.site-nav .nav-support .nav-icon { display: block; width: 15px; height: 15px; color: var(--heart); }
+/* ---------------------------------------------------------- navigation */
 
-.nav-lens,
-.nav-hover {
-	position: absolute; top: 0; bottom: 0; left: 0;
-	width: var(--w, 0px);
-	transform: translateX(var(--x, 0px));
-	border-radius: 999px;
-	pointer-events: none;
-	opacity: 0;
-	transition: transform 0.32s cubic-bezier(0.3, 0.8, 0.25, 1), width 0.32s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.2s;
+/* One <nav class="app-nav"> (index.html), laid out by width. Under 1024px:
+   a floating tab bar of four icons at the bottom. From 1024px: a glass
+   sidebar down the left, with words, the name above and more links below.
+   The tab of the page shown is marked data-on (main.js). */
+.app-nav {
+	position: fixed; z-index: 20;
+	background: var(--liquid);
+	-webkit-backdrop-filter: var(--liquid-blur);
+	backdrop-filter: var(--liquid-blur);
+	border: 0.5px solid var(--liquid-edge);
+	box-shadow: var(--liquid-shadow);
 }
-.nav-hover { background: var(--nav-hover); }
-.nav-lens { background: var(--nav-current); }
-.nav-hover[data-on],
-.nav-lens[data-on] { opacity: 1; }
-/* Placed without moving: the first time it appears, or after a resize. */
-.nav-hover[data-jump],
-.nav-lens[data-jump] { transition: opacity 0.2s; }
-@media (prefers-reduced-motion: reduce) {
-	.nav-lens, .nav-hover { transition: none; }
+.app-tab { position: relative; display: flex; align-items: center; color: var(--ink-2); text-decoration: none; transition: background-color 0.2s, color 0.2s; }
+.app-tab:hover { text-decoration: none; color: var(--ink); }
+.app-tab[data-on] { color: var(--brand); background: var(--tab-on); }
+.app-tab .icon { stroke-width: 1.6; }
+.app-brand { display: none; }
+.app-more { display: none; }
+body[data-route="workspace"] .app-nav { display: none; }
+body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
+
+@media (max-width: 1023px) {
+	.app-nav {
+		left: 50%; bottom: calc(16px + var(--safe-b));
+		transform: translateX(-50%);
+		width: min(272px, calc(100% - 32px)); height: 60px;
+		padding: 5px; border-radius: 32px;
+		display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px;
+		transition: transform 0.25s ease, opacity 0.2s;
+	}
+	.app-tab { justify-content: center; border-radius: 26px; }
+	.app-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+	/* The keyboard is up: the tab bar steps out of its way. */
+	body[data-searching] .app-nav { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+	body .site-footer { display: none; }
 }
 
-/* The person menu (app/core/menu.js): a panel under the person button,
-   pointed at it by a small arrow. */
-.you-menu {
-	position: fixed; z-index: 1000;
-	display: grid; gap: 0;
-	padding: 6px 0;
-	border: 1px solid var(--line); border-radius: 16px;
-	background: var(--ground); color: var(--ink);
-	box-shadow: 0 18px 50px -12px rgb(16 24 40 / 0.28), 0 4px 12px -4px rgb(16 24 40 / 0.12);
-	font-size: 14px;
-	overflow: visible;
+@media (min-width: 1024px) {
+	.app-nav {
+		left: 12px; top: 12px; bottom: 12px; width: 220px;
+		padding: 22px 12px 18px; border-radius: 26px;
+		display: flex; flex-direction: column; gap: 4px;
+		overflow-y: auto; scrollbar-width: none;
+	}
+	.app-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 16px; color: var(--ink); font-size: 22px; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
+	.app-brand:hover { color: var(--ink); text-decoration: none; }
+	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); }
+	.app-tab .icon { color: var(--brand); }
+	.app-tab:hover { background: var(--nav-hover); }
+	.app-tab[data-on] { background: var(--brand); color: #fff; }
+	.app-tab[data-on] .icon { color: #fff; }
+	.app-tab[data-on] .you-initial { background: rgb(255 255 255 / 0.25); color: #fff; }
+	.app-more { display: flex; flex-direction: column; margin-top: 18px; }
+	.app-more-title { margin: 0 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+	.app-more-title:lang(my) { text-transform: none; letter-spacing: 0; }
+	.app-more a { display: flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; }
+	.app-more a:hover { background: var(--nav-hover); color: var(--ink); }
+	.app-more a[aria-current="page"] { color: var(--ink); background: var(--nav-current); }
+	.app-more .app-support::before { content: "♥"; margin-right: 8px; color: var(--heart); }
 }
-.you-menu[hidden] { display: none; }
-.you-menu::before {
-	content: ""; position: absolute; top: -7px; right: var(--arrow-right, 18px);
-	width: 12px; height: 12px; transform: rotate(45deg);
-	background: var(--ground); border-left: 1px solid var(--line); border-top: 1px solid var(--line);
-	border-top-left-radius: 3px;
+
+/* The You tab: the member's picture, with the connection dot
+   (app/core/online.js): green online, grey offline. */
+.you-face-slot { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none; }
+.you-face-slot img, .you-face-slot .you-initial { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.you-face-slot .you-initial { display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font: 700 13px/1 var(--font-ui); }
+.you-face-slot::after, .ws-rail > .ws-rail-face::after, .ws-menu-button .ws-rail-face::after {
+	content: ""; position: absolute; right: -1px; bottom: -1px; z-index: 1;
+	width: 9px; height: 9px; border-radius: 50%;
+	background: var(--online); box-shadow: 0 0 0 2px var(--ground);
+	transition: background-color 0.3s ease;
 }
-.you-menu > * { padding: 12px 16px; }
-.you-menu > * + * { border-top: 1px solid var(--line-soft); }
-.you-loading { margin: 0; color: var(--muted); }
-.you-head strong { font-size: 16px; }
-.you-head p { margin: 4px 0 12px; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+html[data-online="false"] :is(.you-face-slot, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { background: var(--offline); }
+html:not([data-online]) :is(.you-face-slot, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { display: none; }
+
+/* ---------------------------------------------------------- pages without the search bar */
+
+/* A large title opens the tab pages (You, Liked, Practice). */
+.large-title { margin: 8px 0 18px; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.large-title:lang(my) { font-size: 28px; letter-spacing: 0; line-height: 1.5; }
+body:not([data-route="home"]):not([data-route="definition"]):not([data-route="workspace"]) main#view { padding-top: max(20px, calc(var(--safe-t) + 12px)); }
+@media (min-width: 1024px) {
+	body:not([data-route="home"]):not([data-route="definition"]):not([data-route="workspace"]) main#view { padding-top: 32px; }
+}
+.site-notices { padding-top: var(--safe-t); }
+
+/* A choice of two or three, as one control (Liked: Liked / Not helpful). */
+.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; max-width: 420px; margin: 0 0 16px; padding: 3px; border-radius: 12px; background: var(--glass-fill); }
+.segmented a { display: flex; align-items: center; justify-content: center; height: 34px; border-radius: 9px; color: var(--ink-2); font-weight: 500; font-size: 15px; text-decoration: none; }
+.segmented a:hover { color: var(--ink); text-decoration: none; }
+.segmented a[aria-current="page"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgb(16 24 40 / 0.14); }
+
+/* Grouped rows, as a phone's settings: You, Liked. */
+.you-page, .liked, .offline-page { max-width: 640px; }
+.you-section { margin: 26px 4px 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.you-section:lang(my) { text-transform: none; letter-spacing: 0; }
+.you-group, .you-head, .liked-list { display: grid; margin: 0; padding: 4px 16px; border-radius: 14px; background: var(--surface); list-style: none; }
+.you-group > *, .liked-list > li { min-height: 50px; }
+.you-group > * + *, .liked-list > li + li { border-top: 0.5px solid var(--line); }
+.you-head { padding: 16px; gap: 0; }
+.you-head strong { font-size: 17px; }
+.you-head p { margin: 4px 0 14px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .you-providers { display: grid; gap: 8px; }
-.you-provider { display: block; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--surface); }
-.you-provider:hover { border-color: var(--ink-2); }
+.you-provider { display: block; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; text-align: center; font-weight: 600; color: var(--ink); text-decoration: none; background: var(--card); }
+.you-provider:hover { border-color: var(--ink-2); text-decoration: none; }
 /* Sign in with Apple in Apple's own style (its guidelines): black, white
    words, the logo before them; white on black in the dark theme. */
 .you-provider.is-apple, .ws-provider.is-apple { display: flex; align-items: center; justify-content: center; gap: 8px; background: #000; border-color: #000; color: #fff; }
@@ -145,87 +183,49 @@ main {
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) .you-provider.is-apple, :root:not([data-theme="light"]) .ws-provider.is-apple { background: #fff; border-color: #fff; color: #000; }
 }
-.you-who { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
-.you-who img, .you-face { width: 40px; height: 40px; border-radius: 50%; flex: none; }
-.you-face { display: inline-flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font-weight: 700; }
+.you-who { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.you-who img, .you-face { width: 52px; height: 52px; border-radius: 50%; flex: none; }
+.you-face { display: inline-flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font-weight: 700; font-size: 20px; }
 .you-who div { display: grid; }
-.you-who span { font-size: 12px; color: var(--muted); }
-.you-signout { margin-left: auto; align-self: center; flex: none; height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--ink-2); font: 500 13px var(--font-ui); white-space: nowrap; cursor: pointer; }
-.you-signout:hover { color: var(--ink); background: var(--line-soft); }
+.you-who strong { font-size: 18px; }
+.you-who span { font-size: 14px; color: var(--muted); }
+.you-signout { margin-left: auto; align-self: center; flex: none; height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink-2); font: 500 14px var(--font-ui); white-space: nowrap; cursor: pointer; }
+.you-signout:hover { color: var(--ink); }
 .you-signout:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.you-workspace { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--ink); color: var(--ground); font-weight: 600; text-decoration: none; }
-.you-workspace:hover { color: var(--ground); opacity: 0.92; }
+.you-workspace { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 12px; background: var(--ink); color: var(--ground); font-weight: 600; text-decoration: none; }
+.you-workspace:hover { color: var(--ground); opacity: 0.92; text-decoration: none; }
 .you-badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
 .you-badge[hidden] { display: none; }
-.you-group { display: grid; gap: 10px; }
-.you-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.you-label { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); white-space: nowrap; }
-.you-hint { font-size: 12px; margin-left: 4px; }
-.you-choices { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--line-soft); }
-.you-choice { min-width: 34px; height: 28px; padding: 0 10px; border: none; border-radius: 8px; background: none; color: var(--ink-2); font: 500 13px var(--font-ui); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.you-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+.you-label { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }
+.you-hint { font-size: 13px; margin-left: 4px; }
+.you-choices { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--glass-fill); }
+.you-choice { min-width: 38px; height: 32px; padding: 0 10px; border: none; border-radius: 8px; background: none; color: var(--ink-2); font: 500 14px var(--font-ui); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .you-choice:lang(my) { font-family: var(--font-my); font-weight: 400; }
-.you-choice[aria-pressed="true"] { background: var(--ground); color: var(--ink); box-shadow: 0 1px 3px rgb(16 24 40 / 0.14); }
-.you-switch { position: relative; width: 38px; height: 22px; border: none; border-radius: 999px; background: var(--line); cursor: pointer; flex: none; transition: background 0.15s; }
-.you-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 0.15s; }
+.you-choice[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgb(16 24 40 / 0.14); }
+.you-switch { position: relative; width: 46px; height: 28px; border: none; border-radius: 999px; background: var(--line); cursor: pointer; flex: none; transition: background 0.15s; }
+.you-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 0.15s; }
 .you-switch[aria-checked="true"] { background: var(--brand); }
-.you-switch[aria-checked="true"]::after { transform: translateX(16px); }
-.you-status { font-size: 12px; color: var(--muted); text-align: right; }
-.you-note { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-.you-action { display: block; width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); color: var(--ink); font: 600 13px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; }
-.you-action:hover { border-color: var(--ink-2); color: var(--ink); }
-.you-invite { border: none; background: linear-gradient(135deg, var(--brand), #5aa9e6); color: #fff; }
-.you-invite:hover { color: #fff; filter: brightness(1.05); }
-.you-offline progress { width: 100%; height: 6px; accent-color: var(--brand); }
-.you-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
-.you-links a { white-space: nowrap; }
-.you-links a { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); text-decoration: none; }
-.you-links a:hover { color: var(--ink); }
+.you-switch[aria-checked="true"]::after { transform: translateX(18px); }
+.you-status { font-size: 14px; color: var(--muted); text-align: right; }
+.you-note { margin: 0; padding: 4px 0 10px; font-size: 14px; color: var(--ink-2); line-height: 1.5; min-height: 0 !important; border-top: none !important; }
+.you-action { display: block; width: 100%; margin: 4px 0 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: 600 15px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; border-top: 1px solid var(--line) !important; min-height: 0 !important; }
+.you-action:hover { border-color: var(--ink-2); color: var(--ink); text-decoration: none; }
+.you-offline progress { width: 100%; height: 6px; margin-bottom: 10px; accent-color: var(--brand); }
+.you-links a, .liked-list a { display: flex; align-items: center; gap: 12px; min-height: 50px; color: var(--ink); text-decoration: none; }
+.you-links a:hover, .liked-list a:hover { text-decoration: none; color: var(--ink); }
+.you-links a > .icon:first-child { color: var(--brand); }
+.you-links a > span, .liked-what { flex: 1; min-width: 0; }
+.you-links a > .icon:last-child, .liked-list a > .icon:last-child { color: var(--faint); }
+.you-copy { margin: 22px 4px 0; font-size: 13px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .you-switch, .you-switch::after { transition: none; } }
-.english-only { margin-bottom: 20px; }
-.you {
-	margin-left: auto;
-	/* A ring with a little room between it and the picture. */
-	width: 36px; height: 36px; padding: 2px;
-	display: flex; align-items: center; justify-content: center;
-	border: 1px solid color-mix(in srgb, var(--line) 60%, var(--muted));
-	border-radius: 999px;
-	background: var(--chrome);
-	-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-	box-shadow: var(--chrome-shadow);
-	color: var(--muted); position: relative;
-}
-/* The connection dot (app/core/online.js): green online, grey offline. */
-.you::after, .ws-rail > .ws-rail-face::after, .ws-menu-button .ws-rail-face::after {
-	content: ""; position: absolute; right: -1px; bottom: -1px; z-index: 1;
-	width: 10px; height: 10px; border-radius: 50%;
-	background: var(--online); box-shadow: 0 0 0 2px var(--ground);
-	transition: background-color 0.3s ease;
-}
-html[data-online="false"] :is(.you, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { background: var(--offline); }
-html:not([data-online]) :is(.you, .ws-rail > .ws-rail-face, .ws-menu-button .ws-rail-face)::after { display: none; }
-.you img, .you .you-initial { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.you .you-initial { display: flex; align-items: center; justify-content: center; background: var(--term-tint); color: var(--brand); font: 700 14px/1 var(--font-ui); }
-.you[aria-current="page"], body[data-route="account"] .you, .you[aria-expanded="true"] { color: var(--ink); border-color: var(--brand); }
 
-/* Phones: the links become icons in one quiet capsule. The page you are on
-   is a faint tint and full ink; nothing is raised. */
-@media (max-width: 640px) {
-	.site-nav {
-		margin-left: 0; padding: 4px;
-		border-radius: 999px;
-		background: var(--chrome);
-		-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-		box-shadow: var(--chrome-shadow);
-	}
-	.nav-lens, .nav-hover { top: 4px; bottom: 4px; }
-	.nav-lens { background: var(--nav-current); }
-	.nav-hover { background: var(--nav-hover); }
-	.site-nav a { width: 48px; height: 36px; padding: 0; color: var(--faint); }
-	.site-nav a[aria-current="page"] { color: var(--ink); }
-	.nav-icon { display: block; }
-	.site-nav .nav-support .nav-icon { width: 22px; height: 22px; }
-	.nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-}
+.liked-lead, .liked-empty, .liked-more { color: var(--ink-2); }
+.liked-list a { padding: 8px 0; }
+.liked-word { font-weight: 600; flex: none; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.liked-what { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.liked-updated { flex: none; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); font-size: 12px; font-weight: 600; }
+.liked .ws-providers, .offline-page .ws-providers { margin-top: 14px; max-width: 360px; }
 
 /* ---------------------------------------------------------- site notices */
 
@@ -285,83 +285,78 @@ body[data-route="definition"] .search-bar { display: block; }
 	padding: 8px 0;
 	transition: box-shadow 0.2s;
 }
+.search-bar-inner { display: flex; align-items: center; gap: var(--bar-gap); }
+.bar-logo { flex-shrink: 0; display: none; }
+.bar-logo .logo-mark { display: none; }
+.search-bar mo-search { flex: 1; max-width: var(--search-w); }
+.search-cancel { display: none; }
 
-/* Desktop: a hairline under each band. Smaller screens: no line; once the
-   page scrolls under the search bar, a soft shadow lifts it instead. */
+/* Wide screens: a hairline under the band; once the page scrolls under it,
+   a soft shadow as well. */
 @media (min-width: 1024px) {
-	.site-header,
-	.search-bar { box-shadow: inset 0 -0.5px 0 var(--glass-edge); }
-	/* Once the page scrolls under it, a soft shadow below the bar as well. */
+	.search-bar { box-shadow: inset 0 -0.5px 0 var(--glass-edge); padding: 12px 0; }
 	body[data-scrolled] .search-bar { box-shadow: inset 0 -0.5px 0 var(--glass-edge), var(--float-shadow); }
 }
-@media (max-width: 1023px) {
-	body[data-scrolled] .search-bar { box-shadow: var(--float-shadow); }
-}
 
-/* Phones (Liquid Glass): no bands. The header and the search bar float; the
-   capsule, the You button and the search box carry their own glass, and
-   only once the page scrolls under them does a fading scrim appear behind,
-   never a box. */
-@media (max-width: 640px) {
-	.site-header,
+/* Under 1024px (Liquid Glass): no band. The search box carries its own
+   glass, and only once the page scrolls under it does a fading scrim
+   appear behind, never a box. */
+@media (max-width: 1023px) {
 	.search-bar {
-		position: sticky;
+		top: 0;
 		isolation: isolate;
+		padding-top: calc(var(--safe-t) + 8px);
 		background: none;
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
 		box-shadow: none;
 	}
-	.site-header { top: 0; z-index: 6; min-height: calc(var(--header-h) + env(safe-area-inset-top)); }
-	.search-bar { top: calc(var(--header-h) + env(safe-area-inset-top)); padding-top: 2px; }
-	body[data-scrolled] .search-bar { box-shadow: none; }
-	.site-header::before,
 	.search-bar::before {
 		content: "";
 		position: absolute;
-		inset: 0;
+		inset: 0 0 -24px;
 		z-index: -1;
 		pointer-events: none;
 		opacity: 0;
 		transition: opacity 0.2s;
-		background: linear-gradient(to bottom, var(--scrim), transparent);
+		background: var(--scrim);
 		-webkit-backdrop-filter: blur(10px);
 		backdrop-filter: blur(10px);
-		-webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent);
-		mask-image: linear-gradient(to bottom, #000 50%, transparent);
-	}
-	/* With a search bar below, the header's scrim continues into it. */
-	body[data-route="definition"] .site-header::before {
-		background: var(--scrim);
-		-webkit-mask-image: none;
-		mask-image: none;
-	}
-	/* Below the search box the scrim stays solid a little way, then fades,
-	   so text scrolling under the box never shows through its edge. */
-	.search-bar::before {
-		bottom: -24px;
+		/* Solid a little way below the box, then fading, so text scrolling
+		   under it never shows through its edge. */
 		-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
 		mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
 	}
-	body[data-scrolled] .site-header::before,
 	body[data-scrolled] .search-bar::before { opacity: 1; }
-	.site-footer { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-}
-.search-bar-inner { display: flex; align-items: center; gap: var(--bar-gap); }
-.bar-logo { flex-shrink: 0; display: block; }
-.bar-logo .logo-full { display: block; width: var(--logo-w); }
-.bar-logo .logo-mark { display: none; width: var(--logo-w); }
-.search-bar mo-search { flex: 1; max-width: var(--search-w); }
-@media (max-width: 1023px) {
-	.bar-logo .logo-full { display: none; }
-	.bar-logo .logo-mark { display: block; }
-}
-@media (max-width: 640px) {
-	.bar-logo { display: none; }
+
+	/* The search screen: while the field has focus, the bar covers the
+	   window, the field at the top beside a close button, the suggestions
+	   (or this device's recent searches) under it. The page under stays
+	   where it was; nothing scrolls to make room. */
+	body[data-searching] .search-bar {
+		position: fixed; inset: 0; z-index: 30;
+		display: block;
+		background: var(--ground);
+		padding: calc(var(--safe-t) + 8px) 0 0;
+		overflow: hidden;
+	}
+	body[data-searching] .search-bar::before { display: none; }
+	body[data-searching] .search-bar-inner { flex-direction: row; gap: 8px; max-width: none; padding-top: 0; }
+	body[data-searching] .search-bar .bar-logo,
+	body[data-searching] .search-bar .home-pair { display: none; }
+	body[data-searching] .search-bar mo-search { margin-top: 0; max-width: none; }
+	body[data-searching] .search-cancel {
+		display: inline-flex; align-items: center; justify-content: center; flex: none;
+		width: 44px; height: 44px; padding: 0; border-radius: 999px; cursor: pointer; color: var(--ink);
+		background: var(--liquid);
+		-webkit-backdrop-filter: var(--liquid-blur); backdrop-filter: var(--liquid-blur);
+		border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
+	}
+	body[data-searching] .search-cancel .icon { stroke-width: 2; }
 }
 
-/* Home: as before, the logo with the language line above the search box,
-   centred; the bar does not stick and has no band of its own. */
+/* Home: the logo with the language line above the search box, centred;
+   the bar does not stick and has no band of its own. */
 .home-pair { display: none; }
 body[data-route="home"] .search-bar {
 	position: static;
@@ -380,15 +375,14 @@ body[data-route="home"] .search-bar-inner {
 }
 body[data-route="home"] .bar-logo { display: block; }
 body[data-route="home"] .bar-logo .logo-full { display: block; width: min(340px, 70vw); }
-body[data-route="home"] .bar-logo .logo-mark { display: none; }
 body[data-route="home"] .home-pair { display: block; margin: 8px 0 0; font-size: 15px; color: var(--muted); }
 body[data-route="home"] .home-pair [aria-hidden] { color: var(--brand); }
 body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32px; }
 /* Under the home search box: recent searches (this device) and the most searched. */
 body[data-route="home"] main#view { max-width: none; }
-/* Phones: a smaller logo and a taller search box, the box the thing to reach for. */
-@media (max-width: 640px) {
-	body[data-route="home"] .search-bar { padding-top: 10vh; }
+/* Under 1024px: a smaller logo and a taller search box, the box the thing to reach for. */
+@media (max-width: 1023px) {
+	body[data-route="home"] .search-bar { padding-top: calc(var(--safe-t) + 9vh); }
 	body[data-route="home"] .bar-logo .logo-full { width: min(230px, 58vw); }
 	body[data-route="home"] .home-pair { font-size: 14px; }
 	body[data-route="home"] mo-search { height: 52px; margin-top: 24px; }
@@ -397,19 +391,13 @@ body[data-route="home"] main#view { max-width: none; }
 	body[data-route="home"] .search input { font-size: 17px; }
 	body[data-route="home"] .search-go { width: 40px; height: 40px; }
 	body[data-route="home"] mo-search[data-open] .search-box { --field-r: 18px; }
-	/* Typing: the logo and the language line step aside so the box rises
-	   and its suggestions have the room above the keyboard. */
-	body[data-route="home"] .search-bar,
-	body[data-route="home"] .bar-logo,
-	body[data-route="home"] .home-pair { transition: padding-top 0.25s ease, max-height 0.25s ease, opacity 0.2s, margin 0.25s ease; }
-	body[data-route="home"] .bar-logo, body[data-route="home"] .home-pair { max-height: 120px; overflow: hidden; }
-	body[data-route="home"][data-searching] .search-bar { padding-top: 6px; }
-	body[data-route="home"][data-searching] .bar-logo,
-	body[data-route="home"][data-searching] .home-pair { max-height: 0; opacity: 0; margin: 0; }
-	body[data-route="home"][data-searching] mo-search { margin-top: 4px; }
-}
-@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
-	body[data-route="home"] .search-bar, body[data-route="home"] .bar-logo, body[data-route="home"] .home-pair { transition: none; }
+	body[data-route="home"][data-searching] .search-bar { position: fixed; inset: 0; z-index: 30; padding: calc(var(--safe-t) + 8px) 0 0; background: var(--ground); }
+	body[data-route="home"][data-searching] .search-bar-inner { flex-direction: row; gap: 8px; max-width: none; }
+	body[data-route="home"][data-searching] .bar-logo, body[data-route="home"][data-searching] .home-pair { display: none; }
+	body[data-route="home"][data-searching] mo-search { margin-top: 0; height: 44px; }
+	body[data-route="home"][data-searching] .search { height: 44px; padding-left: 16px; }
+	body[data-route="home"][data-searching] .search-go { width: 34px; height: 34px; }
+	body[data-route="home"][data-searching] .search-box { --field-r: 22px; }
 }
 /* The search box draws below its own element (which is 0 high), hence the room above. */
 .home { max-width: 680px; margin: 76px auto 0; display: grid; gap: 22px; }
@@ -458,9 +446,6 @@ body[data-route="home"] main#view { max-width: none; }
 .home-support-icon { display: inline-flex; color: var(--heart); }
 .home-support-hide { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; }
 .home-support-hide:hover { background: var(--surface); color: var(--ink); }
-@media (max-width: 640px) {
-	body[data-route="home"] .search-bar { padding-top: 10vh; }
-}
 
 /* Dark theme shows the logo in one colour so the grey wordmark stays legible. */
 :root[data-theme="dark"] .bar-logo img { filter: brightness(0) invert(1); }
@@ -525,45 +510,13 @@ mo-search { display: block; position: relative; height: 44px; }
 .search-box:focus-within { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--glass-solid); }
 body[data-searching] .search-bar,
 body[data-searching] .search-bar::before { -webkit-backdrop-filter: none; backdrop-filter: none; }
-/* Touch screens: the bar does not stick while typing; iOS draws the cursor
-   of a sticky field off the field once the keyboard moves the page
-   (search-box.js brings the page to its top first). */
-@media (pointer: coarse) {
+/* Wide touch screens (a tablet on its side): the bar does not stick while
+   typing; iOS draws the cursor of a sticky field off the field once the
+   keyboard moves the page. */
+@media (pointer: coarse) and (min-width: 1024px) {
 	body[data-searching] .search-bar { position: relative; top: auto; }
 }
 
-/* Phones, typing: the header's menu and account step aside and Cancel takes
-   their row, as in native search; the field itself stays where it is (a
-   moving field loses its cursor on iOS). On a definition the entry fades
-   back, and a tap on it only puts the keyboard away. */
-.search-cancel { display: none; }
-@media (max-width: 640px) {
-	.search-cancel {
-		display: block;
-		position: absolute;
-		right: var(--edge-r);
-		top: calc(env(safe-area-inset-top) + (var(--header-h) - 40px) / 2);
-		height: 40px; padding: 0 18px;
-		border: none; border-radius: 999px;
-		background: var(--chrome);
-		-webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
-		box-shadow: var(--chrome-shadow);
-		color: var(--ink); font: 500 16px/40px var(--font-ui);
-		cursor: pointer;
-		opacity: 0; transform: translateX(14px) scale(0.94); pointer-events: none;
-		transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
-	}
-	.site-nav, .you { transition: opacity 0.2s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
-	main#view, .site-footer { transition: opacity 0.25s ease; }
-	body[data-searching] .search-cancel { opacity: 1; transform: none; pointer-events: auto; }
-	body[data-searching] .site-nav { opacity: 0; transform: translateX(-12px) scale(0.96); pointer-events: none; }
-	body[data-searching] .you { opacity: 0; transform: scale(0.8); pointer-events: none; }
-	body[data-route="definition"][data-searching] main#view,
-	body[data-route="definition"][data-searching] .site-footer { opacity: 0.3; pointer-events: none; }
-}
-@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
-	.search-cancel, .site-nav, .you { transform: none !important; transition: opacity 0.15s; }
-}
 mo-search[data-open] .search-box {
 	--field-r: 16px;
 	inset: -4px -4px auto -4px;
@@ -1318,8 +1271,7 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 
 /* ---------------------------------------------------------- workspace */
 
-/* The workspace fills the window; the public header and footer give way. */
-body[data-route="workspace"] .site-header,
+/* The workspace fills the window; the public navigation and footer give way. */
 body[data-route="workspace"] .site-footer { display: none; }
 body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 

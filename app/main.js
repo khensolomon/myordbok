@@ -1,17 +1,15 @@
 // @ts-check
 /**
  * App entry: platform start-up, then the router.
- * The page shell (header, search bar, footer) lives in index.html; views
+ * The page shell (navigation, search bar, footer) lives in index.html; views
  * render into <main>. The one search bar serves every page.
  */
 import { boot } from '#platform/boot.js';
 import { initConsent } from './core/consent.js';
 import { initLang, t } from './i18n/index.js';
 import { member } from './core/member.js';
-import { initMenu } from './core/menu.js';
 import { followTheme } from './core/prefs.js';
 import { followOnline } from './core/online.js';
-import { initNav } from './core/nav.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
 import { savingData, siteSwitches } from './data/api.js';
@@ -30,9 +28,11 @@ if (!search) throw new Error('index.html is missing <mo-search id="search">');
 const logo = document.querySelector('.bar-logo');
 if (!(logo instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-logo">');
 
-const navElement = document.querySelector('.site-nav');
-if (!(navElement instanceof HTMLElement)) throw new Error('index.html is missing <nav class="site-nav">');
-const nav = initNav(navElement);
+/** The tab each page belongs to: the definition and grammar pages to Search, the rest to You. */
+const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'search', definition: 'search', grammar: 'search', fonts: 'search', liked: 'liked', practice: 'practice' });
+const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
+if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
+const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a'));
 
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
@@ -42,24 +42,32 @@ const router = startRouter(outlet, (route) => {
 	logo.setAttribute('aria-label', route?.name === 'home' ? t('How to search') : t('MyOrdbok home'));
 	// The bar shows the word being looked up, and is empty elsewhere.
 	search.setValue(route?.name === 'definition' ? (new URL(location.href).searchParams.get('q') ?? '') : '');
-	/** @type {HTMLAnchorElement | null} */
-	let currentLink = null;
-	for (const link of /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.site-nav a'))) {
-		const active = route !== null && new URL(link.href).pathname === route.path;
-		if (active) {
-			link.setAttribute('aria-current', 'page');
-			currentLink = link;
-		} else link.removeAttribute('aria-current');
+	const tab = route ? (TAB_OF[route.name] ?? 'you') : null;
+	for (const link of tabs) {
+		// The tab of the page shown; its own page is the one "current".
+		link.toggleAttribute('data-on', link.dataset.tab === tab);
+		if (route && new URL(link.href).pathname === route.path) link.setAttribute('aria-current', 'page');
+		else link.removeAttribute('aria-current');
 	}
-	nav.setCurrent(currentLink);
+	for (const link of moreLinks) {
+		if (route && new URL(link.href).pathname === route.path) link.setAttribute('aria-current', 'page');
+		else link.removeAttribute('aria-current');
+	}
 });
 
-// Phones: Cancel, in the header while the field has focus (app.css).
+// Under 1024px: Cancel closes the search screen (app.css).
 const cancel = document.querySelector('.search-cancel');
 if (!(cancel instanceof HTMLButtonElement)) throw new Error('index.html is missing <button class="search-cancel">');
 // Pressed, the button keeps focus in the field until it acts, so the header does not start to change back first.
 cancel.addEventListener('pointerdown', (e) => e.preventDefault());
 cancel.addEventListener('click', () => search.cancel());
+
+// The Search tab, tapped on the page it leads to: the search itself.
+tabs[0].addEventListener('click', (e) => {
+	if (document.body.dataset.route !== 'home') return;
+	e.preventDefault();
+	search.focus();
+});
 
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
@@ -73,23 +81,23 @@ markScrolled();
 initConsent();
 boot();
 
-// The account button shows the member's picture once signed in.
-const you = document.querySelector('.you');
-if (!(you instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="you">');
-const blankFace = you.innerHTML;
-initMenu(you);
+// The You tab shows the member's picture once signed in.
+const you = document.querySelector('.app-nav .you');
+const face = you?.querySelector('.you-face-slot');
+if (!(you instanceof HTMLAnchorElement) || !(face instanceof HTMLElement)) throw new Error('index.html is missing the You tab with its .you-face-slot');
+const blankFace = face.innerHTML;
 followTheme();
 followOnline();
 document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
-	you.setAttribute('aria-label', m ? t('Account: {name}', { name: m.name }) : t('Account: sign in'));
-	you.title = m ? m.name : t('Account');
+	you.setAttribute('aria-label', m ? t('You: {name}', { name: m.name }) : t('You'));
+	you.title = m ? m.name : t('You');
 	// Without a picture, or when it fails to load, the name's first letter.
 	const initial = () => {
-		const face = document.createElement('span');
-		face.className = 'you-initial';
-		face.textContent = (m?.name ?? '?').slice(0, 1).toUpperCase();
-		you.replaceChildren(face);
+		const letter = document.createElement('span');
+		letter.className = 'you-initial';
+		letter.textContent = (m?.name ?? '?').slice(0, 1).toUpperCase();
+		face.replaceChildren(letter);
 	};
 	if (m?.avatar_url) {
 		const img = document.createElement('img');
@@ -97,9 +105,9 @@ document.addEventListener('mo:member', (e) => {
 		img.referrerPolicy = 'no-referrer';
 		img.addEventListener('error', initial, { once: true });
 		img.src = m.avatar_url;
-		you.replaceChildren(img);
+		face.replaceChildren(img);
 	} else if (m) initial();
-	else you.innerHTML = blankFace;
+	else face.innerHTML = blankFace;
 });
 // Whether someone is signed in; a failure leaves the button as it is.
 // Then the site notices: with a session, also those for members or editors.

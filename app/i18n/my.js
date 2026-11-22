@@ -11,7 +11,6 @@ export const MY = {
 	// Page shell
 	'Skip to content': 'အကြောင်းအရာသို့ ကျော်သွားရန်',
 	Main: 'အဓိက',
-	Home: 'ပင်မ',
 	Grammar: 'သဒ္ဒါ',
 	About: 'အကြောင်း',
 	Privacy: 'ကိုယ်ရေးလုံခြုံမှု',
@@ -20,7 +19,6 @@ export const MY = {
 	'MyOrdbok home': 'MyOrdbok ပင်မစာမျက်နှာ',
 	'A comprehensive English–Myanmar dictionary that also works offline.': 'အင်တာနက်မရှိလည်း အသုံးပြုနိုင်သော ပြည့်စုံသည့် အင်္ဂလိပ်–မြန်မာ အဘိဓာန်။',
 	'Account: {name}': 'အကောင့် − {name}',
-	'Account: sign in': 'အကောင့် − ဝင်ရောက်ရန်',
 	Account: 'အကောင့်',
 	'Page not found': 'စာမျက်နှာ မတွေ့ပါ',
 	'Nothing lives at {path}.': '{path} တွင် ဘာမျှမရှိပါ။',
@@ -227,7 +225,6 @@ export const MY = {
 	'Terms of Use': 'အသုံးပြုမှု စည်းကမ်းချက်များ',
 
 	// Person menu
-	"Account and settings": "အကောင့်နှင့် ဆက်တင်များ",
 	"More": "နောက်ထပ်",
 	"To rate meanings, suggest corrections and keep the definitions offline. Reading never needs an account.": "အဓိပ္ပာယ်များ အဆင့်သတ်မှတ်ရန်၊ ပြင်ဆင်ချက် အကြံပြုရန်နှင့် အဓိပ္ပာယ်များကို အော့ဖ်လိုင်း သိမ်းထားရန် ဖြစ်ပါသည်။ ဖတ်ရန်အတွက် အကောင့် မလိုပါ။",
 	"Open the workspace": "လုပ်ငန်းခွင်ကို ဖွင့်ရန်",
@@ -1277,4 +1274,19 @@ export const MY = {
 	'Waiting for the approval on the website…': 'ဝဘ်ဆိုက်တွင် အတည်ပြုချက်ကို စောင့်နေသည်…',
 	'Cancelled on the website. The app was not linked.': 'ဝဘ်ဆိုက်တွင် ပယ်ဖျက်ခဲ့သည်။ အက်ပ်ကို မချိတ်ဆက်ခဲ့ပါ။',
 	'The code has expired. Close this and try again.': 'ကုဒ် သက်တမ်းကုန်သွားပါပြီ။ ဤအကွက်ကို ပိတ်ပြီး ထပ်မံ ကြိုးစားပါ။',
+	'You: {name}': 'သင် − {name}',
+	'Liked': 'နှစ်သက်ထားသည်များ',
+	'Words and meanings you rate helpful are kept here. Sign in to rate them.': 'အသုံးဝင်သည်ဟု အဆင့်သတ်မှတ်ထားသော စကားလုံးနှင့် အဓိပ္ပာယ်များကို ဤနေရာတွင် သိမ်းထားပါမည်။ အဆင့်သတ်မှတ်ရန် ဝင်ရောက်ပါ။',
+	'Which ratings': 'မည်သည့် အဆင့်သတ်မှတ်ချက်များ',
+	'Nothing yet. The thumb on an entry, or beside a meaning, keeps it here.': 'မရှိသေးပါ။ ဝေါဟာရ သို့မဟုတ် အဓိပ္ပာယ်ဘေးရှိ လက်မကို နှိပ်လျှင် ဤနေရာတွင် သိမ်းထားပါမည်။',
+	'Nothing rated not helpful. Those ratings tell editors which meanings to look at.': 'အသုံးမဝင်ဟု အဆင့်သတ်မှတ်ထားသည် မရှိပါ။ ထိုအဆင့်သတ်မှတ်ချက်များက တည်းဖြတ်သူများကို မည်သည့်အဓိပ္ပာယ်များ ပြန်ကြည့်ရမည်ကို ပြောပြသည်။',
+	'All your ratings, in the workspace': 'သင်၏ အဆင့်သတ်မှတ်ချက် အားလုံး၊ လုပ်ငန်းခွင်တွင်',
+	'Whole entry': 'ဝေါဟာရ တစ်ခုလုံး',
+	'(removed)': '(ဖယ်ရှားပြီး)',
+	'Updated': 'ပြင်ဆင်ပြီး',
+	'No longer in the dictionary': 'အဘိဓာန်တွင် မရှိတော့ပါ',
+	'Members can keep every definition on the device and look words up without a connection.': 'အဖွဲ့ဝင်များသည် အဓိပ္ပာယ်အားလုံးကို စက်ထဲတွင် သိမ်းထားပြီး အင်တာနက်မရှိဘဲ စကားလုံးများကို ရှာနိုင်သည်။',
+	'This device': 'ဤစက်',
+	'Sign in above to download.': 'ဒေါင်းလုဒ်လုပ်ရန် အပေါ်တွင် ဝင်ရောက်ပါ။',
+	'Learn': 'လေ့လာရန်',
 };
