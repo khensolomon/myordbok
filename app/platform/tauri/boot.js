@@ -51,6 +51,9 @@ export async function boot() {
 	if (!API || !Number.isInteger(BUILD)) throw new AppError('internal', 'The app was built without its server or version (scripts/build.js --target tauri --api …).');
 	const os = platform();
 	document.documentElement.dataset.app = os;
+	// An app's screen does not zoom: no pinch, no double tap (the text size
+	// follows the phone's own setting instead).
+	document.querySelector('meta[name="viewport"]')?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
 	document.addEventListener('click', leaving, true);
 	document.addEventListener('click', felt, true);
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+175
+
+- App: no zoom, taps answer at once, pressed rows show it; search field keeps the word as typed
+
 ## 26.11.22+174
 
 - iOS: the web view's own back swipe; builds made with Xcode 27 (iOS 27 SDK)

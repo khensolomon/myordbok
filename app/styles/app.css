@@ -2556,6 +2556,11 @@ html[data-app] body::-webkit-scrollbar { display: none; }
 html[data-app] { --font-ui: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif, "MyOrdbok Myanmar"; }
 html[data-app]::-webkit-scrollbar, html[data-app] body::-webkit-scrollbar { display: none; }
 html[data-app] :is(.app-nav, button, .app-tab, .bar-back, .segmented, .you-links a, .liked-list a, .home-chips a) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* A tap answers at once (no wait for a second tap), and what is pressed
+   shows it while the finger is down, as rows and buttons do on the phone. */
+html[data-app] { touch-action: manipulation; }
+html[data-app] :is(.you-links a, .liked-list a, .search-list a, .you-row):active { background: var(--glass-fill); }
+html[data-app] :is(button, .app-tab, .bar-back, .home-chips a, .you-action, .ws-provider, .you-provider):active { opacity: 0.6; }
 
 /* ---------------------------------------------------------- touch screens: smooth scrolling */
 

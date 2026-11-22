@@ -65,6 +65,9 @@ export class SearchBox extends HTMLElement {
 			value,
 			autocomplete: 'off',
 			spellcheck: 'false',
+			// A word as typed: no capital first letter, no correction to another word.
+			autocapitalize: 'none',
+			autocorrect: 'off',
 			placeholder: t('Type a word in English or မြန်မာ'),
 			// The keyboard's own key says Search, and searches (submit below).
 			enterkeyhint: 'search',
