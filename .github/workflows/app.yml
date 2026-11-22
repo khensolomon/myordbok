@@ -198,9 +198,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
+      # Keyed by the Xcode in use: build scripts keep the toolchain's paths,
+      # and a cache made with another Xcode links against one not installed.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: xcode-27
 
       - name: The Xcode project, then its icons
         run: |
