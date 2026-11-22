@@ -91,6 +91,8 @@
 	--liquid-shadow: 0 8px 28px rgba(23, 32, 43, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(23, 32, 43, 0.04);
 	--liquid-blur: saturate(190%) blur(22px);
 	--tab-on: rgba(49, 142, 215, 0.13);
+	/* A search field, as the phone fills its own. */
+	--field-fill: rgba(118, 128, 142, 0.12);
 
 	--icon-line: 1.1;
 	--radius: 16px;
@@ -157,6 +159,7 @@
 	--liquid-edge: rgba(255, 255, 255, 0.1);
 	--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	--tab-on: rgba(109, 179, 242, 0.18);
+	--field-fill: rgba(150, 165, 185, 0.16);
 	color-scheme: dark;
 }
 
@@ -206,6 +209,7 @@
 		--liquid-edge: rgba(255, 255, 255, 0.1);
 		--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 		--tab-on: rgba(109, 179, 242, 0.18);
+		--field-fill: rgba(150, 165, 185, 0.16);
 		color-scheme: dark;
 	}
 }

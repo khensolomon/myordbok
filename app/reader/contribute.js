@@ -146,8 +146,8 @@ export function entryFeedback(lang, word) {
 
 	return {
 		/**
-		 * One thumb for the entry as a whole, for the bar over a definition
-		 * under 1024px: pressed, the entry is in Liked (/liked).
+		 * One thumb for the entry as a whole, beside the headword: pressed,
+		 * the entry is in Liked (/liked).
 		 */
 		like() {
 			const pair = thumbs(`“${word}”`, (v) => press({}, v, pair), 'bar');

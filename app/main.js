@@ -12,7 +12,7 @@ import { followTheme } from './core/prefs.js';
 import { followOnline } from './core/online.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
-import { backSwipe } from './core/swipe.js';
+import { pageScroll, scrollPageTo } from './core/scroll.js';
 import { savingData, siteSwitches } from './data/api.js';
 import { checkIn, keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
@@ -29,22 +29,15 @@ if (!search) throw new Error('index.html is missing <mo-search id="search">');
 const logo = document.querySelector('.bar-logo');
 if (!(logo instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-logo">');
 
-/** The tab each page belongs to: the definition and grammar pages to Search, the rest to You. */
-const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'search', definition: 'search', grammar: 'search', fonts: 'search', liked: 'liked', practice: 'practice' });
+/** The tab each page belongs to: the definition and grammar pages to Home, the rest to You. */
+const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'home', definition: 'home', grammar: 'home', fonts: 'home', liked: 'liked', practice: 'practice' });
 const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
 const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a'));
 
-// A page's buttons for the bar (a definition's thumb, .entry-actions) move
-// into it once the page is shown, and go with the page.
-const barActions = document.querySelector('.bar-actions');
-if (!(barActions instanceof HTMLElement)) throw new Error('index.html is missing <div class="bar-actions">');
-window.addEventListener('mo:navigated', () => barActions.replaceChildren(...outlet.querySelectorAll('.entry-actions')));
-
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
 	document.body.dataset.route = route?.name ?? 'missing';
-	barActions.replaceChildren();
 	// The logo leads home; on home itself, to how to search.
 	logo.href = route?.name === 'home' ? '/definition' : '/';
 	logo.setAttribute('aria-label', route?.name === 'home' ? t('How to search') : t('MyOrdbok home'));
@@ -63,38 +56,13 @@ const router = startRouter(outlet, (route) => {
 	}
 });
 
-// Under 1024px: Cancel closes the search screen (app.css).
-const cancel = document.querySelector('.search-cancel');
-if (!(cancel instanceof HTMLButtonElement)) throw new Error('index.html is missing <button class="search-cancel">');
-// Pressed, the button keeps focus in the field until it acts, so the header does not start to change back first.
-cancel.addEventListener('pointerdown', (e) => e.preventDefault());
-cancel.addEventListener('click', () => search.cancel());
-
-// Back, on a definition (under 1024px): to the page it was opened from, or home.
-const back = document.querySelector('.bar-back');
-if (!(back instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-back">');
-back.addEventListener('click', (e) => {
-	if (!history.state?.from) return;
-	e.preventDefault();
-	history.back();
-});
-
-// The iOS app: a swipe from the left edge goes back, as in other apps (swipe.js).
-backSwipe();
-
-// The Search tab, tapped on the page it leads to: the search itself.
-tabs[0].addEventListener('click', (e) => {
-	if (document.body.dataset.route !== 'home') return;
-	e.preventDefault();
-	search.focus();
-});
-
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 
 // The bars change look once the page scrolls under them (app.css, data-scrolled).
-const markScrolled = () => document.body.toggleAttribute('data-scrolled', window.scrollY > 4);
-window.addEventListener('scroll', markScrolled, { passive: true });
+const markScrolled = () => document.body.toggleAttribute('data-scrolled', pageScroll() > 4);
+// Captured: in the app the page scrolls in <body>, whose scroll event does not reach the window (scroll.js).
+document.addEventListener('scroll', markScrolled, { passive: true, capture: true });
 window.addEventListener('mo:navigated', markScrolled);
 markScrolled();
 

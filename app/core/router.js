@@ -5,6 +5,7 @@
  */
 import { h } from './dom.js';
 import { match } from './routes.js';
+import { pageScroll, scrollPageTo } from './scroll.js';
 import { endProgress, startProgress } from './progress.js';
 import { t } from '../i18n/index.js';
 
@@ -19,8 +20,8 @@ export function startRouter(outlet, onRoute) {
 
 	/**
 	 * @param {'load' | 'push' | 'pop' | 'replace'} [how]  How the page came:
-	 *   pages pushed slide in from the right, pages gone back to from the left
-	 *   (app.css, data-enter).
+	 *   under 1024px pages pushed ease in from the right, pages gone back to
+	 *   from the left (app.css, data-enter).
 	 */
 	async function render(how = 'load') {
 		const mine = ++token;
@@ -61,9 +62,9 @@ export function startRouter(outlet, onRoute) {
 			// in the page (/grammar/noun#s-2): that place. Otherwise the top.
 			const saved = history.state?.scroll;
 			const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-			if (typeof saved === 'number') window.scrollTo(0, saved);
+			if (typeof saved === 'number') scrollPageTo(saved);
 			else if (target) target.scrollIntoView();
-			else window.scrollTo(0, 0);
+			else scrollPageTo(0);
 			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
 		} catch (err) {
 			if (mine !== token) return;
@@ -82,7 +83,7 @@ export function startRouter(outlet, onRoute) {
 	function go(path) {
 		const here = location.pathname + location.search;
 		if (path === here) return;
-		history.replaceState({ ...history.state, scroll: window.scrollY }, '');
+		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
 		history.pushState({ from: here }, '', path);
 		render('push');
 	}

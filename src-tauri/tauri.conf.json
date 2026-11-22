@@ -14,7 +14,9 @@
 				"width": 1100,
 				"height": 800,
 				"minWidth": 360,
-				"minHeight": 480
+				"minHeight": 480,
+				"disableInputAccessoryView": true,
+				"allowLinkPreview": false
 			}
 		],
 		"security": {

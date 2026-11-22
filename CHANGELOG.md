@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+173
+
+- Native scrolling in the app, a phone-style search field with Cancel inside, Home tab, the entry's thumb on the headword line
+
 ## 26.11.22+172
 
 - Smoother scrolling on phones; the search screen stays below the status bar; the app opens on home

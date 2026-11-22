@@ -1290,4 +1290,5 @@ export const MY = {
 	'Sign in above to download.': 'ဒေါင်းလုဒ်လုပ်ရန် အပေါ်တွင် ဝင်ရောက်ပါ။',
 	'Learn': 'လေ့လာရန်',
 	'Back': 'နောက်သို့',
+	'Home': 'ပင်မ',
 };

@@ -66,6 +66,8 @@ export class SearchBox extends HTMLElement {
 			autocomplete: 'off',
 			spellcheck: 'false',
 			placeholder: t('Type a word in English or မြန်မာ'),
+			// The keyboard's own key says Search, and searches (submit below).
+			enterkeyhint: 'search',
 			role: 'combobox',
 			'aria-expanded': 'false',
 			'aria-controls': `${id}-list`,
@@ -85,6 +87,8 @@ export class SearchBox extends HTMLElement {
 			'form',
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
 			h('label', { for: id, class: 'visually-hidden' }, t('Search a word')),
+			// Under 1024px the field reads as the phone's own: a magnifier first (app.css).
+			h('span', { class: 'search-lead', 'aria-hidden': 'true' }, icon(ICONS.search, 17)),
 			this.input,
 			h(
 				'button',
@@ -101,6 +105,17 @@ export class SearchBox extends HTMLElement {
 			),
 			h('kbd', { class: 'search-key', 'aria-hidden': 'true', title: t('Press / to search') }, '/'),
 			h('button', { type: 'submit', class: 'search-go', 'aria-label': t('Search'), title: t('Search') }, icon(ICONS.search, 18)),
+			// Under 1024px, while searching: Cancel, the end of the field (app.css).
+			h(
+				'button',
+				{
+					type: 'button',
+					class: 'search-done',
+					onPointerdown: (/** @type {PointerEvent} */ e) => e.preventDefault(),
+					onClick: () => this.cancel(),
+				},
+				t('Cancel'),
+			),
 		);
 		this.box = h('div', { class: 'search-box' }, form, this.list);
 		this.append(this.box, this.status);

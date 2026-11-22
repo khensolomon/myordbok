@@ -84,8 +84,8 @@ function leaving(ev) {
 	open(out);
 }
 
-/** What a light tap is felt on: the tabs, searching, and the thumbs. */
-const FELT = '.app-tab, .search-go, .search-cancel, .bar-back, .thumb, .segmented a, .you-choice, .you-switch';
+/** What a light tap is felt on: the tabs, Back, Cancel, and the thumbs. */
+const FELT = '.app-tab, .search-done, .bar-back, .thumb, .segmented a, .you-choice, .you-switch';
 
 /**
  * A light tap on the controls above, when the device has the motor for it.

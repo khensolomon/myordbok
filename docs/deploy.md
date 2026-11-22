@@ -851,7 +851,9 @@ and release the app before the Worker.
 - Links to other sites open in the system browser.
 - A light haptic tap on the tabs, searching and the thumbs
   (tauri-plugin-haptics); no scrollbar drawn and no tap highlight
-  (`html[data-app]`); in the iOS app, a swipe from the left edge goes back.
+  (`html[data-app]`); the phone's own typeface; <body> scrolls, so the page
+  bounces natively and the tab bar stays put; no keyboard accessory bar
+  and no link preview on iOS (`tauri.conf.json`).
 
 ## Marker entries
 

@@ -190,15 +190,19 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   signs the member out everywhere.
 - **One navigation, laid out by the window's width, not the device**
   (`index.html`, `app.css`): under 1024px a floating glass tab bar of four
-  icons (Search, Liked, Practice, You); from 1024px a glass sidebar with
+  icons (Home, Liked, Practice, You); from 1024px a glass sidebar with
   words, the name above and Grammar, fonts and Support below. The website
   and the app share it. Under 1024px the search is a screen of its own
-  while the field has focus, closed by its ✕, by a search (Enter and the
+  while the field has focus, closed by Cancel, by a search (Enter and the
   search button alike) or by a suggestion; the page under it stays put.
-  On a definition the bar holds Back, the field and the entry's thumb
-  (pressed, the entry is in Liked). Pages opened slide in from the right,
-  pages gone back to from the left; in the iOS app a swipe from the left
-  edge goes back (`app/core/swipe.js`).
+  On a definition the bar holds Back and the field. Under 1024px the
+  field is drawn as the phone's own search field: filled, a magnifier
+  first, searched by the keyboard's Search key, and Cancel at its end
+  while searching. The entry's thumb sits on the headword's line (pressed,
+  the entry is in Liked). In the app the window stays still and <body>
+  scrolls (`app/core/scroll.js`), so the page bounces at its ends with the
+  phone's own momentum while the tab bar stays put; no script listens to
+  touches, which would hold every scroll for it.
 - **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
   (or the account, with Sign out and the workspace), the offline copy,
   theme, language, usage statistics, and the site's pages (on phones the
