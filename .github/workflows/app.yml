@@ -35,7 +35,6 @@ permissions:
 
 env:
   NDK_VERSION: 27.2.12479018
-  TAURI_CLI: '@tauri-apps/cli@2.12.6'
   SERVER: ${{ inputs.build == 'play-aab' && 'live' || inputs.server }}
 
 jobs:
@@ -88,19 +87,21 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION" > /dev/null
           echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
+      # The Tauri CLI is a devDependency run as the npm script "tauri": the
+      # Android project it makes calls back into it through that script.
       - name: The Android project, then its icons
         run: |
-          npx --yes "$TAURI_CLI" android init --ci
-          npx --yes "$TAURI_CLI" icon src-tauri/app-icon.png
+          npm run tauri -- android init --ci
+          npm run tauri -- icon src-tauri/app-icon.png
 
       # A test APK: phones (arm). A Play bundle: every ABI Play serves, phones,
       # Chromebooks and emulators; Play gives each device its own part.
       - name: Build
         run: |
           if [ "${{ inputs.build }}" = play-aab ]; then
-            npx --yes "$TAURI_CLI" android build --aab --target aarch64 armv7 x86_64 i686 --config src-tauri/tauri.ci.json
+            npm run tauri -- android build --aab --target aarch64 armv7 x86_64 i686 --config src-tauri/tauri.ci.json
           else
-            npx --yes "$TAURI_CLI" android build --apk --target aarch64 armv7 --config src-tauri/tauri.ci.json
+            npm run tauri -- android build --apk --target aarch64 armv7 --config src-tauri/tauri.ci.json
           fi
 
       - name: Sign for testing

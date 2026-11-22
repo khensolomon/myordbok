@@ -1,6 +1,6 @@
 {
 	"name": "myordbok",
-	"version": "26.11.22+163",
+	"version": "26.11.22+164",
 	"description": "a comprehensive online Myanmar dictionary",
 	"keywords": [
 		"myordbok",
@@ -26,9 +26,11 @@
 		"build:beta": "node scripts/build.js --noindex",
 		"build:tauri": "node scripts/build.js --target tauri --api https://beta.myordbok.com",
 		"test": "node --disable-warning=ExperimentalWarning --test \"tests/*.test.js\"",
-		"version:next": "node scripts/version.js"
+		"version:next": "node scripts/version.js",
+		"tauri": "tauri"
 	},
 	"devDependencies": {
+		"@tauri-apps/cli": "2.12.6",
 		"esbuild": "0.28.2",
 		"wrangler": "^4.160.0"
 	},

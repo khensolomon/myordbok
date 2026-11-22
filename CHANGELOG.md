@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+164
+
+- App workflow: the Tauri CLI as a devDependency, which the Android project calls back into
+
 ## 26.11.22+163
 
 - App workflow: a Play bundle signed with the upload key, beside the test APK
