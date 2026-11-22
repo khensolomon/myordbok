@@ -19,7 +19,8 @@
 - [x] Tauri adapters (http, boot) and the app project (`src-tauri/`), with an Android test build in GitHub Actions
 - [x] The app on Play: new upload key (valid from 2026-11-24), signed AAB builds (App workflow, play-aab)
 - [ ] The app on Play: first bundle on the internal testing track, then production
-- [ ] The app on the App Store: the iOS build in GitHub Actions (macOS runner, signing secrets)
+- [x] The iOS build in GitHub Actions (macOS runner, App Store Connect API key), uploaded to TestFlight
+- [ ] The app on the App Store: TestFlight on a phone, screenshots (iPhone and iPad), App Privacy answers, review
 - [ ] Signing in inside the app, with Sign in with Apple on iOS
 - [x] A sitemap of the headwords, following each data release; robots.txt naming it
 - [ ] CI secrets

@@ -8,9 +8,11 @@
  * The site's version "26.11.21+161" gives:
  *   version                       "26.11.21"  (what the stores show)
  *   bundle.android.versionCode    VERSION_CODE_BASE + 161
+ *   bundle.iOS.bundleVersion      "1161" (the same number; CFBundleVersion)
  *
- * Android needs a version code above every one uploaded before; the Flutter
- * app reached 44, and VERSION_CODE_BASE keeps every Tauri build above that.
+ * Android and iOS need a build number above every one uploaded before; the
+ * Flutter app reached 44, and VERSION_CODE_BASE keeps every Tauri build
+ * above that.
  * The build number only grows (scripts/version.js), so each release's code
  * is above the last.
  */
@@ -32,7 +34,7 @@ export function appConfig(version) {
 	if (!m) throw new Error(`app-config: version "${version}" is not year.month.day+build`);
 	const code = VERSION_CODE_BASE + Number(m[4]);
 	if (code > VERSION_CODE_MAX) throw new Error(`app-config: version code ${code} is above Android's largest`);
-	return { version: `${m[1]}.${m[2]}.${m[3]}`, bundle: { android: { versionCode: code } } };
+	return { version: `${m[1]}.${m[2]}.${m[3]}`, bundle: { android: { versionCode: code }, iOS: { bundleVersion: String(code) } } };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

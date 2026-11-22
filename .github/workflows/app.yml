@@ -8,11 +8,15 @@
 #           play-aab: the bundle to upload to Play, signed with the upload key
 #           (secrets ANDROID_UPLOAD_KEYSTORE, _PASSWORD, _ALIAS; docs/deploy.md,
 #           The app). Always asks the live server.
-#   server  beta (default) or live: the API a test APK asks
+#           ios-testflight: the iOS app, signed through the App Store Connect
+#           API key (secrets APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_P8)
+#           and uploaded to App Store Connect, where it reaches TestFlight.
+#   server  beta (default) or live: the API a test APK or a TestFlight build asks
 #
-# Each run's version code is 1000 plus the build number (scripts/app-config.js):
-# Play refuses a code it has had before, so a bundle is uploaded once, and the
-# next one comes from a later version (make release).
+# Each run's version code (Android) and build number (iOS) is 1000 plus the
+# build number (scripts/app-config.js): the stores refuse one they have had
+# before, so a build is uploaded once, and the next comes from a later
+# version (make release).
 
 name: App
 
@@ -22,10 +26,10 @@ on:
       build:
         description: What to build
         type: choice
-        options: [test-apk, play-aab]
+        options: [test-apk, play-aab, ios-testflight]
         default: test-apk
       server:
-        description: The API a test APK asks (a Play bundle always asks live)
+        description: The API a test APK or TestFlight build asks (a Play bundle always asks live)
         type: choice
         options: [beta, live]
         default: beta
@@ -40,6 +44,7 @@ env:
 jobs:
   android:
     name: Android (${{ inputs.build }})
+    if: inputs.build != 'ios-testflight'
     runs-on: ubuntu-latest
     steps:
       - name: The upload key, for a Play bundle
@@ -133,10 +138,73 @@ jobs:
           jarsigner -verify "$out" > /dev/null || { echo "::error::The signed bundle does not verify"; exit 1; }
           rm -f "$RUNNER_TEMP/upload.jks"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: myordbok-android-${{ inputs.build }}-${{ env.SERVER }}
           path: |
             myordbok-*-test.apk
             myordbok-play-*.aab
           if-no-files-found: error
+
+  ios:
+    name: iOS (TestFlight)
+    if: inputs.build == 'ios-testflight'
+    runs-on: macos-latest
+    steps:
+      # Xcode signs through this key: it makes the distribution certificate and
+      # profile itself, so none is kept in the repository.
+      - name: The App Store Connect API key
+        env:
+          ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY }}
+          P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: |
+          for name in ISSUER KEY_ID P8; do
+            test -n "${!name}" || { echo "::error::A secret is missing: APPLE_API_ISSUER, APPLE_API_KEY and APPLE_API_KEY_P8 are needed (docs/deploy.md, The app)"; exit 1; }
+          done
+          grep -q 'BEGIN PRIVATE KEY' <<< "$P8" || { echo "::error::APPLE_API_KEY_P8 is not the .p8 file's text"; exit 1; }
+          dir="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$dir"
+          printf '%s\n' "$P8" > "$dir/AuthKey_$KEY_ID.p8"
+          {
+            echo "APPLE_API_ISSUER=$ISSUER"
+            echo "APPLE_API_KEY=$KEY_ID"
+            echo "APPLE_API_KEY_PATH=$dir/AuthKey_$KEY_ID.p8"
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Build the app's files
+        run: node scripts/build.js --target tauri --api "https://${{ env.SERVER == 'live' && 'myordbok.com' || 'beta.myordbok.com' }}"
+      - name: Version
+        run: |
+          node scripts/app-config.js > src-tauri/tauri.ci.json
+          cat src-tauri/tauri.ci.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: The Xcode project, then its icons
+        run: |
+          npm run tauri -- ios init --ci
+          npm run tauri -- icon src-tauri/app-icon.png
+      - name: Build
+        run: npm run tauri -- ios build --export-method app-store-connect --config src-tauri/tauri.ci.json
+
+      - name: Upload to App Store Connect
+        run: |
+          ipa=$(find src-tauri/gen/apple/build -name '*.ipa' | head -n 1)
+          test -n "$ipa" || { echo "::error::No .ipa was built"; exit 1; }
+          xcrun altool --upload-app --type ios --file "$ipa" --apiKey "$APPLE_API_KEY" --apiIssuer "$APPLE_API_ISSUER"
+      - name: Remove the key
+        if: always()
+        run: rm -rf "$HOME/.appstoreconnect"

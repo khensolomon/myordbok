@@ -750,6 +750,14 @@ Android app, and leaves it among the run's artifacts:
   a track (internal testing first) → **Create new release** → upload.
   Play accepts each version code once: the next bundle comes from a later
   version (`make release`).
+- **ios-testflight**, asking beta or live: the iOS app, built on a macOS
+  runner, signed and uploaded to App Store Connect. After Apple's processing
+  (minutes to an hour, with an email) it is under **TestFlight**, to install
+  on an iPhone with the TestFlight app; the same build is the one submitted
+  for review. Each build number is accepted once, as on Play.
+
+The run's **Use workflow from** list picks the branch: `dev` builds what is
+not yet released.
 
 Version: the store version is the site's date part (`26.11.21`); the
 Android version code is 1000 plus the build number (`scripts/app-config.js`),
@@ -776,6 +784,16 @@ App signing → Request upload key reset**):
 Play takes bundles signed with the new key from the date its email gives.
 A **play-aab** run stops at its first step when a secret is missing or the
 keystore does not open with them.
+
+### App Store Connect API key
+
+The iOS build signs and uploads through an App Store Connect API key (App
+Store Connect → Users and Access → Integrations → App Store Connect API →
+Team Keys, access **Admin**, so that Xcode may make the distribution
+certificate and profile). Its three secrets: `APPLE_API_ISSUER` (the Issuer
+ID above the keys table), `APPLE_API_KEY` (the Key ID) and
+`APPLE_API_KEY_P8` (the text of the `.p8`, which Apple lets download once).
+The team (`AY23P8UZ8P`) is in `src-tauri/tauri.conf.json`; it is no secret.
 
 ### Old builds
 

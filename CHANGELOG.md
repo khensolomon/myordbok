@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+165
+
+- App workflow: the iOS app, signed through the App Store Connect API key and uploaded to TestFlight
+
 ## 26.11.22+164
 
 - App workflow: the Tauri CLI as a devDependency, which the Android project calls back into
