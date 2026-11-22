@@ -39,7 +39,9 @@
  * @property {string[]} broader
  * @property {string[]} opposite
  * @property {string[]} related
- * @property {string[]} [with_entry]     Which of synonyms, similar, broader, opposite and related have an
+ * @property {Array<[string, string]>} [family]  The word's family, [word, part of speech] (love → lover,
+ *                                       noun; lovable, adjective). Absent from an older answer.
+ * @property {string[]} [with_entry]     Which of synonyms, similar, broader, opposite, related and family have an
  *                                       entry of their own; only those link. Absent from an answer made
  *                                       before the field existed (an older offline copy): every word links.
  * @property {NearestSense[]} [nearest]  For a word with no entry, form or variant: Myanmar meanings of

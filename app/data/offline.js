@@ -315,7 +315,7 @@ export function startingWith(words, q, lang, limit) {
 }
 
 /** Empty related lists, for an answer without the related pack. */
-const NO_RELATED = { synonyms: [], similar: [], broader: [], opposite: [], related: [] };
+const NO_RELATED = { synonyms: [], similar: [], broader: [], opposite: [], related: [], family: [] };
 
 /**
  * One word's answer from this device, in the shape of /api/lookup, or null

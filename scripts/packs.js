@@ -13,7 +13,7 @@
  *   words-my     Myanmar headwords with senses                   everyone
  *   senses-en    each English word's senses, forms, variants     members, or everyone (workspace setting)
  *   senses-my    each Myanmar word's senses and pronunciation    members, or everyone
- *   related-en   each English word's synonyms and related words,  members, or everyone
+ *   related-en   each English word's synonyms, family and related words,  members, or everyone
  *                and which of them have an entry (with_entry)
  *
  * The senses and related packs are lines of JSON, [key, answer], the key in
@@ -104,7 +104,7 @@ export async function buildPacks(db) {
 		if (!r.entries.length && !r.forms_of.length && !r.variant_of.length) continue;
 		// nearest is only for a word with no entry, form or variant, which has no line here: always [].
 		sensesEn.push(JSON.stringify([key, { entries: r.entries, variant_of: r.variant_of, forms_of: r.forms_of, root_senses: r.root_senses, forms: r.forms, nearest: r.nearest }]));
-		const rel = { synonyms: r.synonyms, similar: r.similar, broader: r.broader, opposite: r.opposite, related: r.related, with_entry: r.with_entry };
+		const rel = { synonyms: r.synonyms, similar: r.similar, broader: r.broader, opposite: r.opposite, related: r.related, family: r.family, with_entry: r.with_entry };
 		if (Object.values(rel).some((list) => list.length)) relatedEn.push(JSON.stringify([key, rel]));
 	}
 	/** @type {string[]} */

@@ -210,6 +210,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Forms are named** under their part of speech: plural, third person,
   past, past participle, -ing form, comparative, superlative, as the
   dataset labels them (one word that is two forms shows both names).
+- **The word's family** heads the related words: words made from it or it
+  from them, each under its part of speech (*noun* lover · *adjective*
+  lovable), from the dataset's lookup (`family`, WordNet's links between
+  words). The offline related pack carries it from the next pack build; an
+  older pack simply has none.
 - **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
   (or the account, with Sign out and the workspace), the offline copy,
   theme, language, usage statistics, and the site's pages (on phones the

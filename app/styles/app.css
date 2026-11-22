@@ -1088,6 +1088,9 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .related dd { margin: 0; color: var(--ink-2); }
 .related .forms { margin-right: 14px; }
 .related em { color: var(--faint); }
+/* The word's family: each part of speech, small and quiet, before its words. */
+.family-pos { font-style: italic; font-size: 0.82em; color: var(--muted); }
+.family-sep { color: var(--faint); }
 
 /* Phones: one card per part of speech with the curved corner tab. */
 @media (max-width: 640px) {

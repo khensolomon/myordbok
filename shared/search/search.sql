@@ -84,6 +84,27 @@ ORDER BY w.word;
 SELECT w.word FROM eng_related r JOIN eng_word w ON w.id = r.related
 WHERE r.wrid IN (SELECT value FROM json_each(?1)) ORDER BY r.rank;
 
+-- name: family
+-- The word's family from WordNet's links between words, both ways: derived
+-- forms (wn_link.type 6: love, lover, lovable), what a word pertains to (7:
+-- lovingly, loving) and participles (8). With the part of speech of the
+-- meaning each is linked in, from its synset id's first digit (1 noun,
+-- 2 verb, 3 and 5 adjective, 4 adverb; wordnet_meanings.py POS_DIGIT) as
+-- eng_form.pos codes. Left out: the query's own spellings, words that are
+-- a form of another (loving, faster: eng_form lists them under their root)
+-- and the query's opposites (type 5). ?1 = JSON array of word ids.
+SELECT w.word, CASE f.digit WHEN 1 THEN 'n' WHEN 2 THEN 'v' WHEN 4 THEN 'r' ELSE 'a' END AS pos
+FROM eng_word w JOIN
+  (SELECT target_word AS other, target / 100000000 AS digit FROM wn_link
+   WHERE word IN (SELECT value FROM json_each(?1)) AND type IN (6, 7, 8)
+   UNION SELECT word, synset / 100000000 FROM wn_link
+   WHERE target_word IN (SELECT value FROM json_each(?1)) AND type IN (6, 7, 8)) f ON w.id = f.other
+WHERE f.other NOT IN (SELECT value FROM json_each(?1))
+AND f.other NOT IN (SELECT form FROM eng_form WHERE form = f.other AND form != root)
+AND f.other NOT IN (SELECT target_word FROM wn_link WHERE type = 5 AND word IN (SELECT value FROM json_each(?1))
+                    UNION SELECT word FROM wn_link WHERE type = 5 AND target_word IN (SELECT value FROM json_each(?1)))
+GROUP BY w.word, pos ORDER BY pos, w.word;
+
 -- name: nearest
 -- For a word without an entry: the senses of the other words of its
 -- meanings. ?1 = JSON array of synset ids, ?2 = JSON array of the query's

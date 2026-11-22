@@ -80,7 +80,8 @@ CREATE INDEX wn_member_1 ON wn_member (word);
 DROP TABLE IF EXISTS wn_link;
 CREATE TABLE wn_link (synset INTEGER, word INTEGER, target INTEGER, target_word INTEGER, type INTEGER, PRIMARY KEY (synset, word, target, target_word, type)) WITHOUT ROWID;
 INSERT INTO wn_link (synset, word, target, target_word, type) VALUES
-(201775164, 1, 201774136, 13, 5);
+(201775164, 1, 201774136, 13, 5),
+(201775164, 1, 301234567, 15, 6);
 CREATE INDEX wn_link_1 ON wn_link (target, target_word);
 CREATE INDEX wn_link_2 ON wn_link (word, type);
 CREATE INDEX wn_link_3 ON wn_link (target_word, type);
@@ -127,5 +128,5 @@ INSERT INTO meta (key, value) VALUES
 ('built', 'sample'),
 ('source', 'sample'),
 ('rows.type_word', '4'), ('rows.type_sense', '5'), ('rows.eng_word', '29'), ('rows.emd_sense', '25'),
-('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '1'), ('rows.eng_related', '3'),
+('rows.eng_form', '12'), ('rows.wn_member', '5'), ('rows.wn_link', '2'), ('rows.eng_related', '3'),
 ('rows.mya_word', '5'), ('rows.med_sense', '6'), ('rows.med_thesaurus', '1'), ('rows.eng_variant', '1');

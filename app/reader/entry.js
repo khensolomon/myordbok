@@ -519,13 +519,26 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 	for (const pos of [...forms.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
 	// A part of speech the headword is only a form in (loathing, the -ing of the verb loathe).
 	for (const pos of [...ownForm.keys()]) sections.push(h('section', { class: 'pos pos-only-forms' }, head(pos), asFormLine(pos)));
-	if (extra?.related.length) {
+	if (extra && (extra.related.length || extra.family.size)) {
+		// The family first: words made from this one, each under its part of speech.
+		const family = extra.family.size
+			? h(
+					'li',
+					{ id: 'family', class: 'related-family' },
+					h('span', { class: 'related-name' }, t('Word family')),
+					h(
+						'span',
+						{ class: 'related-words' },
+						[...extra.family].flatMap(([pos, words], i) => [i ? h('span', { class: 'family-sep', 'aria-hidden': 'true' }, ' · ') : null, h('em', { class: 'family-pos' }, posName(pos)), ' ', ...wordLinks(words, extra.linked)]),
+					),
+				)
+			: null;
 		sections.push(
 			h(
 				'section',
 				{ class: 'pos pos-related' },
 				h('h2', { class: 'pos-name' }, t('related words')),
-				h('ul', { class: 'related-list' }, extra.related.map(([name, words, id]) => h('li', { id: id ?? null }, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words' }, wordLinks(words, extra.linked))))),
+				h('ul', { class: 'related-list' }, family, extra.related.map(([name, words, id]) => h('li', { id: id ?? null }, h('span', { class: 'related-name' }, t(name)), h('span', { class: 'related-words' }, wordLinks(words, extra.linked))))),
 			),
 		);
 	}
@@ -604,6 +617,7 @@ function entryWords(data) {
 /**
  * @typedef {object} Extras  Forms and related words of an entry, for its timeline.
  * @property {Map<string, Form[]>} forms  By part of speech, in lower case.
+ * @property {Map<string, string[]>} family  The word's family (lover, lovable), by part of speech.
  * @property {Array<[string, string[], string | undefined]>} related  Name, words, id a question can point to.
  * @property {Set<string>} present  Which of forms, synonyms, opposite the entry has.
  * @property {Set<string> | null} linked  Related words with an entry of their own (entryWords).
@@ -670,7 +684,10 @@ function extras(data) {
 	const related = lists.filter(([, words]) => words.length).map(([name, words]) => [name, words, ids[name]]);
 	const present = new Set(related.map(([, , id]) => id).filter((id) => id !== undefined));
 	if (forms.size) present.add('forms');
-	return { forms, related, present: /** @type {Set<string>} */ (present), linked: entryWords(data) };
+	/** @type {Map<string, string[]>} The family by part of speech, in the order the lookup gives. */
+	const family = new Map();
+	for (const [word, pos] of data.family ?? []) family.set(pos, [...(family.get(pos) ?? []), word]);
+	return { forms, related, family, present: /** @type {Set<string>} */ (present), linked: entryWords(data) };
 }
 
 /**

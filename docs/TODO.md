@@ -16,6 +16,8 @@
 - [ ] Studio: a new Myanmar headword with its pronunciation (IPA, MLC)
 - [ ] Offline copies take live edits at check-in (today they follow the release)
 - [ ] Search suggestions for headwords only the live layer has
+- [x] A word's family on the entry (dataset lookup `family`)
+- [ ] The offline related pack with the family: the next `make data-packs`
 - [x] Tauri adapters (http, boot) and the app project (`src-tauri/`), with an Android test build in GitHub Actions
 - [x] The app on Play: new upload key (valid from 2026-11-24), signed AAB builds (App workflow, play-aab)
 - [ ] The app on Play: first bundle on the internal testing track, then production

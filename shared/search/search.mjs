@@ -102,7 +102,10 @@ export function normalise(query) {
  * @param {Database} db
  * @param {Record<string, string>} statements From parseStatements(search.sql).
  * @param {string} query What the user typed.
- * @returns {Promise<object>} The same structure as search() in scripts/db_build.py.
+ * @returns {Promise<object>} The same structure as search() in scripts/db_build.py:
+ *   besides the senses, the word's forms (forms, forms_of: [word, part of
+ *   speech, form]), its family (family: [word, part of speech]: lover,
+ *   lovable for love) and its related words.
  */
 export async function search(db, statements, query) {
   const text = normalise(query);
@@ -132,12 +135,13 @@ export async function search(db, statements, query) {
     entries = await q("entries", js(ids));
   }
   const roots = [...new Set(formsOf.map((r) => r[0]))].sort(compareText);
-  const [forms, rootRows, every, opposite, related] = await Promise.all([
+  const [forms, rootRows, every, opposite, related, familyRows] = await Promise.all([
     q("forms", js(ids)),
     formsOf.length ? q("root_senses", js(roots)) : Promise.resolve([]),
     q("synsets_of", js(ids)).then((rows) => rows.map((r) => r[0])),
     q("opposite", js(ids)),
     q("related", js(ids)),
+    q("family", js(ids)),
   ]);
   const own_meanings = [...new Set(entries.map((r) => r[5]).filter((s) => s))].sort((a, b) => a - b);
   const meanings = own_meanings.length ? own_meanings : every;
@@ -158,7 +162,8 @@ export async function search(db, statements, query) {
     }
   }
   const lists = { synonyms, similar, broader, opposite: opposite.map((r) => r[0]), related: related.map((r) => r[0]) };
-  const listed = [...new Set(Object.values(lists).flat())];
+  const family = familyRows.map(([word, pos]) => [word, POS[pos]]);
+  const listed = [...new Set([...Object.values(lists).flat(), ...family.map(([word]) => word)])];
   const withEntry = listed.length ? (await q("with_entry", js(listed))).map((r) => r[0]) : [];
   return {
     query: text, language: "en",
@@ -168,6 +173,7 @@ export async function search(db, statements, query) {
     root_senses: Object.fromEntries(rootRows.map(([word, senses]) => [word, senses])),
     forms: forms.map(([word, pos, type]) => [word, POS[pos], FORM[type]]),
     ...lists,
+    family,
     with_entry: withEntry,
     nearest,
   };

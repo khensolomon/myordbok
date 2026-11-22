@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+180
+
+- The word's family on the entry: words made from it, each under its part of speech
+
 ## 26.11.22+179
 
 - App icon: a blue M in a white circle on blue; pull to refresh drawn as the phone's own spinner

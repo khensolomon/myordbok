@@ -1295,4 +1295,5 @@ export const MY = {
 	'present': 'ပစ္စုပ္ပန်',
 	'comparative': 'နှိုင်းယှဉ်ပုံစံ',
 	'superlative': 'အသာလွန်ဆုံးပုံစံ',
+	'Word family': 'မူရင်းတူ စကားလုံးများ',
 };
