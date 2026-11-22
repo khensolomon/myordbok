@@ -479,18 +479,32 @@ function timeline(groups, glossLang, headword, fit = null, fitLabel = '', extra 
 	/** Forms not yet placed, by part of speech in lower case. */
 	const forms = new Map(extra?.forms ?? []);
 	let formsId = 'forms';
-	/** @param {string} pos */
+	/**
+	 * A part of speech's forms, each with what it is: "third person loves,
+	 * past · past participle loved, -ing form loving".
+	 * @param {string} pos
+	 */
 	const formsLine = (pos) => {
-		const words = forms.get(pos.toLowerCase());
-		if (!words) return null;
+		const list = forms.get(pos.toLowerCase());
+		if (!list) return null;
 		forms.delete(pos.toLowerCase());
 		const id = formsId;
 		formsId = '';
-		// Read aloud as "Forms: loves"; seen, the place beside the part of speech says as much.
-		return h('p', { class: 'pos-forms', id: id || null, title: t('Forms') }, h('span', { class: 'visually-hidden' }, `${t('Forms')}: `), wordLinks(words));
+		return h(
+			'dl',
+			{ class: 'pos-forms', id: id || null, 'aria-label': t('Forms') },
+			list.map((f) =>
+				h(
+					'div',
+					{ class: 'pos-form' },
+					h('dt', null, f.labels.length ? f.labels.map((l) => (FORM_NAMES[l] ? t(FORM_NAMES[l]) : l)).join(' · ') : t('Forms')),
+					h('dd', null, wordLinks([f.word], extra?.linked ?? null)),
+				),
+			),
+		);
 	};
-	/** A part of speech and, on the same line, its forms: "verb · loves, loved, loving". @param {string} pos */
-	const head = (pos) => h('header', { class: 'pos-head' }, h('h2', { class: 'pos-name' }, posName(pos)), formsLine(pos));
+	/** A part of speech, then its forms. @param {string} pos */
+	const head = (pos) => [h('header', { class: 'pos-head' }, h('h2', { class: 'pos-name' }, posName(pos))), formsLine(pos)];
 	const sections = groups.map(([type, senses]) =>
 		h(
 			'section',
@@ -589,11 +603,33 @@ function entryWords(data) {
 
 /**
  * @typedef {object} Extras  Forms and related words of an entry, for its timeline.
- * @property {Map<string, string[]>} forms  By part of speech, in lower case.
+ * @property {Map<string, Form[]>} forms  By part of speech, in lower case.
  * @property {Array<[string, string[], string | undefined]>} related  Name, words, id a question can point to.
  * @property {Set<string>} present  Which of forms, synonyms, opposite the entry has.
  * @property {Set<string> | null} linked  Related words with an entry of their own (entryWords).
  */
+
+/**
+ * A form of the headword and what it is: loves, third person; loved, past
+ * and past participle.
+ * @typedef {{ word: string, labels: string[] }} Form
+ */
+
+/** The forms' names, in the order a grammar lists them (the dataset's FORM, search.mjs). */
+const FORM_NAMES = /** @type {Record<string, string>} */ ({
+	plural: mark('plural'),
+	'third person': mark('third person'),
+	present: mark('present'),
+	past: mark('past'),
+	'past participle': mark('past participle'),
+	'-ing': mark('-ing form'),
+	comparative: mark('comparative'),
+	superlative: mark('superlative'),
+});
+const FORM_ORDER = Object.keys(FORM_NAMES);
+
+/** @param {string | undefined} label */
+const formRank = (label) => (label && FORM_ORDER.includes(label) ? FORM_ORDER.indexOf(label) : FORM_ORDER.length);
 
 /**
  * Forms by part of speech and related words, placed on the entry's timeline:
@@ -603,13 +639,21 @@ function entryWords(data) {
  * @returns {Extras}
  */
 function extras(data) {
-	/** @type {Map<string, string[]>} */
+	/** @type {Map<string, Form[]>} */
 	const forms = new Map();
-	for (const [word, pos] of data.forms) {
+	for (const [word, pos, label] of data.forms) {
 		const key = pos.toLowerCase();
 		const list = forms.get(key) ?? [];
-		if (!list.includes(word)) list.push(word);
+		// One word that is two forms (loved: past, past participle) is shown once, with both names.
+		const same = list.find((f) => f.word === word);
+		if (same) {
+			if (label && !same.labels.includes(label)) same.labels.push(label);
+		} else list.push({ word, labels: label ? [label] : [] });
 		forms.set(key, list);
+	}
+	for (const list of forms.values()) {
+		for (const f of list) f.labels.sort((a, b) => formRank(a) - formRank(b));
+		list.sort((a, b) => formRank(a.labels[0]) - formRank(b.labels[0]));
 	}
 	/** @type {Array<[string, string[]]>} */
 	const lists = [

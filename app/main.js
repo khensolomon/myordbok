@@ -13,7 +13,8 @@ import { followOnline } from './core/online.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
 import { pageScroll, scrollPageTo } from './core/scroll.js';
-import { savingData, siteSwitches } from './data/api.js';
+import { pullToRefresh } from './core/pull.js';
+import { forgetKept, savingData, siteSwitches } from './data/api.js';
 import { checkIn, keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
 import './reader/search-box.js';
@@ -55,6 +56,21 @@ const router = startRouter(outlet, (route) => {
 		else link.removeAttribute('aria-current');
 	}
 });
+
+// The app: a pull down at the top of a page asks it again (pull.js).
+pullToRefresh(async () => {
+	forgetKept();
+	await Promise.all([router.refresh(), member({ fresh: true }).catch(() => null)]);
+});
+
+// In the app the bar over a definition is fixed above the scrolling page
+// (app.css): the page starts below it, by its height.
+const bar = document.querySelector('.search-bar');
+if (!(bar instanceof HTMLElement)) throw new Error('index.html is missing <div class="search-bar">');
+// While it is the search screen it covers the window: that is not its height.
+new ResizeObserver(() => {
+	if (!document.body.hasAttribute('data-searching')) document.documentElement.style.setProperty('--bar-h', `${bar.offsetHeight}px`);
+}).observe(bar);
 
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));

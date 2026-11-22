@@ -1291,4 +1291,8 @@ export const MY = {
 	'Learn': 'လေ့လာရန်',
 	'Back': 'နောက်သို့',
 	'Home': 'ပင်မ',
+	'plural': 'အများကိန်း',
+	'present': 'ပစ္စုပ္ပန်',
+	'comparative': 'နှိုင်းယှဉ်ပုံစံ',
+	'superlative': 'အသာလွန်ဆုံးပုံစံ',
 };

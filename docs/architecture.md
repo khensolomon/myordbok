@@ -201,8 +201,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   while searching. The entry's thumb sits on the headword's line (pressed,
   the entry is in Liked). In the app the window stays still and <body>
   scrolls (`app/core/scroll.js`), so the page bounces at its ends with the
-  phone's own momentum while the tab bar stays put; no script listens to
-  touches, which would hold every scroll for it.
+  phone's own momentum while the tab bar stays put; scripts only watch
+  touches (passive), never hold a scroll. The bar over a definition is
+  fixed there, so the page bounces under it, and a pull down at the top
+  of a page asks it again (`app/core/pull.js`).
+- **Forms are named** under their part of speech: plural, third person,
+  past, past participle, -ing form, comparative, superlative, as the
+  dataset labels them (one word that is two forms shows both names).
 - **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
   (or the account, with Sign out and the workspace), the offline copy,
   theme, language, usage statistics, and the site's pages (on phones the

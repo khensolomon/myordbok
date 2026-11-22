@@ -751,12 +751,14 @@ body[data-route="home"] .site-footer { display: none; }
 .sense-note-value { color: var(--ink-2); }
 .sense-explained { margin: 4px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
 .example-note { font-size: 14px; color: var(--muted); }
-/* A part of speech and its forms share a line, "verb · loves, loved, loving":
-   the forms read as that part of speech's own, not as a line between it and
-   the meanings. */
+/* A part of speech, then its forms, each under what it is (plural, past,
+   -ing form…): a row that wraps, the word read first, its name small above. */
 .pos-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.pos-forms { margin: 0; min-width: 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
-.pos-forms::before { content: "·"; margin-right: 10px; color: var(--faint); }
+.pos-forms { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 14px 0 0; }
+.pos-form { display: grid; gap: 1px; min-width: 0; }
+.pos-form dt { font-size: 12px; line-height: 16px; letter-spacing: 0.02em; color: var(--muted); }
+.pos-form dt:lang(my) { letter-spacing: 0; line-height: 1.6; }
+.pos-form dd { margin: 0; font-size: 18px; line-height: 1.35; font-weight: 500; }
 /* The word asked for is a form of this one: said under the part of speech it
    is a form in, and lit for a few seconds when first on screen (entry.js). */
 .pos-form-of {
@@ -1101,13 +1103,11 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	}
 	.pos-name::before { content: none; }
 	.senses { margin: 14px 16px 0; }
-	/* Forms line up with the meanings' text, related words with their rings. */
-	/* The forms sit beside the tab that names their part of speech. */
+	/* The forms under the tab that names their part of speech, in line with the meanings' text. */
 	.pos-head { flex-wrap: nowrap; align-items: center; gap: 0 12px; }
 	.pos-name { flex: none; }
-	.pos-forms { flex: 1; padding: 5px 16px 5px 0; }
-	.pos-forms::before { content: none; }
-	.pos-only-forms .pos-head { margin-bottom: 4px; }
+	.pos-forms { margin: 12px 16px 0; padding-bottom: 12px; border-bottom: 0.5px solid var(--line); gap: 10px 20px; }
+	.pos-only-forms .pos-forms { border-bottom: none; padding-bottom: 6px; }
 	.pos-form-of { margin: 12px 16px 0 6px; font-size: 15px; }
 	.related-list { margin: 14px 16px 6px; grid-template-columns: 1fr; gap: 16px; }
 	/* Related words are tapped more than read: a size up, and room between
@@ -1115,7 +1115,6 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.related-list li { font-size: 19px; line-height: 1.8; }
 	.related-words a { display: inline-block; padding: 1px 0; }
 	.related-name { margin-bottom: 0; }
-	.pos-forms { font-size: 16px; line-height: 1.5; }
 	.gloss { font-size: 19px; }
 	.related { grid-template-columns: 1fr; gap: 2px; margin: 20px 4px 0; }
 	.related dd { margin-bottom: 10px; }
@@ -2588,3 +2587,27 @@ html[data-app] :is(button, .app-tab, .bar-back, .home-chips a, .you-action, .ws-
 	}
 	body[data-route="definition"] .bar-back { background: var(--card); }
 }
+
+/* In the app the bar over a definition is fixed: the page bounces under it
+   at the top and the bottom, and the bar stays where it is, as a phone's
+   own navigation bar does. The page starts below it (--bar-h, main.js). */
+html[data-app] body[data-route="definition"] .search-bar { position: fixed; top: 0; left: var(--nav-room); right: 0; }
+html[data-app] body[data-route="definition"] main#view { padding-top: calc(var(--bar-h, 64px) + 20px); }
+
+/* Pull to refresh (core/pull.js): a round mark under the bar that follows
+   the finger, fills as the pull nears the mark, and turns while loading. */
+.pull {
+	position: fixed; z-index: 4; left: calc(50% + var(--nav-room) / 2); top: calc(var(--safe-t) + 4px);
+	width: 36px; height: 36px; margin-left: -18px;
+	display: grid; place-items: center; border-radius: 50%;
+	background: var(--card); color: var(--muted); box-shadow: var(--chrome-shadow);
+	opacity: 0; pointer-events: none;
+	transform: translateY(calc(var(--pull, 0) * 1px)) rotate(calc(var(--ready, 0) * 270deg));
+}
+body[data-route="definition"] .pull { top: calc(var(--bar-h, 64px) - 24px); }
+.pull[data-shown] { opacity: calc(var(--ready, 0) * 1); }
+.pull[data-ready] { color: var(--brand); }
+.pull[data-busy] { opacity: 1; color: var(--brand); transition: transform 0.2s; animation: pull-turn 0.8s linear infinite; }
+.pull:not([data-shown]):not([data-busy]) { transition: opacity 0.2s, transform 0.25s; }
+.pull .icon { stroke-width: 2; }
+@keyframes pull-turn { from { rotate: 0deg; } to { rotate: 360deg; } }

@@ -39,6 +39,12 @@ function kept(store, url) {
 	return pending;
 }
 
+/** Forgets the answers kept for the session: the next ask goes to the server (pull to refresh). */
+export function forgetKept() {
+	lookups.clear();
+	readings.clear();
+}
+
 /**
  * What a query is (entry, phrase, sentence or nothing), in one request.
  * @param {string} q

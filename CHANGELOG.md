@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+178
+
+- Forms named under each part of speech; in the app, the definition bar stays put and a pull down refreshes
+
 ## 26.11.22+177
 
 - Long headwords and phrases wrap; the sound and thumb stay on screen

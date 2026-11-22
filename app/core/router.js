@@ -112,7 +112,16 @@ export function startRouter(outlet, onRoute) {
 	window.addEventListener('popstate', () => render('pop'));
 	render();
 
-	return { go, replace };
+	/**
+	 * Shows the page again, asked anew (pull to refresh, pull.js); where it
+	 * was scrolled to is kept.
+	 */
+	async function refresh() {
+		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
+		await render('load');
+	}
+
+	return { go, replace, refresh };
 }
 
 /** @param {string} path */
