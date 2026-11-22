@@ -275,6 +275,15 @@ that member, so one person keeps one account. Unverified emails are neither
 stored nor matched. A suspended member cannot sign in, and their sessions
 stop working at once. Sessions last 30 days and are stored only as hashes.
 
+The app signs in through the website (`worker/routes/link.js`): it shows a
+code (ABCD-EFGH) and opens the chosen sign-in in the system browser, coming
+back to `myordbok.com/link?code=…`, where the member sees which kind of
+device asks and links it or cancels. The app asks after its code every few
+seconds with a secret of its own and, once linked, is given a session token
+sent as `Authorization: Bearer …`, kept a year. Codes last ten minutes. The
+Account page lists linked devices, each removable; signing out in the app
+ends its session too. Linking and removing work while the site is read-only.
+
 Google keeps the consent screen in **Testing** until it is published: only
 the test users listed there can sign in. Google deletes OAuth clients unused
 for six months.
@@ -834,7 +843,8 @@ and release the app before the Worker.
 - The API through the HTTP plugin, naming the app in `X-MyOrdbok-App`
   (`android/26.11.21+161`); the guard lets it through within the same
   limits and logs it apart (`app` in `rate_limited`).
-- Signed out: the workspace and signing in open the website.
+- Signing in links the app to the account on the website (Sign-in above);
+  the workspace opens on the website.
 - On iOS, no asking for gifts (`data-store-hidden`).
 - No Google Analytics (the consent banner and Analytics belong to the
   website's hosts only).

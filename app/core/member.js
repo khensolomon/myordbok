@@ -6,12 +6,15 @@
  */
 import { getJSON, postJSON } from '#platform/http.js';
 import { h } from './dom.js';
-import { t } from '../i18n/index.js';
+import { mark, t } from '../i18n/index.js';
 
 /** @typedef {'google' | 'github' | 'apple'} Provider */
 
 /** Provider names, as each provider writes its own. */
 export const PROVIDER_NAMES = /** @type {Readonly<Record<Provider, string>>} */ (Object.freeze({ google: 'Google', github: 'GitHub', apple: 'Apple' }));
+
+/** The kinds of device the app links from, as the server names them (worker/routes/link.js). */
+export const DEVICE_NAMES = Object.freeze(/** @type {Record<string, string>} */ ({ ios: mark('iPhone or iPad'), android: mark('Android phone or tablet'), desktop: mark('Computer') }));
 
 /** Apple's logo, for its button (Apple's guidelines ask for it beside the words). */
 const APPLE_LOGO =

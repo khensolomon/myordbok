@@ -43,6 +43,7 @@ export const ROUTES = Object.freeze([
 	{ name: 'practice', path: '/practice', load: () => import('../reader/practice.js'), offline: true },
 	{ name: 'contact', path: '/contact', load: () => import('../reader/contact.js'), offline: true },
 	{ name: 'account', path: '/account', load: () => import('../reader/account.js') },
+	{ name: 'link', path: '/link', load: () => import('../reader/link.js') },
 	{ name: 'workspace', path: '/workspace', load: () => import('../workspace/index.js') },
 ]);
 

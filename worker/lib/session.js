@@ -8,10 +8,17 @@
  * exact site can set or read them, not another subdomain of myordbok.com.
  * SameSite=Lax keeps them off requests started by other sites, except the
  * top-level navigation back from Google or GitHub.
+ *
+ * The MyOrdbok app has no cookies: once linked to an account
+ * (routes/link.js), it sends its token as `Authorization: Bearer …`, kept
+ * the same way (sessions.device names the app's platform), for a year or
+ * until removed on the Account page.
  */
 
 export const SESSION_COOKIE = '__Host-mo_session';
 export const SESSION_DAYS = 30;
+/** A linked app's session. */
+export const DEVICE_SESSION_DAYS = 365;
 
 /**
  * @typedef {object} Member
@@ -41,7 +48,7 @@ export async function sha256(text) {
 }
 
 /** @param {string} text */
-async function sha256hex(text) {
+export async function sha256hex(text) {
 	return [...(await sha256(text))].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -75,7 +82,7 @@ export function setCookie(name, value, maxAge) {
  * @returns {Promise<Member | null>}
  */
 export async function currentMember(request, env) {
-	const token = readCookie(request, SESSION_COOKIE);
+	const token = sessionToken(request);
 	if (!token) return null;
 	const row = await env.APP.prepare(
 		`SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.insights FROM sessions s JOIN users u ON u.id = s.user_id
@@ -84,6 +91,31 @@ export async function currentMember(request, env) {
 		.bind(await sha256hex(token))
 		.first();
 	return /** @type {Member | null} */ (row);
+}
+
+/**
+ * The session token a request carries: the app's bearer token, or the
+ * browser's cookie.
+ * @param {Request} request
+ */
+export function sessionToken(request) {
+	const bearer = /^Bearer ([A-Za-z0-9_-]{20,100})$/.exec(request.headers.get('authorization') ?? '');
+	return bearer ? bearer[1] : readCookie(request, SESSION_COOKIE);
+}
+
+/**
+ * Starts a linked app's session; returns its token, which the app keeps.
+ * @param {{ APP: D1Database }} env
+ * @param {number} userId
+ * @param {'ios' | 'android' | 'desktop'} device
+ */
+export async function startDeviceSession(env, userId, device) {
+	const token = randomToken();
+	await env.APP.batch([
+		env.APP.prepare('INSERT INTO sessions (id_hash, user_id, expires_at, device) VALUES (?1, ?2, unixepoch() + ?3, ?4)').bind(await sha256hex(token), userId, DEVICE_SESSION_DAYS * 86400, device),
+		env.APP.prepare('UPDATE users SET seen_at = unixepoch() WHERE id = ?1').bind(userId),
+	]);
+	return token;
 }
 
 /**
@@ -109,7 +141,7 @@ export async function startSession(env, userId) {
  * @param {{ APP: D1Database }} env
  */
 export async function endSession(request, env) {
-	const token = readCookie(request, SESSION_COOKIE);
+	const token = sessionToken(request);
 	if (token) await env.APP.prepare('DELETE FROM sessions WHERE id_hash = ?1').bind(await sha256hex(token)).run();
 	return setCookie(SESSION_COOKIE, '', 0);
 }

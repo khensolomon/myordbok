@@ -32,14 +32,14 @@
  * decline when the item can be reviewed. Roles are enforced by the Worker:
  * the rail only follows them. Loaded only when opened, never precached.
  */
-import { getJSON } from '#platform/http.js';
+import { getJSON, postJSON } from '#platform/http.js';
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { renderMarkup } from '../core/markup.js';
 import { atLeast, seesStatistics } from '#shared/roles.js';
 import { EDIT_TEXT_MAX } from '#shared/limits.js';
 import { ago, list, mark, num, posName, t, tx } from '../i18n/index.js';
-import { PROVIDER_NAMES, member, providerLinks, signOut } from '../core/member.js';
+import { DEVICE_NAMES, PROVIDER_NAMES, member, providerLinks, signOut } from '../core/member.js';
 import { definitionHref } from '../core/routes.js';
 import { deleteAccount, liveEdit, lookup, reactions, reviewEdit, withdrawEdit, workspaceEdits, workspaceSummary } from '../data/api.js';
 import { inboxPanes } from './inbox.js';
@@ -812,12 +812,49 @@ function accountPane(me, ctx, alert) {
 						h('p', { class: 'ws-quiet' }, t('Also sign in with these: each is linked to this account.')),
 						providerLinks('ws-provider', '/workspace?s=account', (p) => !me.providers.includes(p)),
 					),
+			linkedDevices(),
 			h('p', null, h('a', { href: '/privacy' }, t('What is stored')), ' · ', h('a', { href: '/terms' }, t('Terms of Use'))),
 			out,
 			note,
 			deletion(me, ctx),
 		),
 	);
+}
+
+/**
+ * The MyOrdbok app on each device linked to this account, each removable;
+ * hidden while there is none.
+ */
+function linkedDevices() {
+	const rows = h('ul', { class: 'ws-devices' });
+	const box = h('section', { class: 'ws-card ws-linked', hidden: true }, h('h2', null, t('Linked devices')), h('p', { class: 'ws-quiet' }, t('The MyOrdbok app, signed in as this account. Removing one signs it out.')), rows);
+	getJSON('/api/devices')
+		.then((/** @type {{ devices: { id: string, device: string, created_at: number }[] }} */ body) => {
+			rows.replaceChildren(
+				...body.devices.map((d) => {
+					const remove = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-secondary' }, t('Remove')));
+					const row = h('li', null, h('span', null, h('strong', null, t(DEVICE_NAMES[d.device] ?? d.device)), ' ', h('span', { class: 'ws-quiet' }, t('linked {when}', { when: ago(d.created_at) }))), remove);
+					remove.addEventListener('click', async () => {
+						remove.disabled = true;
+						try {
+							await postJSON(`/api/devices/${d.id}/remove`, {});
+							row.remove();
+							box.hidden = !rows.children.length;
+						} catch (err) {
+							remove.disabled = false;
+							row.append(h('span', { class: 'ws-result', role: 'alert' }, err instanceof Error ? err.message : String(err)));
+						}
+					});
+					return row;
+				}),
+			);
+			box.hidden = !body.devices.length;
+		})
+		.catch((err) => {
+			box.hidden = false;
+			rows.replaceChildren(h('li', { class: 'ws-quiet' }, err instanceof Error ? err.message : String(err)));
+		});
+	return box;
 }
 
 /**

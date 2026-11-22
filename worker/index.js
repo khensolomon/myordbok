@@ -13,6 +13,7 @@ import { countSearch } from './lib/counts.js';
 import { appOf, cached, guard } from './lib/guard.js';
 import { errorResponse, json } from './lib/http.js';
 import { auth, me, providersOffered } from './routes/auth.js';
+import { devices, link } from './routes/link.js';
 import { publicSupport } from './routes/support.js';
 import { reactions, senses, suggestEdit } from './routes/contribute.js';
 import { lookup } from './routes/lookup.js';
@@ -127,11 +128,16 @@ async function api(request, env, ctx) {
  */
 async function answer(request, env, url, parts) {
 	if (parts[0] === 'auth') return auth(request, env, parts);
+	// Linking the app checks who may ask itself (routes/link.js): it is
+	// signing in, so read-only mode does not stop it.
+	if (parts[0] === 'link') return link(request, env, parts);
 	if (request.method === 'POST') {
 		// Writes come only from this site's own pages (sign-out checks the same
 		// itself), or from the app, which has no origin of this site and sends no
 		// cookies; another site's page cannot send the app's header (guard.js).
 		if (request.headers.get('origin') !== url.origin && !appOf(request)) throw new AppError('forbidden', 'Access denied.');
+		// Removing a linked device is signing it out: allowed when read-only.
+		if (parts[0] === 'devices') return devices(request, env, parts);
 		// Read-only (setting site.readonly): every write waits, but changing that setting.
 		const settingsWrite = parts[0] === 'workspace' && parts[1] === 'settings';
 		if (!settingsWrite && (await getSetting(env, 'site.readonly')) === 'on') {
@@ -170,6 +176,7 @@ async function answer(request, env, url, parts) {
 		if (parts[0] === 'senses') return senses(request, env);
 	}
 	if (parts[0] === 'workspace') return workspace(request, env, parts);
+	if (parts[0] === 'devices') return devices(request, env, parts);
 	if (parts[0] === 'help') return help(request, env, parts);
 	if (parts[0] === 'packs') return packs(request, env, parts);
 	if (parts[0] === 'popular' && parts.length === 1 && request.method === 'GET') return popular(env);

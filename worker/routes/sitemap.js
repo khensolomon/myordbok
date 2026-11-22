@@ -46,7 +46,7 @@ const text = (body, type) => new Response(body, { headers: { 'content-type': `${
 export function robots(env, url) {
 	// Only the live site is for search engines; beta (NOINDEX) and local development are not.
 	if (env.ENV_NAME !== 'live' || env.NOINDEX === '1') return text('User-agent: *\nDisallow: /\n', 'text/plain');
-	return text(`User-agent: *\nDisallow: /api/\nDisallow: /workspace\nDisallow: /account\n\nSitemap: ${url.origin}/sitemap.xml\n`, 'text/plain');
+	return text(`User-agent: *\nDisallow: /api/\nDisallow: /workspace\nDisallow: /account\nDisallow: /link\n\nSitemap: ${url.origin}/sitemap.xml\n`, 'text/plain');
 }
 
 /**

@@ -132,7 +132,7 @@ test('addresses of the earlier site lead to where they live now', async () => {
 
 test('robots.txt: the live site opens itself to search engines; beta and local development do not', async () => {
 	const get = async (more) => (await worker.fetch(new Request(`${SITE}/robots.txt`), env(more))).text();
-	assert.equal(await get({ ENV_NAME: 'live', DICT_DB: '' }), `User-agent: *\nDisallow: /api/\nDisallow: /workspace\nDisallow: /account\n\nSitemap: ${SITE}/sitemap.xml\n`);
+	assert.equal(await get({ ENV_NAME: 'live', DICT_DB: '' }), `User-agent: *\nDisallow: /api/\nDisallow: /workspace\nDisallow: /account\nDisallow: /link\n\nSitemap: ${SITE}/sitemap.xml\n`);
 	assert.equal(await get({ ENV_NAME: 'beta', NOINDEX: '1', DICT_DB: '' }), 'User-agent: *\nDisallow: /\n');
 	assert.equal(await get({}), 'User-agent: *\nDisallow: /\n');
 });

@@ -39,7 +39,7 @@ export const SETTINGS = {
 	'site.readonly': {
 		fallback: 'off',
 		valid: onOff,
-		about: 'Read-only: every write but signing in and this setting is refused (ratings, suggestions, comments, messages, reviews); reading and searching go on.',
+		about: 'Read-only: every write but signing in (linking the app too) and this setting is refused (ratings, suggestions, comments, messages, reviews); reading and searching go on.',
 	},
 	'signup.open': { fallback: 'on', valid: onOff, about: 'Whether a sign-in may create a new account. Members who have one still sign in.' },
 	'signin.apple': {

@@ -27,6 +27,7 @@
  */
 import { AppError } from '../../shared/errors.js';
 import { APPLE, appleClientSecret, appleMissing, appleProfile } from '../lib/apple.js';
+import { appOf } from '../lib/guard.js';
 import { json } from '../lib/http.js';
 import { getSetting } from '../lib/settings.js';
 import { base64url, currentMember, endSession, randomToken, readCookie, setCookie, sha256, startSession } from '../lib/session.js';
@@ -216,13 +217,14 @@ async function callback(request, env, provider) {
 }
 
 /**
- * POST /api/auth/signout. Only the site's own pages may sign a member out.
+ * POST /api/auth/signout. Only the site's own pages, or the app with its
+ * own token, may sign a member out.
  * @param {Request} request
  * @param {AuthEnv} env
  */
 async function signOut(request, env) {
 	if (request.method !== 'POST') throw new AppError('bad_request', 'Sign out with POST');
-	if (request.headers.get('origin') !== new URL(request.url).origin) throw new AppError('forbidden', 'Access denied.');
+	if (request.headers.get('origin') !== new URL(request.url).origin && !appOf(request)) throw new AppError('forbidden', 'Access denied.');
 	const cookie = await endSession(request, env);
 	return json({ ok: true }, { headers: { 'set-cookie': cookie, 'cache-control': 'no-store' } });
 }

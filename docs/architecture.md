@@ -152,6 +152,10 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   suggestion waits for an editor; an editor's own is approved and reaches
   readers with the next dictionary release. Every write needs a session and
   an Origin header from the site.
+- **The app signs in through the website** (`/link`, `worker/routes/link.js`):
+  it shows a code, the member approves it on myordbok.com, and the app is
+  given a session of its own, sent as a bearer token instead of the cookie;
+  the Account page lists linked devices.
 - **The workspace (`/workspace`) is one place for every member, laid out
   like a studio**: a rail of sections, a list, the work area and an
   inspector; on phones the rail becomes a bar at the top with the section's

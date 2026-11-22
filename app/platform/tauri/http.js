@@ -6,8 +6,11 @@
  * the header that lets the server tell the app from a script
  * (worker/lib/guard.js). Any other path is a file of the app.
  *
- * The app sends no session cookie: it is used signed out, and signing in
- * opens the website (platform/tauri/boot.js).
+ * The app sends no session cookie. Linked to an account on the website
+ * (platform/tauri/boot.js, worker/routes/link.js), it keeps its own session
+ * token in localStorage (mo:app-token) and sends it as `Authorization:
+ * Bearer …`; signing out, or the server no longer knowing the token (the
+ * device removed on the Account page), forgets it.
  */
 import { answerOf, unreachable } from '../../core/answer.js';
 import { AppError } from '#shared/errors.js';
@@ -18,6 +21,26 @@ const API = globalThis.document?.querySelector('meta[name="mo-api"]')?.getAttrib
 const VERSION = globalThis.document?.querySelector('meta[name="mo-version"]')?.getAttribute('content') ?? '';
 /** What the app names itself as to the server: "android/26.11.21+161". */
 const APP = `${platformOf(globalThis.navigator?.userAgent ?? '')}/${VERSION}`;
+
+/** Where the app keeps its session token; boot.js writes it once linked. */
+const TOKEN_KEY = 'mo:app-token';
+
+/** The session token, or null when the app is not linked. */
+function token() {
+	try {
+		return localStorage.getItem(TOKEN_KEY);
+	} catch {
+		return null;
+	}
+}
+
+function forgetToken() {
+	try {
+		localStorage.removeItem(TOKEN_KEY);
+	} catch (err) {
+		console.warn('The app could not forget its session token:', err);
+	}
+}
 
 /**
  * The platform the app runs on, from the web view's user agent.
@@ -47,11 +70,20 @@ function nativeFetch() {
 export async function request(path, init = {}) {
 	if (!path.startsWith('/api/')) return fetch(path, init);
 	const send = nativeFetch();
+	const bearer = token();
+	/** @type {Record<string, string>} */
+	const headers = { ...Object.fromEntries(new Headers(init.headers).entries()), 'x-myordbok-app': APP };
+	if (bearer) headers.authorization = `Bearer ${bearer}`;
+	/** @type {Response} */
+	let res;
 	try {
-		return await send(`${API}${path}`, { ...init, headers: { ...Object.fromEntries(new Headers(init.headers).entries()), 'x-myordbok-app': APP } });
+		res = await send(`${API}${path}`, { ...init, headers });
 	} catch {
 		throw unreachable();
 	}
+	// Signed out here, or the session is gone on the server: the token is spent.
+	if (bearer && res.ok && (path === '/api/auth/signout' || (path === '/api/me' && (await res.clone().json().catch(() => null))?.member === null))) forgetToken();
+	return res;
 }
 
 /**
