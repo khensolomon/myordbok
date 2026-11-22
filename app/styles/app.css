@@ -363,6 +363,7 @@ body[data-route="definition"] .search-bar { display: block; }
 	   where it was; nothing scrolls to make room. */
 	body[data-searching] .search-bar {
 		position: fixed; inset: 0; z-index: 30;
+		transform: translateY(var(--vv-top, 0px));
 		display: block;
 		background: var(--ground);
 		padding: calc(var(--safe-t) + 8px) 0 0;
@@ -422,7 +423,7 @@ body[data-route="home"] main#view { max-width: none; }
 	body[data-route="home"] .search input { font-size: 17px; }
 	body[data-route="home"] .search-go { width: 40px; height: 40px; }
 	body[data-route="home"] mo-search[data-open] .search-box { --field-r: 18px; }
-	body[data-route="home"][data-searching] .search-bar { position: fixed; inset: 0; z-index: 30; padding: calc(var(--safe-t) + 8px) 0 0; background: var(--ground); }
+	body[data-route="home"][data-searching] .search-bar { position: fixed; inset: 0; z-index: 30; transform: translateY(var(--vv-top, 0px)); padding: calc(var(--safe-t) + 8px) 0 0; background: var(--ground); }
 	body[data-route="home"][data-searching] .search-bar-inner { flex-direction: row; gap: 8px; max-width: none; }
 	body[data-route="home"][data-searching] .bar-logo, body[data-route="home"][data-searching] .home-pair { display: none; }
 	body[data-route="home"][data-searching] mo-search { margin-top: 0; height: 44px; }
@@ -2531,3 +2532,30 @@ html[data-app="ios"] [data-store-hidden] { display: none !important; }
 html[data-app] { scrollbar-width: none; -webkit-tap-highlight-color: transparent; }
 html[data-app]::-webkit-scrollbar, html[data-app] body::-webkit-scrollbar { display: none; }
 html[data-app] :is(.app-nav, button, .app-tab, .bar-back, .segmented, .you-links a, .liked-list a, .home-chips a) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+/* ---------------------------------------------------------- touch screens: smooth scrolling */
+
+/* A phone redraws every blurred layer over the page on each frame of a
+   scroll. A blur under a mask (the scrim under the search bar) cannot be
+   handed to the phone's own compositor at all, and each small blurred
+   button is one more layer. On touch screens only the tab bar keeps its
+   blur; the rest are plain colour, near enough to the glass to look the
+   same over a page that moves. */
+@media (pointer: coarse) {
+	.search-bar::before {
+		-webkit-backdrop-filter: none; backdrop-filter: none;
+		-webkit-mask-image: none; mask-image: none;
+		background: linear-gradient(to bottom, var(--ground) calc(100% - 26px), transparent);
+	}
+	body[data-route="definition"] .bar-back,
+	.bar-actions .entry-like,
+	body[data-searching] .search-cancel,
+	.site-footer, .search-bar {
+		-webkit-backdrop-filter: none; backdrop-filter: none;
+	}
+	body[data-route="definition"] .bar-back,
+	.bar-actions .entry-like,
+	body[data-searching] .search-cancel { background: var(--card); }
+	/* Long pages: what is far off screen is not drawn until it comes near. */
+	main#view .entry > * { content-visibility: auto; contain-intrinsic-size: auto 320px; }
+}

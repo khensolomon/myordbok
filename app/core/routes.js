@@ -53,7 +53,8 @@ export const ROUTES = Object.freeze([
  * @param {string} pathname
  */
 export function match(pathname) {
-	const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+	// The app's own address (tauri://localhost) has an empty path: home.
+	const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname || '/';
 	return ROUTES.find((r) => r.path === clean || clean.startsWith(`${r.path}/`) && r.path !== '/') ?? null;
 }
 

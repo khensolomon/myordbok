@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+172
+
+- Smoother scrolling on phones; the search screen stays below the status bar; the app opens on home
+
 ## 26.11.22+171
 
 - App: haptic taps, no scrollbar, native touch feel

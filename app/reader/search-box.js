@@ -132,8 +132,19 @@ export class SearchBox extends HTMLElement {
 			clearTimeout(settle);
 			settle = window.setTimeout(() => document.body.removeAttribute('data-searching'), 300);
 		});
-		// The on-screen keyboard shrinks the visible page; the list keeps above it.
-		window.visualViewport?.addEventListener('resize', () => this.hasAttribute('data-open') && this.fit());
+		// The on-screen keyboard shrinks the visible page; the list keeps above
+		// it. iOS also scrolls the window under the keyboard, carrying the
+		// search screen up behind the status bar: the screen is moved back
+		// down by as much (app.css, --vv-top).
+		const follow = () => {
+			const vv = window.visualViewport;
+			const searching = document.body.hasAttribute('data-searching');
+			document.documentElement.style.setProperty('--vv-top', `${searching && vv ? Math.max(0, vv.offsetTop) : 0}px`);
+			if (this.hasAttribute('data-open')) this.fit();
+		};
+		window.visualViewport?.addEventListener('resize', follow);
+		window.visualViewport?.addEventListener('scroll', follow);
+		this.addEventListener('focusin', () => requestAnimationFrame(follow));
 		/** @type {number | undefined} */
 		this.timer = undefined;
 		this.seq = 0;
