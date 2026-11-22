@@ -141,7 +141,7 @@ async function result(data, asked, said = []) {
 		const feedback = entryFeedback('my', data.query);
 		// How the query was read goes above the headword, never between it and its timeline.
 		const read = understood(data.query, asked, null, said);
-		const article = h('article', { class: 'entry', lang: 'my' }, offlineNote(data), read, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
+		const article = h('article', { class: 'entry', lang: 'my' }, entryActions(feedback), offlineNote(data), read, myanmarHead(data), timeline(groupByType(data.entries), 'en', data.query));
 		feedback.wire(article, data.entries.map((e) => ({ ...e, word: data.query })), 'en');
 		if (!(/** @type {{ offline?: boolean }} */ (data).offline)) article.append(commentsSection('my', data.query));
 		return withAside(article, aside(feedback, lead(data.query, data.entries), data.entries, read));
@@ -249,7 +249,7 @@ async function english(data, asked, said = []) {
 	// A form shows its root's senses, so feedback is about the root (went → go).
 	const word = shown[0]?.word ?? data.query;
 	const feedback = entryFeedback('en', word);
-	const article = h('article', { class: 'entry', lang: 'en' }, notes, blocks);
+	const article = h('article', { class: 'entry', lang: 'en' }, entryActions(feedback), notes, blocks);
 	feedback.wire(article, shown, 'my');
 	// Test yourself on the word asked for, when it has meanings of its own; its code loads on its own.
 	if (data.entries.length) {
@@ -317,6 +317,15 @@ function lead(word, senses) {
 	// English says "a noun and a verb"; Myanmar names the parts alone.
 	const types = getLang() === 'en' ? names.map((n) => `${/^[aeiou]/.test(n) ? 'an' : 'a'} ${n}`) : names;
 	return tn('“{word}” has {n} meaning as {types}.', '“{word}” has {n} meanings as {types}.', senses.length, { word, types: list(types) });
+}
+
+/**
+ * Under 1024px, the thumb for the whole entry, at the right of the search
+ * bar (main.js moves it there; app.css): pressed, the entry is in Liked.
+ * @param {ReturnType<typeof entryFeedback>} feedback
+ */
+function entryActions(feedback) {
+	return h('div', { class: 'entry-actions' }, feedback.like());
 }
 
 /**

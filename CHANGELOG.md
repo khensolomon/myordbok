@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.22+170
+
+- Definition bar with Back and the entry's thumb; pages slide in; back swipe in the iOS app
+
 ## 26.11.22+169
 
 - New look by screen size: tab bar and sidebar, You and Liked, search as its own screen

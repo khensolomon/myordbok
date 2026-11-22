@@ -195,6 +195,10 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   and the app share it. Under 1024px the search is a screen of its own
   while the field has focus, closed by its ✕, by a search (Enter and the
   search button alike) or by a suggestion; the page under it stays put.
+  On a definition the bar holds Back, the field and the entry's thumb
+  (pressed, the entry is in Liked). Pages opened slide in from the right,
+  pages gone back to from the left; in the iOS app a swipe from the left
+  edge goes back (`app/core/swipe.js`).
 - **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
   (or the account, with Sign out and the workspace), the offline copy,
   theme, language, usage statistics, and the site's pages (on phones the

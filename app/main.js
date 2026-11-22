@@ -12,6 +12,7 @@ import { followTheme } from './core/prefs.js';
 import { followOnline } from './core/online.js';
 import { showNotices } from './core/notices.js';
 import { startRouter } from './core/router.js';
+import { backSwipe } from './core/swipe.js';
 import { savingData, siteSwitches } from './data/api.js';
 import { checkIn, keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
@@ -34,9 +35,16 @@ const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelecto
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
 const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a'));
 
+// A page's buttons for the bar (a definition's thumb, .entry-actions) move
+// into it once the page is shown, and go with the page.
+const barActions = document.querySelector('.bar-actions');
+if (!(barActions instanceof HTMLElement)) throw new Error('index.html is missing <div class="bar-actions">');
+window.addEventListener('mo:navigated', () => barActions.replaceChildren(...outlet.querySelectorAll('.entry-actions')));
+
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
 	document.body.dataset.route = route?.name ?? 'missing';
+	barActions.replaceChildren();
 	// The logo leads home; on home itself, to how to search.
 	logo.href = route?.name === 'home' ? '/definition' : '/';
 	logo.setAttribute('aria-label', route?.name === 'home' ? t('How to search') : t('MyOrdbok home'));
@@ -61,6 +69,18 @@ if (!(cancel instanceof HTMLButtonElement)) throw new Error('index.html is missi
 // Pressed, the button keeps focus in the field until it acts, so the header does not start to change back first.
 cancel.addEventListener('pointerdown', (e) => e.preventDefault());
 cancel.addEventListener('click', () => search.cancel());
+
+// Back, on a definition (under 1024px): to the page it was opened from, or home.
+const back = document.querySelector('.bar-back');
+if (!(back instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-back">');
+back.addEventListener('click', (e) => {
+	if (!history.state?.from) return;
+	e.preventDefault();
+	history.back();
+});
+
+// The iOS app: a swipe from the left edge goes back, as in other apps (swipe.js).
+backSwipe();
 
 // The Search tab, tapped on the page it leads to: the search itself.
 tabs[0].addEventListener('click', (e) => {

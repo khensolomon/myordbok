@@ -58,7 +58,7 @@ function open(path) {
 
 /** To signing in, and back to this page afterwards. */
 function signIn() {
-	open(`/workspace?s=account&return=${encodeURIComponent(location.pathname + location.search)}`);
+	open(`/you?return=${encodeURIComponent(location.pathname + location.search)}`);
 }
 
 /** @param {unknown} err */
@@ -145,6 +145,17 @@ export function entryFeedback(lang, word) {
 	};
 
 	return {
+		/**
+		 * One thumb for the entry as a whole, for the bar over a definition
+		 * under 1024px: pressed, the entry is in Liked (/liked).
+		 */
+		like() {
+			const pair = thumbs(`“${word}”`, (v) => press({}, v, pair), 'bar');
+			views.push(() => pair.show(state ?? undefined));
+			pair.up.classList.add('entry-like');
+			return pair.up;
+		},
+
 		/** The side card: the entry as a whole. */
 		card() {
 			const pair = thumbs(`“${word}”`, (v) => press({}, v, pair), 'large');

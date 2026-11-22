@@ -30,13 +30,17 @@ export function title() {
 	return t('You');
 }
 
-export async function view() {
+/** @param {import('../core/routes.js').ViewContext} ctx */
+export async function view(ctx) {
 	const me = await member().catch(() => null);
+	// Sent here to sign in (rating a meaning): back there afterwards.
+	const asked = ctx.query.get('return');
+	const back = asked && /^\/(?!\/)[^\\\s]*$/.test(asked) && !asked.startsWith('/api/') ? asked : '/you';
 	return h(
 		'section',
 		{ class: 'page you-page' },
 		h('h1', { class: 'large-title' }, t('You')),
-		me ? account(me) : signIn('/you'),
+		me ? account(me) : signIn(back),
 		h('h2', { class: 'you-section' }, t('This device')),
 		await offlineRow(me),
 		h('div', { class: 'you-group' }, themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),

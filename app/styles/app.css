@@ -290,6 +290,8 @@ body[data-route="definition"] .search-bar { display: block; }
 .bar-logo .logo-mark { display: none; }
 .search-bar mo-search { flex: 1; max-width: var(--search-w); }
 .search-cancel { display: none; }
+.bar-back { display: none; }
+.bar-actions, main#view .entry-actions { display: none; }
 
 /* Wide screens: a hairline under the band; once the page scrolls under it,
    a soft shadow as well. */
@@ -329,6 +331,32 @@ body[data-route="definition"] .search-bar { display: block; }
 	}
 	body[data-scrolled] .search-bar::before { opacity: 1; }
 
+	/* A definition: back on the left of the field, the entry's thumb on the
+	   right (entry.js, .entry-actions), both liquid glass. */
+	body[data-route="definition"] .search-bar-inner { gap: 8px; }
+	body[data-route="definition"] .bar-actions:not(:empty) { display: flex; gap: 8px; }
+	body[data-route="definition"] .bar-back,
+	.bar-actions .entry-like {
+		display: inline-flex; align-items: center; justify-content: center; flex: none;
+		width: 44px; height: 44px; padding: 0; border-radius: 999px; color: var(--ink);
+		background: var(--liquid);
+		-webkit-backdrop-filter: var(--liquid-blur); backdrop-filter: var(--liquid-blur);
+		border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
+	}
+	body[data-route="definition"] .bar-back:hover { text-decoration: none; }
+	body[data-route="definition"] .bar-back .icon { stroke-width: 2; }
+	.bar-actions .entry-like { color: var(--brand); cursor: pointer; }
+	.bar-actions .entry-like .icon { stroke-width: 1.8; }
+	.bar-actions .thumb-count { display: none; }
+	body[data-searching] .bar-actions, body[data-searching] .bar-back { display: none !important; }
+
+	/* Pages come in sideways: opened, from the right; gone back to, from the
+	   left (router.js, data-enter). A swipe back has moved them already. */
+	main#view > [data-enter="push"] { animation: enter-push 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+	main#view > [data-enter="pop"] { animation: enter-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+	html[data-swiped] main#view > [data-enter] { animation: none; }
+	main#view { overflow-x: clip; }
+
 	/* The search screen: while the field has focus, the bar covers the
 	   window, the field at the top beside a close button, the suggestions
 	   (or this device's recent searches) under it. The page under stays
@@ -354,6 +382,9 @@ body[data-route="definition"] .search-bar { display: block; }
 	}
 	body[data-searching] .search-cancel .icon { stroke-width: 2; }
 }
+
+@keyframes enter-push { from { transform: translateX(36px); opacity: 0; } }
+@keyframes enter-pop { from { transform: translateX(-36px); opacity: 0; } }
 
 /* Home: the logo with the language line above the search box, centred;
    the bar does not stick and has no band of its own. */

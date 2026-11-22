@@ -17,7 +17,12 @@ export function startRouter(outlet, onRoute) {
 	// The router puts each page back where it was left (below), not the browser.
 	history.scrollRestoration = 'manual';
 
-	async function render() {
+	/**
+	 * @param {'load' | 'push' | 'pop' | 'replace'} [how]  How the page came:
+	 *   pages pushed slide in from the right, pages gone back to from the left
+	 *   (app.css, data-enter).
+	 */
+	async function render(how = 'load') {
 		const mine = ++token;
 		const url = new URL(location.href);
 		const route = match(url.pathname);
@@ -47,6 +52,7 @@ export function startRouter(outlet, onRoute) {
 			const node = await mod.view(ctx);
 			if (mine !== token) return; // a newer navigation won
 			endProgress();
+			if (node instanceof HTMLElement && (how === 'push' || how === 'pop')) node.dataset.enter = how;
 			outlet.replaceChildren(node);
 			// A view may name itself once it knows what it shows (an entry: the word and its first meanings).
 			const title = ctx.title ?? (mod.title ? mod.title(ctx) : null);
@@ -78,7 +84,7 @@ export function startRouter(outlet, onRoute) {
 		if (path === here) return;
 		history.replaceState({ ...history.state, scroll: window.scrollY }, '');
 		history.pushState({ from: here }, '', path);
-		render();
+		render('push');
 	}
 
 	/**
@@ -88,7 +94,7 @@ export function startRouter(outlet, onRoute) {
 	 */
 	function replace(path) {
 		history.replaceState({ ...history.state, scroll: undefined }, '', path);
-		render();
+		render('replace');
 	}
 
 	document.addEventListener('click', (event) => {
@@ -102,7 +108,7 @@ export function startRouter(outlet, onRoute) {
 		event.preventDefault();
 		go(url.pathname + url.search);
 	});
-	window.addEventListener('popstate', render);
+	window.addEventListener('popstate', () => render('pop'));
 	render();
 
 	return { go, replace };
