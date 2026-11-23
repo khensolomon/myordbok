@@ -210,12 +210,6 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Forms are named** under their part of speech: plural, third person,
   past, past participle, -ing form, comparative, superlative, as the
   dataset labels them (one word that is two forms shows both names).
-- **From 1180px home and a definition have three columns**, as the
-  approved mockup: the sidebar, the search as a column of its own (its
-  field at the top, its list always open: the words around the one shown,
-  that one marked, or this device's recent searches; `search-box.js`
-  close()), and the page. Between 1024px and 1180px the search bar sits
-  over the page beside the sidebar.
 - **Home under 1024px follows the approved mockup:** a large title over
   the search field on a grey ground, then grouped sections: the word of
   the day and the daily round as cards, recent searches as rows (touched
