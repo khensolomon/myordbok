@@ -70,7 +70,11 @@ export async function view(ctx) {
  */
 function row(item) {
 	if ('lang' in item) {
-		return h('li', null, h('a', { href: definitionHref(item.word) }, h('span', { class: 'liked-word', lang: item.lang }, item.word), h('span', { class: 'liked-what' }, t('Whole entry')), icon(ICONS.chevron, 14)));
+		return h(
+			'li',
+			null,
+			h('a', { href: definitionHref(item.word) }, h('span', { class: 'liked-main' }, h('span', { class: 'liked-word', lang: item.lang }, item.word), h('span', { class: 'liked-what' }, t('Whole entry'))), icon(ICONS.chevron, 14)),
+		);
 	}
 	const word = item.word ?? '';
 	const meaning = item.sense ? plainSense(item.sense) : '';
@@ -80,9 +84,12 @@ function row(item) {
 		h(
 			'a',
 			{ href: word ? definitionHref(word) : '#', 'aria-disabled': word ? null : 'true' },
-			h('span', { class: 'liked-word', lang: MYANMAR.test(word) ? 'my' : 'en' }, word || t('(removed)')),
-			item.state === 'changed' ? h('span', { class: 'liked-updated' }, t('Updated')) : null,
-			h('span', { class: 'liked-what', lang: MYANMAR.test(meaning) ? 'my' : null }, item.state === 'gone' ? t('No longer in the dictionary') : [item.type ? `${posName(item.type)} · ` : '', meaning]),
+			h(
+				'span',
+				{ class: 'liked-main' },
+				h('span', { class: 'liked-top' }, h('span', { class: 'liked-word', lang: MYANMAR.test(word) ? 'my' : 'en' }, word || t('(removed)')), item.state === 'changed' ? h('span', { class: 'liked-updated' }, t('Updated')) : null),
+				h('span', { class: 'liked-what', lang: MYANMAR.test(meaning) ? 'my' : null }, item.state === 'gone' ? t('No longer in the dictionary') : [item.type ? `${posName(item.type)} · ` : '', meaning]),
+			),
 			icon(ICONS.chevron, 14),
 		),
 	);

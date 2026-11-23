@@ -198,7 +198,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   and the app share it. Under 1024px the search is a screen of its own
   while the field has focus, closed by Cancel, by a search (Enter and the
   search button alike) or by a suggestion; the page under it stays put.
-  On a definition the bar holds Back and the field. Under 1024px the
+  On a definition the bar holds Back and the field. Back returns to the
+  page the definitions were opened from (Liked, Home, a search), however
+  many definitions were followed since: the router keeps that page and
+  the count in history.state (`origin`, `depth`). Under 1024px a tab
+  page (Home, Liked, Practice, You) scrolled past its large title shows
+  the title small and floating at the top, as Home shows its logo. Under 1024px the
   field is drawn as the phone's own search field: filled, a magnifier
   first, searched by the keyboard's Search key, and Cancel at its end
   while searching. The entry's thumb sits on the headword's line (pressed,

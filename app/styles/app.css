@@ -272,16 +272,23 @@ body:not([data-route="home"]):not([data-route="definition"]):not([data-route="wo
 .you-links a, .liked-list a { display: flex; align-items: center; gap: 12px; min-height: 50px; color: var(--ink); text-decoration: none; }
 .you-links a:hover, .liked-list a:hover { text-decoration: none; color: var(--ink); }
 .you-links a > .icon:first-child { color: var(--brand); }
-.you-links a > span, .liked-what { flex: 1; min-width: 0; }
+.you-links a > span { flex: 1; min-width: 0; }
 .you-links a > .icon:last-child, .liked-list a > .icon:last-child { color: var(--faint); }
 .you-copy { margin: 22px 4px 0; font-size: 13px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .you-switch, .you-switch::after { transition: none; } }
 
 .liked-lead, .liked-empty, .liked-more { color: var(--ink-2); }
-.liked-list a { padding: 8px 0; }
-.liked-word { font-weight: 600; flex: none; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.liked-what { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
-.liked-updated { flex: none; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); font-size: 12px; font-weight: 600; }
+/* A row: the word, large, with Updated beside it; what was rated under it,
+   up to two lines; the chevron at the end. */
+.liked-list { padding: 0 0 0 16px; }
+.liked-list a { padding: 12px 14px 12px 0; gap: 10px; }
+.liked-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.liked-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.liked-word { font-size: 18px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.liked-word:lang(my) { font-size: 19px; line-height: 1.6; }
+.liked-what { color: var(--muted); font-size: 15px; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+.liked-what:lang(my) { font-size: 16px; line-height: 1.7; }
+.liked-updated { flex: none; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); font-size: 12px; font-weight: 600; line-height: 18px; }
 .liked .ws-providers, .offline-page .ws-providers { margin-top: 14px; max-width: 360px; }
 
 /* ---------------------------------------------------------- site notices */
@@ -1158,7 +1165,8 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
    title, the name moves into a small glass bar at the top. */
 .home-title, .title-bar { display: none; }
 @media (max-width: 1023px) {
-	body[data-route="home"] { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
+	body:is([data-route="home"], [data-route="liked"], [data-route="you"], [data-route="offline"]) { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
+	:is(.you-page, .liked) :is(.you-group, .you-head, .liked-list) { background: var(--group); }
 	body[data-route="home"] .search-bar { padding-top: calc(var(--safe-t) + 14px); }
 	body[data-route="home"] .search-bar-inner { align-items: stretch; max-width: calc(680px + var(--edge-l) + var(--edge-r)); }
 	body[data-route="home"] .bar-logo { display: none; }
@@ -1167,15 +1175,16 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	body[data-route="home"] .home-pair { margin: 0 4px 14px; text-align: left; }
 	body[data-route="home"] mo-search { margin-top: 0; }
 	body[data-route="home"][data-searching] .home-title { display: none; }
-	body[data-route="home"] .title-bar {
+	body:not([data-route="definition"]):not([data-route="workspace"]) .title-bar {
 		display: flex; justify-content: center; position: fixed; z-index: 5; left: var(--nav-room); right: 0; top: 0;
 		padding: calc(var(--safe-t) + 8px) 0 18px;
-		background: linear-gradient(to bottom, var(--grouped) 62%, transparent);
+		background: linear-gradient(to bottom, var(--ground) 62%, transparent);
 		opacity: 0; pointer-events: none; transition: opacity 0.2s;
 	}
-	body[data-route="home"][data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
+	body[data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
 	.title-bar span {
 		display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px;
+		font: 600 17px var(--font-ui); color: var(--ink);
 		background: var(--liquid); border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
 	}
 	.title-bar img { display: block; width: 108px; height: auto; }

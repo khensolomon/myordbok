@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+185
+
+- Back returns where definitions were opened from; floating titles on tab pages; larger Liked rows
+
 ## 26.11.23+184
 
 - Home under 1024px: the logo as its large title, and in the bar when scrolled

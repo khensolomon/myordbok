@@ -84,7 +84,7 @@ export function startRouter(outlet, onRoute) {
 		const here = location.pathname + location.search;
 		if (path === here) return;
 		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
-		history.pushState({ from: here }, '', path);
+		history.pushState({ from: here, ...origin(path) }, '', path);
 		render('push');
 	}
 
@@ -119,6 +119,21 @@ export function startRouter(outlet, onRoute) {
 	async function refresh() {
 		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
 		await render('load');
+	}
+
+	/**
+	 * Where a definition was opened from, kept through the definitions opened
+	 * from it (love, then lover, then lovable all came from Liked): Back on a
+	 * definition returns there in one step (main.js), `depth` pages back.
+	 * Opened straight (a link from outside), there is no origin: Back goes home.
+	 * @param {string} path  Where the page goes.
+	 * @returns {{ origin?: string | null, depth?: number }}
+	 */
+	function origin(path) {
+		if (match(new URL(path, location.origin).pathname)?.name !== 'definition') return {};
+		const now = history.state ?? {};
+		if (match(location.pathname)?.name !== 'definition') return { origin: location.pathname + location.search, depth: 1 };
+		return { origin: now.origin ?? null, depth: (now.depth ?? 0) + 1 };
 	}
 
 	return { go, replace, refresh };

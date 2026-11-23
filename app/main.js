@@ -73,6 +73,18 @@ new ResizeObserver(() => {
 	if (!document.body.hasAttribute('data-searching')) document.documentElement.style.setProperty('--bar-h', `${bar.offsetHeight}px`);
 }).observe(bar);
 
+// Back, on a definition (under 1024px): to the page the definitions were
+// opened from (Liked, home, Practice), past any opened from one another;
+// opened straight, home, the link's own address (router.js, origin).
+const back = document.querySelector('.bar-back');
+if (!(back instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-back">');
+back.addEventListener('click', (e) => {
+	const { origin, depth } = history.state ?? {};
+	if (!origin || !depth) return;
+	e.preventDefault();
+	history.go(-depth);
+});
+
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 
@@ -86,6 +98,16 @@ const markScrolled = () => {
 // Captured: in the app the page scrolls in <body>, whose scroll event does not reach the window (scroll.js).
 document.addEventListener('scroll', markScrolled, { passive: true, capture: true });
 window.addEventListener('mo:navigated', markScrolled);
+
+// The title bar (under 1024px, app.css): home's logo, or the page's own heading.
+const titleBar = document.querySelector('.title-bar > span');
+if (!(titleBar instanceof HTMLElement)) throw new Error('index.html is missing <div class="title-bar"><span>');
+const titleLogo = titleBar.innerHTML;
+window.addEventListener('mo:navigated', () => {
+	const heading = outlet.querySelector('h1');
+	if (document.body.dataset.route === 'home' || !heading) titleBar.innerHTML = titleLogo;
+	else titleBar.textContent = heading.textContent;
+});
 markScrolled();
 
 initConsent();
