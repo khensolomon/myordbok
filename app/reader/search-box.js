@@ -18,6 +18,11 @@
  * (data/recent.js) in place of suggestions: on focus, and when emptied.
  * A field holding text shows an ✕; it, or Escape in the field, empties the
  * field and keeps the cursor there. Escape in an empty field closes the list.
+ *
+ * From 1180px, on home and a definition, the box is a column of its own
+ * beside the page (app.css) and its list stays open: closed, it lists the
+ * words around the one in the field, that one marked, or this device's
+ * recent searches when the field is empty.
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
@@ -51,6 +56,10 @@ document.addEventListener('keydown', shortcut);
 
 /** Under 1024px the search is a screen of its own while the field has focus (app.css): a search made closes it. */
 const NARROW = window.matchMedia('(max-width: 1023px)');
+/** From 1180px the search is a column beside home and a definition, its list always open (app.css). */
+const COLUMN = window.matchMedia('(min-width: 1180px)');
+/** Whether the list stays open now. */
+const pinned = () => COLUMN.matches && ['home', 'definition'].includes(document.body.dataset.route ?? '');
 
 export class SearchBox extends HTMLElement {
 	connectedCallback() {
@@ -124,14 +133,15 @@ export class SearchBox extends HTMLElement {
 		this.append(this.box, this.status);
 		// Closing when focus or a click leaves the box keeps the list from covering the page.
 		this.addEventListener('focusout', (e) => {
-			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget))) this.show([]);
+			if (!this.contains(/** @type {Node | null} */ (e.relatedTarget))) this.close();
 		});
 		// A chosen suggestion navigates; the list closes behind it, and the
 		// search screen with it.
 		this.list.addEventListener('click', () => {
-			this.show([]);
+			this.close();
 			if (NARROW.matches) this.leave();
 		});
+		COLUMN.addEventListener('change', () => this.close());
 		// While the field has focus, under 1024px, the search is a screen of
 		// its own (app.css, body[data-searching]). Focus leaving closes it
 		// after a moment, so a tap that moved focus lands where it was aimed;
@@ -187,7 +197,26 @@ export class SearchBox extends HTMLElement {
 	setValue(value) {
 		if (this.input && this.input.value !== value) this.input.value = value;
 		this.seq++; // a suggestion request still under way is no longer wanted
-		this.show([]);
+		this.close();
+	}
+
+	/**
+	 * The list closed; in the column (from 1180px) it stays, at rest: the
+	 * words around the one in the field, that one marked, or this device's
+	 * recent searches.
+	 */
+	async close() {
+		if (!pinned()) return this.show([]);
+		const q = this.input?.value.trim() ?? '';
+		const mine = ++this.seq;
+		if (!q) return this.show(recentSearches(), [], true);
+		try {
+			const { words } = await suggest(q);
+			if (mine === this.seq) this.show(words.length ? words : [q], [], false, q);
+		} catch (err) {
+			if (mine === this.seq) this.show([q], [], false, q);
+			console.warn('Suggestions unavailable:', err);
+		}
 	}
 
 	/** The cursor in the field (the Search tab, tapped on home). */
@@ -248,10 +277,17 @@ export class SearchBox extends HTMLElement {
 	 * @param {string[]} words
 	 * @param {HTMLElement[]} [lead]  Rows before the words: an answer, or choices.
 	 * @param {boolean} [recent]  The words are this device's recent searches.
+	 * @param {string} [current]  The word shown now, marked in the list (the column at rest).
 	 */
-	show(words, lead = [], recent = false) {
+	show(words, lead = [], recent = false, current = '') {
 		const list = /** @type {HTMLUListElement} */ (this.list);
-		const items = [...lead, ...words.map((w) => h('li', recent ? { class: 'search-recent' } : null, h('a', { href: definitionHref(w), tabindex: '-1' }, recent ? icon(ICONS.clock, 15) : null, w)))];
+		const here = current.toLowerCase();
+		const items = [
+			...lead,
+			...words.map((w) =>
+				h('li', recent ? { class: 'search-recent' } : null, h('a', { href: definitionHref(w), tabindex: '-1', 'aria-current': here && w.toLowerCase() === here ? 'page' : null }, recent ? icon(ICONS.clock, 15) : null, w)),
+			),
+		];
 		items.forEach((li, i) => {
 			li.setAttribute('role', 'option');
 			li.id = `${list.id}-${i}`;
@@ -261,7 +297,8 @@ export class SearchBox extends HTMLElement {
 		list.hidden = !open;
 		this.toggleAttribute('data-open', open);
 		this.input?.setAttribute('aria-expanded', String(open));
-		if (open) this.fit();
+		if (open && !pinned()) this.fit();
+		else list.style.maxHeight = '';
 		if (this.status) this.status.textContent = lead.length && !words.length ? (lead[0].textContent ?? '') : open ? `${recent ? `${t('Recent')}: ` : ''}${tn('{n} suggestion', '{n} suggestions', items.length)}` : '';
 	}
 
@@ -287,7 +324,7 @@ export class SearchBox extends HTMLElement {
 		let next = current;
 		if (e.key === 'ArrowDown') next = Math.min(current + 1, links.length - 1);
 		else if (e.key === 'ArrowUp') next = Math.max(current - 1, -1);
-		else if (e.key === 'Escape') return this.show([]);
+		else if (e.key === 'Escape') return this.close();
 		else return;
 		e.preventDefault();
 		list.querySelectorAll('li').forEach((li, i) => li.setAttribute('aria-selected', String(i === next)));
@@ -300,7 +337,7 @@ export class SearchBox extends HTMLElement {
 		e.preventDefault();
 		const q = this.input?.value.trim();
 		if (!q) return;
-		this.show([]);
+		this.close();
 		// Enter and the search button alike: the search screen closes with the keyboard.
 		if (NARROW.matches) this.leave();
 		this.dispatchEvent(new CustomEvent('mo-search', { detail: q, bubbles: true }));

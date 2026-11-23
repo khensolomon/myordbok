@@ -1152,6 +1152,39 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .hold-card .home-chip a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 16px; color: var(--ink); text-decoration: none; font-size: 17px; }
 .hold-card .home-remove { display: none; }
 
+/* From 1180px (an iPad on its side, a desktop window), as the approved
+   mockup: on home and a definition the search is a column of its own
+   between the sidebar and the page, its field at the top and its list
+   always open below (search-box.js): the words around the one shown, that
+   one marked, or this device's recent searches. */
+@media (min-width: 1180px) {
+	body:is([data-route="home"], [data-route="definition"]) { --list-w: 340px; padding-left: calc(var(--nav-room) + var(--list-w)); }
+	body:is([data-route="home"], [data-route="definition"]) .search-bar {
+		position: fixed; z-index: 6; left: var(--nav-room); top: 0; bottom: 0; width: var(--list-w);
+		padding: 24px 0 0; box-shadow: none; border-right: 0.5px solid var(--line);
+		background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none;
+	}
+	body:is([data-route="home"], [data-route="definition"]) .search-bar-inner { display: block; max-width: none; padding: 0 16px; height: 100%; }
+	body:is([data-route="home"], [data-route="definition"]) :is(.bar-logo, .home-pair, .home-title, .bar-back) { display: none; }
+	body:is([data-route="home"], [data-route="definition"]) .search-bar mo-search { display: block; height: auto; max-width: none; margin: 0; }
+	body:is([data-route="home"], [data-route="definition"]) .search-box,
+	body:is([data-route="home"], [data-route="definition"]) mo-search[data-open] .search-box {
+		position: static; padding: 0; border: none; border-radius: 0; background: none; box-shadow: none;
+	}
+	body:is([data-route="home"], [data-route="definition"]) .search { height: 40px; padding: 0 6px 0 12px; border-radius: 12px; background: var(--field-fill); }
+	body:is([data-route="home"], [data-route="definition"]) :is(.search-go, .search-key) { display: none; }
+	body:is([data-route="home"], [data-route="definition"]) .search-list {
+		margin: 14px -6px 0; padding: 0 0 24px; border: none; background: none;
+		max-height: calc(100vh - 24px - 40px - 14px); overflow-y: auto; scrollbar-width: thin;
+	}
+	body:is([data-route="home"], [data-route="definition"]) .search-list a { min-height: 44px; padding: 10px 12px; border-radius: 10px; font-size: 16px; }
+	body:is([data-route="home"], [data-route="definition"]) .search-list a[aria-current="page"] { background: var(--term-tint); color: var(--ink); font-weight: 600; }
+	/* The page beside it: home without its hero, the definition from the top. */
+	body[data-route="home"] main#view { padding-top: 40px; }
+	body[data-route="home"] .home { margin-top: 0; }
+	body[data-route="definition"] main#view { padding-top: 32px; }
+}
+
 /* The hint under the first meanings (entry.js), and the meaning's menu
    (hold.js): phones only, where the rows carry no buttons of their own. */
 .hold-hint { display: none; }

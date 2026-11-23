@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+183
+
+- From 1180px: the search as a column of its own between the sidebar and the page
+
 ## 26.11.23+182
 
 - Home under 1024px as the mockup: large title, grouped sections, recent searches as rows; the home search field no longer collapses
