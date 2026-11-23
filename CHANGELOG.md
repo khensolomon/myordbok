@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+183
+
+- From 1180px the classic website header; sidebar logo; consent over everything; search field Cancel closer; phone landscape margins
+
 ## 26.11.23+182
 
 - Home under 1024px as the mockup: large title, grouped sections, recent searches as rows; the home search field no longer collapses

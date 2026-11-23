@@ -188,10 +188,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   the site always keeps an active owner. Changes are made in the workspace's
   Members section, each kept in `role_grants` with who made it; suspending
   signs the member out everywhere.
-- **One navigation, laid out by the window's width, not the device**
-  (`index.html`, `app.css`): under 1024px a floating glass tab bar of four
-  icons (Home, Liked, Practice, You); from 1024px a glass sidebar with
-  words, the name above and Grammar, fonts and Support below. The website
+- **Navigation by the window's width, not the device** (`index.html`,
+  `app.css`): under 1024px a floating glass tab bar of four icons (Home,
+  Liked, Practice, You); from 1024px to 1179px a glass sidebar with the
+  logo, the four with words, and Grammar, fonts and Support below; from
+  1180px (an iPad on its side, a desktop) the classic website: text links
+  across the top, the person button opening the You page in a panel
+  (`app/core/menu.js`), the logo beside the search field, the footer. The website
   and the app share it. Under 1024px the search is a screen of its own
   while the field has focus, closed by Cancel, by a search (Enter and the
   search button alike) or by a suggestion; the page under it stays put.

@@ -11,6 +11,7 @@ import { member } from './core/member.js';
 import { followTheme } from './core/prefs.js';
 import { followOnline } from './core/online.js';
 import { showNotices } from './core/notices.js';
+import { initMenu } from './core/menu.js';
 import { startRouter } from './core/router.js';
 import { pageScroll, scrollPageTo } from './core/scroll.js';
 import { pullToRefresh } from './core/pull.js';
@@ -34,7 +35,7 @@ if (!(logo instanceof HTMLAnchorElement)) throw new Error('index.html is missing
 const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'home', definition: 'home', grammar: 'home', fonts: 'home', liked: 'liked', practice: 'practice' });
 const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
-const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a'));
+const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a, .site-nav a'));
 
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
@@ -90,33 +91,38 @@ markScrolled();
 initConsent();
 boot();
 
-// The You tab shows the member's picture once signed in.
-const you = document.querySelector('.app-nav .you');
-const face = you?.querySelector('.you-face-slot');
-if (!(you instanceof HTMLAnchorElement) || !(face instanceof HTMLElement)) throw new Error('index.html is missing the You tab with its .you-face-slot');
-const blankFace = face.innerHTML;
+// The You tab, and the classic header's person button (1180px and up,
+// which opens the You page in a panel: menu.js), show the member's picture
+// once signed in.
+const yous = /** @type {HTMLAnchorElement[]} */ ([...document.querySelectorAll('.app-nav .you, .site-header .you')]);
+if (yous.length !== 2 || yous.some((y) => !y.querySelector('.you-face-slot'))) throw new Error('index.html is missing the You tab or the header\'s person button, each with its .you-face-slot');
+const blankFaces = yous.map((y) => /** @type {HTMLElement} */ (y.querySelector('.you-face-slot')).innerHTML);
+initMenu(/** @type {HTMLAnchorElement} */ (document.querySelector('.site-header .you')));
 followTheme();
 followOnline();
 document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
-	you.setAttribute('aria-label', m ? t('You: {name}', { name: m.name }) : t('You'));
-	you.title = m ? m.name : t('You');
-	// Without a picture, or when it fails to load, the name's first letter.
-	const initial = () => {
-		const letter = document.createElement('span');
-		letter.className = 'you-initial';
-		letter.textContent = (m?.name ?? '?').slice(0, 1).toUpperCase();
-		face.replaceChildren(letter);
-	};
-	if (m?.avatar_url) {
-		const img = document.createElement('img');
-		img.alt = '';
-		img.referrerPolicy = 'no-referrer';
-		img.addEventListener('error', initial, { once: true });
-		img.src = m.avatar_url;
-		face.replaceChildren(img);
-	} else if (m) initial();
-	else face.innerHTML = blankFace;
+	yous.forEach((you, i) => {
+		const face = /** @type {HTMLElement} */ (you.querySelector('.you-face-slot'));
+		you.setAttribute('aria-label', m ? t('You: {name}', { name: m.name }) : t('You'));
+		you.title = m ? m.name : t('You');
+		// Without a picture, or when it fails to load, the name's first letter.
+		const initial = () => {
+			const letter = document.createElement('span');
+			letter.className = 'you-initial';
+			letter.textContent = (m?.name ?? '?').slice(0, 1).toUpperCase();
+			face.replaceChildren(letter);
+		};
+		if (m?.avatar_url) {
+			const img = document.createElement('img');
+			img.alt = '';
+			img.referrerPolicy = 'no-referrer';
+			img.addEventListener('error', initial, { once: true });
+			img.src = m.avatar_url;
+			face.replaceChildren(img);
+		} else if (m) initial();
+		else face.innerHTML = blankFaces[i];
+	});
 });
 // Whether someone is signed in; a failure leaves the button as it is.
 // Then the site notices: with a session, also those for members or editors.

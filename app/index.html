@@ -48,6 +48,19 @@
 		</div>
 	</nav>
 
+	<!-- From 1180px: the classic header, text links and the person button,
+	     which opens the You page in a panel (app/core/menu.js). -->
+	<header class="site-header">
+		<nav class="site-nav" aria-label="Main" data-t-label="Main">
+			<a href="/" data-t>Home</a>
+			<a href="/liked" data-t>Liked</a>
+			<a href="/practice" data-t>Practice</a>
+			<a href="/grammar" data-t>Grammar</a>
+			<a href="/support" class="nav-support" data-store-hidden><svg class="icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 19.5c-4-2.6-8-6-8-10C4 6.9 6 5 8.4 5c1.5 0 2.8.8 3.6 2 .8-1.2 2.1-2 3.6-2C18 5 20 6.9 20 9.5c0 4-4 7.4-8 10z"/></svg><span data-t>Support</span></a>
+		</nav>
+		<a class="you" href="/you" aria-label="You" title="You" data-t-label="You"><span class="you-face-slot"><svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></svg></span></a>
+	</header>
+
 	<!-- Site notices: maintenance and information (app/core/notices.js). -->
 	<div class="site-notices" hidden></div>
 
