@@ -210,6 +210,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Forms are named** under their part of speech: plural, third person,
   past, past participle, -ing form, comparative, superlative, as the
   dataset labels them (one word that is two forms shows both names).
+- **Home under 1024px follows the approved mockup:** a large title over
+  the search field on a grey ground, then grouped sections: the word of
+  the day and the daily round as cards, recent searches as rows (touched
+  and held on a phone: Remove), the most searched as words to tap; past
+  the title, the name moves into a small glass bar at the top.
 - **On phones an entry is a grouped list**, as the phone's own (`app.css`,
   640px): each part of speech a small heading over one box on a grey
   ground, its forms first, then a row per meaning. A meaning touched and

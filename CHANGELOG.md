@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+182
+
+- Home under 1024px as the mockup: large title, grouped sections, recent searches as rows; the home search field no longer collapses
+
 ## 26.11.22+181
 
 - Phones: the entry as a grouped list; touch and hold a meaning to rate it or suggest a change

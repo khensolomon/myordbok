@@ -1,7 +1,9 @@
 // @ts-check
 /**
  * Home: the page shell's search bar, with the logo above it (styled by
- * body[data-route="home"]); below it, this device's recent searches and the
+ * body[data-route="home"]; under 1024px a large title instead, and the page
+ * a grouped list: recent searches as rows, the most searched as words to
+ * tap); below it, this device's recent searches and the
  * words searched most this week. Recent searches never leave the device;
  * the most searched come from /api/popular (found words only, each searched
  * by several people). Above them, Today: the word of the day and the
@@ -16,6 +18,7 @@ import { popularWords, siteSwitches } from '../data/api.js';
 import { member } from '../core/member.js';
 import { clearRecent, recentSearches, removeRecent } from '../data/recent.js';
 import { getLang, t } from '../i18n/index.js';
+import { holdMenu } from './hold.js';
 import { todaySection } from './today.js';
 
 const MYANMAR = /[က-႟]/;
@@ -103,20 +106,23 @@ function pickLine(lines) {
 function group(title, words, mine) {
 	/** @param {string} w */
 	const chip = (w) => {
-		const link = h('a', { href: definitionHref(w), lang: MYANMAR.test(w) ? 'my' : 'en' }, w);
+		const link = h('a', { href: definitionHref(w), lang: MYANMAR.test(w) ? 'my' : 'en' }, mine ? [icon(ICONS.clock, 16), h('span', null, w), icon(ICONS.chevron, 14)] : w);
 		if (!mine) return h('li', { class: 'home-chip' }, link);
 		const remove = h('button', { type: 'button', class: 'home-remove', 'aria-label': t('Remove “{word}”', { word: w }), title: t('Remove “{word}”', { word: w }) }, icon(ICONS.close, 14));
 		const item = h('li', { class: 'home-chip' }, link, remove);
-		remove.addEventListener('click', () => {
+		const drop = () => {
 			if (removeRecent(w).length) item.remove();
 			else box.remove();
-		});
+		};
+		remove.addEventListener('click', drop);
+		// On phones the × gives way to the row's own menu, touched and held (hold.js).
+		holdMenu(item, [{ label: t('Remove'), glyph: ICONS.close, run: drop }]);
 		return item;
 	};
 	const clear = mine ? h('button', { type: 'button', class: 'home-clear' }, t('Clear')) : '';
 	const box = h(
 		'div',
-		{ class: 'home-group' },
+		{ class: mine ? 'home-group home-recent' : 'home-group' },
 		h('div', { class: 'home-group-head' }, h('h2', null, mine ? icon(ICONS.clock, 14) : icon(ICONS.chart, 14), title), clear),
 		h('ul', { class: 'home-chips' }, words.map(chip)),
 	);

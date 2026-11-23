@@ -393,7 +393,7 @@ body[data-route="home"] .bar-logo { display: block; }
 body[data-route="home"] .bar-logo .logo-full { display: block; width: min(340px, 70vw); }
 body[data-route="home"] .home-pair { display: block; margin: 8px 0 0; font-size: 15px; color: var(--muted); }
 body[data-route="home"] .home-pair [aria-hidden] { color: var(--brand); }
-body[data-route="home"] mo-search { width: 100%; max-width: none; margin-top: 32px; }
+body[data-route="home"] mo-search { flex: none; width: 100%; max-width: none; margin-top: 32px; }
 /* Under the home search box: recent searches (this device) and the most searched. */
 body[data-route="home"] main#view { max-width: none; }
 /* Under 1024px: a smaller logo; while searching, the bar is the search screen. */
@@ -1090,6 +1090,67 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 .related em { color: var(--faint); }
 /* The word's family: each part of speech, small and quiet, before its words. */
 .family-pos { font-style: italic; font-size: 0.82em; color: var(--muted); }
+
+/* Home under 1024px, as the approved mockup: a large title over the search
+   field on a grey ground, then grouped sections: the word of the day and
+   the daily round as cards, recent searches as rows (touched and held on a
+   phone: Remove), the most searched as words to tap. Scrolled past the
+   title, the name moves into a small glass bar at the top. */
+.home-title, .title-bar { display: none; }
+@media (max-width: 1023px) {
+	body[data-route="home"] { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
+	body[data-route="home"] .search-bar { padding-top: calc(var(--safe-t) + 14px); }
+	body[data-route="home"] .search-bar-inner { align-items: stretch; max-width: calc(680px + var(--edge-l) + var(--edge-r)); }
+	body[data-route="home"] .bar-logo { display: none; }
+	body[data-route="home"] .home-title { display: block; margin: 6px 4px 2px; font: 800 34px/1.15 var(--font-ui); letter-spacing: -0.02em; color: var(--ink); }
+	body[data-route="home"] .home-pair { margin: 0 4px 14px; text-align: left; }
+	body[data-route="home"] mo-search { margin-top: 0; }
+	body[data-route="home"][data-searching] .home-title { display: none; }
+	body[data-route="home"] .title-bar {
+		display: flex; justify-content: center; position: fixed; z-index: 5; left: var(--nav-room); right: 0; top: 0;
+		padding: calc(var(--safe-t) + 8px) 0 18px;
+		background: linear-gradient(to bottom, var(--grouped) 62%, transparent);
+		opacity: 0; pointer-events: none; transition: opacity 0.2s;
+	}
+	body[data-route="home"][data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
+	.title-bar span {
+		display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px;
+		font: 600 17px var(--font-ui); color: var(--ink);
+		background: var(--liquid); border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
+	}
+	.home { max-width: 680px; margin: 22px auto 0; gap: 0; }
+	.home > .home-today:first-child { margin-top: 0; }
+	.home-group-head { justify-content: space-between; margin: 24px 4px 8px; }
+	.home-group h2 { font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
+	.home-group h2 .icon { display: none; }
+	.home-clear { color: var(--brand); font-size: 15px; padding: 0; }
+	.home-clear::before { content: none; }
+	.home-today { gap: 12px; margin-top: 10px; }
+	.home-today-word { border: none; box-shadow: none; border-radius: 14px; background: var(--group); }
+	.home-today-round { border: none; border-radius: 14px; background: var(--group); padding: 12px 16px; }
+	/* Recent searches: rows in one box. */
+	.home-recent .home-chips { display: block; border-radius: 12px; background: var(--group); overflow: hidden; }
+	.home-recent .home-chip { display: flex; border: none; border-radius: 0; background: none; border-bottom: 0.5px solid var(--line); }
+	.home-recent .home-chip:last-child { border-bottom: none; }
+	.home-recent .home-chips a { flex: 1; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px 0 16px; font-size: 17px; color: var(--ink); }
+	.home-recent .home-chips a .icon:first-child { color: var(--muted); }
+	.home-recent .home-chips a .icon:last-child { margin-left: auto; color: var(--faint); }
+	/* The most searched: words to tap, in one box. */
+	.home-group:not(.home-recent) .home-chips { justify-content: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--group); }
+	.home-group:not(.home-recent) .home-chip { border: none; background: var(--glass-fill); }
+	.home-support { justify-self: stretch; width: auto; margin: 24px 0 0; border: none; border-radius: 14px; background: var(--group); text-align: left; }
+}
+@media (min-width: 1024px) {
+	.home-recent .home-chips a .icon { display: none; }
+}
+@media (max-width: 640px) {
+	/* The × gives way to the row's menu, touched and held. */
+	.home-recent .home-remove { display: none; }
+	.home-recent .home-chip { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+}
+.hold-card .home-chip { list-style: none; border: none; background: none; }
+.hold-card .home-chip a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 16px; color: var(--ink); text-decoration: none; font-size: 17px; }
+.hold-card .home-remove { display: none; }
 
 /* The hint under the first meanings (entry.js), and the meaning's menu
    (hold.js): phones only, where the rows carry no buttons of their own. */

@@ -76,7 +76,12 @@ new ResizeObserver(() => {
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 
 // The bars change look once the page scrolls under them (app.css, data-scrolled).
-const markScrolled = () => document.body.toggleAttribute('data-scrolled', pageScroll() > 4);
+const markScrolled = () => {
+	const top = pageScroll();
+	document.body.toggleAttribute('data-scrolled', top > 4);
+	// Past home's large title: its name moves into the bar (app.css, .title-bar).
+	document.body.toggleAttribute('data-scrolled-far', top > 64);
+};
 // Captured: in the app the page scrolls in <body>, whose scroll event does not reach the window (scroll.js).
 document.addEventListener('scroll', markScrolled, { passive: true, capture: true });
 window.addEventListener('mo:navigated', markScrolled);

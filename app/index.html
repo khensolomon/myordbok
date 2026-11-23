@@ -58,12 +58,17 @@
 				<img class="logo-full" src="/static/logo.svg" alt="" width="168" height="28">
 				<img class="logo-mark" src="/static/icon.svg" alt="" width="34" height="34">
 			</a>
+			<!-- Under 1024px, home opens with a large title, as a phone's own app does (app.css). -->
+			<h1 class="home-title">MyOrdbok</h1>
 			<p class="home-pair">English <span aria-hidden="true">⇄</span> <span lang="my">မြန်မာ</span></p>
 			<!-- Under 1024px, on a definition: back to the page it was opened from (main.js). -->
 			<a class="bar-back" href="/" aria-label="Back" data-t-label="Back"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></a>
 			<mo-search id="search"></mo-search>
 		</div>
 	</div>
+
+	<!-- Under 1024px, home scrolled past its large title: the name in a small glass bar (app.css). -->
+	<div class="title-bar" aria-hidden="true"><span>MyOrdbok</span></div>
 
 	<main id="view" tabindex="-1"></main>
 
