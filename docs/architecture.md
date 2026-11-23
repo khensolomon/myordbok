@@ -190,10 +190,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   signs the member out everywhere.
 - **Navigation by the window's width, not the device** (`index.html`,
   `app.css`): under 1024px a floating glass tab bar of four icons (Home,
-  Liked, Practice, You); from 1024px to 1179px a glass sidebar with the
-  logo, the four with words, and Grammar, fonts and Support below; from
+  Liked, Practice, More); from 1024px to 1179px a sidebar under the page
+  (a darker shade, the page's edge casting a shadow on it) with the logo,
+  the four with words, and Grammar, fonts and Support below, folding to
+  its icons (kept on the device, `mo:sidebar`); there home opens with the
+  search, the logo being in the sidebar; from
   1180px (an iPad on its side, a desktop) the classic website: text links
-  across the top, the person button opening the You page in a panel
+  across the top, the person button (with a caret) opening the More page in a panel
   (`app/core/menu.js`), the logo beside the search field, the footer. The website
   and the app share it. Under 1024px the search is a screen of its own
   while the field has focus, closed by Cancel, by a search (Enter and the
@@ -236,10 +239,20 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   lovable), from the dataset's lookup (`family`, WordNet's links between
   words). The offline related pack carries it from the next pack build; an
   older pack simply has none.
-- **You (`/you`, `app/reader/you.js`) holds everything personal:** sign-in
-  (or the account, with Sign out and the workspace), the offline copy,
-  theme, language, usage statistics, and the site's pages (on phones the
-  footer gives way to it). Members manage the offline copy at `/offline`;
+- **More (`/more`, `app/reader/more.js`; `/you` moved there, `MOVED` in
+  `app/core/routes.js`) holds everything personal:** sign-in
+  (or the account, with Sign out and the workspace), one box for this
+  device (the offline copy, theme, language, usage statistics), and the
+  site's pages the navigation shown does not list (on phones the footer
+  gives way to it; Grammar and Support only under 1024px).
+- **Back on the other pages** (About, Contact, Privacy, Terms, Offline,
+  and under 1024px Grammar, fonts, Support): a glass button at the top
+  left (`.page-back`, `data-back` set by `main.js`), back where the page
+  was opened from, or to More when opened straight. The floating title
+  is the page's short name (its document title), never its heading.
+- **Rows in a box** (More, Liked, home's recent searches, the family):
+  a row that acts is the box's full width, its hover and pressed shades
+  filling it to the rounded corners; hairlines start where the words do. Members manage the offline copy at `/offline`;
   visitors see what the device keeps and, while definitions are for
   members, a sign-in.
 - **Liked (`/liked`, `app/reader/liked.js`) is the member's own ratings:**

@@ -1,9 +1,9 @@
 // @ts-check
 /**
  * The person button of the classic header (1180px and up, index.html):
- * a click opens the You page (reader/you.js) in a panel under the button,
+ * a click opens the More page (reader/more.js) in a panel under the button,
  * as the website's person menu always did; under 1180px the button is not
- * shown and You is a tab. The button stays a link to /you for when scripts
+ * shown and More is a tab. The button stays a link to /more for when scripts
  * do not run. Esc, a click outside or following a link closes the panel;
  * focus returns to the button.
  */
@@ -12,7 +12,7 @@ import { t } from '../i18n/index.js';
 
 /** @param {HTMLAnchorElement} you */
 export function initMenu(you) {
-	const panel = h('div', { class: 'you-menu', id: 'you-menu', role: 'dialog', 'aria-label': t('You'), hidden: true });
+	const panel = h('div', { class: 'you-menu', id: 'you-menu', role: 'dialog', 'aria-label': t('More'), hidden: true });
 	you.setAttribute('aria-haspopup', 'dialog');
 	you.setAttribute('aria-controls', 'you-menu');
 	you.setAttribute('aria-expanded', 'false');
@@ -30,7 +30,7 @@ export function initMenu(you) {
 		you.setAttribute('aria-expanded', 'true');
 		place(panel, you);
 		panel.replaceChildren(h('p', { class: 'you-loading' }, t('Loading…')));
-		const page = await import('../reader/you.js');
+		const page = await import('../reader/more.js');
 		const back = location.pathname + location.search;
 		panel.replaceChildren(await page.view({ query: new URLSearchParams({ return: back }) }));
 		place(panel, you);

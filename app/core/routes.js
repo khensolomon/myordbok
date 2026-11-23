@@ -44,10 +44,17 @@ export const ROUTES = Object.freeze([
 	{ name: 'contact', path: '/contact', load: () => import('../reader/contact.js'), offline: true },
 	{ name: 'account', path: '/account', load: () => import('../reader/account.js') },
 	{ name: 'liked', path: '/liked', load: () => import('../reader/liked.js') },
-	{ name: 'you', path: '/you', load: () => import('../reader/you.js'), offline: true },
+	{ name: 'more', path: '/more', load: () => import('../reader/more.js'), offline: true },
 	{ name: 'link', path: '/link', load: () => import('../reader/link.js') },
 	{ name: 'workspace', path: '/workspace', load: () => import('../workspace/index.js') },
 ]);
+
+/**
+ * Addresses that moved: the router replaces the old with the new before
+ * matching, keeping the query (?return=…), so old links still land.
+ * @type {Readonly<Record<string, string>>}
+ */
+export const MOVED = Object.freeze({ '/you': '/more' });
 
 /**
  * @param {string} pathname

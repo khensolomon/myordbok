@@ -31,8 +31,12 @@ if (!search) throw new Error('index.html is missing <mo-search id="search">');
 const logo = document.querySelector('.bar-logo');
 if (!(logo instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-logo">');
 
-/** The tab each page belongs to: the definition and grammar pages to Home, the rest to You. */
+/** The tab each page belongs to: the definition and grammar pages to Home, the rest to More. */
 const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'home', definition: 'home', grammar: 'home', fonts: 'home', liked: 'liked', practice: 'practice' });
+/** Pages the navigation leads to at every width: no Back of their own (the definition has its own in the bar). */
+const TOP_PAGES = new Set(['home', 'definition', 'liked', 'practice', 'more', 'workspace']);
+/** Pages the sidebar (1024px to 1179px) lists besides the tabs: Back only under 1024px. */
+const SIDEBAR_PAGES = new Set(['grammar', 'fonts', 'support']);
 const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
 const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a, .site-nav a'));
@@ -45,7 +49,11 @@ const router = startRouter(outlet, (route) => {
 	logo.setAttribute('aria-label', route?.name === 'home' ? t('How to search') : t('MyOrdbok home'));
 	// The bar shows the word being looked up, and is empty elsewhere.
 	search.setValue(route?.name === 'definition' ? (new URL(location.href).searchParams.get('q') ?? '') : '');
-	const tab = route ? (TAB_OF[route.name] ?? 'you') : null;
+	const tab = route ? (TAB_OF[route.name] ?? 'more') : null;
+	// Back on a page the navigation shown does not lead to (app.css, .page-back).
+	const name = route?.name ?? '';
+	if (!route || TOP_PAGES.has(name)) delete document.body.dataset.back;
+	else document.body.dataset.back = SIDEBAR_PAGES.has(name) ? 'phone' : 'all';
 	for (const link of tabs) {
 		// The tab of the page shown; its own page is the one "current".
 		link.toggleAttribute('data-on', link.dataset.tab === tab);
@@ -85,6 +93,41 @@ back.addEventListener('click', (e) => {
 	history.go(-depth);
 });
 
+// Back on the other pages (data-back): where the page was opened from, as
+// the browser's own back does; opened straight, its link: More, which
+// lists them.
+const pageBack = document.querySelector('.page-back');
+if (!(pageBack instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="page-back">');
+pageBack.addEventListener('click', (e) => {
+	if (!history.state?.from) return;
+	e.preventDefault();
+	history.back();
+});
+
+// The sidebar folds to its icons, and stays so on this device.
+const fold = document.querySelector('.app-fold');
+if (!(fold instanceof HTMLButtonElement)) throw new Error('index.html is missing <button class="app-fold">');
+/** @param {boolean} folded */
+const setFolded = (folded) => {
+	document.documentElement.toggleAttribute('data-folded', folded);
+	fold.setAttribute('aria-expanded', String(!folded));
+	fold.setAttribute('aria-label', folded ? t('Show the sidebar') : t('Hide the sidebar'));
+};
+try {
+	setFolded(localStorage.getItem('mo:sidebar') === 'folded');
+} catch {
+	setFolded(false);
+}
+fold.addEventListener('click', () => {
+	const folded = !document.documentElement.hasAttribute('data-folded');
+	setFolded(folded);
+	try {
+		localStorage.setItem('mo:sidebar', folded ? 'folded' : 'open');
+	} catch {
+		// Not kept on this device (private window): folded for this visit only.
+	}
+});
+
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));
 
@@ -99,25 +142,26 @@ const markScrolled = () => {
 document.addEventListener('scroll', markScrolled, { passive: true, capture: true });
 window.addEventListener('mo:navigated', markScrolled);
 
-// The title bar (under 1024px, app.css): home's logo, or the page's own heading.
+// The title bar (under 1024px, app.css): home's logo, or the page's name,
+// short (About, not the page's heading "A comprehensive online…").
 const titleBar = document.querySelector('.title-bar > span');
 if (!(titleBar instanceof HTMLElement)) throw new Error('index.html is missing <div class="title-bar"><span>');
 const titleLogo = titleBar.innerHTML;
 window.addEventListener('mo:navigated', () => {
-	const heading = outlet.querySelector('h1');
-	if (document.body.dataset.route === 'home' || !heading) titleBar.innerHTML = titleLogo;
-	else titleBar.textContent = heading.textContent;
+	const name = document.title.replace(/ · MyOrdbok$/, '');
+	if (document.body.dataset.route === 'home' || name === document.title) titleBar.innerHTML = titleLogo;
+	else titleBar.textContent = name;
 });
 markScrolled();
 
 initConsent();
 boot();
 
-// The You tab, and the classic header's person button (1180px and up,
-// which opens the You page in a panel: menu.js), show the member's picture
+// The More tab, and the classic header's person button (1180px and up,
+// which opens the More page in a panel: menu.js), show the member's picture
 // once signed in.
 const yous = /** @type {HTMLAnchorElement[]} */ ([...document.querySelectorAll('.app-nav .you, .site-header .you')]);
-if (yous.length !== 2 || yous.some((y) => !y.querySelector('.you-face-slot'))) throw new Error('index.html is missing the You tab or the header\'s person button, each with its .you-face-slot');
+if (yous.length !== 2 || yous.some((y) => !y.querySelector('.you-face-slot'))) throw new Error('index.html is missing the More tab or the header\'s person button, each with its .you-face-slot');
 const blankFaces = yous.map((y) => /** @type {HTMLElement} */ (y.querySelector('.you-face-slot')).innerHTML);
 initMenu(/** @type {HTMLAnchorElement} */ (document.querySelector('.site-header .you')));
 followTheme();
@@ -126,8 +170,8 @@ document.addEventListener('mo:member', (e) => {
 	const m = /** @type {CustomEvent<import('./core/member.js').Member | null>} */ (e).detail;
 	yous.forEach((you, i) => {
 		const face = /** @type {HTMLElement} */ (you.querySelector('.you-face-slot'));
-		you.setAttribute('aria-label', m ? t('You: {name}', { name: m.name }) : t('You'));
-		you.title = m ? m.name : t('You');
+		you.setAttribute('aria-label', m ? t('More: {name}', { name: m.name }) : t('More'));
+		you.title = m ? m.name : t('More');
 		// Without a picture, or when it fails to load, the name's first letter.
 		const initial = () => {
 			const letter = document.createElement('span');

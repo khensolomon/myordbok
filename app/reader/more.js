@@ -1,11 +1,14 @@
 // @ts-check
 /**
- * /you: everything personal, one tab of the navigation (index.html):
+ * /more: the last tab of the navigation (index.html), and the panel of the
+ * classic header's person button (core/menu.js):
  *
  *   signed out   sign in with Google, GitHub or Apple (back to this page)
  *   signed in    who, the role, the workspace (with what waits there), sign out
- *   this device  the offline copy, theme, interface language, usage statistics
- *   MyOrdbok     grammar, fonts, about, contact, privacy, terms, support
+ *   this device  one box: the offline copy, theme, interface language, usage statistics
+ *   MyOrdbok     the pages the navigation shown does not already list: under
+ *                1024px grammar and support too, from 1024px (sidebar,
+ *                header) about, contact, privacy, terms (app.css, data-nav)
  *
  * The offline copy: word lists arrive by themselves (app/data/offline.js);
  * the definitions are a member's to manage at /offline. A visitor sees what
@@ -27,7 +30,7 @@ import { MYANMAR_OPEN, getLang, num, setLang, t } from '../i18n/index.js';
 const DEFINITION_PACKS = ['senses-en', 'senses-my', 'related-en'];
 
 export function title() {
-	return t('You');
+	return t('More');
 }
 
 /** @param {import('../core/routes.js').ViewContext} ctx */
@@ -35,26 +38,25 @@ export async function view(ctx) {
 	const me = await member().catch(() => null);
 	// Sent here to sign in (rating a meaning): back there afterwards.
 	const asked = ctx.query.get('return');
-	const back = asked && /^\/(?!\/)[^\\\s]*$/.test(asked) && !asked.startsWith('/api/') ? asked : '/you';
+	const back = asked && /^\/(?!\/)[^\\\s]*$/.test(asked) && !asked.startsWith('/api/') ? asked : '/more';
 	return h(
 		'section',
 		{ class: 'page you-page' },
-		h('h1', { class: 'large-title' }, t('You')),
+		h('h1', { class: 'large-title' }, t('More')),
 		me ? account(me) : signIn(back),
 		h('h2', { class: 'you-section' }, t('This device')),
-		await offlineRow(me),
-		h('div', { class: 'you-group' }, themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
+		h('div', { class: 'you-group you-device' }, ...(await offlineRows(me)), themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
 		h('h2', { class: 'you-section' }, 'MyOrdbok'),
 		h(
 			'nav',
 			{ class: 'you-group you-links', 'aria-label': 'MyOrdbok' },
-			link('/grammar', ICONS.grammar, t('Grammar')),
-			link('/myanmar-fonts', ICONS.document, t('Myanmar fonts')),
+			// Listed by the sidebar and the header already: shown under 1024px only (app.css).
+			h('a', { href: '/grammar', 'data-in-nav': '' }, icon(ICONS.grammar, 18), h('span', null, t('Grammar')), icon(ICONS.chevron, 14)),
 			link('/about', ICONS.info, t('About')),
 			link('/contact', ICONS.inbox, t('Contact')),
 			link('/privacy', ICONS.document, t('Privacy')),
 			link('/terms', ICONS.document, t('Terms of Use')),
-			h('a', { href: '/support', 'data-store-hidden': '' }, icon(ICONS.like, 18), h('span', null, t('Support MyOrdbok')), icon(ICONS.chevron, 14)),
+			h('a', { href: '/support', 'data-store-hidden': '', 'data-in-nav': '' }, icon(ICONS.like, 18), h('span', null, t('Support MyOrdbok')), icon(ICONS.chevron, 14)),
 		),
 		h('p', { class: 'you-copy' }, '© MyOrdbok'),
 	);
@@ -117,7 +119,7 @@ function signOutButton() {
 		b.disabled = true;
 		try {
 			await signOut();
-			location.assign('/you');
+			location.assign('/more');
 		} catch (err) {
 			b.disabled = false;
 			b.title = err instanceof Error ? err.message : String(err);
@@ -187,21 +189,23 @@ function statsRow() {
 }
 
 /**
- * What this device keeps, and the way to keep more.
+ * What this device keeps, and the way to keep more: the first rows of the
+ * device's box, the button under the status.
  * @param {Member | null} me
+ * @returns {Promise<Node[]>}
  */
-async function offlineRow(me) {
+async function offlineRows(me) {
 	const have = await installed().catch(() => []);
 	const words = have.some((p) => p.id.startsWith('words-'));
 	const defs = have.filter((p) => DEFINITION_PACKS.includes(p.id));
 	const status = defs.length ? t('Definitions kept on this device') : words ? t('Word lists kept on this device') : t('Nothing kept on this device yet');
-	const row = h('div', { class: 'you-group you-offline' }, h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, icon(ICONS.download, 16), t('Offline')), h('span', { class: 'you-status' }, status)));
+	const row = h('div', { class: 'you-offline' }, h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, icon(ICONS.download, 16), t('Offline')), h('span', { class: 'you-status' }, status)));
 	if (me) {
 		row.append(h('a', { class: 'you-action', href: '/offline' }, defs.length ? t('Manage the offline copy') : t('Keep the definitions offline')));
-		return row;
+		return [row];
 	}
 	const info = await packsInfo().catch(() => null);
-	if (!info) return row;
+	if (!info) return [row];
 	const packs = info.packs.filter((p) => DEFINITION_PACKS.includes(p.id));
 	const size = packs.reduce((a, p) => a + p.bytes, 0);
 	if (info.access === 'members') {
@@ -209,7 +213,7 @@ async function offlineRow(me) {
 			h('p', { class: 'you-note' }, t('Members can keep every definition on the device, {size}, and look words up without a connection.', { size: megabytes(size) })),
 			h('p', { class: 'you-note' }, t('Sign in above to download.')),
 		);
-		return row;
+		return [row];
 	}
 	// Open to everyone: one button keeps them all; a visitor's copy is removed the same way.
 	const current = defs.length === packs.length && defs.every((d) => d.build === info.build);
@@ -247,7 +251,7 @@ async function offlineRow(me) {
 		}
 	});
 	row.append(act, bar);
-	return row;
+	return [row];
 }
 
 /** @param {number} bytes */

@@ -59,7 +59,7 @@ function open(path) {
 
 /** To signing in, and back to this page afterwards. */
 function signIn() {
-	open(`/you?return=${encodeURIComponent(location.pathname + location.search)}`);
+	open(`/more?return=${encodeURIComponent(location.pathname + location.search)}`);
 }
 
 /**

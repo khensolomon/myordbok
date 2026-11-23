@@ -16,7 +16,9 @@
 	--tabs-room: calc(84px + max(10px, var(--safe-b) - 12px));
 }
 @media (min-width: 1024px) and (max-width: 1179px) {
-	:root { --nav-room: 256px; --tabs-room: 0px; }
+	:root { --nav-room: 248px; --tabs-room: 0px; }
+	/* Folded to its icons (main.js). */
+	:root[data-folded] { --nav-room: 72px; }
 }
 /* From 1180px (an iPad on its side, a desktop): the classic website, a
    header across the top and the logo beside the search field. */
@@ -76,9 +78,9 @@ body { padding-left: var(--nav-room); padding-bottom: var(--tabs-room); }
 /* ---------------------------------------------------------- navigation */
 
 /* One <nav class="app-nav"> (index.html), laid out by width. Under 1024px:
-   a floating tab bar of four icons at the bottom. From 1024px: a glass
-   sidebar down the left, with words, the name above and more links below.
-   The tab of the page shown is marked data-on (main.js). */
+   a floating tab bar of four icons at the bottom. From 1024px to 1179px: a
+   sidebar down the left, the name above and more links below, which folds
+   to its icons. The tab of the page shown is marked data-on (main.js). */
 .app-nav {
 	position: fixed; z-index: 20;
 	background: var(--liquid);
@@ -91,8 +93,7 @@ body { padding-left: var(--nav-room); padding-bottom: var(--tabs-room); }
 .app-tab:hover { text-decoration: none; color: var(--ink); }
 .app-tab[data-on] { color: var(--brand); background: var(--tab-on); }
 .app-tab .icon { stroke-width: 1.6; }
-.app-brand { display: none; }
-.app-more { display: none; }
+.app-nav-head, .app-more { display: none; }
 body[data-route="workspace"] .app-nav { display: none; }
 body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 
@@ -117,31 +118,55 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 	.app-nav { display: none; }
 }
 
+/* The sidebar, as a tablet's own: the full height of the window, a shade
+   darker than the page and under it, the page's edge a hairline casting a
+   soft shadow onto it; no box of its own. The tab of the page shown is
+   tinted. Folded (the button beside the name), the icons alone. */
 @media (min-width: 1024px) and (max-width: 1179px) {
 	.app-nav {
-		left: 12px; top: 12px; bottom: 12px; width: 220px;
-		padding: 22px 12px 18px; border-radius: 26px;
-		display: flex; flex-direction: column; gap: 4px;
-		overflow-y: auto; scrollbar-width: none;
+		left: 0; top: 0; bottom: 0; width: var(--nav-room);
+		padding: calc(var(--safe-t) + 14px) 12px 18px calc(var(--safe-l, 0px) + 12px);
+		border: none; border-right: 0.5px solid var(--line); border-radius: 0;
+		background: var(--sidebar); box-shadow: var(--sidebar-shade);
+		-webkit-backdrop-filter: none; backdrop-filter: none;
+		display: flex; flex-direction: column; gap: 2px;
+		overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+		transition: width 0.22s ease;
 	}
-	.app-brand { display: flex; align-items: center; padding: 2px 10px 18px; text-decoration: none; }
-	.app-brand img { display: block; width: 168px; max-width: 100%; height: auto; }
-	:root[data-theme="dark"] .app-brand img { filter: brightness(0) invert(1); }
+	.app-nav-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 40px; margin-bottom: 14px; padding-left: 8px; }
+	.app-brand { display: flex; align-items: center; min-width: 0; text-decoration: none; }
+	.app-brand .logo-full { display: block; width: 148px; height: auto; }
+	.app-brand .logo-mark { display: none; width: 30px; height: 30px; }
+	:root[data-theme="dark"] .app-brand .logo-full { filter: brightness(0) invert(1); }
 	.app-brand:hover { color: var(--ink); text-decoration: none; }
-	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); }
-	.app-tab .icon { color: var(--brand); }
+	.app-fold { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border: none; border-radius: 10px; background: none; color: var(--brand); cursor: pointer; }
+	.app-fold:hover { background: var(--nav-hover); }
+	.app-fold .icon { stroke-width: 1.6; }
+	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+	.app-tab .icon { color: var(--brand); flex: none; }
 	.app-tab:hover { background: var(--nav-hover); }
-	.app-tab[data-on] { background: var(--brand); color: #fff; }
-	.app-tab[data-on] .icon { color: #fff; }
-	.app-tab[data-on] .you-initial { background: rgb(255 255 255 / 0.25); color: #fff; }
-	.app-more { display: flex; flex-direction: column; margin-top: 18px; }
+	.app-tab:active { background: var(--row-press); }
+	.app-tab[data-on] { background: color-mix(in srgb, var(--brand) 15%, transparent); color: var(--brand); font-weight: 600; }
+	.app-more { display: flex; flex-direction: column; margin-top: 22px; }
 	.app-more-title { margin: 0 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 	.app-more-title:lang(my) { text-transform: none; letter-spacing: 0; }
-	.app-more a { display: flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; }
+	.app-more a { display: flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; white-space: nowrap; }
 	.app-more a:hover { background: var(--nav-hover); color: var(--ink); }
-	.app-more a[aria-current="page"] { color: var(--ink); background: var(--nav-current); }
+	.app-more a[aria-current="page"] { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
 	.app-more .app-support::before { content: "♥"; margin-right: 8px; color: var(--heart); }
+	/* Folded: the mark over the button, the icons under them. */
+	:root[data-folded] .app-nav { padding-left: 12px; padding-right: 12px; }
+	:root[data-folded] .app-nav-head { flex-direction: column; gap: 10px; padding-left: 0; }
+	:root[data-folded] .app-brand .logo-full, :root[data-folded] .app-more { display: none; }
+	:root[data-folded] .app-brand .logo-mark { display: block; }
+	:root[data-folded] .app-tab { justify-content: center; padding: 0; }
+	:root[data-folded] .app-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+	/* The name is in the sidebar: home opens with the search, not the name again. */
+	body[data-route="home"] .search-bar .bar-logo { display: none; }
+	body[data-route="home"] .search-bar { padding-top: 7vh; }
+	body[data-route="home"] .home-pair { margin-top: 0; font-size: 17px; font-weight: 600; color: var(--ink-2); }
 }
+@media (min-width: 1024px) and (max-width: 1179px) and (prefers-reduced-motion: reduce) { .app-nav { transition: none; } }
 
 /* The You tab: the member's picture, with the connection dot
    (app/core/online.js): green online, grey offline. */
@@ -179,12 +204,15 @@ html:not([data-online]) :is(.you-face-slot, .ws-rail > .ws-rail-face, .ws-menu-b
 .site-nav .nav-support .icon { width: 15px; height: 15px; color: var(--heart); }
 .site-header .you {
 	margin-left: auto; position: relative;
-	width: 36px; height: 36px; padding: 2px;
+	height: 36px; padding: 2px 8px 2px 4px; gap: 3px;
 	display: flex; align-items: center; justify-content: center;
 	border: 1px solid color-mix(in srgb, var(--line) 60%, var(--muted)); border-radius: 999px;
 	background: var(--chrome); box-shadow: var(--chrome-shadow); color: var(--muted);
 }
 .site-header .you:hover { text-decoration: none; color: var(--ink); }
+/* The caret: the button opens a panel. Turned while it is open. */
+.you-caret { stroke-width: 2; color: var(--muted); transition: transform 0.2s; }
+.site-header .you[aria-expanded="true"] .you-caret { transform: rotate(180deg); }
 /* The panel: the You page, compact, under the button. */
 .you-menu {
 	position: fixed; z-index: 900; max-height: calc(100vh - 80px); overflow-y: auto;
@@ -199,7 +227,9 @@ html:not([data-online]) :is(.you-face-slot, .ws-rail > .ws-rail-face, .ws-menu-b
 .you-menu .you-section { margin: 16px 2px 6px; font-size: 12px; }
 .you-menu :is(.you-group, .you-head, .you-links) { background: var(--surface); }
 .you-menu .you-head { margin-top: 12px; }
-.you-menu .you-links a, .you-menu .you-group > * { min-height: 42px; }
+.you-menu :is(.you-links a, .you-row) { min-height: 42px; }
+/* The sidebar's width and up: the pages the navigation lists are not listed again. */
+@media (min-width: 1024px) { .you-links [data-in-nav] { display: none; } }
 .you-menu .you-copy { display: none; }
 
 /* ---------------------------------------------------------- pages without the search bar */
@@ -223,10 +253,22 @@ body:not([data-route="home"]):not([data-route="definition"]):not([data-route="wo
 .you-page, .liked, .offline-page { max-width: 640px; }
 .you-section { margin: 26px 4px 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .you-section:lang(my) { text-transform: none; letter-spacing: 0; }
-.you-group, .you-head, .liked-list { display: grid; margin: 0; padding: 4px 16px; border-radius: 14px; background: var(--surface); list-style: none; }
-.you-group > *, .liked-list > li { min-height: 50px; }
-.you-group > * + *, .liked-list > li + li { border-top: 0.5px solid var(--line); }
+/* A box of rows. A row that acts (a link, a button) is the full width of
+   the box, so what shows it hovered or pressed fills it edge to edge, to
+   the box's rounded corners at the first and the last; the row's own
+   padding keeps its words in from the edge. The hairlines between rows
+   start where the words start, as a phone's own lists. */
+.you-group, .you-head, .liked-list { display: grid; margin: 0; padding: 0; border-radius: 14px; background: var(--surface); list-style: none; overflow: hidden; }
+.you-group > *, .liked-list > li { position: relative; min-height: 50px; }
+.you-group > * + *::before, .liked-list > li + li::before { content: ""; position: absolute; z-index: 1; top: 0; left: 16px; right: 0; border-top: 0.5px solid var(--line); pointer-events: none; }
+.you-links > a + a::before { left: 46px; }
 .you-head { padding: 16px; gap: 0; }
+/* What a row that acts shows: a shade while hovered (a mouse), a deeper one while pressed. */
+:is(.you-links a, .liked-list a, .home-recent .home-chips a, .family-item, .you-workspace) { transition: background-color 0.15s; }
+@media (hover: hover) {
+	:is(.you-links a, .liked-list a, .home-recent .home-chips a, .family-item):hover { background: var(--row-hover); }
+}
+:is(.you-links a, .liked-list a, .home-recent .home-chips a, .family-item):active { background: var(--row-press); transition: none; }
 .you-head strong { font-size: 17px; }
 .you-head p { margin: 4px 0 14px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .you-providers { display: grid; gap: 8px; }
@@ -253,7 +295,7 @@ body:not([data-route="home"]):not([data-route="definition"]):not([data-route="wo
 .you-workspace:hover { color: var(--ground); opacity: 0.92; text-decoration: none; }
 .you-badge { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
 .you-badge[hidden] { display: none; }
-.you-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+.you-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; padding: 8px 16px; }
 .you-label { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }
 .you-hint { font-size: 13px; margin-left: 4px; }
 .you-choices { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--glass-fill); }
@@ -265,11 +307,13 @@ body:not([data-route="home"]):not([data-route="definition"]):not([data-route="wo
 .you-switch[aria-checked="true"] { background: var(--brand); }
 .you-switch[aria-checked="true"]::after { transform: translateX(18px); }
 .you-status { font-size: 14px; color: var(--muted); text-align: right; }
-.you-note { margin: 0; padding: 4px 0 10px; font-size: 14px; color: var(--ink-2); line-height: 1.5; min-height: 0 !important; border-top: none !important; }
-.you-action { display: block; width: 100%; margin: 4px 0 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: 600 15px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; border-top: 1px solid var(--line) !important; min-height: 0 !important; }
+/* The offline copy: its status row, then what to do about it, inside the row's padding. */
+.you-note { margin: 0; padding: 0 16px 10px; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+.you-action { display: block; width: calc(100% - 32px); margin: 2px 16px 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: 600 15px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; }
 .you-action:hover { border-color: var(--ink-2); color: var(--ink); text-decoration: none; }
-.you-offline progress { width: 100%; height: 6px; margin-bottom: 10px; accent-color: var(--brand); }
-.you-links a, .liked-list a { display: flex; align-items: center; gap: 12px; min-height: 50px; color: var(--ink); text-decoration: none; }
+.you-action:active { background: var(--row-press); }
+.you-offline progress { display: block; width: calc(100% - 32px); height: 6px; margin: 0 16px 12px; accent-color: var(--brand); }
+.you-links a, .liked-list a { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 0 14px 0 16px; color: var(--ink); text-decoration: none; }
 .you-links a:hover, .liked-list a:hover { text-decoration: none; color: var(--ink); }
 .you-links a > .icon:first-child { color: var(--brand); }
 .you-links a > span { flex: 1; min-width: 0; }
@@ -280,8 +324,7 @@ body:not([data-route="home"]):not([data-route="definition"]):not([data-route="wo
 .liked-lead, .liked-empty, .liked-more { color: var(--ink-2); }
 /* A row: the word, large, with Updated beside it; what was rated under it,
    up to two lines; the chevron at the end. */
-.liked-list { padding: 0 0 0 16px; }
-.liked-list a { padding: 12px 14px 12px 0; gap: 10px; }
+.liked-list a { padding: 12px 14px 12px 16px; gap: 10px; }
 .liked-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .liked-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .liked-word { font-size: 18px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
@@ -1158,6 +1201,31 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 /* The word's family: each part of speech, small and quiet, before its words. */
 .family-pos { font-style: italic; font-size: 0.82em; color: var(--muted); }
 
+/* Back on a page the navigation shown does not lead to (main.js,
+   data-back): a glass button at the top left, level with the title bar;
+   the page's large title starts below it. Under 1024px for every such
+   page, and while the sidebar shows (1024px to 1179px) for those it does
+   not list (data-back="all"). */
+.page-back {
+	display: none; position: fixed; z-index: 6;
+	top: calc(var(--safe-t) + 6px); left: calc(var(--nav-room) + var(--edge-l) - 4px);
+	width: 40px; height: 40px; align-items: center; justify-content: center;
+	border-radius: 999px; color: var(--ink);
+	background: var(--liquid); -webkit-backdrop-filter: var(--liquid-blur); backdrop-filter: var(--liquid-blur);
+	border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
+}
+.page-back:hover { text-decoration: none; color: var(--ink); }
+.page-back .icon { stroke-width: 2; }
+@media (max-width: 1179px) {
+	body[data-back="all"] .page-back { display: inline-flex; }
+	body[data-back="all"]:not([data-route="home"]):not([data-route="definition"]):not([data-route="workspace"]) main#view { padding-top: calc(var(--safe-t) + 62px); }
+}
+@media (max-width: 1023px) {
+	body[data-back="phone"] .page-back { display: inline-flex; }
+	body[data-back="phone"]:not([data-route="home"]):not([data-route="definition"]):not([data-route="workspace"]) main#view { padding-top: calc(var(--safe-t) + 62px); }
+}
+@media (pointer: coarse) { .page-back { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); } }
+
 /* Home under 1024px, as the approved mockup: a large title over the search
    field on a grey ground, then grouped sections: the word of the day and
    the daily round as cards, recent searches as rows (touched and held on a
@@ -1165,29 +1233,32 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
    title, the name moves into a small glass bar at the top. */
 .home-title, .title-bar { display: none; }
 @media (max-width: 1023px) {
-	body:is([data-route="home"], [data-route="liked"], [data-route="you"], [data-route="offline"]) { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
+	body:is([data-route="home"], [data-route="liked"], [data-route="more"], [data-route="offline"]) { --ground: var(--grouped); --scrim: var(--grouped-scrim); background: var(--grouped); }
 	:is(.you-page, .liked) :is(.you-group, .you-head, .liked-list) { background: var(--group); }
 	body[data-route="home"] .search-bar { padding-top: calc(var(--safe-t) + 14px); }
 	body[data-route="home"] .search-bar-inner { align-items: stretch; max-width: calc(680px + var(--edge-l) + var(--edge-r)); }
 	body[data-route="home"] .bar-logo { display: none; }
 	body[data-route="home"] .home-title { display: block; margin: 8px 4px 6px; line-height: 0; }
-	.home-title img { display: block; width: min(220px, 58vw); height: auto; }
-	body[data-route="home"] .home-pair { margin: 0 4px 14px; text-align: left; }
+	.home-title img { display: block; width: min(220px, 58vw); height: auto; margin-inline: auto; }
+	body[data-route="home"] .home-pair { margin: 0 4px 14px; text-align: center; }
 	body[data-route="home"] mo-search { margin-top: 0; }
 	body[data-route="home"][data-searching] .home-title { display: none; }
 	body:not([data-route="definition"]):not([data-route="workspace"]) .title-bar {
 		display: flex; justify-content: center; position: fixed; z-index: 5; left: var(--nav-room); right: 0; top: 0;
-		padding: calc(var(--safe-t) + 8px) 0 18px;
-		background: linear-gradient(to bottom, var(--ground) 62%, transparent);
+		padding: calc(var(--safe-t) + 8px) 0 22px;
+		/* Light, as glass: the page shows faintly through the top and fades out under the title. */
+		background: linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent), color-mix(in srgb, var(--ground) 72%, transparent) 60%, transparent);
 		opacity: 0; pointer-events: none; transition: opacity 0.2s;
 	}
 	body[data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
 	.title-bar span {
-		display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px;
+		display: block; max-width: calc(100% - 128px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+		height: 36px; line-height: 36px; padding: 0 16px; border-radius: 999px;
 		font: 600 17px var(--font-ui); color: var(--ink);
 		background: var(--liquid); border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
+		-webkit-backdrop-filter: var(--liquid-blur); backdrop-filter: var(--liquid-blur);
 	}
-	.title-bar img { display: block; width: 108px; height: auto; }
+	.title-bar img { display: block; width: 108px; height: auto; margin-top: 9px; }
 	/* The logo is drawn dark: white in the dark theme, as the search bar's. */
 	:root[data-theme="dark"] :is(.home-title, .title-bar) img { filter: brightness(0) invert(1); }
 	.home { max-width: 680px; margin: 22px auto 0; gap: 0; }
@@ -1270,7 +1341,7 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	.related-words { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; background: var(--group); border-radius: 12px; font-size: 0; }
 	.related-words a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--glass-fill); font-size: 16px; text-decoration: none; }
 	/* The family: a row per word, its part of speech at the end, as a list one taps through. */
-	.related-family .related-words { display: block; padding: 0; }
+	.related-family .related-words { display: block; padding: 0; overflow: hidden; }
 	.related-family .related-words a.family-item { display: flex; gap: 10px; min-height: 48px; padding: 0 14px 0 16px; border-radius: 0; background: none; border-bottom: 0.5px solid var(--line); color: var(--ink); }
 	.related-family .related-words a.family-item:last-child { border-bottom: none; }
 	.family-item .family-pos { margin-left: auto; font-style: normal; font-size: 15px; color: var(--muted); }
@@ -2750,8 +2821,8 @@ html[data-app] :is(.app-nav, button, .app-tab, .bar-back, .segmented, .you-links
 /* A tap answers at once (no wait for a second tap), and what is pressed
    shows it while the finger is down, as rows and buttons do on the phone. */
 html[data-app] { touch-action: manipulation; }
-html[data-app] :is(.you-links a, .liked-list a, .search-list a, .you-row):active { background: var(--glass-fill); }
-html[data-app] :is(button, .app-tab, .bar-back, .home-chips a, .you-action, .ws-provider, .you-provider):active { opacity: 0.6; }
+html[data-app] .search-list a:active { background: var(--row-press); }
+html[data-app] :is(button, .app-tab, .bar-back, .page-back, .home-group:not(.home-recent) .home-chips a, .ws-provider, .you-provider):active { opacity: 0.6; }
 
 /* ---------------------------------------------------------- touch screens: smooth scrolling */
 

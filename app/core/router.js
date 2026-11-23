@@ -4,7 +4,7 @@
  * every route is reachable directly by URL (deep links), online or offline.
  */
 import { h } from './dom.js';
-import { match } from './routes.js';
+import { MOVED, match } from './routes.js';
 import { pageScroll, scrollPageTo } from './scroll.js';
 import { endProgress, startProgress } from './progress.js';
 import { t } from '../i18n/index.js';
@@ -25,6 +25,8 @@ export function startRouter(outlet, onRoute) {
 	 */
 	async function render(how = 'load') {
 		const mine = ++token;
+		const moved = MOVED[location.pathname.replace(/\/+$/, '')];
+		if (moved) history.replaceState(history.state, '', moved + location.search + location.hash);
 		const url = new URL(location.href);
 		const route = match(url.pathname);
 		onRoute?.(route);

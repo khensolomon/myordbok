@@ -69,6 +69,12 @@
 	/* Header links: the page you are on, and the pointer. Barely there. */
 	--nav-current: rgba(118, 128, 142, 0.075);
 	--nav-hover: rgba(118, 128, 142, 0.045);
+	/* A row of a box hovered, and pressed (More, Liked, home's recent searches). */
+	--row-hover: rgba(118, 128, 142, 0.08);
+	--row-press: rgba(118, 128, 142, 0.16);
+	/* The sidebar (1024px to 1179px): a shade under the page, which casts a shadow on it. */
+	--sidebar: #e9edf2;
+	--sidebar-shade: inset -14px 0 16px -14px rgba(23, 32, 43, 0.18);
 	/* No bright top edge and no outline: a surface is set apart by one soft
 	   shadow at most. Kept as names so every surface follows these. */
 	--glass-shine: 0 0 #0000;
@@ -86,7 +92,7 @@
 	--shadow: 0 8px 28px rgba(23, 32, 43, 0.12);
 	/* Liquid glass: the tab bar, the sidebar and the buttons that float over
 	   the page. Clear enough to show what scrolls under, bright at the top edge. */
-	--liquid: rgba(255, 255, 255, 0.62);
+	--liquid: rgba(255, 255, 255, 0.5);
 	--liquid-edge: rgba(255, 255, 255, 0.75);
 	--liquid-shadow: 0 8px 28px rgba(23, 32, 43, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(23, 32, 43, 0.04);
 	--liquid-blur: saturate(190%) blur(22px);
@@ -151,6 +157,10 @@
 	--good: #6fd19c;
 	--nav-current: rgba(150, 165, 185, 0.1);
 	--nav-hover: rgba(150, 165, 185, 0.06);
+	--row-hover: rgba(150, 165, 185, 0.08);
+	--row-press: rgba(150, 165, 185, 0.16);
+	--sidebar: #080b0f;
+	--sidebar-shade: inset -14px 0 16px -14px rgba(0, 0, 0, 0.6);
 	--glass-shine: 0 0 #0000;
 	--glass-lift: 0 2px 10px rgba(0, 0, 0, 0.28);
 	--chrome: rgba(36, 44, 54, 0.72);
@@ -159,7 +169,7 @@
 	--float-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.8);
 	--lift-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.4), 0 14px 36px -6px rgba(0, 0, 0, 0.7);
 	--shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-	--liquid: rgba(30, 38, 48, 0.6);
+	--liquid: rgba(30, 38, 48, 0.5);
 	--liquid-edge: rgba(255, 255, 255, 0.1);
 	--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	--tab-on: rgba(109, 179, 242, 0.18);
@@ -204,6 +214,10 @@
 		--good: #6fd19c;
 		--nav-current: rgba(150, 165, 185, 0.1);
 		--nav-hover: rgba(150, 165, 185, 0.06);
+		--row-hover: rgba(150, 165, 185, 0.08);
+		--row-press: rgba(150, 165, 185, 0.16);
+		--sidebar: #080b0f;
+		--sidebar-shade: inset -14px 0 16px -14px rgba(0, 0, 0, 0.6);
 		--glass-shine: 0 0 #0000;
 		--glass-lift: 0 2px 10px rgba(0, 0, 0, 0.28);
 	--chrome: rgba(36, 44, 54, 0.72);
@@ -212,7 +226,7 @@
 		--float-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.8);
 	--lift-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.4), 0 14px 36px -6px rgba(0, 0, 0, 0.7);
 		--shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-		--liquid: rgba(30, 38, 48, 0.6);
+		--liquid: rgba(30, 38, 48, 0.5);
 		--liquid-edge: rgba(255, 255, 255, 0.1);
 		--liquid-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 		--tab-on: rgba(109, 179, 242, 0.18);

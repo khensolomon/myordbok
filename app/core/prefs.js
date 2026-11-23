@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * The theme: follows the device until changed to light or dark in the
- * You page (reader/you.js). Kept on this device (mo:theme) and set before the
+ * More page (reader/more.js). Kept on this device (mo:theme) and set before the
  * first paint by the line in index.html's <head>.
  */
 

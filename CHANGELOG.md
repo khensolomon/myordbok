@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+186
+
+- More (was You) at /more; Back on pages outside the navigation; native sidebar that folds; full-width row hover and press; centred home logo
+
 ## 26.11.23+185
 
 - Back returns where definitions were opened from; floating titles on tab pages; larger Liked rows
