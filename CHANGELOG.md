@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+188
+
+- Tablet sidebar: drag to fold, counts, workspace, grammar topics, streak; full-width pages beside it; swipe to delete recent searches; steady home logo while pulling
+
 ## 26.11.23+187
 
 - Tablet home keeps its logo; sidebar with recent searches and a ⋯ button for what does not fit; title centred in its capsule; pull to refresh under home's logo, and again in the same touch

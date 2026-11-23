@@ -18,7 +18,7 @@ import { popularWords, siteSwitches } from '../data/api.js';
 import { member } from '../core/member.js';
 import { clearRecent, recentSearches, removeRecent } from '../data/recent.js';
 import { getLang, t } from '../i18n/index.js';
-import { holdMenu } from './hold.js';
+import { swipeRow } from '../core/swipe-row.js';
 import { todaySection } from './today.js';
 
 const MYANMAR = /[က-႟]/;
@@ -115,8 +115,8 @@ function group(title, words, mine) {
 			else box.remove();
 		};
 		remove.addEventListener('click', drop);
-		// On phones the × gives way to the row's own menu, touched and held (hold.js).
-		holdMenu(item, [{ label: t('Remove'), glyph: ICONS.close, run: drop }]);
+		// On a touch screen the × gives way to the row swiped left (swipe-row.js).
+		swipeRow(item, { label: t('Delete'), run: drop });
 		return item;
 	};
 	const clear = mine ? h('button', { type: 'button', class: 'home-clear' }, t('Clear')) : '';

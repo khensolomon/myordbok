@@ -1277,6 +1277,7 @@ export const MY = {
 	'More: {name}': 'နောက်ထပ် − {name}',
 	'Hide the sidebar': 'ဘေးဘားကို ဖျောက်ပါ',
 	'Other pages': 'အခြား စာမျက်နှာများ',
+	"Grammar's topics": 'သဒ္ဒါ ခေါင်းစဉ်များ',
 	'Show the sidebar': 'ဘေးဘားကို ပြပါ',
 	'Liked': 'နှစ်သက်ထားသည်များ',
 	'Words and meanings you rate helpful are kept here. Sign in to rate them.': 'အသုံးဝင်သည်ဟု အဆင့်သတ်မှတ်ထားသော စကားလုံးနှင့် အဓိပ္ပာယ်များကို ဤနေရာတွင် သိမ်းထားပါမည်။ အဆင့်သတ်မှတ်ရန် ဝင်ရောက်ပါ။',

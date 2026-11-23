@@ -192,10 +192,15 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   `app.css`): under 1024px a floating glass tab bar of four icons (Home,
   Liked, Practice, More); from 1024px to 1179px a sidebar under the page
   (a darker shade, the page's edge casting a shadow on it; the logo is
-  Home's) with the four with words, Grammar and Support below, then this
-  device's recent searches as many as fit; what does not fit in its height
-  goes under a ⋯ button at its bottom (`app/core/sidebar.js`). It folds to
-  its icons (kept on the device, `mo:sidebar`), the pages then under ⋯; from
+  Home's; `app/core/sidebar.js`): the four tabs with what waits in them
+  (Practice: words due today), Workspace for members with its count, Learn
+  with Grammar opening to its topics (`mo:sidebar-grammar`) and Support,
+  and the practice streak at its foot. It folds to its icons by its button
+  (top right) or dragged sideways (pointer events on a `touch-action:
+  pan-y` sidebar; the mouse by its edge), settling by position and speed;
+  kept on the device (`mo:sidebar`); folded, its pages are under ⋯. The
+  page beside it takes the full width. Under 1024px the tab bar shows
+  Practice's count, and a dot on More for the workspace; from
   1180px (an iPad on its side, a desktop) the classic website: text links
   across the top, the person button (with a caret) opening the More page in a panel
   (`app/core/menu.js`), the logo beside the search field, the footer. The website
@@ -251,6 +256,12 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   left (`.page-back`, `data-back` set by `main.js`), back where the page
   was opened from, or to More when opened straight. The floating title
   is the page's short name (its document title), never its heading.
+- **Rows swiped** (`app/core/swipe-row.js`, touch screens under 1024px):
+  home's recent searches swipe left to Delete, or all the way across to
+  delete at once; the row is `touch-action: pan-y`, so vertical scrolling
+  stays the browser's. Pull to refresh on Home turns its spinner in a
+  place of its own under the language line (`.pull-slot`); nothing is
+  moved against the bounce.
 - **Rows in a box** (More, Liked, home's recent searches, the family):
   a row that acts is the box's full width, its hover and pressed shades
   filling it to the rounded corners; hairlines start where the words do. Members manage the offline copy at `/offline`;

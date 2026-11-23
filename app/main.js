@@ -40,7 +40,7 @@ const TOP_PAGES = new Set(['home', 'definition', 'liked', 'practice', 'more', 'w
 const SIDEBAR_PAGES = new Set(['grammar', 'support']);
 const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
-const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a, .site-nav a'));
+const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a, .app-workspace, .site-nav a'));
 
 const router = startRouter(outlet, (route) => {
 	// Home shows the search bar as its centrepiece and no footer.
@@ -105,34 +105,11 @@ pageBack.addEventListener('click', (e) => {
 	history.back();
 });
 
-// The sidebar's recent searches and ⋯ button, fitted to its height.
+// The sidebar (1024px to 1179px): its folding, by its button or dragged,
+// what waits in its tabs, grammar's topics, the streak at its foot.
 const appNav = document.querySelector('.app-nav');
 if (!(appNav instanceof HTMLElement)) throw new Error('index.html is missing <nav class="app-nav">');
 initSidebar(appNav);
-
-// The sidebar folds to its icons, and stays so on this device.
-const fold = document.querySelector('.app-fold');
-if (!(fold instanceof HTMLButtonElement)) throw new Error('index.html is missing <button class="app-fold">');
-/** @param {boolean} folded */
-const setFolded = (folded) => {
-	document.documentElement.toggleAttribute('data-folded', folded);
-	fold.setAttribute('aria-expanded', String(!folded));
-	fold.setAttribute('aria-label', folded ? t('Show the sidebar') : t('Hide the sidebar'));
-};
-try {
-	setFolded(localStorage.getItem('mo:sidebar') === 'folded');
-} catch {
-	setFolded(false);
-}
-fold.addEventListener('click', () => {
-	const folded = !document.documentElement.hasAttribute('data-folded');
-	setFolded(folded);
-	try {
-		localStorage.setItem('mo:sidebar', folded ? 'folded' : 'open');
-	} catch {
-		// Not kept on this device (private window): folded for this visit only.
-	}
-});
 
 // What was typed is read before it goes anywhere: "what is love" opens love.
 search.addEventListener('mo-search', (e) => router.go(hrefFor(/** @type {CustomEvent<string>} */ (e).detail)));

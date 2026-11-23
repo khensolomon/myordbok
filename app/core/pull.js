@@ -12,9 +12,10 @@
  * never hold the scroll. A pull let back up and pulled again with the same
  * finger shows the spinner again.
  *
- * On Home (under 1024px) the gap opens between the logo and the search
- * box: the logo and the language line stay where they are while the rest
- * comes down, and the spinner turns between them.
+ * On Home (under 1024px) the spinner has a place of its own between the
+ * language line and the search box (index.html, .pull-slot): the page
+ * comes down whole, as anywhere, and the spinner appears in its place. No
+ * part of the page is moved against the bounce, so nothing trembles.
  */
 import { pageScroll } from './scroll.js';
 
@@ -46,18 +47,11 @@ export function pullToRefresh(refresh) {
 	const page = () => /** @type {HTMLElement} */ (document.getElementById('view'));
 	/** Whether the page bounces by itself (iOS): then the gap is its own. */
 	const bounces = () => document.documentElement.dataset.app === 'ios';
-	/** Home's logo and language line, which stay put while the gap opens under them. */
-	const pinned = () => /** @type {HTMLElement[]} */ ([...document.querySelectorAll('.search-bar .home-title, .search-bar .home-pair')]);
-	/** What comes down when the page does not bounce: the page, and on Home the search box too. */
-	const moved = () => /** @type {HTMLElement[]} */ ([page(), ...(atHome() ? [...document.querySelectorAll('.search-bar mo-search')] : [])]);
 	const atHome = () => document.body.dataset.route === 'home' && window.matchMedia('(max-width: 1023px)').matches;
-	/** Keeps the logo where it is while the page bounces down past the top. */
-	const pin = () => {
-		if (!atHome() || !bounces()) return;
-		const y = pageScroll();
-		for (const el of pinned()) el.style.transform = y < 0 ? `translateY(${y}px)` : '';
-	};
-	document.addEventListener('scroll', pin, { capture: true, passive: true });
+	/** What comes down when the page does not bounce: the page, and on Home the logo and search box with it. */
+	const moved = () => /** @type {HTMLElement[]} */ ([page(), ...(atHome() ? [...document.querySelectorAll('.search-bar')] : [])]);
+	const slot = document.querySelector('.pull-slot');
+	if (!(slot instanceof HTMLElement)) throw new Error('index.html is missing <div class="pull-slot">');
 
 	/** @param {number} value */
 	const show = (value) => {
@@ -69,7 +63,6 @@ export function pullToRefresh(refresh) {
 		const shown = Math.round(progress * SPOKES);
 		lines.forEach((l, i) => (l.style.opacity = i < shown ? '1' : '0'));
 		if (!bounces()) for (const el of moved()) el.style.transform = gap ? `translateY(${gap}px)` : '';
-		else pin();
 		if (progress >= 1 && !ready) {
 			ready = true;
 			document.dispatchEvent(new CustomEvent('mo:haptic', { detail: 'impact' }));
@@ -98,10 +91,11 @@ export function pullToRefresh(refresh) {
 			start = e.touches[0].clientY;
 			for (const el of moved()) el.style.transition = 'none';
 			ring.style.transition = 'none';
-			// On Home the spinner turns under the language line, not at the top.
-			const line = atHome() ? document.querySelector('.search-bar .home-pair') : null;
-			if (line) ring.style.setProperty('--pull-base', `${line.getBoundingClientRect().bottom + 2}px`);
-			else ring.style.removeProperty('--pull-base');
+			// On Home the spinner has its place under the language line.
+			const home = atHome();
+			ring.classList.toggle('pull-inline', home);
+			const parent = home ? slot : document.body;
+			if (ring.parentElement !== parent) parent.append(ring);
 		},
 		{ passive: true },
 	);
@@ -123,10 +117,10 @@ export function pullToRefresh(refresh) {
 		ring.style.opacity = '1';
 		ring.style.setProperty('--gap', String(HOLD));
 		// The gap stays open while loading: the page keeps that room above it
-		// (on Home, the search box and the page under the logo: app.css).
+		// (not on Home, where the spinner has its own place).
 		for (const el of moved()) el.style.transform = '';
 		document.body.style.setProperty('--pull-hold', `${HOLD}px`);
-		document.body.toggleAttribute('data-pull-hold', true);
+		document.body.toggleAttribute('data-pull-hold', !ring.classList.contains('pull-inline'));
 		// Shown a moment at least: a spinner that flashes reads as a glitch.
 		Promise.all([refresh(), new Promise((r) => setTimeout(r, 600))])
 			.catch((err) => console.error('The page could not be loaded again:', err))

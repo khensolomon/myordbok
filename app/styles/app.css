@@ -118,14 +118,27 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 	.app-nav { display: none; }
 }
 
-/* The sidebar, as a tablet's own: the full height of the window, a shade
-   darker than the page and under it, the page's edge a hairline casting a
-   soft shadow onto it; no box of its own, and no name (Home shows it). The
-   tab of the page shown is tinted. Below the tabs: Learn, then this
-   device's recent searches; at the bottom, the ⋯ button listing what does
-   not fit (core/sidebar.js). Folded (the button at the top), the icons
-   alone, and the pages under ⋯. */
-.app-overflow, .app-overflow-menu, .app-recent { display: none; }
+/* The sidebar, as a tablet's own (core/sidebar.js): the full height of the
+   window, a shade darker than the page and under it, the page's edge a
+   hairline casting a soft shadow onto it; no box of its own, and no name
+   (Home shows it). The tab of the page shown is tinted; a count shows what
+   waits in it. Below: the workspace (members), Learn with grammar's
+   topics, and at the foot the practice streak. The button at the top right
+   folds it to its icons, as does a drag; folded, its pages are under ⋯.
+   Its look (data-look) follows a drag; the page's room (data-folded,
+   --nav-room) changes once it is let go. */
+.app-overflow, .app-overflow-menu, .app-sections, .app-foot, .app-workspace, .app-nav-edge { display: none; }
+/* Under 1024px the tab bar shows Practice's count, and a dot on More for the workspace. */
+.app-count { display: none; }
+@media (max-width: 1023px) {
+	.app-tab { position: relative; }
+	.app-count:not([hidden]) {
+		display: block; position: absolute; top: 6px; left: calc(50% + 6px);
+		min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+		background: var(--heart); color: #fff; font: 600 11px/18px var(--font-ui); text-align: center;
+	}
+	.app-count-dot:not([hidden]) { min-width: 0; width: 9px; height: 9px; padding: 0; top: 9px; left: calc(50% + 9px); }
+}
 @media (min-width: 1024px) and (max-width: 1179px) {
 	.app-nav {
 		left: 0; top: 0; bottom: 0; width: var(--nav-room);
@@ -134,35 +147,62 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 		background: var(--sidebar); box-shadow: var(--sidebar-shade);
 		-webkit-backdrop-filter: none; backdrop-filter: none;
 		display: flex; flex-direction: column; gap: 2px;
-		overflow: hidden;
-		transition: width 0.22s ease;
+		overflow: hidden; touch-action: pan-y;
 	}
-	/* Nothing shrinks to fit: what does not fit goes under ⋯ (core/sidebar.js). */
+	/* Every part of it too, the scrolling list included: a sideways move is the drag's. */
+	.app-nav * { touch-action: pan-y;
+		transition: width 0.32s cubic-bezier(0.2, 0.9, 0.25, 1);
+	}
+	/* The page makes room as the sidebar settles. */
+	body { transition: padding-left 0.32s cubic-bezier(0.2, 0.9, 0.25, 1); }
+	.search-bar { transition: left 0.32s cubic-bezier(0.2, 0.9, 0.25, 1); }
+	:root[data-nav-dragging] .app-nav { transition: none; }
+	:root[data-nav-dragging] { cursor: ew-resize; -webkit-user-select: none; user-select: none; }
+	/* The mouse drags by the edge. */
+	.app-nav-edge { display: block; position: absolute; top: 0; bottom: 0; right: 0; width: 8px; cursor: ew-resize; }
 	.app-nav > * { flex: none; }
-	.app-nav-head { display: flex; align-items: center; min-height: 40px; margin-bottom: 10px; }
+	.app-nav-head { display: flex; align-items: center; justify-content: flex-end; min-height: 40px; margin-bottom: 8px; }
 	.app-fold, .app-overflow { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; border: none; border-radius: 12px; background: none; color: var(--brand); cursor: pointer; }
 	:is(.app-fold, .app-overflow):hover { background: var(--nav-hover); }
 	:is(.app-fold, .app-overflow):active, .app-overflow[aria-expanded="true"] { background: var(--row-press); }
 	.app-fold .icon { stroke-width: 1.6; }
-	.app-overflow { margin-top: auto; margin-left: 2px; }
 	.app-overflow[hidden] { display: none; }
-	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+	.app-tab { position: relative; gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; }
 	.app-tab .icon { color: var(--brand); flex: none; }
 	.app-tab:hover { background: var(--nav-hover); }
 	.app-tab:active { background: var(--row-press); }
-	.app-tab[data-on] { background: color-mix(in srgb, var(--brand) 15%, transparent); color: var(--brand); font-weight: 600; }
-	.app-more, .app-recent { display: flex; flex-direction: column; flex: none; margin-top: 22px; }
-	:is(.app-more, .app-recent)[hidden], .app-more a[data-overflow] { display: none; }
-	.app-recent-list { display: flex; flex-direction: column; }
+	.app-tab[data-on], .app-tab[aria-current="page"] { background: color-mix(in srgb, var(--brand) 15%, transparent); color: var(--brand); font-weight: 600; }
+	.app-workspace:not([hidden]) { display: flex; }
+	/* What waits: a count at the row's end. */
+	.app-count:not([hidden]) { display: block; margin-left: auto; min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--row-press); color: var(--ink-2); font: 600 12px/22px var(--font-ui); text-align: center; }
+	.app-count-dot:not([hidden]) { display: none; }
+	/* Learn: Grammar opens to its topics. Scrolls when the window is short. */
+	.app-sections { display: block; flex: 1 1 auto; min-height: 0; margin-top: 18px; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; }
+	.app-more { display: flex; flex-direction: column; }
 	.app-more-title { margin: 0 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 	.app-more-title:lang(my) { text-transform: none; letter-spacing: 0; }
-	:is(.app-more, .app-recent-list) a { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; white-space: nowrap; }
-	.app-recent-list a span { overflow: hidden; text-overflow: ellipsis; }
-	.app-recent-list .icon { flex: none; color: var(--faint); }
-	:is(.app-more, .app-recent-list) a:hover { background: var(--nav-hover); color: var(--ink); }
-	:is(.app-more, .app-recent-list) a:active { background: var(--row-press); }
-	:is(.app-more, .app-recent-list) a[aria-current="page"] { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
+	.app-grammar { display: flex; align-items: center; }
+	.app-grammar-link { flex: 1; }
+	.app-disclose { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-left: 2px; border: none; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+	.app-disclose:hover { background: var(--nav-hover); color: var(--ink); }
+	.app-disclose .icon { stroke-width: 2; transition: transform 0.2s ease; }
+	.app-disclose[aria-expanded="true"] .icon { transform: rotate(90deg); }
+	.app-topics { display: flex; flex-direction: column; margin: 0 0 6px 10px; padding-left: 8px; border-left: 0.5px solid var(--line); }
+	.app-topics[hidden] { display: none; }
+	:is(.app-more, .app-topics) a { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; white-space: nowrap; }
+	.app-topics a { min-height: 34px; font-size: 14px; }
+	.app-topic-my { margin-left: auto; color: var(--faint); font-size: 13px; }
+	.app-topics-note { margin: 4px 10px; font-size: 13px; color: var(--muted); }
+	:is(.app-more, .app-topics) a:hover { background: var(--nav-hover); color: var(--ink); text-decoration: none; }
+	:is(.app-more, .app-topics) a:active { background: var(--row-press); }
+	:is(.app-more, .app-topics) a[aria-current="page"] { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
 	:is(.app-more, .app-overflow-menu) .app-support::before { content: "♥"; margin-right: 8px; color: var(--heart); }
+	/* The foot: the streak, and ⋯ while folded. */
+	.app-foot { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 10px; }
+	.app-nav[data-look="open"] .app-overflow { display: none; }
+	.app-streak { display: flex; flex-direction: column; gap: 2px; align-self: stretch; margin: 0; padding: 10px 10px 0; border-top: 0.5px solid var(--line); font-size: 13px; color: var(--muted); }
+	.app-streak[hidden] { display: none; }
+	.app-streak strong { color: var(--ink); font-weight: 600; }
 	/* What ⋯ lists: a menu beside the button. */
 	.app-overflow-menu {
 		display: flex; flex-direction: column; position: fixed; z-index: 40; min-width: 220px; padding: 6px;
@@ -173,12 +213,14 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 	.app-overflow-menu a:hover { background: var(--row-hover); color: var(--ink); text-decoration: none; }
 	.app-overflow-menu a:active { background: var(--row-press); }
 	.app-overflow-menu a[aria-current="page"] { color: var(--brand); }
-	/* Folded: the button at the top, the icons under it, ⋯ at the bottom. */
-	:root[data-folded] .app-nav { padding-left: 12px; padding-right: 12px; align-items: center; }
-	:root[data-folded] .app-nav-head { justify-content: center; }
-	:root[data-folded] .app-tab { justify-content: center; padding: 0; width: 48px; }
-	:root[data-folded] .app-overflow { margin-left: 0; }
-	:root[data-folded] .app-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+	/* Folded: the button at the top, the icons under it, ⋯ at the foot; a count becomes a dot. */
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) { padding-left: 12px; padding-right: 12px; align-items: center; }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) .app-nav-head { justify-content: center; }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) .app-tab { justify-content: center; padding: 0; width: 48px; }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) :is(.app-sections, .app-streak) { display: none; }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) .app-foot { margin-top: auto; align-items: center; border-top: none; }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) .app-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+	:is(:root[data-folded] .app-nav:not([data-look="open"]), .app-nav[data-look="folded"]) .app-count:not([hidden]) { position: absolute; top: 7px; right: 7px; min-width: 0; width: 9px; height: 9px; padding: 0; font-size: 0; background: var(--heart); }
 }
 @media (min-width: 1024px) and (max-width: 1179px) and (prefers-reduced-motion: reduce) { .app-nav { transition: none; } }
 
@@ -1301,11 +1343,23 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 @media (min-width: 1024px) {
 	.home-recent .home-chips a .icon { display: none; }
 }
-@media (max-width: 640px) {
-	/* The × gives way to the row's menu, touched and held. */
+@media (pointer: coarse) and (max-width: 1023px) {
+	/* The × gives way to the row swiped left (core/swipe-row.js). */
 	.home-recent .home-remove { display: none; }
 	.home-recent .home-chip { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 }
+/* A row swiped left (core/swipe-row.js): it slides over its action, which
+   waits under it in red at the right; taken, the row folds away. */
+.swipe-content { display: contents; }
+.swipe-under { display: none; }
+@media (pointer: coarse) and (max-width: 1023px) {
+	.swipe-row { position: relative; overflow: hidden; }
+	.swipe-content { position: relative; z-index: 1; display: flex; align-items: center; flex: 1; min-width: 0; width: 100%; background: var(--group, var(--surface)); touch-action: pan-y; }
+	.swipe-under { position: absolute; inset: 0; display: flex; justify-content: flex-end; background: var(--danger-fill); visibility: hidden; }
+	.swipe-row[data-moved] .swipe-under { visibility: visible; }
+}
+.swipe-action { width: 88px; height: 100%; padding: 0 12px; border: none; background: var(--danger-fill); color: #fff; font: 600 15px var(--font-ui); text-align: right; cursor: pointer; }
+.swipe-gone { transition: height 0.24s ease; border-bottom-width: 0 !important; }
 .hold-card .home-chip { list-style: none; border: none; background: none; }
 .hold-card .home-chip a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 16px; color: var(--ink); text-decoration: none; font-size: 17px; }
 .hold-card .home-remove { display: none; }
@@ -2892,5 +2946,19 @@ body[data-route="definition"] .pull { --pull-base: var(--bar-h, 64px); }
 .pull[data-busy] .pull-spoke:nth-child(8) { opacity: 0.24; }
 @keyframes pull-turn { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 body[data-pull-hold] main#view { margin-top: var(--pull-hold, 52px); }
-/* On Home the room opens under the logo: the search box comes down with the page. */
-body[data-pull-hold][data-route="home"] .search-bar mo-search { transform: translateY(var(--pull-hold, 52px)); }
+/* Home's spinner (under 1024px, in the app): in its own place between the
+   language line and the search box, which comes down with the page. */
+.pull-slot { display: none; }
+@media (max-width: 1023px) {
+	html[data-app] body[data-route="home"]:not([data-searching]) .pull-slot { display: flex; justify-content: center; height: 30px; margin: -6px 0 -2px; }
+}
+.pull.pull-inline { position: static; margin: 0; top: auto; left: auto; }
+
+/* Beside the sidebar (1024px to 1179px) the page uses the room it has: no
+   measure of its own. Last, over the measures set above. */
+@media (min-width: 1024px) and (max-width: 1179px) {
+	main, main#view, .search-bar-inner, .site-footer-inner,
+	body[data-route="definition"] main, body[data-route="home"] .search-bar-inner,
+	.you-page, .liked, .offline-page, .offline, .home, .entry, .entry-aside, .sentence-head,
+	.definition-answer .entry-aside, .search-bar mo-search { max-width: none; }
+}

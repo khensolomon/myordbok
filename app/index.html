@@ -9,7 +9,7 @@
 	<meta name="theme-color" content="#0d1116" media="(prefers-color-scheme: dark)">
 	<!-- A theme chosen on this device applies before the first paint (app/core/prefs.js). -->
 	<!-- So is the interface language: chosen here, else the device's; while open=false, English but for a reviewer (app/i18n/index.js). -->
-	<!-- And the sidebar folded on this device (main.js), so it does not open and then fold. -->
+	<!-- And the sidebar folded on this device (core/sidebar.js), so it does not open and then fold. -->
 	<script>try{if(localStorage.getItem('mo:sidebar')==='folded')document.documentElement.setAttribute('data-folded','')}catch(e){}try{var t=localStorage.getItem('mo:theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}try{var open=false,l=open?localStorage.getItem('mo:lang'):localStorage.getItem('mo:lang-review')==='1'?'my':'en';if(l!=='en'&&l!=='my'){l=(navigator.languages||[navigator.language]).filter(function(x){return /^(my|en)\b/i.test(x)})[0]||'en';l=/^my/i.test(l)?'my':'en'}document.documentElement.lang=l}catch(e){}</script>
 	<link rel="manifest" href="/manifest.webmanifest">
 	<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
@@ -34,28 +34,35 @@
 	<a class="skip" href="#view" data-t>Skip to content</a>
 	<!-- One navigation, laid out by the window's width (app.css): a floating
 	     glass tab bar of icons under 1024px; from 1024px to 1179px a sidebar
-	     under the page, which folds to its icons (main.js, data-folded), with
-	     this device's recent searches, and pages that do not fit in its
-	     height under its ⋯ button (core/sidebar.js). The More tab carries the
-	     member's picture once signed in (main.js). -->
+	     under the page (core/sidebar.js): the tabs with what waits in them,
+	     the workspace for members, grammar's topics, the practice streak at
+	     its foot. Dragged sideways, or its button, it folds to its icons;
+	     its pages then under ⋯. The More tab carries the member's picture
+	     once signed in (main.js). -->
 	<nav class="app-nav" aria-label="Main" data-t-label="Main">
 		<div class="app-nav-head">
 			<button type="button" class="app-fold" aria-label="Hide the sidebar" data-t-label="Hide the sidebar" aria-expanded="true"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M9.5 5v14"/></svg></button>
 		</div>
 		<a class="app-tab" href="/" data-tab="home" title="Home" data-t-label="Home"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 11 12 4.6 20 11"/><path d="M6.5 12.5v7h11v-7"/><path d="M10.5 17.5v-2a1.5 1.5 0 0 1 3 0v2"/></svg><span class="app-tab-label" data-t>Home</span></a>
 		<a class="app-tab" href="/liked" data-tab="liked" title="Liked" data-t-label="Liked"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7.5 10.5v9H4.8a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"/><path d="M7.5 10.5 10.9 4.4a1.7 1.7 0 0 1 3.2 1.1L13.4 9h5a2 2 0 0 1 2 2.4l-1.2 6.4a2 2 0 0 1-2 1.7H7.5"/></svg><span class="app-tab-label" data-t>Liked</span></a>
-		<a class="app-tab" href="/practice" data-tab="practice" title="Practice" data-t-label="Practice"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><span class="app-tab-label" data-t>Practice</span></a>
-		<a class="app-tab you" href="/more" data-tab="more" title="More" data-t-label="More"><span class="you-face-slot"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="8.2" cy="12" r="0.6" fill="currentColor"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/><circle cx="15.8" cy="12" r="0.6" fill="currentColor"/></svg></span><span class="app-tab-label" data-t>More</span></a>
-		<div class="app-more">
-			<p class="app-more-title" data-t>Learn</p>
-			<a href="/grammar" data-t>Grammar</a>
-			<a href="/support" class="app-support" data-store-hidden data-t>Support MyOrdbok</a>
+		<a class="app-tab" href="/practice" data-tab="practice" title="Practice" data-t-label="Practice"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><span class="app-tab-label" data-t>Practice</span><span class="app-count" hidden></span></a>
+		<a class="app-tab you" href="/more" data-tab="more" title="More" data-t-label="More"><span class="you-face-slot"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="8.2" cy="12" r="0.6" fill="currentColor"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/><circle cx="15.8" cy="12" r="0.6" fill="currentColor"/></svg></span><span class="app-tab-label" data-t>More</span><span class="app-count app-count-dot" hidden></span></a>
+		<a class="app-tab app-workspace" href="/workspace" title="Workspace" data-t-label="Workspace" hidden><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="4.5" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="4.5" width="6.5" height="6.5" rx="1.5"/><rect x="4.5" y="13" width="6.5" height="6.5" rx="1.5"/><rect x="13" y="13" width="6.5" height="6.5" rx="1.5"/></svg><span class="app-tab-label" data-t>Workspace</span><span class="app-count" hidden></span></a>
+		<div class="app-sections">
+			<div class="app-more">
+				<p class="app-more-title" data-t>Learn</p>
+				<div class="app-grammar">
+					<a href="/grammar" class="app-grammar-link" data-t>Grammar</a>
+					<button type="button" class="app-disclose" aria-expanded="false" aria-controls="app-topics" aria-label="Grammar's topics" data-t-label="Grammar's topics"><svg class="icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></svg></button>
+				</div>
+				<div class="app-topics" id="app-topics" hidden></div>
+				<a href="/support" class="app-support" data-store-hidden data-t>Support MyOrdbok</a>
+			</div>
 		</div>
-		<div class="app-recent" hidden>
-			<p class="app-more-title" data-t>Recent</p>
-			<div class="app-recent-list"></div>
+		<div class="app-foot">
+			<p class="app-streak" hidden></p>
+			<button type="button" class="app-overflow" hidden aria-label="Other pages" data-t-label="Other pages" aria-haspopup="menu" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
 		</div>
-		<button type="button" class="app-overflow" hidden aria-label="Other pages" data-t-label="Other pages" aria-haspopup="menu" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
 	</nav>
 
 	<!-- From 1180px: the classic header, text links and the person button,
@@ -84,6 +91,8 @@
 			<!-- Under 1024px, home opens with the logo as its large title, at the left, as a phone's own app does (app.css). -->
 			<h1 class="home-title"><img src="/static/logo.svg" alt="MyOrdbok" width="168" height="28"></h1>
 			<p class="home-pair">English <span aria-hidden="true">⇄</span> <span lang="my">မြန်မာ</span></p>
+			<!-- Home's place for the pull-to-refresh spinner, in the app (core/pull.js). -->
+			<div class="pull-slot" aria-hidden="true"></div>
 			<!-- Under 1024px, on a definition: back to the page it was opened from (main.js). -->
 			<a class="bar-back" href="/" aria-label="Back" data-t-label="Back"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></a>
 			<mo-search id="search"></mo-search>
