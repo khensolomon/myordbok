@@ -518,7 +518,7 @@ body[data-route="home"] main#view { max-width: none; }
 /* Dark theme shows the logo in one colour so the grey wordmark stays legible. */
 :root[data-theme="dark"] .bar-logo img { filter: brightness(0) invert(1); }
 @media (prefers-color-scheme: dark) {
-	:root:not([data-theme="light"]) .bar-logo img, :root:not([data-theme="light"]) .app-brand img { filter: brightness(0) invert(1); }
+	:root:not([data-theme="light"]) .bar-logo img, :root:not([data-theme="light"]) .app-brand img, :root:not([data-theme="light"]) :is(.home-title, .title-bar) img { filter: brightness(0) invert(1); }
 }
 
 /* ---------------------------------------------------------- search box */
@@ -1162,7 +1162,8 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	body[data-route="home"] .search-bar { padding-top: calc(var(--safe-t) + 14px); }
 	body[data-route="home"] .search-bar-inner { align-items: stretch; max-width: calc(680px + var(--edge-l) + var(--edge-r)); }
 	body[data-route="home"] .bar-logo { display: none; }
-	body[data-route="home"] .home-title { display: block; margin: 6px 4px 2px; font: 800 34px/1.15 var(--font-ui); letter-spacing: -0.02em; color: var(--ink); }
+	body[data-route="home"] .home-title { display: block; margin: 8px 4px 6px; line-height: 0; }
+	.home-title img { display: block; width: min(220px, 58vw); height: auto; }
 	body[data-route="home"] .home-pair { margin: 0 4px 14px; text-align: left; }
 	body[data-route="home"] mo-search { margin-top: 0; }
 	body[data-route="home"][data-searching] .home-title { display: none; }
@@ -1175,9 +1176,11 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	body[data-route="home"][data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
 	.title-bar span {
 		display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px;
-		font: 600 17px var(--font-ui); color: var(--ink);
 		background: var(--liquid); border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
 	}
+	.title-bar img { display: block; width: 108px; height: auto; }
+	/* The logo is drawn dark: white in the dark theme, as the search bar's. */
+	:root[data-theme="dark"] :is(.home-title, .title-bar) img { filter: brightness(0) invert(1); }
 	.home { max-width: 680px; margin: 22px auto 0; gap: 0; }
 	.home > .home-today:first-child { margin-top: 0; }
 	.home-group-head { justify-content: space-between; margin: 24px 4px 8px; }

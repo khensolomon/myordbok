@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+184
+
+- Home under 1024px: the logo as its large title, and in the bar when scrolled
+
 ## 26.11.23+183
 
 - From 1180px the classic website header; sidebar logo; consent over everything; search field Cancel closer; phone landscape margins
