@@ -115,7 +115,8 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 		display: flex; flex-direction: column; gap: 4px;
 		overflow-y: auto; scrollbar-width: none;
 	}
-	.app-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 16px; color: var(--ink); font-size: 22px; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; }
+	.app-brand { display: flex; align-items: center; padding: 2px 10px 18px; text-decoration: none; }
+	.app-brand img { display: block; width: 168px; max-width: 100%; height: auto; }
 	.app-brand:hover { color: var(--ink); text-decoration: none; }
 	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); }
 	.app-tab .icon { color: var(--brand); }
@@ -608,12 +609,12 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
 	.search input { font-size: 17px; }
 	.search input::placeholder { color: var(--muted); }
 	.search-go, .search-key { display: none !important; }
-	.search-clear { width: 22px; height: 22px; margin: 0 4px 0 0; background: color-mix(in srgb, var(--muted) 45%, transparent); color: var(--ground); }
+	.search-clear { width: 22px; height: 22px; margin: 0; background: color-mix(in srgb, var(--muted) 45%, transparent); color: var(--ground); }
 	.search-clear:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); color: var(--ground); }
 	.search-clear .icon { width: 12px; height: 12px; stroke-width: 2.6; }
 	body[data-searching] .search-done {
 		display: inline-flex; align-items: center; flex: none; height: 100%;
-		margin-left: 2px; padding: 0 10px; border: none; border-left: 0.5px solid var(--line);
+		margin-left: 0; padding: 0 8px 0 10px; border: none;
 		background: none; color: var(--brand); font: 400 17px var(--font-ui); cursor: pointer;
 	}
 	.search-list { margin: 8px 0 0; padding: 0; border-top: none; background: var(--ground); }
@@ -2302,11 +2303,14 @@ a.ws-tile:hover::after, a.ws-tile:focus-visible::after { opacity: 1; transform: 
 /* ---------------------------------------------------------- consent */
 
 .consent {
+	/* Over everything, the tab bar, the search screen and menus included:
+	   the choice is asked before anything else. Under 1024px it sits just
+	   above the tab bar. */
 	position: fixed;
-	z-index: 6;
+	z-index: 1000;
 	left: var(--edge-l);
 	right: var(--edge-r);
-	bottom: calc(var(--gutter) + var(--safe-b));
+	bottom: max(calc(var(--gutter) + var(--safe-b)), var(--tabs-room));
 	max-width: 420px;
 	padding: 14px 16px;
 	border-radius: 18px;
