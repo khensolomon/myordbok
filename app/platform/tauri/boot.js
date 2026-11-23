@@ -58,6 +58,7 @@ export async function boot() {
 	document.addEventListener('click', felt, true);
 	// A tap felt when the page asks for one (pull to refresh reaching its mark, core/pull.js).
 	document.addEventListener('mo:haptic', () => tap('plugin:haptics|impact_feedback', { style: 'light' }));
+	if (os === 'ios') followBackSwipe();
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));
 }
 
@@ -101,6 +102,26 @@ function felt(ev) {
 	if (!target || /** @type {HTMLButtonElement} */ (target).disabled) return;
 	const thumb = target.classList.contains('thumb');
 	tap(thumb ? 'plugin:haptics|impact_feedback' : 'plugin:haptics|selection_feedback', thumb ? { style: 'light' } : {});
+}
+
+/** The first pages of the tabs: nothing behind them, as in an iOS app. */
+const TAB_ROOTS = new Set(['home', 'liked', 'practice', 'more']);
+
+/**
+ * The web view's back swipe (src-tauri/src/lib.rs, back_swipe): off on the
+ * first page of a tab, on elsewhere, asked only when that changes.
+ */
+function followBackSwipe() {
+	/** @type {boolean | null} */
+	let now = null;
+	window.addEventListener('mo:navigated', () => {
+		const on = !TAB_ROOTS.has(document.body.dataset.route ?? '');
+		if (on === now) return;
+		now = on;
+		/** @type {((cmd: string, args?: object) => Promise<unknown>) | undefined} */
+		const invoke = /** @type {any} */ (window).__TAURI__?.core?.invoke;
+		invoke?.('back_swipe', { on }).catch((err) => console.error('The back swipe could not be set:', err));
+	});
 }
 
 /**

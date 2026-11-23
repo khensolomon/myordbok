@@ -8,14 +8,17 @@
  *
  * On iOS the gap is the page's own bounce (the scroller reads negative at
  * the top); elsewhere, where the page does not bounce, the page is moved
- * down by the pull. The listeners are passive: they only watch the finger,
- * never hold the scroll. A pull let back up and pulled again with the same
- * finger shows the spinner again.
+ * down by the pull, with the same give as a bounce (rubber). The listeners
+ * are passive: they only watch the finger, never hold the scroll. A pull
+ * let back up and pulled again with the same finger shows the spinner
+ * again.
  *
- * On Home (under 1024px) the spinner has a place of its own between the
- * language line and the search box (index.html, .pull-slot): the page
- * comes down whole, as anywhere, and the spinner appears in its place. No
- * part of the page is moved against the bounce, so nothing trembles.
+ * On Home (under 1024px) the logo and the language line stay where they
+ * are: the gap opens under them, the spinner turning in it, and the search
+ * box and the rest come down. Home does not bounce at its top (app.css,
+ * overscroll-behavior), so the pull moves what is under the logo itself,
+ * from the same touch event: nothing is moved against a bounce, and
+ * nothing trembles.
  */
 import { pageScroll } from './scroll.js';
 
@@ -45,13 +48,13 @@ export function pullToRefresh(refresh) {
 	let busy = false;
 
 	const page = () => /** @type {HTMLElement} */ (document.getElementById('view'));
-	/** Whether the page bounces by itself (iOS): then the gap is its own. */
-	const bounces = () => document.documentElement.dataset.app === 'ios';
 	const atHome = () => document.body.dataset.route === 'home' && window.matchMedia('(max-width: 1023px)').matches;
-	/** What comes down when the page does not bounce: the page, and on Home the logo and search box with it. */
-	const moved = () => /** @type {HTMLElement[]} */ ([page(), ...(atHome() ? [...document.querySelectorAll('.search-bar')] : [])]);
-	const slot = document.querySelector('.pull-slot');
-	if (!(slot instanceof HTMLElement)) throw new Error('index.html is missing <div class="pull-slot">');
+	/** Whether the page bounces by itself (iOS, but not Home): then the gap is its own. */
+	const bounces = () => document.documentElement.dataset.app === 'ios' && !atHome();
+	/** What comes down when the page does not bounce: the page, and on Home the search box (not the logo). */
+	const moved = () => /** @type {HTMLElement[]} */ ([...(atHome() ? [...document.querySelectorAll('.search-bar mo-search')] : []), page()]);
+	/** The give of a pull, as the phone's own bounce: easy at first, stiffer the further it goes. */
+	const rubber = (/** @type {number} */ d) => (d <= 0 ? 0 : (1 - 1 / ((d * 0.55) / window.innerHeight + 1)) * window.innerHeight);
 
 	/** @param {number} value */
 	const show = (value) => {
@@ -80,7 +83,7 @@ export function pullToRefresh(refresh) {
 			if (gap) show(0);
 			return;
 		}
-		show(bounces() ? -scrolled : (e.touches[0].clientY - start) * 0.5);
+		show(bounces() ? -scrolled : rubber(e.touches[0].clientY - start));
 	};
 
 	document.addEventListener(
@@ -91,11 +94,10 @@ export function pullToRefresh(refresh) {
 			start = e.touches[0].clientY;
 			for (const el of moved()) el.style.transition = 'none';
 			ring.style.transition = 'none';
-			// On Home the spinner has its place under the language line.
-			const home = atHome();
-			ring.classList.toggle('pull-inline', home);
-			const parent = home ? slot : document.body;
-			if (ring.parentElement !== parent) parent.append(ring);
+			// On Home the spinner turns under the language line, which stays put.
+			const line = atHome() ? document.querySelector('.search-bar .home-pair') : null;
+			if (line) ring.style.setProperty('--pull-base', `${line.getBoundingClientRect().bottom}px`);
+			else ring.style.removeProperty('--pull-base');
 		},
 		{ passive: true },
 	);
@@ -104,7 +106,8 @@ export function pullToRefresh(refresh) {
 	const end = () => {
 		if (start === null) return;
 		start = null;
-		const ease = 'transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin-top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)';
+		// Back as a spring settles: quick, then gently.
+		const ease = 'transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1), margin-top 0.45s cubic-bezier(0.2, 0.9, 0.25, 1)';
 		for (const el of moved()) el.style.transition = ease;
 		if (!ready) {
 			ring.style.transition = 'opacity 0.2s';
@@ -117,10 +120,10 @@ export function pullToRefresh(refresh) {
 		ring.style.opacity = '1';
 		ring.style.setProperty('--gap', String(HOLD));
 		// The gap stays open while loading: the page keeps that room above it
-		// (not on Home, where the spinner has its own place).
+		// (on Home, the search box and the page under the logo: app.css).
 		for (const el of moved()) el.style.transform = '';
 		document.body.style.setProperty('--pull-hold', `${HOLD}px`);
-		document.body.toggleAttribute('data-pull-hold', !ring.classList.contains('pull-inline'));
+		document.body.toggleAttribute('data-pull-hold', true);
 		// Shown a moment at least: a spinner that flashes reads as a glitch.
 		Promise.all([refresh(), new Promise((r) => setTimeout(r, 600))])
 			.catch((err) => console.error('The page could not be loaded again:', err))

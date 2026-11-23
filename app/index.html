@@ -35,8 +35,8 @@
 	<!-- One navigation, laid out by the window's width (app.css): a floating
 	     glass tab bar of icons under 1024px; from 1024px to 1179px a sidebar
 	     under the page (core/sidebar.js): the tabs with what waits in them,
-	     the workspace for members, grammar's topics, the practice streak at
-	     its foot. Dragged sideways, or its button, it folds to its icons;
+	     the workspace for members, grammar's topics, the site's pages (no
+	     footer beside it), the practice streak at its foot. Dragged sideways, or its button, it folds to its icons;
 	     its pages then under ⋯. The More tab carries the member's picture
 	     once signed in (main.js). -->
 	<nav class="app-nav" aria-label="Main" data-t-label="Main">
@@ -57,6 +57,14 @@
 				</div>
 				<div class="app-topics" id="app-topics" hidden></div>
 				<a href="/support" class="app-support" data-store-hidden data-t>Support MyOrdbok</a>
+			</div>
+			<!-- The footer's pages: beside the sidebar the page has no footer (app.css). -->
+			<div class="app-more app-site">
+				<p class="app-more-title">MyOrdbok</p>
+				<a href="/about" data-t>About</a>
+				<a href="/contact" data-t>Contact</a>
+				<a href="/privacy" data-t>Privacy</a>
+				<a href="/terms" data-t>Terms</a>
 			</div>
 		</div>
 		<div class="app-foot">
@@ -91,8 +99,6 @@
 			<!-- Under 1024px, home opens with the logo as its large title, at the left, as a phone's own app does (app.css). -->
 			<h1 class="home-title"><img src="/static/logo.svg" alt="MyOrdbok" width="168" height="28"></h1>
 			<p class="home-pair">English <span aria-hidden="true">⇄</span> <span lang="my">မြန်မာ</span></p>
-			<!-- Home's place for the pull-to-refresh spinner, in the app (core/pull.js). -->
-			<div class="pull-slot" aria-hidden="true"></div>
 			<!-- Under 1024px, on a definition: back to the page it was opened from (main.js). -->
 			<a class="bar-back" href="/" aria-label="Back" data-t-label="Back"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></a>
 			<mo-search id="search"></mo-search>

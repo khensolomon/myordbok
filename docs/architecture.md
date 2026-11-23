@@ -195,7 +195,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   Home's; `app/core/sidebar.js`): the four tabs with what waits in them
   (Practice: words due today), Workspace for members with its count, Learn
   with Grammar opening to its topics (`mo:sidebar-grammar`) and Support,
-  and the practice streak at its foot. It folds to its icons by its button
+  MyOrdbok with the footer's pages (the page beside the sidebar has no
+  footer, and More does not list them), and the practice streak at its foot. It folds to its icons by its button
   (top right) or dragged sideways (pointer events on a `touch-action:
   pan-y` sidebar; the mouse by its edge), settling by position and speed;
   kept on the device (`mo:sidebar`); folded, its pages are under ⋯. The
@@ -258,10 +259,15 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   is the page's short name (its document title), never its heading.
 - **Rows swiped** (`app/core/swipe-row.js`, touch screens under 1024px):
   home's recent searches swipe left to Delete, or all the way across to
-  delete at once; the row is `touch-action: pan-y`, so vertical scrolling
-  stays the browser's. Pull to refresh on Home turns its spinner in a
-  place of its own under the language line (`.pull-slot`); nothing is
-  moved against the bounce.
+  delete at once; swiped right they stay; the row is `touch-action:
+  pan-y`, so vertical scrolling stays the browser's. Pull to refresh on
+  Home keeps the logo still: Home does not bounce at its top
+  (`overscroll-behavior`), the pull moves the search box and the page from
+  the touch itself, with a bounce's give, and the spinner turns under the
+  language line.
+- **iOS back swipe** (`src-tauri/src/lib.rs`, `back_swipe`): off on the
+  first page of each tab (Home, Liked, Practice, More), on elsewhere, as
+  in an iOS app; `app/platform/tauri/boot.js` sets it as pages change.
 - **Rows in a box** (More, Liked, home's recent searches, the family):
   a row that acts is the box's full width, its hover and pressed shades
   filling it to the rounded corners; hairlines start where the words do. Members manage the offline copy at `/offline`;

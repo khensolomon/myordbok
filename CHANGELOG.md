@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+189
+
+- Home pull keeps the logo still; rows swipe left only; tablet footer pages in the sidebar; iOS back swipe off on tab pages
+
 ## 26.11.23+188
 
 - Tablet sidebar: drag to fold, counts, workspace, grammar topics, streak; full-width pages beside it; swipe to delete recent searches; steady home logo while pulling

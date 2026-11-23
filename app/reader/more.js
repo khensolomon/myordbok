@@ -46,10 +46,11 @@ export async function view(ctx) {
 		me ? account(me) : signIn(back),
 		h('h2', { class: 'you-section' }, t('This device')),
 		h('div', { class: 'you-group you-device' }, ...(await offlineRows(me)), themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
-		h('h2', { class: 'you-section' }, 'MyOrdbok'),
+		// The site's pages: the sidebar lists them all (1024px to 1179px), so there this is not shown (app.css).
+		h('h2', { class: 'you-section you-site' }, 'MyOrdbok'),
 		h(
 			'nav',
-			{ class: 'you-group you-links', 'aria-label': 'MyOrdbok' },
+			{ class: 'you-group you-links you-site', 'aria-label': 'MyOrdbok' },
 			// Listed by the sidebar and the header already: shown under 1024px only (app.css).
 			h('a', { href: '/grammar', 'data-in-nav': '' }, icon(ICONS.grammar, 18), h('span', null, t('Grammar')), icon(ICONS.chevron, 14)),
 			link('/about', ICONS.info, t('About')),

@@ -179,6 +179,9 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 	/* Learn: Grammar opens to its topics. Scrolls when the window is short. */
 	.app-sections { display: block; flex: 1 1 auto; min-height: 0; margin-top: 18px; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; }
 	.app-more { display: flex; flex-direction: column; }
+	.app-more + .app-more { margin-top: 18px; }
+	/* The footer's pages are here: the page has none, and More does not list them again. */
+	body :is(.site-footer, .you-site) { display: none; }
 	.app-more-title { margin: 0 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 	.app-more-title:lang(my) { text-transform: none; letter-spacing: 0; }
 	.app-grammar { display: flex; align-items: center; }
@@ -2946,13 +2949,15 @@ body[data-route="definition"] .pull { --pull-base: var(--bar-h, 64px); }
 .pull[data-busy] .pull-spoke:nth-child(8) { opacity: 0.24; }
 @keyframes pull-turn { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 body[data-pull-hold] main#view { margin-top: var(--pull-hold, 52px); }
-/* Home's spinner (under 1024px, in the app): in its own place between the
-   language line and the search box, which comes down with the page. */
-.pull-slot { display: none; }
+/* Home (under 1024px, in the app): the logo stays; the room opens under it.
+   Its top does not bounce: the pull moves the search box and the page
+   itself (core/pull.js); kept open, they wait lower while it loads. */
 @media (max-width: 1023px) {
-	html[data-app] body[data-route="home"]:not([data-searching]) .pull-slot { display: flex; justify-content: center; height: 30px; margin: -6px 0 -2px; }
+	html[data-app] body[data-route="home"] { overscroll-behavior-y: none; }
+	html[data-app]:has(body[data-route="home"]) { overscroll-behavior-y: none; }
+	body[data-pull-hold][data-route="home"] main#view { margin-top: 0; transform: translateY(var(--pull-hold, 52px)); }
+	body[data-pull-hold][data-route="home"] .search-bar mo-search { transform: translateY(var(--pull-hold, 52px)); }
 }
-.pull.pull-inline { position: static; margin: 0; top: auto; left: auto; }
 
 /* Beside the sidebar (1024px to 1179px) the page uses the room it has: no
    measure of its own. Last, over the measures set above. */

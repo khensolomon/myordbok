@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * A row swiped to the left shows its action under it, as a phone's own
- * lists do: let go past half the action's width and the row stays open
+ * lists do (it has none on its left: swiped right, it stays): let go past half the action's width and the row stays open
  * on it; swiped most of the way across, the action is taken at once (a
  * light tap is felt when that point is passed). A tap elsewhere, or on the
  * row, closes it. On a touch screen under 1024px only, where the rows are
@@ -105,8 +105,8 @@ export function swipeRow(row, action) {
 			if (closeOpen && closeOpen !== close) closeOpen();
 		}
 		let x = held.from + dx;
-		// To the right of closed it gives, as a rubber band.
-		if (x > 0) x *= 0.2;
+		// Its actions are on the right only: to the right of closed it does not move.
+		if (x > 0) x = 0;
 		place(x, false);
 		const past = -x > row.offsetWidth * FULL;
 		if (past !== held.past) {

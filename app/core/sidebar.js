@@ -13,6 +13,8 @@
  *               More.
  *   Grammar     opens to its topics, each its own page; kept on this device
  *               (mo:sidebar-grammar).
+ *   MyOrdbok    the footer's pages (About, Contact, Privacy, Terms): beside
+ *               the sidebar the page has no footer.
  *   foot        the practice streak and the words learned.
  *
  * The drag listens to pointers only; the sidebar is `touch-action: pan-y`,
@@ -50,7 +52,6 @@ export function initSidebar(nav) {
 	};
 	const fold = need('.app-fold', HTMLButtonElement);
 	const overflow = need('.app-overflow', HTMLButtonElement);
-	const more = need('.app-more', HTMLElement);
 	const disclose = need('.app-disclose', HTMLButtonElement);
 	const topics = need('.app-topics', HTMLElement);
 	const streak = need('.app-streak', HTMLElement);
@@ -95,7 +96,7 @@ export function initSidebar(nav) {
 		if (refocus) overflow.focus();
 	}
 	const openMenu = () => {
-		const pages = /** @type {HTMLAnchorElement[]} */ ([...more.querySelectorAll('.app-grammar-link, :scope > a')]).filter((l) => !l.closest('[data-store-hidden]') || getComputedStyle(l).display !== 'none');
+		const pages = /** @type {HTMLAnchorElement[]} */ ([...nav.querySelectorAll('.app-grammar-link, .app-more > a')]).filter((l) => getComputedStyle(l).display !== 'none');
 		menu.replaceChildren(
 			...pages.map((l) => {
 				const item = h('a', { href: l.href, role: 'menuitem', class: l.classList.contains('app-support') ? 'app-support' : null, 'aria-current': l.getAttribute('aria-current') }, l.textContent ?? '');
