@@ -33,12 +33,13 @@
 <body>
 	<a class="skip" href="#view" data-t>Skip to content</a>
 	<!-- One navigation, laid out by the window's width (app.css): a floating
-	     glass tab bar of icons under 1024px, a sidebar under the page from
-	     1024px, which folds to its icons (main.js, data-folded). The More tab
-	     carries the member's picture once signed in (main.js). -->
+	     glass tab bar of icons under 1024px; from 1024px to 1179px a sidebar
+	     under the page, which folds to its icons (main.js, data-folded), with
+	     this device's recent searches, and pages that do not fit in its
+	     height under its ⋯ button (core/sidebar.js). The More tab carries the
+	     member's picture once signed in (main.js). -->
 	<nav class="app-nav" aria-label="Main" data-t-label="Main">
 		<div class="app-nav-head">
-			<a class="app-brand" href="/" aria-label="MyOrdbok home" data-t-label="MyOrdbok home"><img class="logo-full" src="/static/logo.svg" alt="" width="168" height="28"><img class="logo-mark" src="/static/icon.svg" alt="" width="30" height="30"></a>
 			<button type="button" class="app-fold" aria-label="Hide the sidebar" data-t-label="Hide the sidebar" aria-expanded="true"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M9.5 5v14"/></svg></button>
 		</div>
 		<a class="app-tab" href="/" data-tab="home" title="Home" data-t-label="Home"><svg class="icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 11 12 4.6 20 11"/><path d="M6.5 12.5v7h11v-7"/><path d="M10.5 17.5v-2a1.5 1.5 0 0 1 3 0v2"/></svg><span class="app-tab-label" data-t>Home</span></a>
@@ -48,9 +49,13 @@
 		<div class="app-more">
 			<p class="app-more-title" data-t>Learn</p>
 			<a href="/grammar" data-t>Grammar</a>
-			<a href="/myanmar-fonts" data-t>Myanmar fonts</a>
 			<a href="/support" class="app-support" data-store-hidden data-t>Support MyOrdbok</a>
 		</div>
+		<div class="app-recent" hidden>
+			<p class="app-more-title" data-t>Recent</p>
+			<div class="app-recent-list"></div>
+		</div>
+		<button type="button" class="app-overflow" hidden aria-label="Other pages" data-t-label="Other pages" aria-haspopup="menu" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button>
 	</nav>
 
 	<!-- From 1180px: the classic header, text links and the person button,

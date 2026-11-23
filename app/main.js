@@ -12,6 +12,7 @@ import { followTheme } from './core/prefs.js';
 import { followOnline } from './core/online.js';
 import { showNotices } from './core/notices.js';
 import { initMenu } from './core/menu.js';
+import { initSidebar } from './core/sidebar.js';
 import { startRouter } from './core/router.js';
 import { pageScroll, scrollPageTo } from './core/scroll.js';
 import { pullToRefresh } from './core/pull.js';
@@ -36,7 +37,7 @@ const TAB_OF = /** @type {Record<string, string>} */ ({ home: 'home', definition
 /** Pages the navigation leads to at every width: no Back of their own (the definition has its own in the bar). */
 const TOP_PAGES = new Set(['home', 'definition', 'liked', 'practice', 'more', 'workspace']);
 /** Pages the sidebar (1024px to 1179px) lists besides the tabs: Back only under 1024px. */
-const SIDEBAR_PAGES = new Set(['grammar', 'fonts', 'support']);
+const SIDEBAR_PAGES = new Set(['grammar', 'support']);
 const tabs = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-nav [data-tab]'));
 if (tabs.length !== 4) throw new Error('index.html is missing the four tabs of <nav class="app-nav">');
 const moreLinks = /** @type {NodeListOf<HTMLAnchorElement>} */ (document.querySelectorAll('.app-more a, .site-nav a'));
@@ -103,6 +104,11 @@ pageBack.addEventListener('click', (e) => {
 	e.preventDefault();
 	history.back();
 });
+
+// The sidebar's recent searches and ⋯ button, fitted to its height.
+const appNav = document.querySelector('.app-nav');
+if (!(appNav instanceof HTMLElement)) throw new Error('index.html is missing <nav class="app-nav">');
+initSidebar(appNav);
 
 // The sidebar folds to its icons, and stays so on this device.
 const fold = document.querySelector('.app-fold');

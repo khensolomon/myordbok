@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.23+187
+
+- Tablet home keeps its logo; sidebar with recent searches and a ⋯ button for what does not fit; title centred in its capsule; pull to refresh under home's logo, and again in the same touch
+
 ## 26.11.23+186
 
 - More (was You) at /more; Back on pages outside the navigation; native sidebar that folds; full-width row hover and press; centred home logo

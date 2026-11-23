@@ -191,10 +191,11 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
 - **Navigation by the window's width, not the device** (`index.html`,
   `app.css`): under 1024px a floating glass tab bar of four icons (Home,
   Liked, Practice, More); from 1024px to 1179px a sidebar under the page
-  (a darker shade, the page's edge casting a shadow on it) with the logo,
-  the four with words, and Grammar, fonts and Support below, folding to
-  its icons (kept on the device, `mo:sidebar`); there home opens with the
-  search, the logo being in the sidebar; from
+  (a darker shade, the page's edge casting a shadow on it; the logo is
+  Home's) with the four with words, Grammar and Support below, then this
+  device's recent searches as many as fit; what does not fit in its height
+  goes under a ⋯ button at its bottom (`app/core/sidebar.js`). It folds to
+  its icons (kept on the device, `mo:sidebar`), the pages then under ⋯; from
   1180px (an iPad on its side, a desktop) the classic website: text links
   across the top, the person button (with a caret) opening the More page in a panel
   (`app/core/menu.js`), the logo beside the search field, the footer. The website

@@ -1276,6 +1276,7 @@ export const MY = {
 	'The code has expired. Close this and try again.': 'ကုဒ် သက်တမ်းကုန်သွားပါပြီ။ ဤအကွက်ကို ပိတ်ပြီး ထပ်မံ ကြိုးစားပါ။',
 	'More: {name}': 'နောက်ထပ် − {name}',
 	'Hide the sidebar': 'ဘေးဘားကို ဖျောက်ပါ',
+	'Other pages': 'အခြား စာမျက်နှာများ',
 	'Show the sidebar': 'ဘေးဘားကို ပြပါ',
 	'Liked': 'နှစ်သက်ထားသည်များ',
 	'Words and meanings you rate helpful are kept here. Sign in to rate them.': 'အသုံးဝင်သည်ဟု အဆင့်သတ်မှတ်ထားသော စကားလုံးနှင့် အဓိပ္ပာယ်များကို ဤနေရာတွင် သိမ်းထားပါမည်။ အဆင့်သတ်မှတ်ရန် ဝင်ရောက်ပါ။',

@@ -120,51 +120,65 @@ body[data-route="workspace"] { padding-left: 0; padding-bottom: 0; }
 
 /* The sidebar, as a tablet's own: the full height of the window, a shade
    darker than the page and under it, the page's edge a hairline casting a
-   soft shadow onto it; no box of its own. The tab of the page shown is
-   tinted. Folded (the button beside the name), the icons alone. */
+   soft shadow onto it; no box of its own, and no name (Home shows it). The
+   tab of the page shown is tinted. Below the tabs: Learn, then this
+   device's recent searches; at the bottom, the ⋯ button listing what does
+   not fit (core/sidebar.js). Folded (the button at the top), the icons
+   alone, and the pages under ⋯. */
+.app-overflow, .app-overflow-menu, .app-recent { display: none; }
 @media (min-width: 1024px) and (max-width: 1179px) {
 	.app-nav {
 		left: 0; top: 0; bottom: 0; width: var(--nav-room);
-		padding: calc(var(--safe-t) + 14px) 12px 18px calc(var(--safe-l, 0px) + 12px);
+		padding: calc(var(--safe-t) + 12px) 12px 14px calc(var(--safe-l, 0px) + 12px);
 		border: none; border-right: 0.5px solid var(--line); border-radius: 0;
 		background: var(--sidebar); box-shadow: var(--sidebar-shade);
 		-webkit-backdrop-filter: none; backdrop-filter: none;
 		display: flex; flex-direction: column; gap: 2px;
-		overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+		overflow: hidden;
 		transition: width 0.22s ease;
 	}
-	.app-nav-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 40px; margin-bottom: 14px; padding-left: 8px; }
-	.app-brand { display: flex; align-items: center; min-width: 0; text-decoration: none; }
-	.app-brand .logo-full { display: block; width: 148px; height: auto; }
-	.app-brand .logo-mark { display: none; width: 30px; height: 30px; }
-	:root[data-theme="dark"] .app-brand .logo-full { filter: brightness(0) invert(1); }
-	.app-brand:hover { color: var(--ink); text-decoration: none; }
-	.app-fold { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border: none; border-radius: 10px; background: none; color: var(--brand); cursor: pointer; }
-	.app-fold:hover { background: var(--nav-hover); }
+	/* Nothing shrinks to fit: what does not fit goes under ⋯ (core/sidebar.js). */
+	.app-nav > * { flex: none; }
+	.app-nav-head { display: flex; align-items: center; min-height: 40px; margin-bottom: 10px; }
+	.app-fold, .app-overflow { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 40px; height: 40px; border: none; border-radius: 12px; background: none; color: var(--brand); cursor: pointer; }
+	:is(.app-fold, .app-overflow):hover { background: var(--nav-hover); }
+	:is(.app-fold, .app-overflow):active, .app-overflow[aria-expanded="true"] { background: var(--row-press); }
 	.app-fold .icon { stroke-width: 1.6; }
+	.app-overflow { margin-top: auto; margin-left: 2px; }
+	.app-overflow[hidden] { display: none; }
 	.app-tab { gap: 12px; height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; }
 	.app-tab .icon { color: var(--brand); flex: none; }
 	.app-tab:hover { background: var(--nav-hover); }
 	.app-tab:active { background: var(--row-press); }
 	.app-tab[data-on] { background: color-mix(in srgb, var(--brand) 15%, transparent); color: var(--brand); font-weight: 600; }
-	.app-more { display: flex; flex-direction: column; margin-top: 22px; }
+	.app-more, .app-recent { display: flex; flex-direction: column; flex: none; margin-top: 22px; }
+	:is(.app-more, .app-recent)[hidden], .app-more a[data-overflow] { display: none; }
+	.app-recent-list { display: flex; flex-direction: column; }
 	.app-more-title { margin: 0 10px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 	.app-more-title:lang(my) { text-transform: none; letter-spacing: 0; }
-	.app-more a { display: flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; white-space: nowrap; }
-	.app-more a:hover { background: var(--nav-hover); color: var(--ink); }
-	.app-more a[aria-current="page"] { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
-	.app-more .app-support::before { content: "♥"; margin-right: 8px; color: var(--heart); }
-	/* Folded: the mark over the button, the icons under them. */
-	:root[data-folded] .app-nav { padding-left: 12px; padding-right: 12px; }
-	:root[data-folded] .app-nav-head { flex-direction: column; gap: 10px; padding-left: 0; }
-	:root[data-folded] .app-brand .logo-full, :root[data-folded] .app-more { display: none; }
-	:root[data-folded] .app-brand .logo-mark { display: block; }
-	:root[data-folded] .app-tab { justify-content: center; padding: 0; }
+	:is(.app-more, .app-recent-list) a { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--ink-2); font-size: 15px; text-decoration: none; white-space: nowrap; }
+	.app-recent-list a span { overflow: hidden; text-overflow: ellipsis; }
+	.app-recent-list .icon { flex: none; color: var(--faint); }
+	:is(.app-more, .app-recent-list) a:hover { background: var(--nav-hover); color: var(--ink); }
+	:is(.app-more, .app-recent-list) a:active { background: var(--row-press); }
+	:is(.app-more, .app-recent-list) a[aria-current="page"] { color: var(--brand); background: color-mix(in srgb, var(--brand) 15%, transparent); }
+	:is(.app-more, .app-overflow-menu) .app-support::before { content: "♥"; margin-right: 8px; color: var(--heart); }
+	/* What ⋯ lists: a menu beside the button. */
+	.app-overflow-menu {
+		display: flex; flex-direction: column; position: fixed; z-index: 40; min-width: 220px; padding: 6px;
+		border-radius: 14px; background: var(--card); border: 0.5px solid var(--line); box-shadow: 0 18px 50px rgba(23, 32, 43, 0.22);
+	}
+	.app-overflow-menu[hidden] { display: none; }
+	.app-overflow-menu a { display: flex; align-items: center; min-height: 42px; padding: 0 12px; border-radius: 10px; color: var(--ink); font-size: 16px; text-decoration: none; }
+	.app-overflow-menu a:hover { background: var(--row-hover); color: var(--ink); text-decoration: none; }
+	.app-overflow-menu a:active { background: var(--row-press); }
+	.app-overflow-menu a[aria-current="page"] { color: var(--brand); }
+	/* Folded: the button at the top, the icons under it, ⋯ at the bottom. */
+	:root[data-folded] .app-nav { padding-left: 12px; padding-right: 12px; align-items: center; }
+	:root[data-folded] .app-nav-head { justify-content: center; }
+	:root[data-folded] .app-tab { justify-content: center; padding: 0; width: 48px; }
+	:root[data-folded] .app-overflow { margin-left: 0; }
 	:root[data-folded] .app-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-	/* The name is in the sidebar: home opens with the search, not the name again. */
-	body[data-route="home"] .search-bar .bar-logo { display: none; }
-	body[data-route="home"] .search-bar { padding-top: 7vh; }
-	body[data-route="home"] .home-pair { margin-top: 0; font-size: 17px; font-weight: 600; color: var(--ink-2); }
 }
 @media (min-width: 1024px) and (max-width: 1179px) and (prefers-reduced-motion: reduce) { .app-nav { transition: none; } }
 
@@ -1253,12 +1267,13 @@ body[data-route="definition"] main { max-width: calc(var(--logo-w) + var(--bar-g
 	body[data-scrolled-far]:not([data-searching]) .title-bar { opacity: 1; }
 	.title-bar span {
 		display: block; max-width: calc(100% - 128px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-		height: 36px; line-height: 36px; padding: 0 16px; border-radius: 999px;
-		font: 600 17px var(--font-ui); color: var(--ink);
+		/* The line the height of the capsule (inside its hairline), so the name sits in the middle. */
+		height: 36px; padding: 0 16px; border-radius: 999px;
+		font: 600 17px/35px var(--font-ui); color: var(--ink);
 		background: var(--liquid); border: 0.5px solid var(--liquid-edge); box-shadow: var(--liquid-shadow);
 		-webkit-backdrop-filter: var(--liquid-blur); backdrop-filter: var(--liquid-blur);
 	}
-	.title-bar img { display: block; width: 108px; height: auto; margin-top: 9px; }
+	.title-bar img { display: block; width: 108px; height: auto; margin-top: 8px; }
 	/* The logo is drawn dark: white in the dark theme, as the search bar's. */
 	:root[data-theme="dark"] :is(.home-title, .title-bar) img { filter: brightness(0) invert(1); }
 	.home { max-width: 680px; margin: 22px auto 0; gap: 0; }
@@ -2876,4 +2891,6 @@ body[data-route="definition"] .pull { --pull-base: var(--bar-h, 64px); }
 .pull[data-busy] .pull-spoke:nth-child(7) { opacity: 0.3; }
 .pull[data-busy] .pull-spoke:nth-child(8) { opacity: 0.24; }
 @keyframes pull-turn { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
-main#view[data-pull-hold] { margin-top: var(--pull-hold, 52px); }
+body[data-pull-hold] main#view { margin-top: var(--pull-hold, 52px); }
+/* On Home the room opens under the logo: the search box comes down with the page. */
+body[data-pull-hold][data-route="home"] .search-bar mo-search { transform: translateY(var(--pull-hold, 52px)); }
