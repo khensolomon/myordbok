@@ -198,6 +198,27 @@ function statsRow() {
 const TIP_NAMES = /** @type {Record<string, () => string>} */ ({ tip_small: () => t('Small tip'), tip_medium: () => t('Kind tip'), tip_large: () => t('Generous tip') });
 
 /**
+ * A tip's name, and under it, once given from this device, when last and
+ * how often, with a heart: thanked, and free to be given again.
+ * @param {string} id
+ * @param {{ count: number, last: number } | undefined} given
+ */
+function tipLabel(id, given) {
+	if (!given?.count) return h('span', { class: 'you-label' }, TIP_NAMES[id]());
+	const days = Math.floor((startOfDay(Date.now()) - startOfDay(given.last)) / 86_400_000);
+	const when = days <= 0 ? t('Given today') : days === 1 ? t('Given yesterday') : tn('Given {n} day ago', 'Given {n} days ago', days);
+	const times = given.count > 1 ? ` · ${tn('{n} time', '{n} times', given.count)}` : '';
+	return h('span', { class: 'you-label support-label' }, TIP_NAMES[id](), h('span', { class: 'you-hint support-given' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥ '), when + times));
+}
+
+/** @param {number} ms */
+function startOfDay(ms) {
+	const d = new Date(ms);
+	d.setHours(0, 0, 0, 0);
+	return d.getTime();
+}
+
+/**
  * Supporting MyOrdbok, in the apps: the Supporter purchase (or the thanks
  * for it), the tips, and restoring what the store account bought. The
  * prices are the store's, in the reader's currency; until they arrive the
@@ -249,8 +270,8 @@ function supportSection() {
 			state.supporter
 				? h('div', { class: 'you-row support-thanks-row' }, h('span', { class: 'you-label' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥'), t('You support MyOrdbok')), h('span', { class: 'you-status' }, t('Thank you')))
 				: h('div', { class: 'you-row' }, h('span', { class: 'you-label support-label' }, t('Become a supporter'), h('span', { class: 'you-hint' }, t('Once, for good'))), /** @type {HTMLButtonElement} */ (buttons.get(SUPPORTER))),
-			...TIPS.map((id) => h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, TIP_NAMES[id]()), /** @type {HTMLButtonElement} */ (buttons.get(id)))),
-			h('div', { class: 'you-row' }, restoreButton, state.tips ? h('span', { class: 'you-status' }, tn('{n} tip from this device', '{n} tips from this device', state.tips)) : ''),
+			...TIPS.map((id) => h('div', { class: 'you-row' }, tipLabel(id, state.given[id]), /** @type {HTMLButtonElement} */ (buttons.get(id)))),
+			h('div', { class: 'you-row' }, restoreButton),
 		);
 	};
 	draw();

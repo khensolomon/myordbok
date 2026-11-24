@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+195
+
+- Each tip shows when it was last given, and how often
+
 ## 26.11.24+194
 
 - Purchases taken as the store reports them too, so one completed outside the button's call still shows at once

@@ -53,7 +53,8 @@ const KEY = 'mo:support';
  * @typedef {object} SupportState
  * @property {boolean} supporter
  * @property {boolean} earlier  Bought in the earlier app.
- * @property {number} tips  Given from this device.
+ * @property {number} tips  Given from this device, all three together.
+ * @property {Record<string, { count: number, last: number }>} given  Each tip given from this device: how often, and when last (ms).
  * @property {boolean} thanked  The earlier buyer's thank-you was shown.
  * @property {string[]} seen  The last purchases counted, by token: none twice.
  * @property {'supporter' | 'tip' | null} [last]  What was just bought (on the event only, not kept).
@@ -81,7 +82,7 @@ function invoke() {
 /** @returns {SupportState} */
 export function supportState() {
 	/** @type {SupportState} */
-	const none = { supporter: false, earlier: false, tips: 0, thanked: false, seen: [] };
+	const none = { supporter: false, earlier: false, tips: 0, thanked: false, seen: [], given: {} };
 	try {
 		const kept = JSON.parse(localStorage.getItem(KEY) ?? 'null');
 		return kept && typeof kept === 'object' ? { ...none, ...kept } : none;
@@ -117,7 +118,12 @@ async function record(p) {
 	await settle(p);
 	const seen = [...supportState().seen, p.purchaseToken].slice(-40);
 	if (p.productId === SUPPORTER) return keep({ supporter: true, seen }, 'supporter');
-	if (TIPS.includes(/** @type {any} */ (p.productId))) return keep({ tips: supportState().tips + 1, seen }, 'tip');
+	if (TIPS.includes(/** @type {any} */ (p.productId))) {
+		const now = supportState();
+		const before = now.given[p.productId] ?? { count: 0, last: 0 };
+		const given = { ...now.given, [p.productId]: { count: before.count + 1, last: p.purchaseTime || Date.now() } };
+		return keep({ tips: now.tips + 1, given, seen }, 'tip');
+	}
 	return keep({ seen });
 }
 

@@ -2896,6 +2896,7 @@ html:is([data-app="ios"], [data-app="android"]) [data-store-hidden] { display: n
 .support-restore { padding: 0; border: none; background: none; color: var(--brand); font: 500 16px var(--font-ui); cursor: pointer; }
 .support-restore:disabled { opacity: 0.5; }
 .support-heart { color: var(--heart); }
+.support-given { font-size: 13px; }
 .you-foot { margin: 8px 16px 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
 .support-note { padding: 6px 16px 0; }
 .support-note:empty { display: none; }
