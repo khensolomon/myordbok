@@ -273,8 +273,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   the Supporter purchase, or the earlier Flutter app's one-time purchases
   (`offlineaccess`, `upgrade`, `subscription_silver`), whose buyers are
   supporters and are thanked once. Known on the device (`mo:support`);
-  checking purchases on the server, and using up Android tips so they can
-  be given again, is the next step. Asking for gifts outside the store
+  on Android the Supporter purchase is acknowledged and each tip used up
+  (consumed) as soon as seen. Checking purchases on the server is the next
+  step. Asking for gifts outside the store
   (`data-store-hidden`) is hidden in both apps.
 - **iOS back swipe** (`src-tauri/src/lib.rs`, `back_swipe`): off on the
   first page of each tab (Home, Liked, Practice, More), on elsewhere, as

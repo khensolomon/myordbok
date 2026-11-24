@@ -41,10 +41,10 @@ Play Console alike:
 | `tip_medium` | consumable | 4.99 USD |
 | `tip_large` | consumable | 9.99 USD |
 
-Google Play takes back a purchase not acknowledged within three days: the app
-acknowledges each as soon as it sees it. A tip on Android can be given again
-only once used up (consumed), which the plugin does not do: the server does,
-through the Play Developer API, once it checks purchases (not built yet).
+Google Play takes back a purchase not acknowledged within three days, and a
+tip can be given again only once used up (consumed): the app acknowledges the
+Supporter purchase and uses up each tip as soon as it sees them. The App Store
+finishes both by itself.
 
 The offline copy is the web's, in IndexedDB (`app/data/offline.js`), which
 the system web views keep. A native store (files or SQLite) is for when a

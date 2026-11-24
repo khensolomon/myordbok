@@ -211,6 +211,16 @@ jobs:
           npm run tauri -- icon src-tauri/app-icon.png
       - name: Build
         run: npm run tauri -- ios build --export-method app-store-connect --config src-tauri/tauri.ci.json
+      # A plugin's Swift code is linked as a static library: when its entry
+      # point is reported missing, this shows which libraries were built and
+      # whether each holds one.
+      - name: The plugins' Swift libraries (after a failed build)
+        if: failure()
+        run: |
+          find src-tauri/target/aarch64-apple-ios/release/build -path '*swift-rs*' -name 'lib*.a' | while read -r lib; do
+            echo "$lib"
+            nm -gU "$lib" 2>/dev/null | grep -i 'init_plugin' || echo "  (no init_plugin symbol)"
+          done
 
       - name: Upload to App Store Connect
         run: |

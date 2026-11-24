@@ -17,10 +17,10 @@
  * localStorage (mo:support); in the website nothing here is offered (the
  * website's own Support page asks instead).
  *
- * Google Play takes back a purchase not acknowledged within three days:
- * each is acknowledged as soon as it is seen. A tip on Android can be given
- * again only once the server has used it up (Play Developer API); until
- * then the store answers that it is already owned.
+ * Google Play takes back a purchase not acknowledged within three days,
+ * and a tip can be given again only once used up (consumed): as soon as it
+ * is seen, a Supporter purchase is acknowledged and a tip is used up. The
+ * App Store finishes both by itself.
  */
 import { h } from './dom.js';
 import { t } from '../i18n/index.js';
@@ -109,10 +109,15 @@ export async function products() {
 	return new Map(list.map((p) => [p.productId, p]));
 }
 
-/** @param {StorePurchase} p */
-async function acknowledge(p) {
-	if (document.documentElement.dataset.app !== 'android' || p.isAcknowledged || p.purchaseState !== 0) return;
-	await invoke()('plugin:iap|acknowledge_purchase', { payload: { purchaseToken: p.purchaseToken } });
+/**
+ * Google Play's end of a purchase: a tip used up, so it can be given
+ * again; anything else acknowledged, so it is not taken back.
+ * @param {StorePurchase} p
+ */
+async function settle(p) {
+	if (document.documentElement.dataset.app !== 'android' || p.purchaseState !== 0) return;
+	if (TIPS.includes(/** @type {any} */ (p.productId))) await invoke()('plugin:iap|consume_purchase', { payload: { purchaseToken: p.purchaseToken } });
+	else if (!p.isAcknowledged) await invoke()('plugin:iap|acknowledge_purchase', { payload: { purchaseToken: p.purchaseToken } });
 }
 
 /**
@@ -134,7 +139,7 @@ export async function buy(productId) {
 		throw new Error(text);
 	}
 	if (p.purchaseState === 2) throw new Error(t('The payment is waiting to be completed. It will show here once the store confirms it.'));
-	await acknowledge(p);
+	await settle(p);
 	return productId === SUPPORTER ? keep({ supporter: true }) : keep({ supporter: supportState().supporter, tips: supportState().tips + 1 });
 }
 
@@ -147,7 +152,8 @@ export async function restore() {
 	const answer = await invoke()('plugin:iap|restore_purchases', { payload: { productType: 'inapp' } });
 	/** @type {StorePurchase[]} */
 	const owned = (answer?.purchases ?? []).filter((p) => p.purchaseState === 0);
-	for (const p of owned) await acknowledge(p);
+	// A tip still unused (the app closed before it was used up) is used up now.
+	for (const p of owned) await settle(p);
 	const earlier = owned.some((p) => EARLIER.includes(p.productId));
 	const supporter = earlier || owned.some((p) => p.productId === SUPPORTER);
 	const now = supportState();

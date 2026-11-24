@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+192
+
+- Store plugin 0.9.1: tips used up on Android in the app
+
 ## 26.11.24+191
 
 - Supporting MyOrdbok in the apps: Supporter and tips through the store, past buyers recognised and thanked
