@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+194
+
+- Purchases taken as the store reports them too, so one completed outside the button's call still shows at once
+
 ## 26.11.24+193
 
 - Store plugin kept in the app with its iOS entry point public, so release builds link

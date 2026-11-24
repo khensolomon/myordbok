@@ -13,6 +13,8 @@
 		"iap:allow-restore-purchases",
 		"iap:allow-acknowledge-purchase",
 		"iap:allow-consume-purchase",
+		"iap:allow-register-listener",
+		"iap:allow-remove-listener",
 		{
 			"identifier": "http:default",
 			"allow": [{ "url": "https://myordbok.com/api/*" }, { "url": "https://beta.myordbok.com/api/*" }]

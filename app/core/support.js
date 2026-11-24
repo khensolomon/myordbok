@@ -13,7 +13,10 @@
  *                one is a supporter
  *
  * Asked quietly once each launch (restoreQuietly, from the app's start-up):
- * a past buyer is thanked once. What this device knows is kept in
+ * a past buyer is thanked once. A purchase is also taken as the store
+ * reports it (its purchaseUpdated event): one completed outside the call
+ * that asked for it (a sign-in or a confirmation in between, a payment
+ * approved later) is counted all the same; each once, by its token. What this device knows is kept in
  * localStorage (mo:support); in the website nothing here is offered (the
  * website's own Support page asks instead).
  *
@@ -52,6 +55,8 @@ const KEY = 'mo:support';
  * @property {boolean} earlier  Bought in the earlier app.
  * @property {number} tips  Given from this device.
  * @property {boolean} thanked  The earlier buyer's thank-you was shown.
+ * @property {string[]} seen  The last purchases counted, by token: none twice.
+ * @property {'supporter' | 'tip' | null} [last]  What was just bought (on the event only, not kept).
  */
 
 /** @returns {((cmd: string, args?: object) => Promise<any>) | null} */
@@ -76,7 +81,7 @@ function invoke() {
 /** @returns {SupportState} */
 export function supportState() {
 	/** @type {SupportState} */
-	const none = { supporter: false, earlier: false, tips: 0, thanked: false };
+	const none = { supporter: false, earlier: false, tips: 0, thanked: false, seen: [] };
 	try {
 		const kept = JSON.parse(localStorage.getItem(KEY) ?? 'null');
 		return kept && typeof kept === 'object' ? { ...none, ...kept } : none;
@@ -85,16 +90,35 @@ export function supportState() {
 	}
 }
 
-/** @param {Partial<SupportState>} change */
-function keep(change) {
+/**
+ * @param {Partial<SupportState>} change
+ * @param {'supporter' | 'tip' | null} [last]
+ */
+function keep(change, last = null) {
 	const next = { ...supportState(), ...change };
 	try {
 		localStorage.setItem(KEY, JSON.stringify(next));
 	} catch {
 		// Not kept on this device (storage refused): known for this visit only.
 	}
-	document.dispatchEvent(new CustomEvent('mo:support', { detail: next }));
+	document.dispatchEvent(new CustomEvent('mo:support', { detail: { ...next, last } }));
 	return next;
+}
+
+/**
+ * A purchase the store reports done, counted once: the store's end of it
+ * (settle), then the supporter, or one more tip.
+ * @param {StorePurchase} p
+ * @returns {Promise<SupportState>}
+ */
+async function record(p) {
+	const now = supportState();
+	if (p.purchaseState !== 0 || now.seen.includes(p.purchaseToken)) return now;
+	await settle(p);
+	const seen = [...supportState().seen, p.purchaseToken].slice(-40);
+	if (p.productId === SUPPORTER) return keep({ supporter: true, seen }, 'supporter');
+	if (TIPS.includes(/** @type {any} */ (p.productId))) return keep({ tips: supportState().tips + 1, seen }, 'tip');
+	return keep({ seen });
 }
 
 /**
@@ -139,8 +163,7 @@ export async function buy(productId) {
 		throw new Error(text);
 	}
 	if (p.purchaseState === 2) throw new Error(t('The payment is waiting to be completed. It will show here once the store confirms it.'));
-	await settle(p);
-	return productId === SUPPORTER ? keep({ supporter: true }) : keep({ supporter: supportState().supporter, tips: supportState().tips + 1 });
+	return record(p);
 }
 
 /**
@@ -167,6 +190,12 @@ export async function restore() {
  */
 export function restoreQuietly() {
 	if (!storeAvailable()) return;
+	// Purchases as the store reports them, also those done outside a call.
+	/** @type {any} */ (window).__TAURI__.core
+		.addPluginListener('iap', 'purchaseUpdated', (/** @type {StorePurchase} */ p) => {
+			record(p).catch((err) => console.error('A purchase the store reported could not be counted:', err));
+		})
+		.catch((/** @type {unknown} */ err) => console.error('The store\'s purchase reports could not be listened to:', err));
 	setTimeout(() => {
 		restore()
 			.then((state) => {

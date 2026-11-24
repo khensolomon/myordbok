@@ -270,13 +270,20 @@ function supportSection() {
 			note.textContent = err instanceof Error ? err.message : String(err);
 		});
 	// Drawn again when the store says more (the quiet restore at launch); let go once the page is left.
-	const onChange = () => (group.isConnected ? draw() : document.removeEventListener('mo:support', onChange));
+	/** @param {Event} e */
+	const onChange = (e) => {
+		if (!group.isConnected) return document.removeEventListener('mo:support', onChange);
+		draw();
+		// A purchase the store reported by itself (completed outside the button's call): thanked here too.
+		const last = /** @type {CustomEvent<{ last?: string | null }>} */ (e).detail?.last;
+		if (last) note.textContent = last === 'supporter' ? t('Thank you for supporting MyOrdbok.') : t('Thank you for the tip.');
+	};
 	document.addEventListener('mo:support', onChange);
 	return [
 		h('h2', { class: 'you-section' }, t('Support MyOrdbok')),
 		group,
-		h('p', { class: 'you-foot support-foot' }, t('Everything in MyOrdbok is free and stays free. Supporting unlocks nothing: it helps keep the dictionary growing.')),
 		note,
+		h('p', { class: 'you-foot support-foot' }, t('Everything in MyOrdbok is free and stays free. Supporting unlocks nothing: it helps keep the dictionary growing.')),
 	];
 }
 
