@@ -10,6 +10,22 @@ import { endProgress, startProgress } from './progress.js';
 import { t } from '../i18n/index.js';
 
 /**
+ * Pages kept as they were shown, to be shown again at once when gone back
+ * (or forward) to: no wait, no flash, and on iOS nothing between the end of
+ * the swipe back and the page. Only pages whose content does not change
+ * while away are kept (a definition, grammar, the site's pages); Home,
+ * Liked, More, Practice and the workspace are asked again each time.
+ */
+const KEEP = new Set(['definition', 'grammar', 'fonts', 'about', 'contact', 'privacy', 'terms', 'support', 'link']);
+/** How many pages are kept, the oldest let go first. */
+const KEPT_MAX = 16;
+
+/** @returns {string} A key for a history entry, kept in its state. */
+function entryKey() {
+	return Math.random().toString(36).slice(2, 10);
+}
+
+/**
  * @param {HTMLElement} outlet  Element the current view renders into.
  * @param {(route: import('./routes.js').Route | null) => void} [onRoute]
  */
@@ -17,6 +33,15 @@ export function startRouter(outlet, onRoute) {
 	let token = 0;
 	// The router puts each page back where it was left (below), not the browser.
 	history.scrollRestoration = 'manual';
+	if (!history.state?.key) history.replaceState({ ...history.state, key: entryKey() }, '');
+	/** @type {Map<string, { node: HTMLElement, title: string, route: string }>} */
+	const kept = new Map();
+	/** The history entry shown now, and the page shown for it. */
+	let shownKey = history.state.key;
+	/** @type {string | null} */
+	let shownRoute = null;
+	/** Back asked by a button of the page (back()), not a swipe: that page comes in sideways. */
+	let slideNextPop = false;
 
 	/**
 	 * @param {'load' | 'push' | 'pop' | 'replace'} [how]  How the page came:
@@ -27,9 +52,33 @@ export function startRouter(outlet, onRoute) {
 		const mine = ++token;
 		const moved = MOVED[location.pathname.replace(/\/+$/, '')];
 		if (moved) history.replaceState(history.state, '', moved + location.search + location.hash);
+		if (!history.state?.key) history.replaceState({ ...history.state, key: entryKey() }, '');
 		const url = new URL(location.href);
 		const route = match(url.pathname);
+		// The page left, kept as it is if it is one to keep.
+		const leaving = outlet.firstElementChild;
+		if (how !== 'load' && shownRoute && KEEP.has(shownRoute) && leaving instanceof HTMLElement && shownKey !== history.state.key) {
+			leaving.removeAttribute('data-enter');
+			kept.delete(shownKey);
+			kept.set(shownKey, { node: leaving, title: document.title, route: shownRoute });
+			while (kept.size > KEPT_MAX) kept.delete(/** @type {string} */ (kept.keys().next().value));
+		}
+		shownKey = history.state.key;
+		shownRoute = route?.name ?? null;
 		onRoute?.(route);
+		// Gone back (or forward) to a page kept: shown again at once.
+		const keptPage = how === 'pop' && route ? kept.get(shownKey) : undefined;
+		if (keptPage && keptPage.route === route?.name) {
+			endProgress();
+			if (slideNextPop) keptPage.node.dataset.enter = 'pop';
+			slideNextPop = false;
+			outlet.replaceChildren(keptPage.node);
+			document.title = keptPage.title;
+			const saved = history.state?.scroll;
+			scrollPageTo(typeof saved === 'number' ? saved : 0);
+			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route.name }));
+			return;
+		}
 
 		if (!route) {
 			endProgress();
@@ -55,7 +104,10 @@ export function startRouter(outlet, onRoute) {
 			const node = await mod.view(ctx);
 			if (mine !== token) return; // a newer navigation won
 			endProgress();
-			if (node instanceof HTMLElement && (how === 'push' || how === 'pop')) node.dataset.enter = how;
+			// Pushed pages come in sideways; a page gone back to only when a
+			// button asked (a swipe back has moved the pages already).
+			if (node instanceof HTMLElement && (how === 'push' || (how === 'pop' && slideNextPop))) node.dataset.enter = how;
+			if (how === 'pop') slideNextPop = false;
 			outlet.replaceChildren(node);
 			// A view may name itself once it knows what it shows (an entry: the word and its first meanings).
 			const title = ctx.title ?? (mod.title ? mod.title(ctx) : null);
@@ -86,8 +138,22 @@ export function startRouter(outlet, onRoute) {
 		const here = location.pathname + location.search;
 		if (path === here) return;
 		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
-		history.pushState({ from: here, ...origin(path) }, '', path);
+		history.pushState({ from: here, key: entryKey() }, '', path);
 		render('push');
+	}
+
+	/**
+	 * Back one page, as a page's own Back button: the page gone back to
+	 * comes in from the left. Opened straight (nothing in this app before
+	 * it), false: the button's link is followed instead.
+	 * @returns {boolean}
+	 */
+	function back() {
+		if (!history.state?.from) return false;
+		history.replaceState({ ...history.state, scroll: pageScroll() }, '');
+		slideNextPop = true;
+		history.back();
+		return true;
 	}
 
 	/**
@@ -123,22 +189,7 @@ export function startRouter(outlet, onRoute) {
 		await render('load');
 	}
 
-	/**
-	 * Where a definition was opened from, kept through the definitions opened
-	 * from it (love, then lover, then lovable all came from Liked): Back on a
-	 * definition returns there in one step (main.js), `depth` pages back.
-	 * Opened straight (a link from outside), there is no origin: Back goes home.
-	 * @param {string} path  Where the page goes.
-	 * @returns {{ origin?: string | null, depth?: number }}
-	 */
-	function origin(path) {
-		if (match(new URL(path, location.origin).pathname)?.name !== 'definition') return {};
-		const now = history.state ?? {};
-		if (match(location.pathname)?.name !== 'definition') return { origin: location.pathname + location.search, depth: 1 };
-		return { origin: now.origin ?? null, depth: (now.depth ?? 0) + 1 };
-	}
-
-	return { go, replace, refresh };
+	return { go, replace, refresh, back };
 }
 
 /** @param {string} path */

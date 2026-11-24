@@ -13,12 +13,9 @@
  * let back up and pulled again with the same finger shows the spinner
  * again.
  *
- * On Home (under 1024px) the logo and the language line stay where they
- * are: the gap opens under them, the spinner turning in it, and the search
- * box and the rest come down. Home does not bounce at its top (app.css,
- * overscroll-behavior), so the pull moves what is under the logo itself,
- * from the same touch event: nothing is moved against a bounce, and
- * nothing trembles.
+ * On Home (under 1024px) the logo comes down with the page, as a large
+ * title does in the phone's own apps (Mail, Settings), the spinner above
+ * it: the bounce stays the phone's own, never fought by a script.
  */
 import { pageScroll } from './scroll.js';
 
@@ -49,10 +46,10 @@ export function pullToRefresh(refresh) {
 
 	const page = () => /** @type {HTMLElement} */ (document.getElementById('view'));
 	const atHome = () => document.body.dataset.route === 'home' && window.matchMedia('(max-width: 1023px)').matches;
-	/** Whether the page bounces by itself (iOS, but not Home): then the gap is its own. */
-	const bounces = () => document.documentElement.dataset.app === 'ios' && !atHome();
-	/** What comes down when the page does not bounce: the page, and on Home the search box (not the logo). */
-	const moved = () => /** @type {HTMLElement[]} */ ([...(atHome() ? [...document.querySelectorAll('.search-bar mo-search')] : []), page()]);
+	/** Whether the page bounces by itself (iOS): then the gap is its own. */
+	const bounces = () => document.documentElement.dataset.app === 'ios';
+	/** What comes down when the page does not bounce: the page, and on Home the logo and search box over it. */
+	const moved = () => /** @type {HTMLElement[]} */ ([...(atHome() ? [...document.querySelectorAll('.search-bar')] : []), page()]);
 	/** The give of a pull, as the phone's own bounce: easy at first, stiffer the further it goes. */
 	const rubber = (/** @type {number} */ d) => (d <= 0 ? 0 : (1 - 1 / ((d * 0.55) / window.innerHeight + 1)) * window.innerHeight);
 
@@ -94,10 +91,6 @@ export function pullToRefresh(refresh) {
 			start = e.touches[0].clientY;
 			for (const el of moved()) el.style.transition = 'none';
 			ring.style.transition = 'none';
-			// On Home the spinner turns under the language line, which stays put.
-			const line = atHome() ? document.querySelector('.search-bar .home-pair') : null;
-			if (line) ring.style.setProperty('--pull-base', `${line.getBoundingClientRect().bottom}px`);
-			else ring.style.removeProperty('--pull-base');
 		},
 		{ passive: true },
 	);
@@ -120,7 +113,7 @@ export function pullToRefresh(refresh) {
 		ring.style.opacity = '1';
 		ring.style.setProperty('--gap', String(HOLD));
 		// The gap stays open while loading: the page keeps that room above it
-		// (on Home, the search box and the page under the logo: app.css).
+		// (on Home, above the logo: app.css).
 		for (const el of moved()) el.style.transform = '';
 		document.body.style.setProperty('--pull-hold', `${HOLD}px`);
 		document.body.toggleAttribute('data-pull-hold', true);

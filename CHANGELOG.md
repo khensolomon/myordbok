@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+190
+
+- Search field: centred hint that fades, Cancel closer, suggestions aligned with the field; Back one page at a time; pages gone back to shown at once; home pull with the phone's own bounce
+
 ## 26.11.23+189
 
 - Home pull keeps the logo still; rows swipe left only; tablet footer pages in the sidebar; iOS back swipe off on tab pages

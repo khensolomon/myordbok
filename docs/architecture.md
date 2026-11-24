@@ -208,11 +208,14 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   and the app share it. Under 1024px the search is a screen of its own
   while the field has focus, closed by Cancel, by a search (Enter and the
   search button alike) or by a suggestion; the page under it stays put.
-  On a definition the bar holds Back and the field. Back returns to the
-  page the definitions were opened from (Liked, Home, a search), however
-  many definitions were followed since: the router keeps that page and
-  the count in history.state (`origin`, `depth`). Under 1024px a tab
-  page (Home, Liked, Practice, You) scrolled past its large title shows
+  On a definition the bar holds Back and the field. Back goes one page
+  back, as the swipe does: a definition opened from another returns to
+  that one first, then to the page they came from (`router.back()`; opened
+  straight, the link: home). Pages gone back to that do not change while
+  away (a definition, grammar, the site's pages) are kept by the router and
+  shown again at once (`KEEP`, keyed by `history.state.key`); only a page
+  gone back to by a button slides in, a swipe having moved it already.
+  Under 1024px a tab page (Home, Liked, Practice, More) scrolled past its large title shows
   the title small and floating at the top, as Home shows its logo. Under 1024px the
   field is drawn as the phone's own search field: filled, a magnifier
   first, searched by the keyboard's Search key, and Cancel at its end
@@ -261,10 +264,8 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   home's recent searches swipe left to Delete, or all the way across to
   delete at once; swiped right they stay; the row is `touch-action:
   pan-y`, so vertical scrolling stays the browser's. Pull to refresh on
-  Home keeps the logo still: Home does not bounce at its top
-  (`overscroll-behavior`), the pull moves the search box and the page from
-  the touch itself, with a bounce's give, and the spinner turns under the
-  language line.
+  Home brings the logo down with the page, the spinner above it, as a
+  large title in the phone's own apps; the bounce is the phone's.
 - **iOS back swipe** (`src-tauri/src/lib.rs`, `back_swipe`): off on the
   first page of each tab (Home, Liked, Practice, More), on elsewhere, as
   in an iOS app; `app/platform/tauri/boot.js` sets it as pages change.

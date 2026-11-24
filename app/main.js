@@ -82,28 +82,19 @@ new ResizeObserver(() => {
 	if (!document.body.hasAttribute('data-searching')) document.documentElement.style.setProperty('--bar-h', `${bar.offsetHeight}px`);
 }).observe(bar);
 
-// Back, on a definition (under 1024px): to the page the definitions were
-// opened from (Liked, home, Practice), past any opened from one another;
-// opened straight, home, the link's own address (router.js, origin).
-const back = document.querySelector('.bar-back');
-if (!(back instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="bar-back">');
-back.addEventListener('click', (e) => {
-	const { origin, depth } = history.state ?? {};
-	if (!origin || !depth) return;
-	e.preventDefault();
-	history.go(-depth);
-});
-
-// Back on the other pages (data-back): where the page was opened from, as
-// the browser's own back does; opened straight, its link: More, which
-// lists them.
-const pageBack = document.querySelector('.page-back');
-if (!(pageBack instanceof HTMLAnchorElement)) throw new Error('index.html is missing <a class="page-back">');
-pageBack.addEventListener('click', (e) => {
-	if (!history.state?.from) return;
-	e.preventDefault();
-	history.back();
-});
+// Back, on a definition (under 1024px) and on the other pages (data-back):
+// one page back, as the browser's own back and the swipe do: from a
+// definition opened from another, that one first (search results and the
+// definitions opened from them are gone back through in turn), then the
+// page they came from. Opened straight, the button's link: home from a
+// definition, More from the others.
+for (const sel of ['.bar-back', '.page-back']) {
+	const button = document.querySelector(sel);
+	if (!(button instanceof HTMLAnchorElement)) throw new Error(`index.html is missing <a class="${sel.slice(1)}">`);
+	button.addEventListener('click', (e) => {
+		if (router.back()) e.preventDefault();
+	});
+}
 
 // The sidebar (1024px to 1179px): its folding, by its button or dragged,
 // what waits in its tabs, grammar's topics, the streak at its foot.

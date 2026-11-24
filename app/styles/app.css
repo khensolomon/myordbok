@@ -771,24 +771,45 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
 		inset: 0 0 auto 0; padding: 0;
 		border: none; border-radius: 0; background: none; box-shadow: none;
 	}
-	.search, mo-search[data-open] .search { height: 40px; padding: 0 4px 0 10px; gap: 6px; border-radius: 12px; background: var(--field-fill); }
-	.search-lead { display: flex; flex: none; color: var(--muted); }
-	.search-lead .icon { stroke-width: 1.8; }
-	.search input { font-size: 17px; }
-	.search input::placeholder { color: var(--muted); }
+	/* --lead: where the words start, the field's and the suggestions' alike:
+	   the field's inset, the magnifier, the gap after it. */
+	mo-search { --lead-pad: 10px; --lead-icon: 18px; --lead-gap: 7px; }
+	.search, mo-search[data-open] .search { height: 40px; padding: 0 2px 0 var(--lead-pad); gap: var(--lead-gap); border-radius: 12px; background: var(--field-fill); }
+	.search-lead { display: flex; flex: none; width: var(--lead-icon); justify-content: center; color: var(--muted); }
+	.search-lead .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.8; }
+	/* The field the full height of the box: the text, and the hint, sit in
+	   its middle whatever the script (a Myanmar line is taller). */
+	.search input { align-self: stretch; height: 40px; padding: 0; font-size: 17px; line-height: normal; }
+	.search input::placeholder { color: var(--muted); line-height: normal; }
+	/* A hint longer than the field fades out at its end instead of being cut. */
+	.search input:placeholder-shown {
+		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+		mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+	}
 	.search-go, .search-key { display: none !important; }
-	.search-clear { width: 22px; height: 22px; margin: 0; background: color-mix(in srgb, var(--muted) 45%, transparent); color: var(--ground); }
+	.search-clear { width: 22px; height: 22px; margin: 0 2px 0 0; background: color-mix(in srgb, var(--muted) 45%, transparent); color: var(--ground); }
 	.search-clear:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); color: var(--ground); }
 	.search-clear .icon { width: 12px; height: 12px; stroke-width: 2.6; }
 	body[data-searching] .search-done {
 		display: inline-flex; align-items: center; flex: none; height: 100%;
-		margin-left: 0; padding: 0 8px 0 10px; border: none;
+		margin-left: 0; padding: 0 10px 0 4px; border: none;
 		background: none; color: var(--brand); font: 400 17px var(--font-ui); cursor: pointer;
 	}
+	/* The suggestions: each row's words start where the field's do, a
+	   recent search's clock under the magnifier, a little larger than the
+	   row's text; pressed, a row shades with the field's own corners. The
+	   hairlines start at the words. */
 	.search-list { margin: 8px 0 0; padding: 0; border-top: none; background: var(--ground); }
-	.search-list a, .search-list li:last-child a { padding: 13px 4px; border-radius: 0; border-bottom: 0.5px solid var(--line); font-size: 17px; }
+	.search-list li { position: relative; }
+	.search-list li + li::before { content: ""; position: absolute; top: 0; right: 0; left: calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border-top: 0.5px solid var(--line); pointer-events: none; }
+	.search-list a, .search-list li:last-child a { display: flex; align-items: center; gap: var(--lead-gap); min-height: 52px; padding: 10px 12px 10px calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border: none; border-radius: 12px; font-size: 17px; }
+	.search-recent a, .search-list .search-recent:last-child a { padding-left: var(--lead-pad); }
+	.search-recent a .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.7; }
 	.search-list a:hover, .search-list [aria-selected="true"] a { background: none; }
-	.search-list a:active { background: var(--glass-fill); }
+	@media (hover: hover) { .search-list a:hover { background: var(--row-hover); } }
+	.search-list a:active { background: var(--row-press); }
+	/* A pressed row hides the hairlines at its own edges. */
+	.search-list li:has(a:active)::before, .search-list li:has(a:active) + li::before { opacity: 0; }
 }
 
 /* ---------------------------------------------------------- main + footer */
@@ -2893,7 +2914,6 @@ html[data-app] :is(.app-nav, button, .app-tab, .bar-back, .segmented, .you-links
 /* A tap answers at once (no wait for a second tap), and what is pressed
    shows it while the finger is down, as rows and buttons do on the phone. */
 html[data-app] { touch-action: manipulation; }
-html[data-app] .search-list a:active { background: var(--row-press); }
 html[data-app] :is(button, .app-tab, .bar-back, .page-back, .home-group:not(.home-recent) .home-chips a, .ws-provider, .you-provider):active { opacity: 0.6; }
 
 /* ---------------------------------------------------------- touch screens: smooth scrolling */
@@ -2949,14 +2969,11 @@ body[data-route="definition"] .pull { --pull-base: var(--bar-h, 64px); }
 .pull[data-busy] .pull-spoke:nth-child(8) { opacity: 0.24; }
 @keyframes pull-turn { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
 body[data-pull-hold] main#view { margin-top: var(--pull-hold, 52px); }
-/* Home (under 1024px, in the app): the logo stays; the room opens under it.
-   Its top does not bounce: the pull moves the search box and the page
-   itself (core/pull.js); kept open, they wait lower while it loads. */
+/* Home (under 1024px): the logo and the search box open above it come
+   down too, so the room kept while loading is above the logo. */
 @media (max-width: 1023px) {
-	html[data-app] body[data-route="home"] { overscroll-behavior-y: none; }
-	html[data-app]:has(body[data-route="home"]) { overscroll-behavior-y: none; }
 	body[data-pull-hold][data-route="home"] main#view { margin-top: 0; transform: translateY(var(--pull-hold, 52px)); }
-	body[data-pull-hold][data-route="home"] .search-bar mo-search { transform: translateY(var(--pull-hold, 52px)); }
+	body[data-pull-hold][data-route="home"] .search-bar { transform: translateY(var(--pull-hold, 52px)); }
 }
 
 /* Beside the sidebar (1024px to 1179px) the page uses the room it has: no
