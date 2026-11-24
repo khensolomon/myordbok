@@ -31,7 +31,8 @@
 			"minSdkVersion": 24
 		},
 		"iOS": {
-			"developmentTeam": "AY23P8UZ8P"
+			"developmentTeam": "AY23P8UZ8P",
+			"minimumSystemVersion": "15.0"
 		}
 	}
 }

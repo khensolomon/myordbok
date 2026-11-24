@@ -266,6 +266,16 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   pan-y`, so vertical scrolling stays the browser's. Pull to refresh on
   Home brings the logo down with the page, the spinner above it, as a
   large title in the phone's own apps; the bounce is the phone's.
+- **Supporting, in the apps** (`app/core/support.js`, More;
+  `tauri-plugin-iap`: StoreKit 2, Google Play Billing): a one-time
+  Supporter purchase and three tips, unlocking nothing; everything stays
+  free. The store account is asked quietly at each launch what it owns:
+  the Supporter purchase, or the earlier Flutter app's one-time purchases
+  (`offlineaccess`, `upgrade`, `subscription_silver`), whose buyers are
+  supporters and are thanked once. Known on the device (`mo:support`);
+  checking purchases on the server, and using up Android tips so they can
+  be given again, is the next step. Asking for gifts outside the store
+  (`data-store-hidden`) is hidden in both apps.
 - **iOS back swipe** (`src-tauri/src/lib.rs`, `back_swipe`): off on the
   first page of each tab (Home, Liked, Practice, More), on elsewhere, as
   in an iOS app; `app/platform/tauri/boot.js` sets it as pages change.

@@ -2883,7 +2883,23 @@ body[data-route="grammar"] main { max-width: calc(760px + 56px + 240px + 2 * var
 .ws-csv-row select { flex: 1 1 96px; min-width: 0; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); color: var(--ink); font: 400 13px/1.4 var(--font-ui); }
 
 /* The app (app/platform/tauri/boot.js): no asking for gifts on iOS; an update asked for, over everything. */
-html[data-app="ios"] [data-store-hidden] { display: none !important; }
+/* In the apps, asking for money outside the store's own payments is not
+   shown (Apple's and Google's rules): More offers the store's instead. */
+html:is([data-app="ios"], [data-app="android"]) [data-store-hidden] { display: none !important; }
+/* Supporting, in the apps (reader/more.js, core/support.js): each row's
+   price is its button; the earlier buyer's thank-you is a sheet. */
+.support-label { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.support-label .you-hint { margin: 0; color: var(--muted); }
+.support-price { flex: none; min-width: 76px; height: 32px; padding: 0 14px; border: none; border-radius: 999px; background: var(--brand); color: #fff; font: 600 15px var(--font-ui); font-variant-numeric: tabular-nums; cursor: pointer; }
+.support-price:disabled { opacity: 0.45; cursor: default; }
+.support-price:not(:disabled):active { filter: brightness(0.9); }
+.support-restore { padding: 0; border: none; background: none; color: var(--brand); font: 500 16px var(--font-ui); cursor: pointer; }
+.support-restore:disabled { opacity: 0.5; }
+.support-heart { color: var(--heart); }
+.you-foot { margin: 8px 16px 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.support-note { padding: 6px 16px 0; }
+.support-note:empty { display: none; }
+.support-thanks-heart { margin: 0 0 6px !important; font-size: 34px; line-height: 1; color: var(--heart) !important; }
 .app-update { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--ground) 80%, transparent); backdrop-filter: blur(4px); }
 .app-update-box { max-width: 360px; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); text-align: center; box-shadow: 0 12px 40px rgb(0 0 0 / 0.15); }
 .app-update-box h2 { margin: 0 0 8px; font-size: 20px; }

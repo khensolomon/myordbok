@@ -3,9 +3,12 @@
  * Tauri adapter: start-up. No service worker: the app's files are inside the
  * app, and a new version comes from the store. Instead:
  *
- * - The platform is marked on <html data-app="ios|android|desktop">. On iOS,
- *   parts about giving (data-store-hidden) are not shown: Apple allows no
- *   asking for money outside its own payments.
+ * - The platform is marked on <html data-app="ios|android|desktop">. On iOS
+ *   and Android, parts about giving outside the store (data-store-hidden)
+ *   are not shown: Apple and Google allow no asking for money outside
+ *   their own payments. Supporting goes through the store instead (More;
+ *   core/support.js), and what the store account bought is asked quietly
+ *   once each launch (restoreQuietly).
  * - Links that leave the app open in the system browser (the opener
  *   plugin): other sites, and the parts of MyOrdbok the app does not hold,
  *   the workspace, on the website.
@@ -25,6 +28,7 @@ import { AppError } from '#shared/errors.js';
 import { STORES } from '../../core/config.js';
 import { h } from '../../core/dom.js';
 import { member } from '../../core/member.js';
+import { restoreQuietly } from '../../core/support.js';
 import { t } from '../../i18n/index.js';
 import { getJSON, postJSON } from './http.js';
 
@@ -59,6 +63,7 @@ export async function boot() {
 	// A tap felt when the page asks for one (pull to refresh reaching its mark, core/pull.js).
 	document.addEventListener('mo:haptic', () => tap('plugin:haptics|impact_feedback', { style: 'light' }));
 	if (os === 'ios') followBackSwipe();
+	if (os === 'ios' || os === 'android') restoreQuietly();
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));
 }
 

@@ -1,5 +1,5 @@
 //! The MyOrdbok app: the web app's own files (dist/tauri, from
-//! `node scripts/build.js --target tauri --api …`) in a web view, with two
+//! `node scripts/build.js --target tauri --api …`) in a web view, with the
 //! plugins the pages call through `window.__TAURI__`:
 //!
 //! - http: requests to the API, made natively (app/platform/tauri/http.js);
@@ -7,6 +7,9 @@
 //!   (app/platform/tauri/boot.js);
 //! - haptics: a light tap felt on the tabs and the buttons that keep
 //!   something (app/platform/tauri/boot.js); nothing on a computer.
+//! - iap: the store's payments (App Store, Google Play) for supporting
+//!   MyOrdbok, and what the store account bought before
+//!   (app/core/support.js); nothing is unlocked by them.
 //!
 //! On iOS the web view's own swipe from the edge goes back through the
 //! pages, as in Safari: the pages keep their history with pushState
@@ -39,6 +42,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())
+        .plugin(tauri_plugin_iap::init())
         .invoke_handler(tauri::generate_handler![back_swipe])
         .setup(|_app| {
             #[cfg(target_os = "ios")]

@@ -6,6 +6,9 @@
  *   signed out   sign in with Google, GitHub or Apple (back to this page)
  *   signed in    who, the role, the workspace (with what waits there), sign out
  *   this device  one box: the offline copy, theme, interface language, usage statistics
+ *   support      in the iOS and Android apps only: becoming a supporter and
+ *                tips, through the store (core/support.js), and restoring
+ *                what this store account bought
  *   MyOrdbok     the pages the navigation shown does not already list: under
  *                1024px grammar and support too, from 1024px (sidebar,
  *                header) about, contact, privacy, terms (app.css, data-nav)
@@ -21,9 +24,10 @@ import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
 import { member, providerLinks, signOut } from '../core/member.js';
 import { getTheme, setTheme } from '../core/prefs.js';
+import { SUPPORTER, TIPS, buy, products, restore, storeAvailable, supportState } from '../core/support.js';
 import { workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
-import { MYANMAR_OPEN, getLang, num, setLang, t } from '../i18n/index.js';
+import { MYANMAR_OPEN, getLang, num, setLang, t, tn } from '../i18n/index.js';
 
 /** @typedef {import('../core/member.js').Member} Member */
 
@@ -46,6 +50,7 @@ export async function view(ctx) {
 		me ? account(me) : signIn(back),
 		h('h2', { class: 'you-section' }, t('This device')),
 		h('div', { class: 'you-group you-device' }, ...(await offlineRows(me)), themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
+		...(storeAvailable() ? supportSection() : []),
 		// The site's pages: the sidebar lists them all (1024px to 1179px), so there this is not shown (app.css).
 		h('h2', { class: 'you-section you-site' }, 'MyOrdbok'),
 		h(
@@ -187,6 +192,92 @@ function statsRow() {
 		setChoice(next ? 'granted' : 'denied');
 	});
 	return h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, t('Usage statistics'), h('a', { class: 'you-hint', href: '/privacy' }, t('What is sent'))), sw);
+}
+
+/** The tips, in the order shown, with their names. */
+const TIP_NAMES = /** @type {Record<string, () => string>} */ ({ tip_small: () => t('Small tip'), tip_medium: () => t('Kind tip'), tip_large: () => t('Generous tip') });
+
+/**
+ * Supporting MyOrdbok, in the apps: the Supporter purchase (or the thanks
+ * for it), the tips, and restoring what the store account bought. The
+ * prices are the store's, in the reader's currency; until they arrive the
+ * buttons wait.
+ */
+function supportSection() {
+	const group = h('div', { class: 'you-group you-support' });
+	const note = h('p', { class: 'you-note support-note', role: 'status' });
+	/** @type {Map<string, HTMLButtonElement>} */
+	const buttons = new Map();
+	/** @param {string} id */
+	const priceButton = (id) => {
+		const b = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'support-price', disabled: true }, '…'));
+		b.addEventListener('click', async () => {
+			for (const each of buttons.values()) each.disabled = true;
+			note.textContent = '';
+			try {
+				const state = await buy(id);
+				if (state) note.textContent = id === SUPPORTER ? t('Thank you for supporting MyOrdbok.') : t('Thank you for the tip.');
+				draw();
+			} catch (err) {
+				note.textContent = err instanceof Error ? err.message : String(err);
+			} finally {
+				for (const each of buttons.values()) each.disabled = !each.dataset.price;
+			}
+		});
+		buttons.set(id, b);
+		return b;
+	};
+	for (const id of [SUPPORTER, ...TIPS]) priceButton(id);
+	const restoreButton = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'support-restore' }, t('Restore purchases')));
+	restoreButton.addEventListener('click', async () => {
+		restoreButton.disabled = true;
+		note.textContent = t('Asking the store…');
+		try {
+			const state = await restore();
+			note.textContent = state.supporter ? t('You are a MyOrdbok supporter. Thank you.') : t('The store has no MyOrdbok purchases for this account.');
+			draw();
+		} catch (err) {
+			note.textContent = err instanceof Error ? err.message : String(err);
+		} finally {
+			restoreButton.disabled = false;
+		}
+	});
+
+	const draw = () => {
+		const state = supportState();
+		group.replaceChildren(
+			state.supporter
+				? h('div', { class: 'you-row support-thanks-row' }, h('span', { class: 'you-label' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥'), t('You support MyOrdbok')), h('span', { class: 'you-status' }, t('Thank you')))
+				: h('div', { class: 'you-row' }, h('span', { class: 'you-label support-label' }, t('Become a supporter'), h('span', { class: 'you-hint' }, t('Once, for good'))), /** @type {HTMLButtonElement} */ (buttons.get(SUPPORTER))),
+			...TIPS.map((id) => h('div', { class: 'you-row' }, h('span', { class: 'you-label' }, TIP_NAMES[id]()), /** @type {HTMLButtonElement} */ (buttons.get(id)))),
+			h('div', { class: 'you-row' }, restoreButton, state.tips ? h('span', { class: 'you-status' }, tn('{n} tip from this device', '{n} tips from this device', state.tips)) : ''),
+		);
+	};
+	draw();
+	products()
+		.then((found) => {
+			for (const [id, b] of buttons) {
+				const price = found.get(id)?.formattedPrice;
+				if (!price) continue;
+				b.textContent = price;
+				b.dataset.price = price;
+				b.disabled = false;
+			}
+			const missing = [...buttons.keys()].filter((id) => !found.get(id)?.formattedPrice);
+			if (missing.length) note.textContent = t('The store did not give a price for: {list}.', { list: missing.join(', ') });
+		})
+		.catch((err) => {
+			note.textContent = err instanceof Error ? err.message : String(err);
+		});
+	// Drawn again when the store says more (the quiet restore at launch); let go once the page is left.
+	const onChange = () => (group.isConnected ? draw() : document.removeEventListener('mo:support', onChange));
+	document.addEventListener('mo:support', onChange);
+	return [
+		h('h2', { class: 'you-section' }, t('Support MyOrdbok')),
+		group,
+		h('p', { class: 'you-foot support-foot' }, t('Everything in MyOrdbok is free and stays free. Supporting unlocks nothing: it helps keep the dictionary growing.')),
+		note,
+	];
 }
 
 /**

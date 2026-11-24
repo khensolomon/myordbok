@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+191
+
+- Supporting MyOrdbok in the apps: Supporter and tips through the store, past buyers recognised and thanked
+
 ## 26.11.24+190
 
 - Search field: centred hint that fades, Cancel closer, suggestions aligned with the field; Back one page at a time; pages gone back to shown at once; home pull with the phone's own bounce
