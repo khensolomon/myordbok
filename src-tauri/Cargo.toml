@@ -19,7 +19,8 @@ tauri = { version = "2.12.7", features = [] }
 tauri-plugin-http = "2.9.0"
 tauri-plugin-opener = "2.7.3"
 tauri-plugin-haptics = "2.4.2"
-tauri-plugin-iap = "0.9.1"
+# Kept in this repository with one change: plugins/tauri-plugin-iap/README.md.
+tauri-plugin-iap = { path = "plugins/tauri-plugin-iap" }
 
 # iOS: turning on the web view's own back and forward swipe (src/lib.rs).
 [target.'cfg(target_os = "ios")'.dependencies]

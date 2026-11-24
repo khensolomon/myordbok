@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.24+193
+
+- Store plugin kept in the app with its iOS entry point public, so release builds link
+
 ## 26.11.24+192
 
 - Store plugin 0.9.1: tips used up on Android in the app

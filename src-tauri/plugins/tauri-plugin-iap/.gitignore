@@ -1,0 +1,4 @@
+# Written by the build (tauri-plugin): the Tauri API copied in, permission schemas.
+/.tauri/
+/ios/.build/
+/permissions/schemas/
