@@ -113,7 +113,10 @@ for (const set of SETS.filter((s) => !ONLY || s.id === ONLY)) {
 			const req = route.request();
 			if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
 			const u = new URL(req.url());
-			const res = await route.fetch({ url: FROM + u.pathname + u.search });
+			// As the app's native requests go: no browser's Sec-Fetch-*, Origin or
+			// Referer, only what the app sets (X-MyOrdbok-App).
+			const headers = Object.fromEntries(Object.entries(req.headers()).filter(([k]) => !/^(sec-fetch-|origin$|referer$)/.test(k)));
+			const res = await route.fetch({ url: FROM + u.pathname + u.search, headers });
 			await route.fulfill({ response: res, headers: { ...res.headers(), ...cors } });
 		});
 		await ctx.addInitScript(() => {
