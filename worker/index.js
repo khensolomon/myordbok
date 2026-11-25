@@ -26,7 +26,7 @@ import { workspace } from './routes/workspace.js';
 import { phrase } from './routes/phrase.js';
 import { read } from './routes/read.js';
 import { spelling } from './routes/spelling.js';
-import { definitionPage, movedTo } from './routes/page.js';
+import { definitionPage, movedTo, privacyPage } from './routes/page.js';
 import { robots, sitemap } from './routes/sitemap.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
@@ -225,6 +225,7 @@ export default {
 			const moved = movedTo(pathname);
 			if (moved) return Response.redirect(new URL(moved, url).toString(), 301);
 			if (pathname === '/definition' && request.method === 'GET') return definitionPage(request, env);
+			if (pathname === '/privacy' && request.method === 'GET') return privacyPage(request, env);
 			if (pathname === '/robots.txt') return robots(env, url);
 			if (pathname === '/sitemap.xml' || pathname.startsWith('/sitemap/')) return sitemap(request, env, ctx).catch(errorResponse);
 			return asset(request, env);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+201
+
+- Privacy policy as text at /privacy, updated for Apple sign-in, app linking and support purchases
+
 ## 26.11.25+200
 
 - Play bundles go to internal testing by themselves (scripts/play-upload.js)

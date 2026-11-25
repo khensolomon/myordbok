@@ -167,3 +167,20 @@ test('sitemap: every headword with a meaning, once, as the address of its page',
 	assert.equal((await get('/sitemap/xx-1.xml')).status, 404);
 	assert.equal((await get('/sitemap/en-0.xml')).status, 404);
 });
+
+test('page: /privacy holds the whole policy as text, for readers without scripts', async () => {
+	const { SECTIONS, UPDATED } = await import('../shared/privacy.js');
+	const e = env();
+	const p = await page(e, '/privacy');
+	assert.equal(p.status, 200);
+	assert.equal(p.title, 'Privacy Policy · MyOrdbok');
+	assert.equal(p.canonical, `${SITE}/privacy`);
+	assert.equal(p.noindex, false);
+	assert.ok(p.main.includes('<h1>Privacy Policy</h1>') && p.main.includes(`Updated ${UPDATED}`));
+	for (const s of SECTIONS) assert.ok(p.main.includes(`<h2>${s.heading}</h2>`), s.heading);
+	assert.ok(p.main.includes('<a href="/contact">the contact form</a>'));
+	assert.ok(p.main.includes('App Store or Google Play') && p.main.includes('Google, GitHub or Apple'));
+	assert.ok(!/<script|<button/.test(p.main), 'text only: the analytics choice is the app\'s');
+	const beta = await page(env({ NOINDEX: '1' }), '/privacy');
+	assert.equal(beta.headers.get('x-robots-tag'), 'noindex');
+});

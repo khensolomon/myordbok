@@ -26,6 +26,7 @@ import { normalizeQuery } from '../../shared/validate.js';
 import { dictionary } from '../lib/dict.js';
 import { liveLayer } from '../lib/layer.js';
 import { readQuery } from './read.js';
+import { DESCRIPTION, TITLE, privacyHtml } from '../../shared/privacy.js';
 
 /**
  * What the Worker replaces in index.html; the build is tested to hold each
@@ -141,6 +142,28 @@ export async function definitionPage(request, env) {
 		console.error(JSON.stringify({ event: 'page_failed', path: url.pathname + url.search, detail: err instanceof Error ? err.message : String(err) }));
 		return asItIs();
 	}
+}
+
+/**
+ * GET /privacy: the whole policy in the page itself (shared/privacy.js), so
+ * the address leads straight to its text for any reader, scripts or none, as
+ * the app stores ask of a privacy policy's address. The app draws the same
+ * text over it once its scripts run. Unlike the definition page, nothing
+ * here may fail quietly: without its text the page is not the policy.
+ * @param {Request} request
+ * @param {PageEnv & { NOINDEX?: string }} env
+ * @returns {Promise<Response>}
+ */
+export async function privacyPage(request, env) {
+	const url = new URL(request.url);
+	const shell = await env.ASSETS.fetch(new Request(new URL('/', url), { headers: { accept: 'text/html' } }));
+	if (!shell.ok || !(shell.headers.get('content-type') ?? '').includes('text/html')) return shell;
+	const headers = new Headers(shell.headers);
+	headers.delete('content-length');
+	headers.delete('etag');
+	if (env.NOINDEX === '1') headers.set('x-robots-tag', 'noindex');
+	const page = { title: TITLE, description: DESCRIPTION, canonical: `${url.origin}/privacy`, index: true, body: privacyHtml() };
+	return new Response(writePage(await shell.text(), page), { status: 200, headers });
 }
 
 /** Addresses of the earlier site that have another home here. */
