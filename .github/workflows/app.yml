@@ -40,7 +40,9 @@ permissions:
   contents: read
 
 env:
-  NDK_VERSION: 27.2.12479018
+  # r28 and later link for 16 KB memory pages by default (Play requires it
+  # of every 64-bit native library since 1 November 2025).
+  NDK_VERSION: 28.2.13676358
   SERVER: ${{ inputs.build == 'play-aab' && 'live' || inputs.server }}
 
 jobs:
@@ -102,15 +104,40 @@ jobs:
           npm run tauri -- icon src-tauri/app-icon.png
           node scripts/splash.js install android --apply
 
+      # Play's floor: target Android 16 (API 36) from 31 August 2026. The
+      # level comes from the Tauri CLI's template; a lower one stops here.
+      - name: Target API level
+        run: |
+          level=$(grep -Eo 'targetSdk *= *[0-9]+' src-tauri/gen/android/app/build.gradle.kts | grep -Eo '[0-9]+$')
+          echo "targetSdk $level"
+          test -n "$level" && [ "$level" -ge 36 ] || { echo "::error::targetSdk is ${level:-missing}; Google Play requires 36 or higher"; exit 1; }
+
       # A test APK: phones (arm). A Play bundle: every ABI Play serves, phones,
       # Chromebooks and emulators; Play gives each device its own part.
+      # The 64-bit libraries are linked for 16 KB pages whatever the NDK's
+      # default; the step after checks it.
       - name: Build
+        env:
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS: -C link-arg=-Wl,-z,max-page-size=16384
+          CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS: -C link-arg=-Wl,-z,max-page-size=16384
         run: |
           if [ "${{ inputs.build }}" = play-aab ]; then
             npm run tauri -- android build --aab --target aarch64 armv7 x86_64 i686 --config src-tauri/tauri.ci.json
           else
             npm run tauri -- android build --apk --target aarch64 armv7 --config src-tauri/tauri.ci.json
           fi
+
+      - name: 16 KB memory pages
+        run: |
+          libs=$(find src-tauri/gen/android/app/src/main/jniLibs -path '*64*' -name '*.so')
+          test -n "$libs" || { echo "::error::No 64-bit native library was found to check"; exit 1; }
+          bad=0
+          for so in $libs; do
+            align=$(readelf -lW "$so" | awk '$1 == "LOAD" { print $NF }' | sort -u | tr '\n' ' ')
+            echo "$so: $align"
+            for a in $align; do [ $((a)) -ge 16384 ] || bad=1; done
+          done
+          [ $bad = 0 ] || { echo "::error::A 64-bit native library is not aligned for 16 KB pages"; exit 1; }
 
       - name: Sign for testing
         if: inputs.build == 'test-apk'
@@ -120,7 +147,7 @@ jobs:
           tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           keytool -genkeypair -keystore test.jks -alias test -keyalg RSA -keysize 2048 -validity 30 \
             -storepass testpass -keypass testpass -dname "CN=MyOrdbok test" > /dev/null
-          "$tools/zipalign" -f 4 "$apk" aligned.apk
+          "$tools/zipalign" -f -P 16 4 "$apk" aligned.apk
           "$tools/apksigner" sign --ks test.jks --ks-pass pass:testpass --key-pass pass:testpass \
             --out "myordbok-$SERVER-$VERSION-test.apk" aligned.apk
 

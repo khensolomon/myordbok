@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+202
+
+- Android: no scrollbars on any scroller; 16 KB pages and target API checked in the build
+
 ## 26.11.25+201
 
 - Privacy policy as text at /privacy, updated for Apple sign-in, app linking and support purchases
