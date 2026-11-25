@@ -2,17 +2,20 @@
 /**
  * Store screenshots, taken of the app itself: the tauri build (dist/tauri),
  * served here and shown in Chromium as each device shows it, its server
- * answering through --from (the live server, or a local one). The app's
- * native side is stood in for: the store's products, the haptics, the
- * back swipe answer as on a phone, and nothing leaves for a store.
+ * answering through --from. The app's native side is stood in for: the
+ * store's products, the haptics and the back swipe answer as on a phone,
+ * and nothing leaves for a store.
  *
- *   node scripts/build.js --target tauri --api https://myordbok.com
- *   node scripts/store-shots.mjs [--from https://myordbok.com] [--only play-phone]
+ *   make store-shots            (the local server, with a real build loaded:
+ *                                make data-local FILE=…/build/myordbok.sql)
+ *   node scripts/store-shots.mjs [--from http://localhost:8787] [--only play-phone]
  *
- * Playwright is not a dependency of MyOrdbok: the Store screenshots
- * workflow installs it for the run (PLAYWRIGHT names its module, as
- * scripts/splash.js). Play takes phones at 9:16 and tablets at 9:16 or
- * 16:9; the App Store takes the 6.9" iPhone and the 13" iPad sizes.
+ * The live server is reachable from a home connection; from GitHub's
+ * runners Cloudflare answers with a challenge page, so the shots are taken
+ * on a machine of one's own. Playwright is not a dependency of MyOrdbok:
+ * PLAYWRIGHT names its module (as scripts/splash.js). Play takes phones at
+ * 9:16 and tablets at 9:16 or 16:9; the App Store takes the 6.9" iPhone and
+ * the 13" iPad sizes.
  *
  * Writes, for each set below, store/<store>/<language>/<set folder>/NN-<shot>.png;
  * scripts/play-listing.js sends the Play ones.
@@ -29,7 +32,7 @@ const option = (/** @type {string} */ name) => {
 	const i = process.argv.indexOf(name);
 	return i > -1 ? process.argv[i + 1] : undefined;
 };
-const FROM = option('--from') ?? 'https://myordbok.com';
+const FROM = option('--from') ?? 'http://localhost:8787';
 const ONLY = option('--only');
 
 const ANDROID = 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Mobile Safari/537.36';
@@ -65,7 +68,7 @@ const SHOTS = [
 			await page.waitForTimeout(1500);
 		},
 	},
-	{ name: 'related', path: '/definition?q=happy', act: (page) => page.evaluate(() => document.querySelector('.entry-related, .related, [data-related]')?.scrollIntoView({ block: 'start' })).then(() => page.waitForTimeout(600)) },
+	{ name: 'related', path: '/definition?q=happy', act: (page) => page.evaluate(() => document.querySelector('.related-family, .related-list')?.scrollIntoView({ block: 'center' })).then(() => page.waitForTimeout(600)) },
 	{
 		name: 'practice',
 		path: '/definition?q=water',

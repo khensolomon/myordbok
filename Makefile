@@ -13,7 +13,7 @@ OUT      ?= exports
 .DEFAULT_GOAL := help
 .PHONY: help install dev api db-migrate data-sample data-local db-reset test build build-beta build-tauri \
         version dataset-sync db-status db-migrate-remote data-setup data-status data-beta data-live data-publish data-stats data-packs data-promote edits-export data-switch \
-        grant deploy-beta deploy-live logs-beta logs-live release clean \
+        grant deploy-beta deploy-live logs-beta logs-live store-shots release clean \
         backup-deploy backup-now backup-list backup-pull restore sponsors-import data-release
 
 help: ## List the commands
@@ -177,6 +177,10 @@ logs-live: ## Stream the logs of live as they happen
 	$(WRANGLER) tail --env live
 
 ## Release
+
+store-shots: ## Store screenshots of the app → store/, from the local server [ONLY=play-phone|…]; needs PLAYWRIGHT
+	node scripts/build.js --target tauri --api https://myordbok.com
+	node scripts/store-shots.mjs $(if $(ONLY),--only $(ONLY))
 
 release: ## Fast-forward master to dev, keeping dev ahead [APPLY=1]
 	@git fetch --quiet origin +refs/heads/dev:refs/remotes/origin/dev +refs/heads/master:refs/remotes/origin/master
