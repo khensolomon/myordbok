@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+203
+
+- Android: adaptive launcher icon (white M on MyOrdbok blue, themed icon); Play icon to match
+
 ## 26.11.25+202
 
 - Android: no scrollbars on any scroller; 16 KB pages and target API checked in the build

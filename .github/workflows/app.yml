@@ -101,7 +101,8 @@ jobs:
       - name: The Android project, then its icons and splash
         run: |
           npm run tauri -- android init --ci
-          npm run tauri -- icon src-tauri/app-icon.png
+          npm run tauri -- icon src-tauri/icon/android.png
+          node scripts/android-icon.js install --apply
           node scripts/splash.js install android --apply
 
       # Play's floor: target Android 16 (API 36) from 31 August 2026. The
