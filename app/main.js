@@ -96,6 +96,18 @@ for (const sel of ['.bar-back', '.page-back']) {
 	});
 }
 
+// The apps' splash (index.html) fades once the first page is drawn; at the
+// latest after a few seconds, so a page that fails still shows its error.
+const splash = document.querySelector('.app-splash');
+if (splash instanceof HTMLElement && !splash.hidden) {
+	const lift = () => {
+		splash.dataset.gone = '';
+		setTimeout(() => splash.remove(), 400);
+	};
+	window.addEventListener('mo:navigated', lift, { once: true });
+	setTimeout(lift, 4000);
+}
+
 // The sidebar (1024px to 1179px): its folding, by its button or dragged,
 // what waits in its tabs, grammar's topics, the streak at its foot.
 const appNav = document.querySelector('.app-nav');

@@ -94,10 +94,11 @@ jobs:
 
       # The Tauri CLI is a devDependency run as the npm script "tauri": the
       # Android project it makes calls back into it through that script.
-      - name: The Android project, then its icons
+      - name: The Android project, then its icons and splash
         run: |
           npm run tauri -- android init --ci
           npm run tauri -- icon src-tauri/app-icon.png
+          node scripts/splash.js install android --apply
 
       # A test APK: phones (arm). A Play bundle: every ABI Play serves, phones,
       # Chromebooks and emulators; Play gives each device its own part.
@@ -205,10 +206,11 @@ jobs:
           workspaces: src-tauri
           key: xcode-27
 
-      - name: The Xcode project, then its icons
+      - name: The Xcode project, then its icons and splash
         run: |
           npm run tauri -- ios init --ci
           npm run tauri -- icon src-tauri/app-icon.png
+          node scripts/splash.js install ios --apply
       - name: Build
         run: npm run tauri -- ios build --export-method app-store-connect --config src-tauri/tauri.ci.json
       # A plugin's Swift code is linked as a static library: when its entry

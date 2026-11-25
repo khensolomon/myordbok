@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+197
+
+- Splash in the apps: the logo in the middle, Myanmar dictionary at the bottom, light and dark
+
 ## 26.11.25+196
 
 - Each tip shows its own count as a heart, and when it was last given

@@ -33,6 +33,30 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TARGETS = ['web', 'tauri'];
 
 /**
+ * The apps' splash, carried on in the page from the system's own
+ * (src-tauri/splash/README.md) until the first page is drawn: the logo
+ * drawn in the page itself, light and dark, so no file is waited for while
+ * the system's splash gives way. Android draws its logo smaller (176 dp):
+ * the page follows (app.css, .app-splash-android).
+ * @param {string} root
+ */
+async function appSplash(root) {
+	/** @param {string} name @param {string} prefix */
+	const logo = async (name, prefix) => {
+		const svg = await readFile(join(root, 'src-tauri', 'splash', name), 'utf8');
+		// Two copies in one page: their ids (the gradients) kept apart.
+		return svg
+			.replace(/\sid="([^"]+)"/g, ` id="${prefix}$1"`)
+			.replace(/href="#([^"]+)"/g, `href="#${prefix}$1"`)
+			.replace(/url\(#([^)]+)\)/g, `url(#${prefix}$1)`)
+			.replace(/\s+/g, ' ')
+			.replace(/<svg /, `<svg class="app-splash-${prefix.slice(0, -1)}" aria-hidden="true" `);
+	};
+	return `<div class="app-splash" aria-hidden="true">${await logo('logo.svg', 'light-')}${await logo('logo-dark.svg', 'dark-')}<p>Myanmar dictionary</p></div>
+	<script>if(/Android/.test(navigator.userAgent))document.querySelector('.app-splash').classList.add('app-splash-android')</script>`;
+}
+
+/**
  * @param {string} dir
  * @returns {Promise<string[]>} file paths relative to `dir`, POSIX separators
  */
@@ -187,6 +211,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		'import map block in index.html',
 	);
 	html = replaceOnce(html, /src="\/main\.js"/, `src="${main}"`, 'main.js script tag in index.html');
+	html = replaceOnce(html, /<!--app-splash-->/, target === 'tauri' ? await appSplash(root) : '', 'app-splash marker in index.html');
 	await writeFile(join(dist, 'index.html'), html);
 
 	if (noindex) {

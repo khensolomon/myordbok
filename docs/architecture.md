@@ -277,6 +277,13 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   (consumed) as soon as seen. Checking purchases on the server is the next
   step. Asking for gifts outside the store
   (`data-store-hidden`) is hidden in both apps.
+- **Splash, in the apps** (`src-tauri/splash/README.md`): the logo in
+  the middle, "Myanmar dictionary" near the bottom, light or dark with the
+  phone (calmer colours at night). The system's own splash (an iOS launch
+  storyboard; Android's splash theme), put into the native projects the CI
+  makes by `scripts/splash.js install`; then the page carries it on
+  (`scripts/build.js` draws it into the app's `index.html`) until the first
+  page is drawn, and fades it (`app/main.js`).
 - **iOS back swipe** (`src-tauri/src/lib.rs`, `back_swipe`): off on the
   first page of each tab (Home, Liked, Practice, More), on elsewhere, as
   in an iOS app; `app/platform/tauri/boot.js` sets it as pages change.

@@ -3002,3 +3002,30 @@ body[data-pull-hold] main#view { margin-top: var(--pull-hold, 52px); }
 	.you-page, .liked, .offline-page, .offline, .home, .entry, .entry-aside, .sentence-head,
 	.definition-answer .entry-aside, .search-bar mo-search { max-width: none; }
 }
+
+/* The apps' splash (index.html; scripts/splash.js for the system's): the
+   logo in the middle, the label near the bottom, as the system drew them a
+   moment before. Its colours follow the phone, not the app's theme, as the
+   system's do. Gone, faded, once the first page is drawn (main.js). */
+.app-splash {
+	position: fixed; top: 0; inset: 0; z-index: 2000;
+	display: flex; align-items: center; justify-content: center;
+	background: #f2f4f7;
+	transition: opacity 0.3s ease;
+}
+.app-splash[data-gone] { opacity: 0; pointer-events: none; }
+.app-splash svg { display: block; width: 220px; height: auto; }
+.app-splash-dark { display: none !important; }
+.app-splash p {
+	position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 24px); margin: 0;
+	text-align: center; font: 500 15px/18px -apple-system, system-ui, sans-serif; letter-spacing: 0.02em; color: #5b6573;
+}
+/* Android draws its splash in dp as 176 wide, the label in a box 80 high 24 above the bottom. */
+.app-splash-android svg { width: 176px; }
+.app-splash-android p { bottom: 24px; height: 80px; line-height: 80px; }
+@media (prefers-color-scheme: dark) {
+	.app-splash { background: #0d1116; }
+	.app-splash p { color: #7a8594; }
+	.app-splash-light { display: none !important; }
+	.app-splash-dark { display: block !important; }
+}
