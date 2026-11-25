@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+196
+
+- Each tip shows its own count as a heart, and when it was last given
+
 ## 26.11.24+195
 
 - Each tip shows when it was last given, and how often

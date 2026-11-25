@@ -198,17 +198,22 @@ function statsRow() {
 const TIP_NAMES = /** @type {Record<string, () => string>} */ ({ tip_small: () => t('Small tip'), tip_medium: () => t('Kind tip'), tip_large: () => t('Generous tip') });
 
 /**
- * A tip's name, and under it, once given from this device, when last and
- * how often, with a heart: thanked, and free to be given again.
+ * A tip's name, and under it, once given from this device, how often (a
+ * heart and the count, this tip's own) and when last: thanked, and free to
+ * be given again. Kept on this device, never on the server.
  * @param {string} id
  * @param {{ count: number, last: number } | undefined} given
  */
 function tipLabel(id, given) {
 	if (!given?.count) return h('span', { class: 'you-label' }, TIP_NAMES[id]());
 	const days = Math.floor((startOfDay(Date.now()) - startOfDay(given.last)) / 86_400_000);
-	const when = days <= 0 ? t('Given today') : days === 1 ? t('Given yesterday') : tn('Given {n} day ago', 'Given {n} days ago', days);
-	const times = given.count > 1 ? ` · ${tn('{n} time', '{n} times', given.count)}` : '';
-	return h('span', { class: 'you-label support-label' }, TIP_NAMES[id](), h('span', { class: 'you-hint support-given' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥ '), when + times));
+	const when = days <= 0 ? t('last today') : days === 1 ? t('last yesterday') : tn('last {n} day ago', 'last {n} days ago', days);
+	return h(
+		'span',
+		{ class: 'you-label support-label' },
+		TIP_NAMES[id](),
+		h('span', { class: 'you-hint support-given' }, h('span', { class: 'support-count', 'aria-label': tn('given {n} time', 'given {n} times', given.count) }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥'), h('span', { 'aria-hidden': 'true' }, num(given.count))), ` · ${when}`),
+	);
 }
 
 /** @param {number} ms */

@@ -2897,6 +2897,7 @@ html:is([data-app="ios"], [data-app="android"]) [data-store-hidden] { display: n
 .support-restore:disabled { opacity: 0.5; }
 .support-heart { color: var(--heart); }
 .support-given { font-size: 13px; }
+.support-count { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px; border-radius: 999px; background: color-mix(in srgb, var(--heart) 12%, transparent); color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .you-foot { margin: 8px 16px 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
 .support-note { padding: 6px 16px 0; }
 .support-note:empty { display: none; }
