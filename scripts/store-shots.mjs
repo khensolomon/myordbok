@@ -49,6 +49,9 @@ const SETS = [
 	{ id: 'play-tablet-10', dir: 'play/en-US/tenInchScreenshots', width: 1120, height: 630, scale: 2, agent: ANDROID.replace(' Mobile', ''), mobile: true },
 	{ id: 'ios-phone', dir: 'app-store/en-US/iphone-6.9', width: 440, height: 956, scale: 3, agent: IPHONE, mobile: true },
 	{ id: 'ios-tablet', dir: 'app-store/en-US/ipad-13', width: 1032, height: 1376, scale: 2, agent: IPAD, mobile: true },
+	// For App Review of the in-app purchases: where they are offered (not a
+	// store page; uploaded on each purchase's page in App Store Connect).
+	{ id: 'ios-review', dir: 'app-store/review', width: 440, height: 956, scale: 3, agent: IPHONE, mobile: true, shots: ['support'] },
 ];
 
 /**
@@ -81,6 +84,16 @@ const SHOTS = [
 	},
 	{ name: 'grammar', path: '/grammar' },
 	{ name: 'dark', path: '/definition?q=light', dark: true },
+	{
+		name: 'support',
+		path: '/more',
+		only: true,
+		act: async (page) => {
+			await page.waitForSelector('.support-price:not([disabled])', { timeout: 8000 });
+			await page.evaluate(() => document.querySelector('.support-price')?.closest('section, .you-group, .you-card')?.scrollIntoView({ block: 'center' }));
+			await page.waitForTimeout(600);
+		},
+	},
 ];
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.ico': 'image/x-icon' };
@@ -110,7 +123,8 @@ for (const set of SETS.filter((s) => !ONLY || s.id === ONLY)) {
 	const out = join(ROOT, 'store', set.dir);
 	await rm(out, { recursive: true, force: true });
 	await mkdir(out, { recursive: true });
-	for (const [i, shot] of SHOTS.entries()) {
+	const shots = set.shots ? SHOTS.filter((s) => set.shots?.includes(s.name)) : SHOTS.filter((s) => !s.only);
+	for (const [i, shot] of shots.entries()) {
 		const ctx = await browser.newContext({ viewport: { width: set.width, height: set.height }, deviceScaleFactor: set.scale, isMobile: set.mobile, hasTouch: true, userAgent: set.agent, colorScheme: shot.dark ? 'dark' : 'light' });
 		await ctx.route(`${API}/**`, async (route) => {
 			const req = route.request();
