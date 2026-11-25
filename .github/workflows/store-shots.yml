@@ -1,0 +1,46 @@
+# Store screenshots of the app as built from this branch, its server the
+# live one (scripts/store-shots.mjs). The pictures are pushed to the branch
+# store-shots, one commit replacing the last, to look at and take into the
+# branch by hand: nothing reaches a store from here (the Play listing
+# workflow sends store/play).
+name: Store screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: One set (play-phone, play-tablet-7, play-tablet-10, ios-phone, ios-tablet), or all
+        default: all
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Playwright, for this run only
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright > /dev/null
+          npx --prefix "$RUNNER_TEMP/pw" playwright install --with-deps chromium > /dev/null
+          echo "PLAYWRIGHT=$RUNNER_TEMP/pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: The app
+        run: |
+          npm ci --ignore-scripts > /dev/null
+          node scripts/build.js --target tauri --api https://myordbok.com
+      - name: The screenshots
+        run: node scripts/store-shots.mjs --from https://myordbok.com ${{ inputs.only != 'all' && format('--only {0}', inputs.only) || '' }}
+      - name: To the branch store-shots
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git checkout --orphan store-shots
+          git rm -rq --cached .
+          git add store
+          git commit -qm "Store screenshots from ${GITHUB_SHA::7}"
+          git push -qf origin store-shots

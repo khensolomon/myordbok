@@ -1,0 +1,27 @@
+MyOrdbok is a free English–Myanmar dictionary. Look up a word in English or in Myanmar and read its meanings, with examples of use and its parts of speech.
+
+WHAT IS IN IT
+• English → Myanmar and Myanmar → English definitions, with examples
+• Parts of speech, word forms (went → go) and word families
+• Synonyms, opposites and related words
+• Pronunciation: hear a word said aloud
+• Suggestions as you type, and your recent searches
+• Numbers written out in Myanmar and English words
+• Grammar notes for learners
+• A word of the day
+
+LEARN AND KEEP
+• Liked: keep the words you want to come back to
+• Practice: short rounds that bring each word back just before it is forgotten, with a daily streak
+
+ANYWHERE
+• Offline: download the dictionary and look words up without a connection
+• Light and dark themes, phone and tablet layouts
+• Myanmar text in Unicode; a word typed in Zawgyi is still found
+
+FREE, WITH NO ADS
+Everything in MyOrdbok is free for everyone, with no ads and no account needed to read. Signing in with Google, GitHub or Apple is optional: to comment, suggest a correction, or keep Practice progress across devices.
+
+If MyOrdbok helps you, you can support it with a one-time Supporter purchase or a tip. They unlock nothing; they help keep the dictionary growing.
+
+Privacy policy: https://myordbok.com/privacy
