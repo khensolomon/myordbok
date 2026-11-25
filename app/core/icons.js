@@ -10,7 +10,8 @@ export const ICONS = Object.freeze({
 	account: '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/>',
 	thumbUp: '<path d="M7.5 10.5v9H4.8a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"/><path d="M7.5 10.5 10.9 4.4a1.7 1.7 0 0 1 3.2 1.1L13.4 9h5a2 2 0 0 1 2 2.4l-1.2 6.4a2 2 0 0 1-2 1.7H7.5"/>',
 	thumbDown: '<g transform="matrix(1 0 0 -1 0 24)"><path d="M7.5 10.5v9H4.8a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"/><path d="M7.5 10.5 10.9 4.4a1.7 1.7 0 0 1 3.2 1.1L13.4 9h5a2 2 0 0 1 2 2.4l-1.2 6.4a2 2 0 0 1-2 1.7H7.5"/></g>',
-	like: '<path d="M12 19.5c-4-2.6-8-6-8-10C4 6.9 6 5 8.4 5c1.5 0 2.8.8 3.6 2 .8-1.2 2.1-2 3.6-2C18 5 20 6.9 20 9.5c0 4-4 7.4-8 10z"/>',
+	// Support: a heart in an open hand (giving), not the like of a meaning.
+	like: '<path d="M12 10.6C10.2 9.3 8.8 8.1 8.8 6.6c0-1 .8-1.8 1.8-1.8.6 0 1.1.3 1.4.8.3-.5.8-.8 1.4-.8 1 0 1.8.8 1.8 1.8 0 1.5-1.4 2.7-3.2 4z"/><path d="M3.5 14.2h2.8l3.4 1.1h3.2a1.3 1.3 0 0 1 0 2.6H9.8"/><path d="M12.9 17.9l4.9-2.4a1.4 1.4 0 0 1 1.6 2.2l-4.4 3.2a2.2 2.2 0 0 1-1.6.4l-6.2-.8H3.5"/>',
 	suggest: '<path d="M16.6 3.9a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L9 18.5l-4.5 1 1-4.5z"/><path d="M14.5 6l3.5 3.5"/>',
 	document: '<path d="M5.5 4.5h9l4 4v11h-13z"/><path d="M14 4.5v4.5h4.5"/><path d="M8.5 13h7M8.5 16.5h5"/>',
 	sun: '<circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>',
@@ -32,6 +33,7 @@ export const ICONS = Object.freeze({
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
 	// Three paths: the cone, then the near and the far wave, moved one by one (app.css, .pronounce).
 	speaker: '<path d="M4.5 9.5h2.8l4.2-3.4v11.8l-4.2-3.4H4.5z"/><path d="M14.8 9.4a3.6 3.6 0 0 1 0 5.2"/><path d="M17.4 6.9a7.2 7.2 0 0 1 0 10.2"/>',
-	practice: '<rect x="4" y="5" width="16" height="14" rx="3"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+	// Practice: a stack of cards, the top one ticked.
+	practice: '<rect x="3.5" y="7.5" width="13" height="12.5" rx="2.2"/><path d="M8 4h10.3c1.2 0 2.2 1 2.2 2.2v9.3"/><path d="m7 13.8 2 2 3.6-3.8"/>',
 	comment: '<path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5H11l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/>',
 });

@@ -212,7 +212,7 @@ function tipLabel(id, given) {
 		'span',
 		{ class: 'you-label support-label' },
 		TIP_NAMES[id](),
-		h('span', { class: 'you-hint support-given' }, h('span', { class: 'support-count', 'aria-label': tn('given {n} time', 'given {n} times', given.count) }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥'), h('span', { 'aria-hidden': 'true' }, num(given.count))), ` · ${when}`),
+		h('span', { class: 'you-hint support-given' }, h('span', { class: 'support-count', 'aria-label': tn('given {n} time', 'given {n} times', given.count) }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, icon(ICONS.like, 14)), h('span', { 'aria-hidden': 'true' }, num(given.count))), ` · ${when}`),
 	);
 }
 
@@ -273,7 +273,7 @@ function supportSection() {
 		const state = supportState();
 		group.replaceChildren(
 			state.supporter
-				? h('div', { class: 'you-row support-thanks-row' }, h('span', { class: 'you-label' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, '♥'), t('You support MyOrdbok')), h('span', { class: 'you-status' }, t('Thank you')))
+				? h('div', { class: 'you-row support-thanks-row' }, h('span', { class: 'you-label' }, h('span', { class: 'support-heart', 'aria-hidden': 'true' }, icon(ICONS.like, 18)), t('You support MyOrdbok')), h('span', { class: 'you-status' }, t('Thank you')))
 				: h('div', { class: 'you-row' }, h('span', { class: 'you-label support-label' }, t('Become a supporter'), h('span', { class: 'you-hint' }, t('Once, for good'))), /** @type {HTMLButtonElement} */ (buttons.get(SUPPORTER))),
 			...TIPS.map((id) => h('div', { class: 'you-row' }, tipLabel(id, state.given[id]), /** @type {HTMLButtonElement} */ (buttons.get(id)))),
 			h('div', { class: 'you-row' }, restoreButton),

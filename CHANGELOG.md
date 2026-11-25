@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+198
+
+- New icons: support (a heart in a hand), Practice (cards); larger counts on the tabs
+
 ## 26.11.25+197
 
 - Splash in the apps: the logo in the middle, Myanmar dictionary at the bottom, light and dark

@@ -25,7 +25,8 @@
  * is seen, a Supporter purchase is acknowledged and a tip is used up. The
  * App Store finishes both by itself.
  */
-import { h } from './dom.js';
+import { h, icon } from './dom.js';
+import { ICONS } from './icons.js';
 import { t } from '../i18n/index.js';
 
 export const SUPPORTER = 'supporter';
@@ -221,7 +222,7 @@ function thankEarlier() {
 		h(
 			'div',
 			{ class: 'app-update-box' },
-			h('p', { class: 'support-thanks-heart', 'aria-hidden': 'true' }, '♥'),
+			h('p', { class: 'support-thanks-heart', 'aria-hidden': 'true' }, icon(ICONS.like, 44)),
 			h('h2', { id: 'support-thanks-title' }, t('You are a MyOrdbok supporter')),
 			h('p', null, t('You bought from MyOrdbok before. Everything is free for everyone now, what you bought included, thanks to people like you. You keep your place as a supporter.')),
 			ok,
