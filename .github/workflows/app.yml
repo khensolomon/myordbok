@@ -5,9 +5,11 @@
 #   build   test-apk (default): an APK to install on a phone for testing,
 #           signed with a key made for this run only; it cannot update an
 #           install from Play.
-#           play-aab: the bundle to upload to Play, signed with the upload key
+#           play-aab: the bundle for Play, signed with the upload key
 #           (secrets ANDROID_UPLOAD_KEYSTORE, _PASSWORD, _ALIAS; docs/deploy.md,
-#           The app). Always asks the live server.
+#           The app), then put on Play's internal testing track through the
+#           Play Developer API (secret GOOGLE_PLAY_ACCOUNT, a service account's
+#           JSON key; scripts/play-upload.js). Always asks the live server.
 #           ios-testflight: the iOS app, signed through the App Store Connect
 #           API key (secrets APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_P8)
 #           and uploaded to App Store Connect, where it reaches TestFlight.
@@ -146,6 +148,15 @@ jobs:
             myordbok-*-test.apk
             myordbok-play-*.aab
           if-no-files-found: error
+
+      # On Play's internal testing track, as TestFlight for iOS: the testers'
+      # Play Store offers it as an update. The bundle is kept as an artifact
+      # first, so a refused upload leaves it to upload by hand.
+      - name: To Play, internal testing
+        if: inputs.build == 'play-aab'
+        env:
+          GOOGLE_PLAY_ACCOUNT: ${{ secrets.GOOGLE_PLAY_ACCOUNT }}
+        run: node scripts/play-upload.js "myordbok-play-$VERSION.aab" --track internal --notes "MyOrdbok $VERSION" --apply
 
   ios:
     name: iOS (TestFlight)

@@ -781,10 +781,14 @@ Android app, and leaves it among the run's artifacts:
   (allow installing from the browser or file manager) and cannot update an
   install from Play.
 - **play-aab**, always asking live: `myordbok-play-<version>.aab`, signed
-  with the upload key, for Play Console → the app → **Test and release** →
-  a track (internal testing first) → **Create new release** → upload.
-  Play accepts each version code once: the next bundle comes from a later
-  version (`make release`).
+  with the upload key, kept as the run's artifact, then put on Play's
+  **internal testing** track by `scripts/play-upload.js` (the Play Developer
+  API, as the secret `GOOGLE_PLAY_ACCOUNT`, below): the testers' Play Store
+  offers it as an update. Refused (Google not knowing a new service account
+  yet answers 403 for up to a day), the artifact is uploaded by hand: Play
+  Console → the app → **Test and release** → internal testing → **Create
+  new release**. Play accepts each version code once: the next bundle comes
+  from a later version (`make release`).
 - **ios-testflight**, asking beta or live: the iOS app, built on GitHub's
   Xcode 27 image (`runs-on: xcode-27`; the run stops unless the iOS SDK is
   27 or later, which App Store Connect requires from April 2027), signed
@@ -800,6 +804,22 @@ not yet released.
 Version: the store version is the site's date part (`26.11.21`); the
 Android version code is 1000 plus the build number (`scripts/app-config.js`),
 above every Flutter upload (44) and rising with every release.
+
+### Play service account
+
+The upload to internal testing, and later the server's check of in-app
+purchases, sign in as one Google service account:
+
+1. Google Cloud Console: a project with the **Google Play Android Developer
+   API** enabled; a service account; its JSON key.
+2. Play Console (the account's home, not the app) → **Users and
+   permissions** → **Invite new users**: the service account's email
+   (`client_email` in the key); **App permissions** → MyOrdbok: Release apps
+   to testing tracks; View financial data; Manage orders and subscriptions.
+3. The repository's secret `GOOGLE_PLAY_ACCOUNT`: the whole JSON key.
+
+Checked without uploading: `GOOGLE_PLAY_ACCOUNT="$(cat key.json)" node
+scripts/play-upload.js some.aab` signs in, opens an edit and deletes it.
 
 ### Play upload key
 

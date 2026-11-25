@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+200
+
+- Play bundles go to internal testing by themselves (scripts/play-upload.js)
+
 ## 26.11.25+199
 
 - make release lists the commits without a pager
