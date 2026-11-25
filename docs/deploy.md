@@ -782,12 +782,13 @@ Android app, and leaves it among the run's artifacts:
   install from Play.
 - **play-aab**, always asking live: `myordbok-play-<version>.aab`, signed
   with the upload key, kept as the run's artifact, then put on Play's
-  **internal testing** track by `scripts/play-upload.js` (the Play Developer
+  **closed testing** track (Alpha) by `scripts/play-upload.js` (the Play Developer
   API, as the secret `GOOGLE_PLAY_ACCOUNT`, below): the testers' Play Store
-  offers it as an update. Refused (Google not knowing a new service account
+  offers it as an update once Play has reviewed it; a release still in
+  review there is replaced. Refused (Google not knowing a new service account
   yet answers 403 for up to a day), the artifact is uploaded by hand: Play
-  Console → the app → **Test and release** → internal testing → **Create
-  new release**. Play accepts each version code once: the next bundle comes
+  Console → the app → **Test and release** → closed testing → Alpha →
+  **Create new release**. Play accepts each version code once: the next bundle comes
   from a later version (`make release`).
 - **ios-testflight**, asking beta or live: the iOS app, built on GitHub's
   Xcode 27 image (`runs-on: xcode-27`; the run stops unless the iOS SDK is
@@ -807,7 +808,7 @@ above every Flutter upload (44) and rising with every release.
 
 ### Play service account
 
-The upload to internal testing, and later the server's check of in-app
+The upload to closed testing, the store listing, and later the server's check of in-app
 purchases, sign in as one Google service account:
 
 1. Google Cloud Console: a project with the **Google Play Android Developer
@@ -820,6 +821,15 @@ purchases, sign in as one Google service account:
 
 Checked without uploading: `GOOGLE_PLAY_ACCOUNT="$(cat key.json)" node
 scripts/play-upload.js some.aab` signs in, opens an edit and deletes it.
+
+### Play store listing
+
+The listing's texts and graphics live in `store/play/<language>/`
+(`scripts/play-listing.js` lists the files and Play's limits). The **Play
+listing** workflow (Actions tab) prints Play's listing as it is and what
+would change; run with **apply**, it sends the changes in one edit, and
+Play reviews them as it does a change made in the Console. Only what the
+folder holds is touched.
 
 ### Play upload key
 

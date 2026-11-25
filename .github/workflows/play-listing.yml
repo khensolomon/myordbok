@@ -1,0 +1,30 @@
+# The Play store listing from store/play/ (scripts/play-listing.js): texts
+# and graphics per language. Run from the Actions tab: without "apply", the
+# log shows Play's listing as it is and what would change; with it, the
+# changes are sent and Play reviews them.
+name: Play listing
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Send the changes to Play
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: The listing
+        env:
+          GOOGLE_PLAY_ACCOUNT: ${{ secrets.GOOGLE_PLAY_ACCOUNT }}
+        run: node scripts/play-listing.js ${{ inputs.apply && '--apply' || '' }}
