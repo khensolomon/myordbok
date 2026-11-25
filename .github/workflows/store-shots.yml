@@ -33,6 +33,12 @@ jobs:
         run: |
           npm ci --ignore-scripts > /dev/null
           node scripts/build.js --target tauri --api https://myordbok.com
+      - name: The server answers the app
+        run: |
+          version=$(grep -o 'name="mo-version" content="[^"]*"' dist/tauri/index.html | cut -d'"' -f4)
+          code=$(curl -s -o answer.txt -w '%{http_code}' -H "x-myordbok-app: android/$version" -H 'accept: application/json' https://myordbok.com/api/site)
+          echo "$code"; head -c 400 answer.txt; echo
+          [ "$code" = 200 ] || { echo "::error::The live server answers the app $code"; exit 1; }
       - name: The screenshots
         run: node scripts/store-shots.mjs --from https://myordbok.com ${{ inputs.only != 'all' && format('--only {0}', inputs.only) || '' }}
       - name: To the branch store-shots
