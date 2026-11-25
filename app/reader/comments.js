@@ -11,17 +11,53 @@
  * face; it opens when written in, with Post and Cancel, and grows with each
  * line written. Signed out, the same line asks to sign
  * in. A long discussion shows its newest few, then the rest on request.
+ *
+ * Each comment but one's own has a ⋯ menu: Report (to the editors, with a
+ * reason; the comment is then out of this reader's sight) and Hide this
+ * person's comments (kept on the device, mo:hidden-writers, and undone from
+ * the line that says how many are hidden).
  */
 import { h, icon } from '../core/dom.js';
 import { ICONS } from '../core/icons.js';
-import { deleteComment, entryComments, postComment } from '../data/api.js';
-import { ago, num, shortDate, t } from '../i18n/index.js';
+import { deleteComment, entryComments, postComment, reportComment } from '../data/api.js';
+import { ago, num, shortDate, t, tn } from '../i18n/index.js';
 import { noZawgyi } from '../core/zawgyi.js';
 import { COMMENT_MAX } from '#shared/limits.js';
 
 /** @typedef {import('../data/api.js').EntryComment} EntryComment */
 
 const BODY_MAX = COMMENT_MAX;
+/** Writers this device hides, by member number. */
+const HIDDEN_KEY = 'mo:hidden-writers';
+/** Comments reported from this device: out of sight here at once. */
+const REPORTED_KEY = 'mo:reported-comments';
+const DOTS = '<circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/>';
+/** The reasons a report gives, as the server names them, in the reader's language. */
+const reasonsShown = () =>
+	/** @type {const} */ ([
+		['abusive', t('Offensive or abusive')],
+		['spam', t('Spam or advertising')],
+		['wrong', t('Wrong or misleading')],
+		['other', t('Something else')],
+	]);
+
+/** @param {string} key @returns {number[]} */
+function kept(key) {
+	try {
+		const v = JSON.parse(localStorage.getItem(key) ?? '[]');
+		return Array.isArray(v) ? v.filter((n) => Number.isInteger(n)) : [];
+	} catch {
+		return [];
+	}
+}
+/** @param {string} key @param {number[]} list */
+function keepList(key, list) {
+	try {
+		localStorage.setItem(key, JSON.stringify(list.slice(-500)));
+	} catch {
+		// Not kept (storage refused): hidden for this visit only.
+	}
+}
 /** Shown before "Show all": the newest few. */
 const FIRST = 5;
 
@@ -43,8 +79,9 @@ export function commentsSection(lang, word) {
 	const count = h('span', { class: 'comments-count' });
 	const list = h('ol', { class: 'comments-list' });
 	const more = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'comments-more', hidden: true }));
+	const hiddenNote = h('p', { class: 'comments-hidden', hidden: true });
 	const form = h('div', { class: 'comments-form' });
-	const section = h('section', { class: 'comments', 'aria-labelledby': `comments-${lang}` }, h('h2', { id: `comments-${lang}`, class: 'comments-title' }, h('span', null, t('Comments'), count)), form, list, more);
+	const section = h('section', { class: 'comments', 'aria-labelledby': `comments-${lang}` }, h('h2', { id: `comments-${lang}`, class: 'comments-title' }, h('span', null, t('Comments'), count)), form, list, hiddenNote, more);
 
 	/** @type {EntryComment[]} */
 	let items = [];
@@ -52,11 +89,23 @@ export function commentsSection(lang, word) {
 
 	/** The list, the count, and "Show all" while some are left out. */
 	const show = () => {
-		count.textContent = items.length ? ` · ${num(items.length)}` : '';
-		const shown = all ? items : items.slice(0, FIRST);
+		const writers = kept(HIDDEN_KEY);
+		const reported = kept(REPORTED_KEY);
+		const seen = items.filter((c) => c.own || (!writers.includes(c.by) && !reported.includes(c.id)));
+		const out = items.length - seen.length;
+		count.textContent = seen.length ? ` · ${num(seen.length)}` : '';
+		const shown = all ? seen : seen.slice(0, FIRST);
 		list.replaceChildren(...shown.map(item));
-		more.hidden = shown.length === items.length;
-		more.textContent = t('Show all {n} comments', { n: num(items.length) });
+		more.hidden = shown.length === seen.length;
+		more.textContent = t('Show all {n} comments', { n: num(seen.length) });
+		hiddenNote.hidden = out === 0;
+		const undo = h('button', { type: 'button', class: 'comments-unhide' }, t('Show them'));
+		undo.addEventListener('click', () => {
+			keepList(HIDDEN_KEY, []);
+			keepList(REPORTED_KEY, []);
+			show();
+		});
+		hiddenNote.replaceChildren(tn('{n} comment hidden on this device.', '{n} comments hidden on this device.', out), ' ', undo);
 	};
 	more.addEventListener('click', () => {
 		all = true;
@@ -73,9 +122,76 @@ export function commentsSection(lang, word) {
 			c.editor ? h('span', { class: 'comment-editor' }, t('Editor')) : null,
 			h('time', { datetime: date.toISOString(), title: shortDate(date, { year: true }) }, ago(c.at)),
 		);
-		const li = h('li', { class: c.editor ? 'comment comment-by-editor' : 'comment' }, face(c), h('div', { class: 'comment-main' }, head, h('p', { class: 'comment-body', dir: 'auto' }, c.body)));
-		if (c.own) head.append(remover(c));
+		const li = h('li', { class: c.editor ? 'comment comment-by-editor' : 'comment', id: `comment-${c.id}` }, face(c), h('div', { class: 'comment-main' }, head, h('p', { class: 'comment-body', dir: 'auto' }, c.body)));
+		head.append(c.own ? remover(c) : menu(c, li));
 		return li;
+	}
+
+	/**
+	 * The ⋯ menu of another's comment: Report, and Hide this person's comments.
+	 * @param {EntryComment} c
+	 * @param {HTMLElement} li
+	 */
+	function menu(c, li) {
+		const toggle = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'comment-menu-toggle', 'aria-label': t('More for this comment'), 'aria-haspopup': 'menu', 'aria-expanded': 'false' }, icon(DOTS, 18)));
+		const box = h('div', { class: 'comment-menu', role: 'menu', hidden: true });
+		const wrap = h('span', { class: 'comment-menu-wrap' }, toggle, box);
+		const close = () => {
+			box.hidden = true;
+			toggle.setAttribute('aria-expanded', 'false');
+			document.removeEventListener('pointerdown', outside, true);
+		};
+		const outside = (/** @type {Event} */ e) => wrap.contains(/** @type {Node} */ (e.target)) || close();
+		/** @param {string} label @param {() => void} run @param {string} [cls] */
+		const choice = (label, run, cls = '') => {
+			const b = h('button', { type: 'button', role: 'menuitem', class: `comment-menu-item ${cls}` }, label);
+			b.addEventListener('click', run);
+			return b;
+		};
+		const main = () =>
+			box.replaceChildren(
+				choice(t('Report'), reasons),
+				choice(t('Hide this person\'s comments'), () => {
+					keepList(HIDDEN_KEY, [...new Set([...kept(HIDDEN_KEY), c.by])]);
+					close();
+					show();
+				}),
+			);
+		const reasons = () =>
+			box.replaceChildren(
+				h('p', { class: 'comment-menu-title' }, t('Why report it?')),
+				...reasonsShown().map(([reason, label]) =>
+					choice(label, async () => {
+						box.replaceChildren(h('p', { class: 'comment-menu-title' }, t('Sending…')));
+						try {
+							await reportComment(c.id, reason);
+							keepList(REPORTED_KEY, [...kept(REPORTED_KEY), c.id]);
+							box.replaceChildren(h('p', { class: 'comment-menu-title' }, t('Thank you. The editors will look at it.')));
+							setTimeout(() => {
+								close();
+								li.classList.add('is-leaving');
+								setTimeout(show, 250);
+							}, 1400);
+						} catch (err) {
+							box.replaceChildren(h('p', { class: 'comment-menu-title is-error' }, err instanceof Error ? err.message : String(err)));
+						}
+					}),
+				),
+			);
+		toggle.addEventListener('click', () => {
+			if (!box.hidden) return close();
+			main();
+			box.hidden = false;
+			toggle.setAttribute('aria-expanded', 'true');
+			document.addEventListener('pointerdown', outside, true);
+		});
+		wrap.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				close();
+				toggle.focus();
+			}
+		});
+		return wrap;
 	}
 
 	/**

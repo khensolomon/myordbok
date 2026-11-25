@@ -5,9 +5,16 @@
  * They show at once; editors hide one in the workspace, and its author
  * deletes it. The site setting comments.open closes new comments.
  *
+ * Any reader reports a comment (abusive, spam, wrong, other): the report
+ * arrives in the admins' Inbox as a problem message pointing at the entry,
+ * with the comment's text, so an editor hides it from there. Each comment
+ * carries its author's member number (by), for a reader who hides one
+ * person's comments on their device.
+ *
  *   GET  /api/comments?lang=&word=               the entry's comments, newest first
  *   POST /api/comments                           { lang, word, body }: a member's comment
  *   POST /api/comments/{id}/delete               the author deletes their own
+ *   POST /api/comments/{id}/report               { reason, note? }: anyone reports one
  *   GET  /api/workspace/comments?show=visible|hidden&q=&offset=   editors: all of them
  *   POST /api/workspace/comments/{id}            { status: visible | hidden }, editors
  */
@@ -55,6 +62,7 @@ export async function comments(request, env, parts) {
 	if (request.method === 'GET' && parts.length === 1) return list(request, env, url);
 	if (request.method === 'POST' && parts.length === 1) return post(request, env);
 	if (request.method === 'POST' && parts.length === 3 && /^\d+$/.test(parts[1]) && parts[2] === 'delete') return remove(request, env, Number(parts[1]));
+	if (request.method === 'POST' && parts.length === 3 && /^\d+$/.test(parts[1]) && parts[2] === 'report') return report(request, env, Number(parts[1]));
 	throw new AppError('not_found', `No API route for ${request.method} ${url.pathname}`);
 }
 
@@ -80,7 +88,7 @@ async function list(request, env, url) {
 			signedIn: member !== null,
 			// Who is writing, for the face beside the form.
 			me: member && { name: member.name, avatar_url: member.avatar_url },
-			comments: results.map((r) => ({ id: Number(r.id), body: r.body, at: Number(r.created_at), name: r.name, avatar_url: r.avatar_url, editor: isEditor(r.role), own: member !== null && Number(r.user_id) === member.id })),
+			comments: results.map((r) => ({ id: Number(r.id), body: r.body, at: Number(r.created_at), name: r.name, avatar_url: r.avatar_url, editor: isEditor(r.role), own: member !== null && Number(r.user_id) === member.id, by: Number(r.user_id) })),
 		},
 		NO_STORE,
 	);
@@ -117,7 +125,7 @@ async function post(request, env) {
 	const row = /** @type {{ id: number, created_at: number }} */ (
 		await env.APP.prepare('INSERT INTO comments (user_id, lang, word, body) VALUES (?1, ?2, ?3, ?4) RETURNING id, created_at').bind(member.id, lang, word, body).first()
 	);
-	return json({ comment: { id: Number(row.id), body, at: Number(row.created_at), name: member.name, avatar_url: member.avatar_url, editor: isEditor(member.role), own: true } }, NO_STORE);
+	return json({ comment: { id: Number(row.id), body, at: Number(row.created_at), name: member.name, avatar_url: member.avatar_url, editor: isEditor(member.role), own: true, by: member.id } }, NO_STORE);
 }
 
 /**
@@ -156,6 +164,36 @@ async function remove(request, env, id) {
 	if (!member) throw new AppError('unauthorized', 'Sign in first.');
 	const { meta } = await env.APP.prepare('DELETE FROM comments WHERE id = ?1 AND user_id = ?2').bind(id, member.id).run();
 	if (!meta.changes) throw new AppError('not_found', `You have no comment ${id}.`);
+	return json({ ok: true }, NO_STORE);
+}
+
+/** What a report says is wrong with a comment. */
+export const REPORT_REASONS = /** @type {const} */ ({ abusive: 'Offensive or abusive', spam: 'Spam or advertising', wrong: 'Wrong or misleading', other: 'Something else' });
+const NOTE_MAX = 500;
+
+/**
+ * A reader reports a comment: to the admins' Inbox, as a problem message.
+ * Signed in or not; the same rate limit as every comment call applies.
+ * @param {Request} request
+ * @param {Env} env
+ * @param {number} id
+ */
+async function report(request, env, id) {
+	const data = /** @type {Record<string, unknown> | null} */ (await request.json().catch(() => null));
+	const reason = /** @type {keyof typeof REPORT_REASONS} */ (data?.reason);
+	if (!data || !Object.hasOwn(REPORT_REASONS, reason)) throw new AppError('bad_request', `reason must be one of ${Object.keys(REPORT_REASONS).join(', ')}`);
+	const note = typeof data.note === 'string' ? data.note.normalize('NFC').trim() : '';
+	if (note.length > NOTE_MAX) throw new AppError('bad_request', `The note is too long: at most ${NOTE_MAX} characters.`);
+	const row = /** @type {{ lang: string, word: string, body: string, name: string } | null} */ (
+		await env.APP.prepare("SELECT c.lang, c.word, c.body, u.name FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?1 AND c.status = 'visible'").bind(id).first()
+	);
+	if (!row) throw new AppError('not_found', 'That comment is no longer shown.');
+	const member = await currentMember(request, env);
+	const body = [`Comment ${id} reported: ${REPORT_REASONS[reason]}.`, note ? `Note: ${note}` : '', `By ${row.name} under "${row.word}":`, row.body, 'Hide it in the workspace, Comments.'].filter(Boolean).join('\n\n');
+	const page = `/definition?q=${encodeURIComponent(row.word)}#comment-${id}`;
+	await env.APP.prepare("INSERT INTO messages (kind, body, page, lang, user_id) VALUES ('problem', ?1, ?2, ?3, ?4)")
+		.bind(body.slice(0, 4000), page, row.lang === 'my' ? 'my' : 'en', member?.id ?? null)
+		.run();
 	return json({ ok: true }, NO_STORE);
 }
 

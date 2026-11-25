@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+205
+
+- Comments: report one (with a reason) or hide one person's comments, from each comment's ⋯ menu; Terms: no tolerance for objectionable content
+
 ## 26.11.25+204
 
 - One icon for iOS and Android (white M on blue); store workflows: Play release, Play listing parts, App Store listing, review and release

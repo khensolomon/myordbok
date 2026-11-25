@@ -7,7 +7,7 @@ import { CONTACT, REPOSITORY } from '../core/config.js';
 import { englishOnly, t } from '../i18n/index.js';
 import { h } from '../core/dom.js';
 
-const UPDATED = '8 November 2026';
+const UPDATED = '25 November 2026';
 
 export function title() {
 	return t('Terms of Use');
@@ -110,7 +110,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'Signing in with Google or GitHub is optional. It allows liking or disliking entries, commenting, and suggesting corrections or new meanings. Each account is personal; activity under it is the account holder’s responsibility.',
+				'Signing in with Google, GitHub or Apple is optional. It allows liking or disliking entries, commenting, and suggesting corrections or new meanings. Each account is personal; activity under it is the account holder’s responsibility.',
 			),
 			h(
 				'p',
@@ -120,7 +120,7 @@ export function view() {
 			h(
 				'p',
 				null,
-				'Comments and suggestions that are abusive, misleading, spam, or that infringe someone else’s rights may be removed, and accounts used for them may be suspended or closed.',
+				'MyOrdbok has no tolerance for objectionable content or abusive users. Comments and suggestions that are abusive, hateful, sexually explicit, threatening, misleading, spam, or that infringe someone else’s rights are removed, and accounts used for them are suspended or closed. Any comment can be reported from its ⋯ menu, and a reader can hide all comments from one person; editors review reports promptly, normally within 24 hours.',
 			),
 		),
 

@@ -658,6 +658,25 @@ test('comments: members post plain text on an entry, delete their own; editors h
 	assert.equal((await call(e, '/api/comments?lang=en&word=love')).body.open, false);
 });
 
+test('comments: anyone reports one to the Inbox, with a reason; each carries its author for hiding', async () => {
+	const e = env();
+	const c = (await call(e, '/api/comments', { who: 'other', body: { lang: 'en', word: 'love', body: 'Buy cheap watches' } })).body.comment;
+	const listed = (await call(e, '/api/comments?lang=en&word=love')).body.comments[0];
+	assert.equal(typeof listed.by, 'number', 'the author, for "hide this person" on a device');
+	assert.equal(listed.by, c.by);
+	assert.equal((await call(e, `/api/comments/${c.id}/report`, { body: { reason: 'rude' } })).status, 400);
+	assert.equal((await call(e, `/api/comments/${c.id}/report`, { body: { reason: 'spam' } })).status, 200, 'signed out too');
+	const msg = e.raw.prepare('SELECT kind, body, page, user_id FROM messages ORDER BY id DESC LIMIT 1').get();
+	assert.equal(msg.kind, 'problem');
+	assert.match(msg.body, /reported: Spam or advertising/);
+	assert.match(msg.body, /Buy cheap watches/);
+	assert.equal(msg.page, `/definition?q=love#comment-${c.id}`);
+	assert.equal(msg.user_id, null);
+	const other = (await call(e, '/api/workspace/comments', { who: 'editor' })).body.comments[0];
+	await call(e, `/api/workspace/comments/${other.id}`, { who: 'editor', body: { status: 'hidden' } });
+	assert.equal((await call(e, `/api/comments/${c.id}/report`, { body: { reason: 'spam' } })).status, 404, 'a hidden comment is no longer reported');
+});
+
 test('searches: sorted by most searched, last searched, most days, or A to Z', async () => {
 	const e = env();
 	const day = (ago) => new Date(Date.now() - ago * 86400000).toISOString().slice(0, 10);

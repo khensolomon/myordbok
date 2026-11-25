@@ -385,7 +385,7 @@ export function searchedWord(lang, term) {
 }
 
 /**
- * @typedef {{ id: number, body: string, at: number, name: string, avatar_url: string | null, editor: boolean, own: boolean }} EntryComment
+ * @typedef {{ id: number, body: string, at: number, name: string, avatar_url: string | null, editor: boolean, own: boolean, by: number }} EntryComment
  * @typedef {{ id: number, lang: 'en' | 'my', word: string, body: string, at: number, status: 'visible' | 'hidden', author: string, author_id: number }} ModeratedComment
  */
 
@@ -412,6 +412,15 @@ export function postComment(lang, word, body) {
 /** The author deletes their own comment. @param {number} id */
 export function deleteComment(id) {
 	return postJSON(`/api/comments/${id}/delete`);
+}
+
+/**
+ * Reports a comment to the editors.
+ * @param {number} id
+ * @param {'abusive' | 'spam' | 'wrong' | 'other'} reason
+ */
+export function reportComment(id, reason) {
+	return postJSON(`/api/comments/${id}/report`, { reason });
 }
 
 /**
