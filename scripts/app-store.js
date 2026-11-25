@@ -307,6 +307,18 @@ if (command === 'listing') {
 			console.log(`${folder}: sent; Apple processes them in a few minutes`);
 		}
 	}
+	if (only !== 'texts' && loc) {
+		// Sets of older sizes, carried over from an earlier version: removed,
+		// so the App Store scales the 6.9" and 13" pictures down instead of
+		// showing old ones.
+		const ours = Object.values(SHOTS).map((x) => x.type);
+		const sets = (await call('Reading the screenshot sets', `/appStoreVersionLocalizations/${loc.id}/appScreenshotSets?limit=50`)).data ?? [];
+		for (const set of sets.filter((/** @type {any} */ x) => !ours.includes(x.attributes.screenshotDisplayType) && /^APP_(IPHONE|IPAD)/.test(x.attributes.screenshotDisplayType))) {
+			changes++;
+			console.log(`${set.attributes.screenshotDisplayType}: ${apply ? 'removed' : 'would be removed'} (an older size; scaled from ours instead)`);
+			if (apply) await call(`Removing the ${set.attributes.screenshotDisplayType} set`, `/appScreenshotSets/${set.id}`, { method: 'DELETE' });
+		}
+	}
 	console.log(apply ? `Done: ${changes} change(s).` : `Dry run: ${changes} change(s); nothing sent. Add --apply.`);
 	process.exit(0);
 }
