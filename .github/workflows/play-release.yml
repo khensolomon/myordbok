@@ -1,0 +1,80 @@
+# Releases on Google Play's tracks without building (scripts/play-release.js):
+#
+#   status    what every track holds (changes nothing)
+#   promote   the newest release on "from" (or the one with "version code")
+#             put on "to": completed, or to "rollout" per cent of users first
+#   rollout   the staged rollout on "track" widened to "rollout" per cent;
+#             100 completes it
+#   halt      the staged rollout on "track" stopped; resume starts it again
+#
+# Without "apply" the change is only shown. Play reviews a change as it does
+# one made in the Console.
+name: Play release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [status, promote, rollout, halt, resume]
+        default: status
+      from:
+        description: Promote from
+        type: choice
+        options: [alpha, internal, beta, production]
+        default: alpha
+      to:
+        description: Promote to
+        type: choice
+        options: [production, beta, alpha, internal]
+        default: production
+      track:
+        description: Rollout, halt or resume on
+        type: choice
+        options: [production, beta, alpha, internal]
+        default: production
+      code:
+        description: Version code to promote (empty for the newest)
+        default: ''
+      rollout:
+        description: Share of users, per cent (100 for everyone)
+        default: '100'
+      notes:
+        description: Release notes (empty to keep the release's own)
+        default: ''
+      apply:
+        description: Make the change (without it, only show it)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: ${{ inputs.action }}
+        env:
+          GOOGLE_PLAY_ACCOUNT: ${{ secrets.GOOGLE_PLAY_ACCOUNT }}
+          ACTION: ${{ inputs.action }}
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+          TRACK: ${{ inputs.track }}
+          CODE: ${{ inputs.code }}
+          ROLLOUT: ${{ inputs.rollout }}
+          NOTES: ${{ inputs.notes }}
+          APPLY: ${{ inputs.apply && '--apply' || '' }}
+        run: |
+          case "$ACTION" in
+            status)  node scripts/play-release.js status ;;
+            promote) node scripts/play-release.js promote --from "$FROM" --to "$TO" --code "$CODE" --rollout "$ROLLOUT" --notes "$NOTES" $APPLY ;;
+            rollout) node scripts/play-release.js rollout --track "$TRACK" --rollout "$ROLLOUT" $APPLY ;;
+            *)       node scripts/play-release.js "$ACTION" --track "$TRACK" $APPLY ;;
+          esac

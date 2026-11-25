@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+204
+
+- One icon for iOS and Android (white M on blue); store workflows: Play release, Play listing parts, App Store listing, review and release
+
 ## 26.11.25+203
 
 - Android: adaptive launcher icon (white M on MyOrdbok blue, themed icon); Play icon to match

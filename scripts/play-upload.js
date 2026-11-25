@@ -12,8 +12,10 @@
  *   1. an access token, from a JWT the service account signs (RS256);
  *   2. an edit opened for the app (com.myordbok.app);
  *   3. the bundle uploaded: Play answers with its version code;
- *   4. the track given a release of that version code, completed, with the
- *      release notes (en-US);
+ *   4. the track given a release of that version code, with the release
+ *      notes (en-US): completed, or, with --rollout below 100, offered to
+ *      that share of users first (a staged rollout; scripts/play-release.js
+ *      widens it);
  *   5. the edit committed.
  *
  * Without --apply: the bundle and the key are checked, a token is asked
@@ -37,13 +39,15 @@ function option(name) {
 	return i > -1 ? process.argv[i + 1] : undefined;
 }
 
-const [bundle] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !['--track', '--notes'].includes(all[i - 1]));
+const [bundle] = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && !['--track', '--notes', '--rollout'].includes(all[i - 1]));
+const rollout = Number(option('--rollout') ?? 100);
 const track = option('--track') ?? 'internal';
 const notes = option('--notes') ?? '';
 const apply = process.argv.includes('--apply');
 
 if (!bundle || !bundle.endsWith('.aab')) fail('usage: node scripts/play-upload.js <bundle.aab> [--track internal] [--notes "…"] [--apply]');
 if (!TRACKS.includes(track)) fail(`unknown track "${track}" (expected ${TRACKS.join(', ')})`);
+if (!(rollout > 0 && rollout <= 100)) fail(`--rollout is a share of users in per cent, above 0 and at most 100, not "${option('--rollout')}"`);
 if (notes.length > 500) fail(`the release notes are ${notes.length} characters; Play takes at most 500`);
 const size = await stat(bundle).then((s) => s.size).catch(() => fail(`no bundle at ${bundle}`));
 const acc = account();
@@ -69,7 +73,7 @@ console.log(`uploaded: version code ${code}`);
 await call(`Releasing on ${track}`, `${editUrl}/tracks/${track}`, {
 	method: 'PUT',
 	headers: { ...auth, 'content-type': 'application/json' },
-	body: JSON.stringify({ track, releases: [{ versionCodes: [code], status: 'completed', ...(notes ? { releaseNotes: [{ language: 'en-US', text: notes }] } : {}) }] }),
+	body: JSON.stringify({ track, releases: [{ versionCodes: [code], ...(rollout < 100 ? { status: 'inProgress', userFraction: rollout / 100 } : { status: 'completed' }), ...(notes ? { releaseNotes: [{ language: 'en-US', text: notes }] } : {}) }] }),
 });
 await call('Committing the edit', `${editUrl}:commit`, { method: 'POST', headers: auth });
-console.log(`on ${track}: version code ${code}`);
+console.log(`on ${track}: version code ${code}${rollout < 100 ? `, to ${rollout}% of users` : ''}`);

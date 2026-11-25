@@ -1,31 +1,31 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * The Android launcher icon as an adaptive icon: one design in layers, the
- * phone cutting it to its own shape (circle, squircle, rounded square,
- * teardrop) and, from Android 13, tinting it with the wallpaper's colours
- * (themed icons). The layers:
+ * The app's icon, one design for iOS, Android and the stores: the white "M"
+ * on MyOrdbok blue (#318ed7). The "M" is the path in src-tauri/app-icon.svg.
  *
- *   background   MyOrdbok blue, #318ed7 (a colour)
- *   foreground   the white "M" (a vector drawable: sharp at every density),
- *                inside the 66 dp circle every mask keeps of the 108 dp layer
- *   monochrome   the same "M", for themed icons
- *
- * The "M" is the path in src-tauri/app-icon.svg, the iOS icon's; only its
- * size and colour differ here.
- *
- *   node scripts/android-icon.js render [--apply]
- *     src-tauri/icon/android.png      1024 px, blue with the white "M", for
- *                                     `tauri icon` (the pictures Android 7
- *                                     shows, before adaptive icons)
+ *   node scripts/app-icon.js render [--apply]
+ *     src-tauri/app-icon.svg, .png    1024 px, full-bleed, for `tauri icon`:
+ *                                     the iOS icon (iOS rounds the corners)
+ *                                     and Android 7's pictures
  *     store/play/en-US/icon/icon.png  512 px, Play's icon (Play rounds it)
  *     Needs Playwright, named by PLAYWRIGHT (as scripts/splash.js).
  *
- *   node scripts/android-icon.js install [--apply]
- *     The layers into the Android project tauri made (src-tauri/gen/android),
- *     after `tauri icon src-tauri/icon/android.png`: res/drawable/
- *     ic_launcher_foreground.xml, res/values/ic_launcher_background.xml and
- *     res/mipmap-anydpi-v26/ic_launcher{,_round}.xml.
+ *   node scripts/app-icon.js install android [--apply]
+ *     Android's launcher icon as an adaptive icon, into the project tauri
+ *     made (src-tauri/gen/android), after `tauri icon`: one design in
+ *     layers, the phone cutting it to its own shape (circle, squircle,
+ *     rounded square, teardrop) and, from Android 13, tinting it with the
+ *     wallpaper's colours (themed icons).
+ *       background   the blue (res/values/ic_launcher_background.xml)
+ *       foreground   the white "M", a vector drawable (sharp at every
+ *                    density), inside the 66 dp circle every mask keeps of
+ *                    the 108 dp layer (res/drawable/ic_launcher_foreground.xml)
+ *       monochrome   the same "M", for themed icons
+ *     and res/mipmap-anydpi-v26/ic_launcher{,_round}.xml naming them.
+ *
+ * The full-bleed pictures are the adaptive layer's visible middle (72 of
+ * 108 units), so the "M" is the same size everywhere.
  *
  * Without --apply it says what it would do and changes nothing.
  */
@@ -48,7 +48,7 @@ const apply = process.argv.includes('--apply');
 
 /** @param {string} message @returns {never} */
 function fail(message) {
-	console.error(`android-icon: ${message}`);
+	console.error(`app-icon: ${message}`);
 	process.exit(1);
 }
 
@@ -60,7 +60,8 @@ function write(path, content) {
 	writeFileSync(path, content);
 }
 
-const source = readFileSync(join(ROOT, 'src-tauri/app-icon.svg'), 'utf8');
+const SVG = join(ROOT, 'src-tauri/app-icon.svg');
+const source = readFileSync(SVG, 'utf8');
 const d = /<path[^>]* d="([^"]+)"/.exec(source)?.[1];
 if (!d) fail('src-tauri/app-icon.svg has no path for the "M"');
 
@@ -76,7 +77,7 @@ const layer = (/** @type {boolean} */ withBlue) =>
 const square = (/** @type {number} */ px) => layer(true).replace('viewBox="0 0 108 108"', `viewBox="18 18 72 72" width="${px}" height="${px}"`);
 
 const foreground = `<?xml version="1.0" encoding="utf-8"?>
-<!-- Written by scripts/android-icon.js: the white "M" of the adaptive icon. -->
+<!-- Written by scripts/app-icon.js: the white "M" of the adaptive icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -94,7 +95,7 @@ const foreground = `<?xml version="1.0" encoding="utf-8"?>
 </vector>
 `;
 const adaptive = `<?xml version="1.0" encoding="utf-8"?>
-<!-- Written by scripts/android-icon.js. -->
+<!-- Written by scripts/app-icon.js. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background" />
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
@@ -102,14 +103,15 @@ const adaptive = `<?xml version="1.0" encoding="utf-8"?>
 </adaptive-icon>
 `;
 const background = `<?xml version="1.0" encoding="utf-8"?>
-<!-- Written by scripts/android-icon.js: MyOrdbok blue. -->
+<!-- Written by scripts/app-icon.js: MyOrdbok blue. -->
 <resources>
     <color name="ic_launcher_background">${BLUE}</color>
 </resources>
 `;
 
-const [command] = process.argv.slice(2);
+const [command, platform] = process.argv.slice(2);
 if (command === 'install') {
+	if (platform !== 'android') fail('usage: node scripts/app-icon.js install android [--apply] (iOS takes the picture `tauri icon` makes)');
 	if (!existsSync(RES)) fail(`no Android project at ${relative(ROOT, RES)}: run \`tauri android init\` first`);
 	write(join(RES, 'drawable/ic_launcher_foreground.xml'), foreground);
 	write(join(RES, 'values/ic_launcher_background.xml'), background);
@@ -117,7 +119,7 @@ if (command === 'install') {
 	write(join(RES, 'mipmap-anydpi-v26/ic_launcher_round.xml'), adaptive);
 } else if (command === 'render') {
 	const from = process.env.PLAYWRIGHT;
-	if (!from) fail('Playwright is needed to draw the pictures: PLAYWRIGHT="$(npm root -g)/playwright/index.mjs" node scripts/android-icon.js render');
+	if (!from) fail('Playwright is needed to draw the pictures: PLAYWRIGHT="$(npm root -g)/playwright/index.mjs" node scripts/app-icon.js render');
 	const { chromium } = await import(from);
 	const browser = await chromium.launch();
 	const page = await browser.newPage();
@@ -127,12 +129,13 @@ if (command === 'install') {
 		await page.setContent(`<!doctype html><style>html,body{margin:0}svg{display:block}</style>${square(px)}`);
 		return page.screenshot({ clip: { x: 0, y: 0, width: px, height: px } });
 	};
-	write(join(ROOT, 'src-tauri/icon/android.png'), await png(1024));
+	write(SVG, `${square(1024)}\n`);
+	write(join(ROOT, 'src-tauri/app-icon.png'), await png(1024));
 	write(join(ROOT, 'store/play/en-US/icon/icon.png'), await png(512));
 	await browser.close();
 } else if (command === 'preview') {
 	// The layer for a look at it in the masks (not written anywhere kept).
 	process.stdout.write(layer(true));
 } else {
-	fail('usage: node scripts/android-icon.js render|install [--apply]');
+	fail('usage: node scripts/app-icon.js render|install android [--apply]');
 }

@@ -5,7 +5,7 @@
  * language in store/play/<language>/, sent through the Play Developer API
  * (scripts/lib/play.js), as the service account in GOOGLE_PLAY_ACCOUNT.
  *
- *   node scripts/play-listing.js [--apply]
+ *   node scripts/play-listing.js [--only texts|screenshots|icon|feature] [--language en-US] [--apply]
  *
  *   store/play/<language>/          a Play language code: en-US, my-MM, …
  *     title.txt                     at most 30 characters
@@ -19,6 +19,9 @@
  * text, an image folder left out keeps Play's images. An image folder
  * replaces all of that type, in file-name order, and only when its images
  * differ from Play's (by SHA-256).
+ *
+ * --only sends one part (the others stay as Play has them); --language one
+ * language's folder.
  *
  * Without --apply: an edit is opened, Play's listing is printed (every
  * language, its texts in full and its image counts) beside what would
@@ -45,6 +48,22 @@ const IMAGES = /** @type {Record<string, { min: number, max: number, exact?: [nu
 /** @param {string} message */
 const fail = (message) => stop(`play-listing: ${message}`);
 const apply = process.argv.includes('--apply');
+/** @param {string} name */
+const option = (name) => {
+	const i = process.argv.indexOf(name);
+	return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : undefined;
+};
+/** Each part --only can name, as the fields and image types it covers. */
+const PARTS = {
+	texts: ['title', 'shortDescription', 'fullDescription'],
+	screenshots: ['phoneScreenshots', 'sevenInchScreenshots', 'tenInchScreenshots'],
+	icon: ['icon'],
+	feature: ['featureGraphic'],
+};
+const only = option('--only');
+if (only && only !== 'all' && !(only in PARTS)) fail(`--only "${only}" is not a part: ${Object.keys(PARTS).join(', ')}`);
+const parts = only && only !== 'all' ? PARTS[/** @type {keyof PARTS} */ (only)] : null;
+const language = option('--language');
 
 /**
  * A PNG's or JPEG's width and height, from its header.
@@ -102,8 +121,9 @@ async function local(lang) {
 }
 
 const langs = await readdir(ROOT, { withFileTypes: true })
-	.then((all) => all.filter((d) => d.isDirectory()).map((d) => d.name).sort())
+	.then((all) => all.filter((d) => d.isDirectory() && (!language || language === 'all' || d.name === language)).map((d) => d.name).sort())
 	.catch(() => /** @type {string[]} */ ([]));
+if (language && language !== 'all' && !langs.length) fail(`store/play/ has no folder for ${language}`);
 const wanted = Object.fromEntries(await Promise.all(langs.map(async (l) => [l, await local(l)])));
 
 const acc = account();
@@ -129,9 +149,11 @@ const changes = [];
 for (const [lang, { texts, images }] of Object.entries(wanted)) {
 	const now = listings.find((l) => l.language === lang);
 	for (const [field, text] of Object.entries(texts)) {
+		if (parts && !parts.includes(field)) continue;
 		if (now?.[/** @type {'title'} */ (field)] !== text) changes.push({ lang, kind: 'text', field, text });
 	}
 	for (const [type, list] of Object.entries(images)) {
+		if (parts && !parts.includes(type)) continue;
 		const got = now ? (await call(`Reading ${lang} ${type}`, `${editUrl}/listings/${lang}/${type}`, { headers: auth })).images ?? [] : [];
 		const same = got.length === list.length && got.every((/** @type {{ sha256: string }} */ g, /** @type {number} */ i) => g.sha256 === list[i].sha256);
 		if (!same) changes.push({ lang, kind: 'images', field: type, list });

@@ -1,0 +1,70 @@
+# The App Store side through the App Store Connect API (scripts/app-store.js),
+# as the iOS build's API key (secrets APPLE_API_ISSUER, APPLE_API_KEY,
+# APPLE_API_KEY_P8; App Manager or Admin role):
+#
+#   status    versions, builds and in-app purchases with their state
+#   listing   the version being prepared given store/app-store/en-US/ (texts,
+#             screenshots); a version is made for the newest build when
+#             none is being prepared. "part" sends texts or screenshots only.
+#   build     the newest processed build (or "build number") chosen for it
+#   submit    sent for review; "release" says how it goes out once approved
+#   release   the approved version, waiting for its developer, released
+#
+# Without "apply" the change is only shown.
+name: App Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [status, listing, build, submit, release]
+        default: status
+      part:
+        description: Listing, what to send
+        type: choice
+        options: [all, texts, screenshots]
+        default: all
+      build:
+        description: Build number to choose (empty for the newest)
+        default: ''
+      release:
+        description: Submit, how the version goes out once approved
+        type: choice
+        options: [manual, after-approval]
+        default: manual
+      apply:
+        description: Make the change (without it, only show it)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  app-store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: ${{ inputs.action }}
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          ACTION: ${{ inputs.action }}
+          PART: ${{ inputs.part }}
+          BUILD: ${{ inputs.build }}
+          RELEASE: ${{ inputs.release }}
+          APPLY: ${{ inputs.apply && '--apply' || '' }}
+        run: |
+          case "$ACTION" in
+            listing) node scripts/app-store.js listing --only "$PART" $APPLY ;;
+            build)   node scripts/app-store.js build ${BUILD:+--build "$BUILD"} $APPLY ;;
+            submit)  node scripts/app-store.js submit --release "$RELEASE" $APPLY ;;
+            *)       node scripts/app-store.js "$ACTION" $APPLY ;;
+          esac

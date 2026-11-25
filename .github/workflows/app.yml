@@ -13,7 +13,15 @@
 #           ios-testflight: the iOS app, signed through the App Store Connect
 #           API key (secrets APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_P8)
 #           and uploaded to App Store Connect, where it reaches TestFlight.
-#   server  beta (default) or live: the API a test APK or a TestFlight build asks
+#           stores: play-aab and ios-testflight together.
+#   server  beta (default) or live: the API a test APK or a TestFlight build
+#           asks (a Play bundle, and both builds of "stores", ask live)
+#   track   the Play track a bundle goes to: alpha (closed testing, default),
+#           internal, beta (open testing) or production
+#   rollout for a bundle, the share of the track's users offered it first,
+#           in per cent (100, everyone); the Play release workflow widens it
+#   notes   for a bundle, Play's release notes (en-US); MyOrdbok <version>
+#           when empty
 #
 # Each run's version code (Android) and build number (iOS) is 1000 plus the
 # build number (scripts/app-config.js): the stores refuse one they have had
@@ -28,13 +36,24 @@ on:
       build:
         description: What to build
         type: choice
-        options: [test-apk, play-aab, ios-testflight]
+        options: [test-apk, play-aab, ios-testflight, stores]
         default: test-apk
       server:
-        description: The API a test APK or TestFlight build asks (a Play bundle always asks live)
+        description: The API a test APK or TestFlight build asks (a Play bundle, and "stores", always ask live)
         type: choice
         options: [beta, live]
         default: beta
+      track:
+        description: Play track for a bundle
+        type: choice
+        options: [alpha, internal, beta, production]
+        default: alpha
+      rollout:
+        description: Play rollout for a bundle, per cent of users (100 for everyone)
+        default: '100'
+      notes:
+        description: Play release notes for a bundle (empty for "MyOrdbok <version>")
+        default: ''
 
 permissions:
   contents: read
@@ -43,16 +62,18 @@ env:
   # r28 and later link for 16 KB memory pages by default (Play requires it
   # of every 64-bit native library since 1 November 2025).
   NDK_VERSION: 28.2.13676358
-  SERVER: ${{ inputs.build == 'play-aab' && 'live' || inputs.server }}
+  SERVER: ${{ (inputs.build == 'play-aab' || inputs.build == 'stores') && 'live' || inputs.server }}
+  # A Play bundle is made: "play-aab", or "stores".
+  PLAY: ${{ inputs.build == 'play-aab' || inputs.build == 'stores' }}
 
 jobs:
   android:
     name: Android (${{ inputs.build }})
-    if: inputs.build != 'ios-testflight'
+    if: inputs.build == 'test-apk' || inputs.build == 'play-aab' || inputs.build == 'stores'
     runs-on: ubuntu-latest
     steps:
       - name: The upload key, for a Play bundle
-        if: inputs.build == 'play-aab'
+        if: env.PLAY == 'true'
         env:
           KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE }}
           PASSWORD: ${{ secrets.ANDROID_UPLOAD_PASSWORD }}
@@ -101,8 +122,8 @@ jobs:
       - name: The Android project, then its icons and splash
         run: |
           npm run tauri -- android init --ci
-          npm run tauri -- icon src-tauri/icon/android.png
-          node scripts/android-icon.js install --apply
+          npm run tauri -- icon src-tauri/app-icon.png
+          node scripts/app-icon.js install android --apply
           node scripts/splash.js install android --apply
 
       # Play's floor: target Android 16 (API 36) from 31 August 2026. The
@@ -122,7 +143,7 @@ jobs:
           CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS: -C link-arg=-Wl,-z,max-page-size=16384
           CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS: -C link-arg=-Wl,-z,max-page-size=16384
         run: |
-          if [ "${{ inputs.build }}" = play-aab ]; then
+          if [ "$PLAY" = true ]; then
             npm run tauri -- android build --aab --target aarch64 armv7 x86_64 i686 --config src-tauri/tauri.ci.json
           else
             npm run tauri -- android build --apk --target aarch64 armv7 --config src-tauri/tauri.ci.json
@@ -155,7 +176,7 @@ jobs:
       # A bundle is signed with jarsigner (apksigner is for APKs); Play then
       # signs what it delivers with the app signing key it keeps.
       - name: Sign for Play
-        if: inputs.build == 'play-aab'
+        if: env.PLAY == 'true'
         env:
           PASSWORD: ${{ secrets.ANDROID_UPLOAD_PASSWORD }}
           ALIAS: ${{ secrets.ANDROID_UPLOAD_ALIAS }}
@@ -177,19 +198,22 @@ jobs:
             myordbok-play-*.aab
           if-no-files-found: error
 
-      # On Play's closed testing track (Alpha): the testers' Play Store offers
-      # it as an update once Play has reviewed it; a release still in review
-      # there is replaced by this one. The bundle is kept as an artifact
+      # On the Play track asked for (closed testing, Alpha, unless another):
+      # its users' Play Store offers it as an update once Play has reviewed
+      # it; a release still in review there is replaced by this one. The bundle is kept as an artifact
       # first, so a refused upload leaves it to upload by hand.
-      - name: To Play, closed testing
-        if: inputs.build == 'play-aab'
+      - name: To Play (${{ inputs.track }})
+        if: env.PLAY == 'true'
         env:
           GOOGLE_PLAY_ACCOUNT: ${{ secrets.GOOGLE_PLAY_ACCOUNT }}
-        run: node scripts/play-upload.js "myordbok-play-$VERSION.aab" --track alpha --notes "MyOrdbok $VERSION" --apply
+          TRACK: ${{ inputs.track }}
+          ROLLOUT: ${{ inputs.rollout }}
+          NOTES: ${{ inputs.notes }}
+        run: node scripts/play-upload.js "myordbok-play-$VERSION.aab" --track "$TRACK" --rollout "$ROLLOUT" --notes "${NOTES:-MyOrdbok $VERSION}" --apply
 
   ios:
     name: iOS (TestFlight)
-    if: inputs.build == 'ios-testflight'
+    if: inputs.build == 'ios-testflight' || inputs.build == 'stores'
     # Apple takes only builds made with the current SDK (iOS 27 from April
     # 2027); this image carries Xcode 27 (github.blog changelog 2026-10-16).
     runs-on: xcode-27

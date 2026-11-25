@@ -822,14 +822,30 @@ purchases, sign in as one Google service account:
 Checked without uploading: `GOOGLE_PLAY_ACCOUNT="$(cat key.json)" node
 scripts/play-upload.js some.aab` signs in, opens an edit and deletes it.
 
-### Play store listing
+### The stores from the Actions tab
 
-The listing's texts and graphics live in `store/play/<language>/`
-(`scripts/play-listing.js` lists the files and Play's limits). The **Play
-listing** workflow (Actions tab) prints Play's listing as it is and what
-would change; run with **apply**, it sends the changes in one edit, and
-Play reviews them as it does a change made in the Console. Only what the
-folder holds is touched.
+Each is a workflow run by hand (Actions → the workflow → Run workflow);
+every one that changes something only shows the change unless **apply** is
+ticked.
+
+| Workflow | Does |
+|---|---|
+| **App** | Builds: a test APK, the Play bundle (to the chosen track, at a rollout share, with release notes), the iOS build to TestFlight, or **stores**: both store builds |
+| **Play release** | `status` of every track; `promote` a tested release to another track (e.g. Alpha → production) without building; widen (`rollout`), `halt` or `resume` a staged rollout |
+| **Play listing** | The listing from `store/play/<language>/`: texts, screenshots, icon, feature graphic, or one part of them |
+| **App Store** | `status` of versions, builds and in-app purchases; `listing` from `store/app-store/en-US/` (texts and screenshots; makes the version when none is being prepared); `build` chosen for the version; `submit` for review; `release` once approved |
+
+The files and each store's limits are listed at the top of
+`scripts/play-listing.js` and `scripts/app-store.js`. Screenshots are taken
+of the app with `make store-shots` (`scripts/store-shots.mjs`), the icon
+drawn with `node scripts/app-icon.js render` (one design: iOS, Android's
+adaptive icon, Play).
+
+The App Store key needs the App Manager or Admin role for the listing and
+the review. Two things stay in App Store Connect itself: the App Privacy
+answers, and a first in-app purchase, which goes for review only with a
+version, chosen on that version's page (so that first submission is made
+there; `submit` says so).
 
 ### Play upload key
 
