@@ -57,6 +57,14 @@ export const ROUTES = Object.freeze([
 export const MOVED = Object.freeze({ '/you': '/more' });
 
 /**
+ * Pages the store apps (iOS, Android) do not show, and where they lead
+ * instead: the website's Support page asks for gifts outside the stores,
+ * which the App Store and Google Play allow only through their own
+ * payments, offered on More.
+ */
+export const STORE_MOVED = Object.freeze({ '/support': '/more' });
+
+/**
  * @param {string} pathname
  */
 export function match(pathname) {

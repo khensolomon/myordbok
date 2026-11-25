@@ -25,7 +25,7 @@ import { ICONS } from '../core/icons.js';
 import { member, providerLinks, signOut } from '../core/member.js';
 import { getTheme, setTheme } from '../core/prefs.js';
 import { SUPPORTER, TIPS, buy, products, restore, storeAvailable, supportState } from '../core/support.js';
-import { workspaceSummary } from '../data/api.js';
+import { deleteAccount, workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
 import { MYANMAR_OPEN, getLang, num, setLang, t, tn } from '../i18n/index.js';
 
@@ -116,7 +116,43 @@ function account(me) {
 			signOutButton(),
 		),
 		h('a', { class: 'you-workspace', href: '/workspace' }, icon(ICONS.overview, 18), t('Open the workspace'), badge),
+		deletion(me),
 	);
+}
+
+/**
+ * Deleting the account, here in the app as in the workspace: behind a
+ * typed confirmation (the account's email, or DELETE), so that it is never
+ * more than two taps away (the App Store asks it of every app with accounts).
+ * @param {Member} me
+ */
+function deletion(me) {
+	const expected = me.email ?? 'DELETE';
+	const field = /** @type {HTMLInputElement} */ (h('input', { type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-describedby': 'you-delete-help' }));
+	const go = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'you-delete-go', disabled: true }, t('Delete the account')));
+	const result = h('p', { class: 'you-delete-result', role: 'alert' });
+	field.addEventListener('input', () => (go.disabled = field.value.trim().toLowerCase() !== expected.toLowerCase()));
+	const form = h(
+		'form',
+		{ class: 'you-delete-form' },
+		h('p', { id: 'you-delete-help' }, t('Removes the sign-ins, ratings, comments and suggestions still waiting. Suggestions already reviewed stay in the dictionary’s history as “Former member”. This cannot be undone.')),
+		h('label', null, t('Type {text} to confirm', { text: expected }), field),
+		go,
+		result,
+	);
+	form.addEventListener('submit', async (ev) => {
+		ev.preventDefault();
+		go.disabled = true;
+		try {
+			await deleteAccount(field.value.trim());
+			await member({ fresh: true }).catch(() => null);
+			location.assign('/more');
+		} catch (err) {
+			go.disabled = false;
+			result.textContent = err instanceof Error ? err.message : String(err);
+		}
+	});
+	return h('details', { class: 'you-delete' }, h('summary', null, t('Delete the account')), form);
 }
 
 function signOutButton() {

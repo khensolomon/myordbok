@@ -17,7 +17,7 @@ LEARN AND KEEP
 ANYWHERE
 • Offline: download the dictionary and look words up without a connection
 • Light and dark themes, phone and tablet layouts
-• Myanmar text in Unicode; a word typed in Zawgyi is still found
+• Myanmar text in Unicode; a word typed in Zawgyi is suggested in Unicode
 
 FREE, WITH NO ADS
 Everything in MyOrdbok is free for everyone, with no ads and no account needed to read. Signing in with Google, GitHub or Apple is optional: to comment, suggest a correction, or keep Practice progress across devices.

@@ -17,14 +17,26 @@
 - [ ] Offline copies take live edits at check-in (today they follow the release)
 - [ ] Search suggestions for headwords only the live layer has
 - [x] A word's family on the entry (dataset lookup `family`)
-- [ ] The offline related pack with the family: the next `make data-packs`
+- [x] The offline related pack with the family (`make data-packs`, 2026-11-25)
 - [x] Tauri adapters (http, boot) and the app project (`src-tauri/`), with an Android test build in GitHub Actions
 - [x] The app on Play: new upload key (valid from 2026-11-24), signed AAB builds (App workflow, play-aab)
-- [ ] The app on Play: first bundle on the internal testing track, then production
+- [x] The app on Play: closed testing, then production (version code 1202, 2026-11-25)
+- [ ] The app on Play: the next bundle, with the adaptive icon and the comment menu; then the Play icon (Google workflow, listing ▸ icon)
 - [x] The iOS build in GitHub Actions (macOS runner, App Store Connect API key), uploaded to TestFlight
-- [ ] The app on the App Store: TestFlight on a phone, screenshots (iPhone and iPad), App Privacy answers, review
+- [ ] The app on the App Store: review of version 26.11.25 (build 1205 or later), released by hand
+- [ ] On the release day: the earlier in-app purchases (offlineaccess, upgrade, subscription_silver) off sale on both stores
 - [x] Sign in with Apple on the website, removable (setting signin.apple)
 - [x] Linking the app to an account (myordbok.com/link, Linked devices on the Account page)
 - [x] A sitemap of the headwords, following each data release; robots.txt naming it
 - [ ] CI secrets
 - [ ] LICENSE: copyright holder's name
+
+## Stores and the app
+
+- [ ] Workflows as three: Apple, Google, Web, each with one Task list (Build ▸ …, Listing ▸ …, Review ▸ …, Release ▸ …), boxes saying which tasks use them, a wrong combination stopped, each run titled by what it did
+- [ ] iOS sign-in inside the app (ASWebAuthenticationSession) instead of Safari
+- [ ] App Store header and search picture (one 16:9 universal asset, 5244 × 2950)
+- [ ] Server-side purchase checks (Apple's In-App Purchase key; Play's purchases API), only should supporter status follow the account
+- [ ] The iap plugin's bug upstream (initPlugin not public: lost in release builds)
+- [ ] The apps' content security policy; assetlinks.json and apple-app-site-association
+- [ ] Accessibility checked with VoiceOver and TalkBack, larger text; then App Accessibility on App Store Connect

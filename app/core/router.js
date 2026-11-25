@@ -4,7 +4,8 @@
  * every route is reachable directly by URL (deep links), online or offline.
  */
 import { h } from './dom.js';
-import { MOVED, match } from './routes.js';
+import { MOVED, STORE_MOVED, match } from './routes.js';
+import { AppError } from '#shared/errors.js';
 import { pageScroll, scrollPageTo } from './scroll.js';
 import { endProgress, startProgress } from './progress.js';
 import { t } from '../i18n/index.js';
@@ -50,7 +51,9 @@ export function startRouter(outlet, onRoute) {
 	 */
 	async function render(how = 'load') {
 		const mine = ++token;
-		const moved = MOVED[location.pathname.replace(/\/+$/, '')];
+		const here = location.pathname.replace(/\/+$/, '');
+		const app = document.documentElement.dataset.app;
+		const moved = MOVED[/** @type {keyof MOVED} */ (here)] ?? (app === 'ios' || app === 'android' ? STORE_MOVED[/** @type {keyof STORE_MOVED} */ (here)] : undefined);
 		if (moved) history.replaceState(history.state, '', moved + location.search + location.hash);
 		if (!history.state?.key) history.replaceState({ ...history.state, key: entryKey() }, '');
 		const url = new URL(location.href);
@@ -125,6 +128,8 @@ export function startRouter(outlet, onRoute) {
 			endProgress();
 			console.error(err);
 			outlet.replaceChildren(failure(err));
+			// A page all the same: the splash lifts, the title bar follows.
+			window.dispatchEvent(new CustomEvent('mo:navigated', { detail: route?.name ?? 'failure' }));
 		}
 	}
 
@@ -223,5 +228,14 @@ function reloadOnce() {
 /** @param {unknown} err */
 function failure(err) {
 	const message = err instanceof Error ? err.message : String(err);
+	// No connection is no fault: said plainly, with the way to read without one.
+	if (err instanceof AppError && err.code === 'unavailable')
+		return h(
+			'section',
+			{ class: 'page notice', role: 'alert' },
+			h('h1', null, t('No connection')),
+			h('p', null, message),
+			h('p', null, h('a', { href: '/offline' }, t('Keep the definitions offline'))),
+		);
 	return h('section', { class: 'page notice', role: 'alert' }, h('h1', null, t('Something went wrong')), h('p', null, message));
 }

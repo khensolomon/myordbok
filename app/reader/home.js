@@ -34,7 +34,8 @@ export function view() {
 		})
 		.catch(() => {});
 	const ask = h('div', { class: 'home-support', hidden: true, 'data-store-hidden': '' });
-	supportLine(ask);
+	// Without a connection the line is simply not shown: home works offline.
+	supportLine(ask).catch(() => {});
 	return h('section', { class: 'home', 'aria-label': t('Search the dictionary') }, todaySection(), mine, most, ask);
 }
 

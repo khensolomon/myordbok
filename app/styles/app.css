@@ -1203,6 +1203,16 @@ body[data-quiz-off] .practice-paused { display: block; }
 .comment-menu-title { margin: 0; padding: 8px 12px 6px; color: var(--muted); font: 13px/1.4 var(--font-ui); }
 .comment-menu-title.is-error { color: var(--danger); }
 .comment.is-leaving { opacity: 0; transition: opacity .25s ease; }
+.you-delete { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; font: 14px/1.5 var(--font-ui); }
+.you-delete summary { color: var(--danger); cursor: pointer; list-style: none; }
+.you-delete summary::-webkit-details-marker { display: none; }
+.you-delete-form { display: grid; gap: 10px; margin-top: 8px; }
+.you-delete-form p { margin: 0; color: var(--muted); }
+.you-delete-form label { display: grid; gap: 6px; color: var(--ink); }
+.you-delete-form input { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); font: 16px var(--font-ui); }
+.you-delete-go { justify-self: start; padding: 9px 16px; border: none; border-radius: 999px; background: var(--danger); color: #fff; font: 600 14px var(--font-ui); cursor: pointer; }
+.you-delete-go:disabled { opacity: .45; cursor: default; }
+.you-delete-result:empty { display: none; }
 .comments-hidden { margin: 8px 0 0; color: var(--muted); font: 13px/1.5 var(--font-ui); }
 .comments-unhide { border: none; background: none; padding: 0; color: var(--brand); font: inherit; cursor: pointer; }
 @media (hover: none) { .comment-delete { opacity: 1; } }

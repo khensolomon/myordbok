@@ -109,7 +109,7 @@ export async function view() {
 			h(
 				'p',
 				null,
-				'Reading and searching need no account. Signing in with Google or GitHub lets you like an entry, comment, and suggest a correction or a new meaning right beside it. MyOrdbok then keeps the name, picture and verified email address the provider gives, only to recognise you and to credit your contributions; it never uses them for advertising and never shares them. The ',
+				'Reading and searching need no account. Signing in with Google, GitHub or Apple lets you like an entry, comment, and suggest a correction or a new meaning right beside it. MyOrdbok then keeps the name, picture and email address the provider gives, only to recognise you and to credit your contributions; it never uses them for advertising and never shares them. The ',
 				h('a', { href: '/privacy' }, 'Privacy'),
 				' page explains what is stored and how to have it deleted. Questions, mistakes and words to add are welcome through the ',
 				h('a', { href: CONTACT }, 'contact form'),

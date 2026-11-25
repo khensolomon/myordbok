@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+206
+
+- Before App Store review: delete the account inside the app; deleting right after linking works; /support goes to More in the store apps; a page without connection says so; texts name Apple sign-in
+
 ## 26.11.25+205
 
 - Comments: report one (with a reason) or hide one person's comments, from each comment's ⋯ menu; Terms: no tolerance for objectionable content

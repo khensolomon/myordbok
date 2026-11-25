@@ -24,6 +24,7 @@ export const MY = {
 	'Nothing lives at {path}.': '{path} တွင် ဘာမျှမရှိပါ။',
 	'Go to the dictionary': 'အဘိဓာန်သို့ သွားရန်',
 	'Something went wrong': 'တစ်ခုခု မှားယွင်းသွားပါသည်',
+	'No connection': 'အင်တာနက် ချိတ်ဆက်မှု မရှိပါ',
 	'This page is in English for now.': 'ဤစာမျက်နှာကို ယခုအချိန်တွင် အင်္ဂလိပ်ဘာသာဖြင့်သာ ဖတ်နိုင်ပါသေးသည်။',
 	'Could not reach MyOrdbok. Check the connection.': 'MyOrdbok နှင့် ချိတ်ဆက်၍ မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။',
 	'Too many searches in a short time. Wait a minute, then try again.': 'အချိန်တိုအတွင်း ရှာဖွေမှု များလွန်းနေပါသည်။ တစ်မိနစ်ခန့် စောင့်ပြီး ထပ်ကြိုးစားပါ။',

@@ -75,7 +75,7 @@ every command; deployment, branches and releases are described in
 
 ## Privacy & Security
 
-We value your privacy. Reading, searching and offline use need **no account**, so your search history stays with you. Recent searches stay on the device; the server only counts how often each word is searched, never who searched it. Signing in with Google or GitHub is optional and used to rate meanings, suggest edits and download definitions for offline use. Google Analytics runs only after visitors allow it. For a detailed breakdown of how data is handled, see the [Privacy Policy](https://myordbok.com/privacy).
+We value your privacy. Reading, searching and offline use need **no account**, so your search history stays with you. Recent searches stay on the device; the server only counts how often each word is searched, never who searched it. Signing in with Google, GitHub or Apple is optional and used to rate meanings, comment, suggest edits and keep Practice progress across devices. Google Analytics runs only after visitors allow it. For a detailed breakdown of how data is handled, see the [Privacy Policy](https://myordbok.com/privacy).
 
 ---
 

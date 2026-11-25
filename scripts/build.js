@@ -37,7 +37,9 @@ const TARGETS = ['web', 'tauri'];
  * (src-tauri/splash/README.md) until the first page is drawn: the logo
  * drawn in the page itself, light and dark, so no file is waited for while
  * the system's splash gives way. Android draws its logo smaller (176 dp):
- * the page follows (app.css, .app-splash-android).
+ * the page follows (app.css, .app-splash-android). The platform
+ * (html[data-app], which boot.js sets too) is set here already, before the
+ * first page is drawn: the router and the style sheet ask it from the start.
  * @param {string} root
  */
 async function appSplash(root) {
@@ -53,7 +55,7 @@ async function appSplash(root) {
 			.replace(/<svg /, `<svg class="app-splash-${prefix.slice(0, -1)}" aria-hidden="true" `);
 	};
 	return `<div class="app-splash" aria-hidden="true">${await logo('logo.svg', 'light-')}${await logo('logo-dark.svg', 'dark-')}<p>Myanmar dictionary</p></div>
-	<script>if(/Android/.test(navigator.userAgent))document.querySelector('.app-splash').classList.add('app-splash-android')</script>`;
+	<script>if(/Android/.test(navigator.userAgent))document.querySelector('.app-splash').classList.add('app-splash-android');document.documentElement.dataset.app=/iPhone|iPad|iPod/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'desktop'</script>`;
 }
 
 /**

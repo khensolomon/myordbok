@@ -576,6 +576,8 @@ async function deleteAccount(request, env, member) {
 		db.prepare('UPDATE messages SET handled_by = 0 WHERE handled_by = ?1').bind(id),
 		db.prepare('UPDATE notices SET updated_by = 0 WHERE updated_by = ?1').bind(id),
 		db.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(id),
+		// A code approved minutes ago still names the account (migration 0022).
+		db.prepare('DELETE FROM device_links WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM identities WHERE user_id = ?1').bind(id),
 		db.prepare('DELETE FROM users WHERE id = ?1').bind(id),
 	]);

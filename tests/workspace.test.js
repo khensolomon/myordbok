@@ -159,6 +159,9 @@ test('deleting an account: confirmed by email; reviewed work stays as a former m
 	await call(e, `/api/workspace/edits/${reviewed.id}/review`, { who: 'editor', body: { decision: 'approve' } });
 	await call(e, '/api/reactions', { who: 'member', body: { lang: 'en', word: 'love', sense_id: first.id, value: 1 } });
 
+	// The app linked minutes ago: its approved code still names the account.
+	e.raw.prepare("INSERT INTO device_links (user_code, device_hash, device, status, user_id, expires_at) VALUES ('ABCD2345', 'h', 'ios', 'approved', 1, unixepoch() + 600)").run();
+
 	assert.equal((await call(e, '/api/workspace/account/delete', { who: 'member', body: { confirm: 'wrong@example.com' } })).status, 400);
 	const gone = await worker.fetch(
 		new Request(`${SITE}/api/workspace/account/delete`, {
@@ -173,6 +176,7 @@ test('deleting an account: confirmed by email; reviewed work stays as a former m
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM users WHERE id = 1').get().n, 0);
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM sense_reactions').get().n, 0);
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM sessions WHERE user_id = 1').get().n, 0);
+	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM device_links WHERE user_id = 1').get().n, 0);
 	assert.equal(e.raw.prepare('SELECT count(*) AS n FROM dict_edits WHERE id = ?').get(waiting.id).n, 0);
 	assert.equal(e.raw.prepare('SELECT user_id FROM dict_edits WHERE id = ?').get(reviewed.id).user_id, 0);
 	assert.equal((await call(e, '/api/workspace/summary', { who: 'member' })).status, 401);
