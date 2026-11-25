@@ -183,7 +183,7 @@ release: ## Fast-forward master to dev, keeping dev ahead [APPLY=1]
 	@test -z "$$(git status --porcelain)" || { echo 'Commit or stash changes first.'; exit 1; }
 	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/dev)" || { echo 'Check out dev and make sure it is pushed and up to date.'; exit 1; }
 	@git merge-base --is-ancestor origin/master origin/dev || { echo 'master has commits that dev lacks; merge master into dev first.'; exit 1; }
-	@echo "Commits going to master:"; git log --oneline origin/master..origin/dev
+	@echo "Commits going to master:"; git --no-pager log --oneline origin/master..origin/dev
 ifeq ($(APPLY),1)
 	npm test
 	git push origin refs/remotes/origin/dev:refs/heads/master

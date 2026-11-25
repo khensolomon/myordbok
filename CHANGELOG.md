@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.25+199
+
+- make release lists the commits without a pager
+
 ## 26.11.25+198
 
 - New icons: support (a heart in a hand), Practice (cards); larger counts on the tabs
