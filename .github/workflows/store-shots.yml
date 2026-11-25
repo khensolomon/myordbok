@@ -36,6 +36,7 @@ jobs:
       - name: The screenshots
         run: node scripts/store-shots.mjs --from https://myordbok.com ${{ inputs.only != 'all' && format('--only {0}', inputs.only) || '' }}
       - name: To the branch store-shots
+        if: always()
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"

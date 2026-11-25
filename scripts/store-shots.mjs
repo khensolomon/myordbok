@@ -68,15 +68,12 @@ const SHOTS = [
 	{ name: 'related', path: '/definition?q=happy', act: (page) => page.evaluate(() => document.querySelector('.entry-related, .related, [data-related]')?.scrollIntoView({ block: 'start' })).then(() => page.waitForTimeout(600)) },
 	{
 		name: 'practice',
-		path: '/',
+		path: '/definition?q=water',
 		act: async (page) => {
-			await page.locator('button, a', { hasText: 'Test yourself on it' }).first().click();
-			await page.waitForTimeout(1500);
-			const start = page.locator('button', { hasText: /^Start$/ }).first();
-			if (await start.count()) {
-				await start.click();
-				await page.waitForTimeout(1200);
-			}
+			await page.locator('button', { hasText: /^Start$/ }).first().click({ timeout: 8000 });
+			await page.waitForTimeout(1200);
+			await page.evaluate(() => document.querySelector('.quiz, [class*="quiz"]')?.scrollIntoView({ block: 'center' }));
+			await page.waitForTimeout(600);
 		},
 	},
 	{ name: 'grammar', path: '/grammar' },
@@ -147,7 +144,7 @@ for (const set of SETS.filter((s) => !ONLY || s.id === ONLY)) {
 		await page.goto(`http://127.0.0.1:${port}${shot.path}`, { waitUntil: 'networkidle' });
 		await page.evaluate(() => document.querySelector('.app-splash')?.remove());
 		await page.waitForTimeout(1200);
-		if (shot.act) await shot.act(page);
+		if (shot.act) await shot.act(page).catch((/** @type {Error} */ e) => errors.push(`the steps: ${e.message.split('\n')[0]}`));
 		const file = join(out, `${String(i + 1).padStart(2, '0')}-${shot.name}.png`);
 		await page.screenshot({ path: file });
 		if (errors.length) {
