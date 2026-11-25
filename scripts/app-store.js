@@ -157,6 +157,16 @@ if (command === 'status') {
 	if (v) {
 		const build = (await call('Reading the version\'s build', `/appStoreVersions/${v.id}/build`)).data;
 		console.log(`\nBeing prepared: ${v.attributes.versionString}, build ${build ? build.attributes.version : 'not chosen yet'}`);
+		const locs = (await call('Reading the version\'s languages', `/appStoreVersions/${v.id}/appStoreVersionLocalizations`)).data ?? [];
+		for (const loc of locs) {
+			const sets = (await call('Reading the screenshot sets', `/appStoreVersionLocalizations/${loc.id}/appScreenshotSets?limit=50`)).data ?? [];
+			for (const set of sets) {
+				const shots = (await call('Reading the screenshots', `/appScreenshotSets/${set.id}/appScreenshots?limit=10`)).data ?? [];
+				const states = shots.map((/** @type {any} */ x) => x.attributes.assetDeliveryState?.state ?? '?');
+				console.log(`  ${loc.attributes.locale} ${set.attributes.screenshotDisplayType}: ${shots.length} (${[...new Set(states)].map((st) => `${states.filter((x) => x === st).length} ${st}`).join(', ')})`);
+				for (const x of shots) for (const e of x.attributes.assetDeliveryState?.errors ?? []) console.log(`    ${x.attributes.fileName}: ${e.code} ${e.description ?? ''}`);
+			}
+		}
 	}
 	process.exit(0);
 }
