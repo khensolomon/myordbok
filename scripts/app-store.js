@@ -48,6 +48,7 @@
 import { createHash, sign } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { result } from './lib/result.js';
 
 const BUNDLE = 'com.myordbok.app';
 const API = 'https://api.appstoreconnect.apple.com/v1';
@@ -146,16 +147,29 @@ const state = (/** @type {any} */ v) => v.attributes.appVersionState ?? v.attrib
 const editable = async () => (await versions()).find((/** @type {any} */ v) => EDITABLE.includes(state(v)));
 
 if (command === 'status') {
+	/** For the workspace's Tools (scripts/lib/result.js). */
+	const found = { versions: /** @type {object[]} */ ([]), builds: /** @type {object[]} */ ([]), purchases: /** @type {object[]} */ ([]), preparing: /** @type {object | null} */ (null) };
 	console.log('\nVersions:');
-	for (const v of await versions()) console.log(`  ${v.attributes.versionString}  ${state(v)}  ${v.attributes.releaseType ?? ''}  ${v.attributes.createdDate?.slice(0, 10) ?? ''}`);
+	for (const v of await versions()) {
+		console.log(`  ${v.attributes.versionString}  ${state(v)}  ${v.attributes.releaseType ?? ''}  ${v.attributes.createdDate?.slice(0, 10) ?? ''}`);
+		found.versions.push({ version: v.attributes.versionString, state: state(v), release: v.attributes.releaseType ?? null });
+	}
 	console.log('\nBuilds (newest first):');
-	for (const b of await builds()) console.log(`  ${await buildVersion(b)} (${b.attributes.version})  ${b.attributes.processingState}  uploaded ${b.attributes.uploadedDate?.slice(0, 16).replace('T', ' ')}${b.attributes.expired ? '  expired' : ''}`);
+	for (const b of await builds()) {
+		const bv = await buildVersion(b);
+		console.log(`  ${bv} (${b.attributes.version})  ${b.attributes.processingState}  uploaded ${b.attributes.uploadedDate?.slice(0, 16).replace('T', ' ')}${b.attributes.expired ? '  expired' : ''}`);
+		found.builds.push({ version: bv, build: b.attributes.version, state: b.attributes.processingState, uploaded: b.attributes.uploadedDate ?? null, expired: Boolean(b.attributes.expired) });
+	}
 	console.log('\nIn-app purchases:');
 	const iaps = (await call('Reading the in-app purchases', `/apps/${app.id}/inAppPurchasesV2?limit=50`)).data ?? [];
-	for (const p of iaps) console.log(`  ${p.attributes.productId}  ${p.attributes.inAppPurchaseType}  ${p.attributes.state}`);
+	for (const p of iaps) {
+		console.log(`  ${p.attributes.productId}  ${p.attributes.inAppPurchaseType}  ${p.attributes.state}`);
+		found.purchases.push({ product: p.attributes.productId, state: p.attributes.state });
+	}
 	const v = await editable();
 	if (v) {
 		const build = (await call('Reading the version\'s build', `/appStoreVersions/${v.id}/build`)).data;
+		found.preparing = { version: v.attributes.versionString, build: build ? build.attributes.version : null };
 		console.log(`\nBeing prepared: ${v.attributes.versionString}, build ${build ? build.attributes.version : 'not chosen yet'}`);
 		const locs = (await call('Reading the version\'s languages', `/appStoreVersions/${v.id}/appStoreVersionLocalizations`)).data ?? [];
 		for (const loc of locs) {
@@ -168,6 +182,7 @@ if (command === 'status') {
 			}
 		}
 	}
+	result(found);
 	process.exit(0);
 }
 

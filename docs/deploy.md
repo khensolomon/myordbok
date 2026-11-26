@@ -848,6 +848,18 @@ something only shows the change unless it ends in `--apply`.
 | `apple listing` | Texts and screenshots from `store/app-store/en-US/`; makes the version when none is being prepared |
 | `apple review build` / `submit` | The build chosen for the version; sent for review (`--release manual|after-approval`) |
 | `apple release` | The approved version released |
+| `database status` / `migrate` | The app database's migrations: applied and waiting; with `--apply`, the waiting ones applied (beta and live share it) |
+| `backup list` / `now` | The backups kept; with `--apply`, one made now, besides the weekly one |
+| `data status` | The build in each dictionary database and what each site reads |
+
+What each run found goes on the run as an annotation titled MyOrdbok
+(`scripts/run.js`; a script's findings: `scripts/lib/result.js`). The
+repository is public, so the workspace reads its runs and annotations
+from GitHub's public API, from the admin's own browser, without a key
+(`app/workspace/tool-runs.js`); the newest Google and Apple status show
+beside their forms. Being public, the runs' logs are public too: no
+command prints a secret or a member's data (restoring rows, which prints
+them, stays `make restore` on a computer of one's own).
 
 The same line runs on a computer of one's own with the secrets in the
 environment: `make run CMD="google status"`.

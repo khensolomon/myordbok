@@ -2111,6 +2111,31 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .tools-copy-gh { border: none; background: none; padding: 0; color: var(--brand); font: inherit; cursor: pointer; }
 .tools-copy-gh:disabled { opacity: .45; }
 .tools-copied { color: var(--muted); }
+.tools-known { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; background: var(--ground); font-size: 13px; }
+.tools-known small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.tools-known p { margin: 6px 0; }
+.tools-known table, .tools-finding table { border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+.tools-known td, .tools-finding td { padding: 4px 14px 4px 0; }
+.tools-recent { margin-top: 20px; }
+.tools-recent-head { display: flex; justify-content: space-between; align-items: center; }
+.tools-recent h2 { margin: 0; font-size: 16px; }
+.tools-runs { list-style: none; margin: 8px 0 0; padding: 0; }
+.tools-runs > li { border-top: 1px solid var(--line); }
+.tools-run { display: grid; grid-template-columns: 64px minmax(0, 1fr) 110px minmax(120px, 210px); gap: 10px; align-items: center; width: 100%; padding: 10px 2px; border: none; background: none; color: var(--ink); font: 14px var(--font-ui); text-align: left; cursor: pointer; }
+.tools-run:hover { background: var(--surface-hover); }
+.tools-run code { font: 12px ui-monospace, Menlo, monospace; color: var(--muted); }
+.tools-run-state { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.tools-run-state i { width: 8px; height: 8px; border-radius: 50%; background: #e0a000; }
+.tools-run[data-state="done"] i { background: #1f8a4c; }
+.tools-run[data-state="failed"] i { background: var(--danger); }
+.tools-run[data-state="cancelled"] i, .tools-run[data-state="queued"] i { background: var(--muted); }
+.tools-run-who { color: var(--muted); font-size: 13px; }
+.tools-finding { padding: 4px 2px 14px 74px; font-size: 13px; }
+.tools-finding[hidden] { display: none; }
+.tools-finding p { margin: 4px 0; }
+.tools-last { margin: 6px 0; padding: 8px 10px; border-radius: 8px; background: var(--ground); font: 12px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+.tools-quiet, .tools-runs-note { color: var(--muted); font-size: 13px; }
+@media (max-width: 700px) { .tools-run { grid-template-columns: 52px minmax(0, 1fr); } .tools-run-state, .tools-run-who { grid-column: 2; } .tools-finding { padding-left: 2px; } }
 .tools-steps { margin: 14px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
 
 /* Settings */

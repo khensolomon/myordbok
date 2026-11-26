@@ -11,15 +11,24 @@
  * something. The line is the same the Run workflow and `make run` read
  * (line() and parse(), shared), so what is shown here is what will run.
  * The pane is in English, as the commands are.
+ *
+ * Below, the Run workflow's recent runs and, opened, what each found,
+ * read from GitHub without a key (tool-runs.js): the repository is public.
+ * The newest Google and Apple status runs also show beside their forms
+ * (what each track holds; the version being prepared and the builds), so a
+ * version code or build number is picked from what is there.
  */
 import { h } from '../core/dom.js';
 import { COMMANDS, line, parse } from '#shared/commands.js';
+import { finding, recentRuns } from './tool-runs.js';
 
 /** @typedef {import('#shared/commands.js').Command} Command */
 /** @typedef {import('#shared/commands.js').Values} Values */
 
 const RUN_WORKFLOW = 'https://github.com/khensolomon/myordbok/actions/workflows/run.yml';
-const GROUP_NAMES = /** @type {Record<string, string>} */ ({ google: 'Google Play', apple: 'App Store' });
+const GROUP_NAMES = /** @type {Record<string, string>} */ ({ google: 'Google Play', apple: 'App Store', database: 'Database', backup: 'Backup', data: 'Data' });
+/** How often the list is asked again while a run is under way (ms). */
+const POLL = 20000;
 const KEY = 'mo:tools';
 
 /** A short name for the run, for finding it on GitHub. */
@@ -88,10 +97,11 @@ export function toolsPane() {
 		const tasks = [...new Set(COMMANDS.filter((c) => c.words[0] === g).map((c) => c.words[1]))];
 		const actions = COMMANDS.filter((c) => c.words[0] === g && c.words[1] === task && c.words.length > 2).map((c) => c.words[2]);
 		choose.replaceChildren(
-			row('Store', groups, g, (w) => GROUP_NAMES[w] ?? cap(w), (w) => select(first([w]))),
+			row('Tool', groups, g, (w) => GROUP_NAMES[w] ?? cap(w), (w) => select(first([w]))),
 			row('Task', tasks, task, cap, (w) => select(first([g, w]))),
 			...(actions.length ? [row(cap(task), actions, action, cap, (w) => select(first([g, task, w])))] : []),
 			h('p', { class: 'tools-about' }, command.title),
+			overview(g),
 		);
 		fields.replaceChildren(...Object.entries(command.fields).map(([name, f]) => field(name, f)));
 		modes.hidden = !command.changes;
@@ -178,7 +188,121 @@ export function toolsPane() {
 	copy.addEventListener('click', () => toClipboard(code.textContent ?? '', `Copied (run ${run})`));
 	copyGh.addEventListener('click', () => toClipboard(`gh workflow run run.yml -R khensolomon/myordbok -f command='${(code.textContent ?? '').replace(/'/g, `'\\''`)}'`, 'Copied as a gh command'));
 
+	/** The newest status findings, per group (google, apple). @type {Record<string, { at: number, data: any }>} */
+	const known = {};
+	/** What the newest status run of a group found, beside its forms. @param {string} g */
+	const overview = (g) => {
+		const k = known[g];
+		if (!k?.data) return '';
+		const when = `from the Status run of ${new Date(k.at).toLocaleString()}`;
+		if (g === 'google' && k.data.tracks) {
+			const rows = Object.entries(k.data.tracks).flatMap(([track, list]) =>
+				/** @type {any[]} */ (list).map((r) => h('tr', null, h('td', null, track), h('td', null, h('b', null, r.codes.join(', ') || '–')), h('td', null, `${r.status}${r.share ? ` · ${Math.round(r.share * 100)} %` : ''}`))),
+			);
+			return h('div', { class: 'tools-known' }, h('span', { class: 'tools-label' }, 'On the tracks ', h('small', null, when)), h('table', null, h('tbody', null, rows)));
+		}
+		if (g === 'apple') {
+			const p = k.data.preparing;
+			const builds = /** @type {any[]} */ (k.data.builds ?? []).slice(0, 4);
+			return h(
+				'div',
+				{ class: 'tools-known' },
+				h('span', { class: 'tools-label' }, 'App Store Connect ', h('small', null, when)),
+				h('p', null, p ? `Being prepared: ${p.version}, build ${p.build ?? 'not chosen yet'}` : 'No version being prepared'),
+				h('table', null, h('tbody', null, builds.map((b) => h('tr', null, h('td', null, h('b', null, b.build)), h('td', null, b.version), h('td', null, b.expired ? 'expired' : b.state))))),
+			);
+		}
+		return '';
+	};
+
+	const runsList = h('ul', { class: 'tools-runs' });
+	const runsNote = h('p', { class: 'tools-runs-note' });
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let timer;
+
+	/** A run's line, as it was understood. @param {string} text */
+	const understood = (text) => {
+		try {
+			return parse(text).summary;
+		} catch {
+			return text;
+		}
+	};
+
+	/** @param {import('./tool-runs.js').ToolRun} r */
+	const state = (r) => (r.status !== 'completed' ? (r.status === 'queued' ? 'Queued' : 'Running') : r.conclusion === 'success' ? 'Done' : r.conclusion === 'cancelled' ? 'Cancelled' : 'Failed');
+
+	/** What a run found, under its row. @param {import('./tool-runs.js').Finding | null} f */
+	const findingView = (f) => {
+		if (!f) return h('p', { class: 'tools-quiet' }, 'Nothing reported (yet).');
+		if (f.error) return h('p', { class: 'tools-problem' }, f.error);
+		const parts = [];
+		if (f.data?.tracks) {
+			parts.push(h('table', null, h('tbody', null, Object.entries(f.data.tracks).flatMap(([track, list]) => /** @type {any[]} */ (list).map((r) => h('tr', null, h('td', null, track), h('td', null, r.codes.join(', ')), h('td', null, r.status)))))));
+		} else if (f.data?.builds) {
+			if (f.data.preparing) parts.push(h('p', null, `Being prepared: ${f.data.preparing.version}, build ${f.data.preparing.build ?? 'not chosen yet'}`));
+			parts.push(h('p', null, `Purchases: ${/** @type {any[]} */ (f.data.purchases ?? []).map((p) => `${p.product} ${p.state.toLowerCase().replace(/_/g, ' ')}`).join(' · ')}`));
+		}
+		if (f.last) parts.push(h('pre', { class: 'tools-last' }, f.last));
+		return h('div', null, parts);
+	};
+
+	const refresh = async () => {
+		clearTimeout(timer);
+		try {
+			const runs = await recentRuns();
+			runsNote.textContent = runs.length ? '' : 'No runs yet.';
+			runsList.replaceChildren(
+				...runs.map((r) => {
+					const more = h('div', { class: 'tools-finding', hidden: true });
+					const head = h(
+						'button',
+						{ type: 'button', class: 'tools-run', 'aria-expanded': 'false', 'data-state': state(r).toLowerCase() },
+						h('code', null, r.name ?? '–'),
+						h('span', { class: 'tools-run-what' }, understood(r.line)),
+						h('span', { class: 'tools-run-state' }, h('i'), state(r)),
+						h('span', { class: 'tools-run-who' }, `${r.actor} · ${new Date(r.at).toLocaleString()}`),
+					);
+					head.addEventListener('click', async () => {
+						const open = more.hidden;
+						more.hidden = !open;
+						head.setAttribute('aria-expanded', String(open));
+						if (!open || more.childElementCount) return;
+						more.replaceChildren(h('p', { class: 'tools-quiet' }, 'Asking GitHub…'));
+						try {
+							more.replaceChildren(findingView(await finding(r)), h('a', { href: r.url, target: '_blank', rel: 'noopener' }, 'The run on GitHub ↗'));
+						} catch (err) {
+							more.replaceChildren(h('p', { class: 'tools-problem' }, err instanceof Error ? err.message : String(err)));
+						}
+					});
+					return h('li', null, head, more);
+				}),
+			);
+			// The newest finished status of each group, beside the forms.
+			for (const g of ['google', 'apple']) {
+				const r = runs.find((x) => x.status === 'completed' && x.conclusion === 'success' && x.line.startsWith(`${g} status`));
+				if (!r || known[g]?.at === r.at) continue;
+				const f = await finding(r);
+				if (f?.data) {
+					known[g] = { at: r.at, data: f.data };
+					if (command.words[0] === g) draw();
+				}
+			}
+			if (runs.some((r) => r.status !== 'completed') && runsList.isConnected) timer = setTimeout(refresh, POLL);
+		} catch (err) {
+			runsNote.textContent = err instanceof Error ? err.message : String(err);
+		}
+	};
+	const again = h('button', { type: 'button', class: 'tools-copy-gh' }, 'Refresh');
+	again.addEventListener('click', refresh);
+	copy.addEventListener('click', () => {
+		// The run will be on GitHub soon: ask after it for a while.
+		clearTimeout(timer);
+		timer = setTimeout(refresh, POLL);
+	});
+
 	draw();
+	refresh();
 	return h(
 		'main',
 		{ class: 'ws-main ws-account ws-settings ws-tools', 'aria-label': 'Tools', lang: 'en' },
@@ -203,10 +327,11 @@ export function toolsPane() {
 						{ class: 'tools-steps' },
 						h('li', null, 'Copy the command'),
 						h('li', null, 'On GitHub: ', h('b', null, 'Run workflow'), ', paste it into ', h('b', null, 'Command'), ', run'),
-						h('li', null, 'The run is titled by the command; its summary says what was done'),
+						h('li', null, 'The run is titled by the command; what it found shows below'),
 					),
 				),
 			),
+			h('section', { class: 'tools-card tools-recent', 'aria-label': 'Recent runs' }, h('div', { class: 'tools-recent-head' }, h('h2', null, 'Recent runs'), again), runsNote, runsList),
 		),
 	);
 }

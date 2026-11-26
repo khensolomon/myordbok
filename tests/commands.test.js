@@ -47,9 +47,10 @@ test('commands: the line the workspace builds reads back the same', () => {
 test('commands: each runs something, and names only secrets it is given', () => {
 	for (const c of COMMANDS) {
 		const p = parse(c.words.join(' ') + Object.entries(c.fields).filter(([, f]) => f.required).map(([n]) => ` --${n} 50`).join(''));
-		if (c.runs === 'linux') assert.match(/** @type {any} */ (c).argv(p.values, true)[0], /^scripts\/[a-z-]+\.js$/, c.words.join(' '));
+		if (c.runs === 'linux') assert.match(/** @type {any} */ (c).argv(p.values, true)[0], /^(scripts\/[a-z-]+\.js|wrangler)$/, c.words.join(' '));
 		else assert.ok(/** @type {any} */ (c).build(p.values, true).build, c.words.join(' '));
 		for (const s of c.secrets) assert.ok(SECRETS.includes(s));
+		if (c.runs === 'linux' && /** @type {any} */ (c).argv(p.values, true)[0] === 'wrangler') assert.equal(c.setup, 'npm', `${c.words.join(' ')}: wrangler needs the packages`);
 	}
 	assert.equal(new Set(COMMANDS.map((c) => c.words.join(' '))).size, COMMANDS.length, 'no two commands alike');
 });

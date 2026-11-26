@@ -34,9 +34,10 @@
 ## Stores and the app
 
 - [x] One Run workflow with a Command box, the commands described once (shared/commands.js)
-- [ ] Workspace → Tools: forms built from shared/commands.js, the command line to copy
-- [ ] Results back to the workspace (GitHub's OIDC token, no secret)
-- [ ] More commands: web (deploy again, release, health), database (migrations), data (build from lai, packs), backup, screenshots
+- [x] Workspace → Tools: forms built from shared/commands.js, the command line to copy
+- [x] Results back to the workspace: each run's annotation, read from GitHub's public API
+- [x] More commands: database (status, migrate), backup (list, now), data (status)
+- [ ] Commands that need the dataset (khensolomon/lai, private: a read-only token as a secret): data release, packs, store screenshots
 - [ ] iOS sign-in inside the app (ASWebAuthenticationSession) instead of Safari
 - [ ] App Store header and search picture (one 16:9 universal asset, 5244 × 2950)
 - [ ] Server-side purchase checks (Apple's In-App Purchase key; Play's purchases API), only should supporter status follow the account

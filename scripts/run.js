@@ -15,17 +15,40 @@
  * The line is checked word by word before anything starts; anything not in
  * the command's description stops it. The command's script gets only the
  * secrets the command names (and PATH, HOME): no other secret reaches it.
- * In a workflow, the run's title and its output go to the step summary.
+ * In a workflow, the run's title and its output go to the step summary,
+ * and what it found goes on the run as an annotation titled "MyOrdbok"
+ * (JSON: run, summary, ok, data), which the workspace's Tools reads from
+ * GitHub (a script's findings: scripts/lib/result.js). A command is a
+ * script of scripts/, or wrangler (installed by the workflow first, for
+ * the commands marked setup: npm).
  */
 import { spawn } from 'node:child_process';
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { COMMANDS, parse } from '../shared/commands.js';
 
 /** @param {string} message @returns {never} */
 function fail(message) {
 	console.error(`run: ${message}`);
 	summary(`### Stopped\n\n${message}`);
+	annotate({ ok: false, error: message });
 	process.exit(1);
+}
+
+/** The run's own name for the workspace (#run …), once known. */
+let runName = '';
+
+/**
+ * What the run found, as an annotation the workspace reads (GitHub keeps
+ * one per run; a message up to 64 KB).
+ * @param {object} data
+ */
+function annotate(data) {
+	if (!process.env.GITHUB_ACTIONS) return;
+	const json = JSON.stringify({ run: runName || null, ...data }).slice(0, 60000);
+	const message = json.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+	console.log(`::notice title=MyOrdbok::${message}`);
 }
 
 /** @param {string} text */
@@ -64,11 +87,13 @@ try {
 	fail(err instanceof Error ? err.message : String(err));
 }
 const { command, values, apply, run } = parsed;
+runName = run ?? '';
 
 if (planning) {
 	const build = command.build ? command.build(values, apply) : {};
 	console.log(`${parsed.summary}\n  runs on ${command.runs}${command.secrets.length ? `, with ${command.secrets.join(', ')}` : ''}${run ? `\n  run ${run}` : ''}`);
-	output({ runs: command.runs, secrets: command.secrets.join(','), summary: parsed.summary, run: run ?? '', build: JSON.stringify(build) });
+	output({ runs: command.runs, secrets: command.secrets.join(','), setup: command.setup ?? '', summary: parsed.summary, run: run ?? '', build: JSON.stringify(build) });
+	if (command.runs === 'build') annotate({ ok: true, summary: parsed.summary, stage: 'building' });
 	summary(`## ${parsed.summary}\n\n\`${text.replace(/`/g, "'")}\``);
 	process.exit(0);
 }
@@ -80,20 +105,34 @@ if (missing.length) fail(`${missing.join(', ')} not set: the secrets "${command.
 /** @type {Record<string, string>} */
 const env = { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' };
 for (const s of command.secrets) env[s] = /** @type {string} */ (process.env[s]);
+const found = join(tmpdir(), `myordbok-result-${process.pid}.json`);
+env.TOOL_RESULT = found;
 
-const argv = command.argv(values, apply);
+const [bin, ...args] = command.argv(values, apply);
+const file = bin === 'wrangler' ? 'node_modules/wrangler/bin/wrangler.js' : bin;
+if (bin !== 'wrangler' && !/^scripts\/[a-z0-9-]+\.js$/.test(bin)) fail(`"${command.words.join(' ')}" names ${bin}: a command runs a script of scripts/, or wrangler`);
+if (!existsSync(file)) fail(`${file} is missing${bin === 'wrangler' ? ' (npm ci first: the command is marked setup: npm)' : ''}`);
 console.log(`${parsed.summary}\n`);
 let out = '';
-const child = spawn(process.execPath, argv, { env, stdio: ['ignore', 'pipe', 'pipe'] });
+const child = spawn(process.execPath, [file, ...args], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 for (const stream of [child.stdout, child.stderr]) {
 	stream.on('data', (chunk) => {
-		const s = chunk.toString();
-		out += s;
-		(stream === child.stdout ? process.stdout : process.stderr).write(s);
+		const text = chunk.toString();
+		out += text;
+		(stream === child.stdout ? process.stdout : process.stderr).write(text);
 	});
 }
 child.on('close', (code) => {
 	const tail = out.length > 60000 ? `…\n${out.slice(-60000)}` : out;
 	summary(`### ${code === 0 ? 'Done' : `Failed (exit ${code})`}\n\n\`\`\`\n${tail.trim()}\n\`\`\``);
+	let data = null;
+	try {
+		data = existsSync(found) ? JSON.parse(readFileSync(found, 'utf8')) : null;
+	} catch (err) {
+		console.error('run: the script\'s findings are not JSON:', err);
+	}
+	rmSync(found, { force: true });
+	const last = out.trim().split('\n').slice(-6).join('\n');
+	annotate({ ok: code === 0, summary: parsed.summary, apply, exit: code, last, data });
 	process.exit(code ?? 1);
 });

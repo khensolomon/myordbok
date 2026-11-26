@@ -9,7 +9,10 @@
 #   linux   a script, given only the secrets its command names
 #   build   the App workflow (app.yml), for the build commands
 #
-# Each run is titled by its command; the step summary holds what it did.
+# Each run is titled by its command; the step summary holds what it did,
+# and an annotation titled MyOrdbok what it found, which the workspace's
+# Tools reads from GitHub. The repository is public, and so are its runs:
+# no command prints a secret or a member's data.
 name: Run
 run-name: "Run · ${{ inputs.command }}"
 
@@ -32,6 +35,7 @@ jobs:
       runs: ${{ steps.plan.outputs.runs }}
       secrets: ${{ steps.plan.outputs.secrets }}
       summary: ${{ steps.plan.outputs.summary }}
+      setup: ${{ steps.plan.outputs.setup }}
       build: ${{ steps.plan.outputs.build }}
     steps:
       - uses: actions/checkout@v7
@@ -54,6 +58,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+          cache: npm
+      - name: The project's packages (wrangler)
+        if: needs.plan.outputs.setup == 'npm'
+        run: npm ci --ignore-scripts
       # Each secret only for a command that names it (shared/commands.js);
       # scripts/run.js passes on none but those.
       - env:
@@ -62,6 +70,8 @@ jobs:
           APPLE_API_ISSUER: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_ISSUER,') && secrets.APPLE_API_ISSUER || '' }}
           APPLE_API_KEY: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_KEY,') && secrets.APPLE_API_KEY || '' }}
           APPLE_API_KEY_P8: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_KEY_P8,') && secrets.APPLE_API_KEY_P8 || '' }}
+          CLOUDFLARE_API_TOKEN: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',CLOUDFLARE_API_TOKEN,') && secrets.CLOUDFLARE_API_TOKEN || '' }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',CLOUDFLARE_ACCOUNT_ID,') && secrets.CLOUDFLARE_ACCOUNT_ID || '' }}
         run: node scripts/run.js "$COMMAND"
 
   build:

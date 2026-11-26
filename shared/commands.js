@@ -22,11 +22,13 @@
  *   runs      linux (a script on GitHub's Ubuntu), build (the App workflow,
  *             on the machines a build needs)
  *   secrets   the only secrets its run is given
+ *   setup     npm: the project's packages installed first (wrangler)
  *   changes   true: without --apply it only shows what would change
  *   fields    name → { type: choice | int | number | text, choices?, names?
  *             (a choice as forms show it), min?, max?, default?, required?,
  *             label, help? }
- *   argv      (fields, apply) → the script and its arguments (runs: linux)
+ *   argv      (fields, apply) → a script of scripts/ (or wrangler) and its
+ *             arguments (runs: linux)
  *   build     (fields, apply) → the App workflow's inputs (runs: build)
  *   summary   (fields, apply) → the run's title
  */
@@ -40,6 +42,7 @@
  * @property {string} title
  * @property {'linux' | 'build'} runs
  * @property {readonly string[]} secrets
+ * @property {'npm'} [setup]  The project's packages installed first (wrangler).
  * @property {boolean} changes
  * @property {Readonly<Record<string, Field>>} fields
  * @property {(v: Values, apply: boolean) => string[]} [argv]
@@ -49,6 +52,9 @@
 
 const PLAY = ['GOOGLE_PLAY_ACCOUNT'];
 const APPLE = ['APPLE_API_ISSUER', 'APPLE_API_KEY', 'APPLE_API_KEY_P8'];
+const CLOUDFLARE = ['CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID'];
+/** The app's database: beta and live share it (wrangler.toml). */
+const APP_DB = ['myordbok-app', '--remote', '--env', 'beta'];
 const TRACKS = /** @type {const} */ (['alpha', 'internal', 'beta', 'production']);
 const TRACK_NAMES = /** @type {Record<string, string>} */ ({ alpha: 'closed testing', internal: 'internal', beta: 'open testing', production: 'production' });
 /** The tracks as a form shows them: Play's word, then its name in the Console. */
@@ -219,6 +225,63 @@ export const COMMANDS = Object.freeze([
 		fields: {},
 		argv: (_v, apply) => ['scripts/app-store.js', 'release', ...(apply ? ['--apply'] : [])],
 		summary: (_v, apply) => `Apple · release ▸ the approved version${mode(apply)}`,
+	},
+	// The databases and their backups (Cloudflare). The repository is
+	// public, and so are its runs' logs: no command here prints a row.
+	{
+		words: ['database', 'status'],
+		title: 'The app database\'s migrations: applied and waiting',
+		runs: 'linux',
+		secrets: CLOUDFLARE,
+		setup: 'npm',
+		changes: false,
+		fields: {},
+		argv: () => ['wrangler', 'd1', 'migrations', 'list', ...APP_DB],
+		summary: () => 'Database · status',
+	},
+	{
+		words: ['database', 'migrate'],
+		title: 'Apply the migrations waiting (beta and live share the database)',
+		runs: 'linux',
+		secrets: CLOUDFLARE,
+		setup: 'npm',
+		changes: true,
+		fields: {},
+		argv: (_v, apply) => ['wrangler', 'd1', 'migrations', apply ? 'apply' : 'list', ...APP_DB],
+		summary: (_v, apply) => `Database · migrate${mode(apply)}`,
+	},
+	{
+		words: ['backup', 'list'],
+		title: 'The backups of the app database kept, newest first',
+		runs: 'linux',
+		secrets: CLOUDFLARE,
+		setup: 'npm',
+		changes: false,
+		fields: {},
+		argv: () => ['scripts/backup.js', 'list'],
+		summary: () => 'Backup · list',
+	},
+	{
+		words: ['backup', 'now'],
+		title: 'Back up the app database now, besides the weekly one',
+		runs: 'linux',
+		secrets: CLOUDFLARE,
+		setup: 'npm',
+		changes: true,
+		fields: {},
+		argv: (_v, apply) => (apply ? ['wrangler', 'workflows', 'trigger', 'myordbok-backup', '-c', 'backup/wrangler.toml'] : ['scripts/backup.js', 'list']),
+		summary: (_v, apply) => `Backup · now${apply ? '' : ' (check only: the backups kept)'}`,
+	},
+	{
+		words: ['data', 'status'],
+		title: 'The build in each dictionary database, and what each site reads',
+		runs: 'linux',
+		secrets: CLOUDFLARE,
+		setup: 'npm',
+		changes: false,
+		fields: {},
+		argv: () => ['scripts/data.js', 'status'],
+		summary: () => 'Data · status',
 	},
 ]);
 

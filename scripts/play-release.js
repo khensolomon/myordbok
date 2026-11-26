@@ -27,6 +27,7 @@
  * one made in the Console.
  */
 import { API, account, auth as signIn, call, fail as stop } from './lib/play.js';
+import { result } from './lib/result.js';
 
 const TRACKS = ['internal', 'alpha', 'beta', 'production'];
 
@@ -97,8 +98,11 @@ async function put(name, list) {
 const kept = (/** @type {Release[]} */ list) => list.filter((r) => r.status === 'draft');
 
 if (command === 'status') {
+	/** @type {Record<string, { codes: string[], status: string, share: number | null, name: string | null }[]>} */
+	const tracks = {};
 	for (const name of TRACKS) {
 		const list = await releases(name);
+		tracks[name] = list.map((r) => ({ codes: r.versionCodes ?? [], status: r.status, share: r.userFraction ?? null, name: r.name ?? null }));
 		console.log(`${name}: ${list.length ? '' : 'nothing'}`);
 		for (const r of list) {
 			console.log(`  ${describe(r)}`);
@@ -106,6 +110,7 @@ if (command === 'status') {
 		}
 	}
 	await call('Closing the edit', editUrl, { method: 'DELETE', headers: auth });
+	result({ tracks });
 } else if (command === 'promote') {
 	const from = track('--from');
 	const to = track('--to');

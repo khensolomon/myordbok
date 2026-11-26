@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.26+209
+
+- Tools: recent runs and what each found, read from GitHub; database, backup and data commands
+
 ## 26.11.26+208
 
 - Workspace: Tools, a form for each tool command, building the line for the Run workflow
