@@ -1,0 +1,79 @@
+# Runs one tool command (shared/commands.js): Actions → Run → Run workflow,
+# with the line the workspace built (Tools) pasted into Command, or one of
+# `node scripts/run.js list`. GitHub signs the person in and checks that
+# they may run this repository's workflows; nothing else is asked of them.
+#
+#   plan    checks the line word by word (scripts/run.js plan): anything not
+#           in the command's description stops the run here, before any
+#           secret is handed out or any store is touched
+#   linux   a script, given only the secrets its command names
+#   build   the App workflow (app.yml), for the build commands
+#
+# Each run is titled by its command; the step summary holds what it did.
+name: Run
+run-name: "Run · ${{ inputs.command }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Command (from the workspace, Tools; or node scripts/run.js list)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Check the command
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      runs: ${{ steps.plan.outputs.runs }}
+      secrets: ${{ steps.plan.outputs.secrets }}
+      summary: ${{ steps.plan.outputs.summary }}
+      build: ${{ steps.plan.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - id: plan
+        env:
+          COMMAND: ${{ inputs.command }}
+        run: node scripts/run.js plan "$COMMAND"
+
+  linux:
+    name: ${{ needs.plan.outputs.summary }}
+    needs: plan
+    if: needs.plan.outputs.runs == 'linux'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # Each secret only for a command that names it (shared/commands.js);
+      # scripts/run.js passes on none but those.
+      - env:
+          COMMAND: ${{ inputs.command }}
+          GOOGLE_PLAY_ACCOUNT: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',GOOGLE_PLAY_ACCOUNT,') && secrets.GOOGLE_PLAY_ACCOUNT || '' }}
+          APPLE_API_ISSUER: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_ISSUER,') && secrets.APPLE_API_ISSUER || '' }}
+          APPLE_API_KEY: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_KEY,') && secrets.APPLE_API_KEY || '' }}
+          APPLE_API_KEY_P8: ${{ contains(format(',{0},', needs.plan.outputs.secrets), ',APPLE_API_KEY_P8,') && secrets.APPLE_API_KEY_P8 || '' }}
+        run: node scripts/run.js "$COMMAND"
+
+  build:
+    name: Build
+    needs: plan
+    if: needs.plan.outputs.runs == 'build'
+    uses: ./.github/workflows/app.yml
+    with:
+      build: ${{ fromJSON(needs.plan.outputs.build).build }}
+      server: ${{ fromJSON(needs.plan.outputs.build).server || 'live' }}
+      track: ${{ fromJSON(needs.plan.outputs.build).track || 'alpha' }}
+      rollout: ${{ fromJSON(needs.plan.outputs.build).rollout || '100' }}
+      notes: ${{ fromJSON(needs.plan.outputs.build).notes || '' }}
+      upload: ${{ fromJSON(needs.plan.outputs.build).upload == true }}
+    secrets: inherit

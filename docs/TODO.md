@@ -33,7 +33,10 @@
 
 ## Stores and the app
 
-- [ ] Workflows as three: Apple, Google, Web, each with one Task list (Build ▸ …, Listing ▸ …, Review ▸ …, Release ▸ …), boxes saying which tasks use them, a wrong combination stopped, each run titled by what it did
+- [x] One Run workflow with a Command box, the commands described once (shared/commands.js)
+- [ ] Workspace → Tools: forms built from shared/commands.js, the command line to copy
+- [ ] Results back to the workspace (GitHub's OIDC token, no secret)
+- [ ] More commands: web (deploy again, release, health), database (migrations), data (build from lai, packs), backup, screenshots
 - [ ] iOS sign-in inside the app (ASWebAuthenticationSession) instead of Safari
 - [ ] App Store header and search picture (one 16:9 universal asset, 5244 × 2950)
 - [ ] Server-side purchase checks (Apple's In-App Purchase key; Play's purchases API), only should supporter status follow the account

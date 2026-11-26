@@ -772,17 +772,19 @@ ID `com.myordbok.app` (Play, App Store id1570959654).
 
 ### Building
 
-GitHub → **Actions → App → Run workflow** (listed once the workflow is on
-`master`, after a release). The run tests, builds the app's files, then the
-Android app, and leaves it among the run's artifacts:
+Through the Run workflow (below): `google build apk`, `google build bundle`
+or `apple build testflight` (the App workflow, `app.yml`, does the build).
+The run tests, builds the app's files, then the app, and leaves it among
+the run's artifacts:
 
-- **test-apk**, asking beta or live: `myordbok-<server>-<version>-test.apk`,
+- **test-apk** (`google build apk`), asking beta or live: `myordbok-<server>-<version>-test.apk`,
   signed with a key made for the run. It installs on a phone for testing
   (allow installing from the browser or file manager) and cannot update an
   install from Play.
-- **play-aab**, always asking live: `myordbok-play-<version>.aab`, signed
-  with the upload key, kept as the run's artifact, then put on Play's
-  **closed testing** track (Alpha) by `scripts/play-upload.js` (the Play Developer
+- **play-aab** (`google build bundle`), always asking live:
+  `myordbok-play-<version>.aab`, signed with the upload key, kept as the
+  run's artifact, then, with `--apply`, put on the track asked for (closed
+  testing, Alpha, unless another) by `scripts/play-upload.js` (the Play Developer
   API, as the secret `GOOGLE_PLAY_ACCOUNT`, below): the testers' Play Store
   offers it as an update once Play has reviewed it; a release still in
   review there is replaced. Refused (Google not knowing a new service account
@@ -790,7 +792,7 @@ Android app, and leaves it among the run's artifacts:
   Console → the app → **Test and release** → closed testing → Alpha →
   **Create new release**. Play accepts each version code once: the next bundle comes
   from a later version (`make release`).
-- **ios-testflight**, asking beta or live: the iOS app, built on GitHub's
+- **ios-testflight** (`apple build testflight`), asking beta or live: the iOS app, built on GitHub's
   Xcode 27 image (`runs-on: xcode-27`; the run stops unless the iOS SDK is
   27 or later, which App Store Connect requires from April 2027), signed
   and uploaded to App Store Connect. When Apple asks for a newer SDK, the
@@ -822,18 +824,33 @@ purchases, sign in as one Google service account:
 Checked without uploading: `GOOGLE_PLAY_ACCOUNT="$(cat key.json)" node
 scripts/play-upload.js some.aab` signs in, opens an edit and deletes it.
 
-### The stores from the Actions tab
+### Tools: the Run workflow
 
-Each is a workflow run by hand (Actions → the workflow → Run workflow);
-every one that changes something only shows the change unless **apply** is
-ticked.
+Every tool is a command, described once in `shared/commands.js`: its
+words, its fields, whether it changes anything, where it runs and the only
+secrets it gets. GitHub → **Actions → Run → Run workflow**, and paste the
+command into **Command** (the workspace builds it; `node scripts/run.js
+list` lists them all). GitHub signs the person in and checks they may run
+the repository's workflows; the run then checks the command word by word
+(`scripts/run.js plan`) and stops on anything not in its description,
+before a secret is handed out or a store touched. A command that changes
+something only shows the change unless it ends in `--apply`.
 
-| Workflow | Does |
+| Command | Does |
 |---|---|
-| **App** | Builds: a test APK, the Play bundle (to the chosen track, at a rollout share, with release notes), the iOS build to TestFlight, or **stores**: both store builds |
-| **Play release** | `status` of every track; `promote` a tested release to another track (e.g. Alpha → production) without building; widen (`rollout`), `halt` or `resume` a staged rollout |
-| **Play listing** | The listing from `store/play/<language>/`: texts, screenshots, icon, feature graphic, or one part of them |
-| **App Store** | `status` of versions, builds and in-app purchases; `listing` from `store/app-store/en-US/` (texts and screenshots; makes the version when none is being prepared); `build` chosen for the version; `submit` for review; `release` once approved |
+| `google status` | What every Play track holds |
+| `google build apk` / `bundle` | A test APK; the Play bundle onto a track (`--track`, `--rollout`, `--notes`; sent with `--apply`) |
+| `google release promote` | A tested release onto another track without building (`--from alpha --to production --rollout 20`) |
+| `google release rollout` / `halt` / `resume` | A staged rollout widened (100 completes it), stopped, started again |
+| `google listing` | The listing from `store/play/<language>/` (`--part texts|screenshots|icon|feature`) |
+| `apple status` | Versions, builds and in-app purchases |
+| `apple build testflight` | The iOS app to TestFlight |
+| `apple listing` | Texts and screenshots from `store/app-store/en-US/`; makes the version when none is being prepared |
+| `apple review build` / `submit` | The build chosen for the version; sent for review (`--release manual|after-approval`) |
+| `apple release` | The approved version released |
+
+The same line runs on a computer of one's own with the secrets in the
+environment: `make run CMD="google status"`.
 
 The files and each store's limits are listed at the top of
 `scripts/play-listing.js` and `scripts/app-store.js`. Screenshots are taken
