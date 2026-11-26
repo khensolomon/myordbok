@@ -441,6 +441,7 @@ export const MY = {
 	"joined {when}": "{when} တွင် ဝင်ရောက်",
 
 	// Settings
+	Tools: 'ကိရိယာများ',
 	Settings: 'ဆက်တင်များ',
 	'Offline definitions': 'အော့ဖ်လိုင်း အဓိပ္ပာယ်များ',
 	'Who may download the definitions and related words for offline use. Word lists are open to everyone either way.': 'အဓိပ္ပာယ်များနှင့် ဆက်စပ်စကားလုံးများကို အော့ဖ်လိုင်းအသုံးပြုရန် မည်သူ ဒေါင်းလုဒ်လုပ်နိုင်သနည်း။ စကားလုံးစာရင်းများကိုမူ မည်သို့ပင်ဖြစ်စေ လူတိုင်း ရယူနိုင်သည်။',

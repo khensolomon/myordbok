@@ -402,6 +402,15 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   the admin's own mail. Saved answers, in both languages, start either kind.
   Spam: a field people never see drops the message when
   filled, plus the same-origin rule and the stricter rate limit.
+- **Tools are commands, described once.** `shared/commands.js` lists each
+  tool command (Google Play, App Store; more to come): its words, fields,
+  whether it changes anything, where it runs and the only secrets it gets.
+  The workspace's Tools section (admins, `app/workspace/tools.js`) builds a
+  form for each from that list and the command line to copy; the Run
+  workflow (`.github/workflows/run.yml`, one Command box) and `make run`
+  check the same line word by word (`scripts/run.js`) before running it.
+  The website holds no key to GitHub or the stores: GitHub signs the person
+  in and checks they may run the workflow (docs/deploy.md, Tools).
 - **Site notices are scheduled, not posted.** Admins write them in the
   workspace's Notices section (`notices` table, `worker/routes/notices.js`,
   `shared/notices.js`): maintenance, information or a celebration, in English,

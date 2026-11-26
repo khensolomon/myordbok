@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.26+208
+
+- Workspace: Tools, a form for each tool command, building the line for the Run workflow
+
 ## 26.11.26+207
 
 - iOS: signing in opens in Apple's sign-in sheet over the app (ASWebAuthenticationSession), not Safari

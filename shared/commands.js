@@ -23,8 +23,9 @@
  *             on the machines a build needs)
  *   secrets   the only secrets its run is given
  *   changes   true: without --apply it only shows what would change
- *   fields    name → { type: choice | int | number | text, choices?, min?,
- *             max?, default?, required?, label, help? }
+ *   fields    name → { type: choice | int | number | text, choices?, names?
+ *             (a choice as forms show it), min?, max?, default?, required?,
+ *             label, help? }
  *   argv      (fields, apply) → the script and its arguments (runs: linux)
  *   build     (fields, apply) → the App workflow's inputs (runs: build)
  *   summary   (fields, apply) → the run's title
@@ -32,7 +33,7 @@
 
 /**
  * @typedef {'choice' | 'int' | 'number' | 'text'} FieldType
- * @typedef {{ type: FieldType, label: string, help?: string, choices?: readonly string[], min?: number, max?: number, default?: string | number, required?: boolean }} Field
+ * @typedef {{ type: FieldType, label: string, help?: string, choices?: readonly string[], names?: Readonly<Record<string, string>>, min?: number, max?: number, default?: string | number, required?: boolean }} Field
  * @typedef {Record<string, string | number>} Values
  * @typedef {object} Command
  * @property {readonly string[]} words
@@ -50,6 +51,8 @@ const PLAY = ['GOOGLE_PLAY_ACCOUNT'];
 const APPLE = ['APPLE_API_ISSUER', 'APPLE_API_KEY', 'APPLE_API_KEY_P8'];
 const TRACKS = /** @type {const} */ (['alpha', 'internal', 'beta', 'production']);
 const TRACK_NAMES = /** @type {Record<string, string>} */ ({ alpha: 'closed testing', internal: 'internal', beta: 'open testing', production: 'production' });
+/** The tracks as a form shows them: Play's word, then its name in the Console. */
+const TRACK_LABELS = Object.freeze({ alpha: 'alpha · closed testing', internal: 'internal testing', beta: 'beta · open testing', production: 'production' });
 const SERVERS = /** @type {const} */ (['live', 'beta']);
 
 /** @param {boolean} apply */
@@ -87,7 +90,7 @@ export const COMMANDS = Object.freeze([
 		secrets: [],
 		changes: true,
 		fields: {
-			track: { type: 'choice', choices: TRACKS, default: 'alpha', label: 'Track' },
+			track: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'alpha', label: 'Track' },
 			rollout: { type: 'number', min: 1, max: 100, default: 100, label: 'Rollout, % of users', help: 'Below 100: offered to that share first' },
 			notes: { type: 'text', max: 500, label: 'Release notes', help: 'Empty: "MyOrdbok <version>"' },
 		},
@@ -101,8 +104,8 @@ export const COMMANDS = Object.freeze([
 		secrets: PLAY,
 		changes: true,
 		fields: {
-			from: { type: 'choice', choices: TRACKS, default: 'alpha', label: 'From' },
-			to: { type: 'choice', choices: TRACKS, default: 'production', label: 'To' },
+			from: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'alpha', label: 'From' },
+			to: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'production', label: 'To' },
 			code: { type: 'int', min: 1, label: 'Version code', help: 'Empty: the newest on "From"' },
 			rollout: { type: 'number', min: 1, max: 100, default: 100, label: 'Rollout, % of users' },
 			notes: { type: 'text', max: 500, label: 'Release notes', help: 'Empty: the release keeps its own' },
@@ -117,7 +120,7 @@ export const COMMANDS = Object.freeze([
 		secrets: PLAY,
 		changes: true,
 		fields: {
-			track: { type: 'choice', choices: TRACKS, default: 'production', label: 'Track' },
+			track: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'production', label: 'Track' },
 			rollout: { type: 'number', min: 1, max: 100, required: true, label: 'Rollout, % of users' },
 		},
 		argv: (v, apply) => ['scripts/play-release.js', 'rollout', '--track', String(v.track), '--rollout', String(v.rollout), ...(apply ? ['--apply'] : [])],
@@ -129,7 +132,7 @@ export const COMMANDS = Object.freeze([
 		runs: 'linux',
 		secrets: PLAY,
 		changes: true,
-		fields: { track: { type: 'choice', choices: TRACKS, default: 'production', label: 'Track' } },
+		fields: { track: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'production', label: 'Track' } },
 		argv: (v, apply) => ['scripts/play-release.js', 'halt', '--track', String(v.track), ...(apply ? ['--apply'] : [])],
 		summary: (v, apply) => `Google · release ▸ halt on ${TRACK_NAMES[String(v.track)]}${mode(apply)}`,
 	},
@@ -139,7 +142,7 @@ export const COMMANDS = Object.freeze([
 		runs: 'linux',
 		secrets: PLAY,
 		changes: true,
-		fields: { track: { type: 'choice', choices: TRACKS, default: 'production', label: 'Track' } },
+		fields: { track: { type: 'choice', choices: TRACKS, names: TRACK_LABELS, default: 'production', label: 'Track' } },
 		argv: (v, apply) => ['scripts/play-release.js', 'resume', '--track', String(v.track), ...(apply ? ['--apply'] : [])],
 		summary: (v, apply) => `Google · release ▸ resume on ${TRACK_NAMES[String(v.track)]}${mode(apply)}`,
 	},
