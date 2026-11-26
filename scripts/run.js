@@ -17,7 +17,7 @@
  * secrets the command names (and PATH, HOME): no other secret reaches it.
  * In a workflow, the run's title and its output go to the step summary,
  * and what it found goes on the run as an annotation titled "MyOrdbok"
- * (JSON: run, summary, ok, data), which the workspace's Tools reads from
+ * (JSON, as base64url: run, summary, ok, data), which the workspace's Tools reads from
  * GitHub (a script's findings: scripts/lib/result.js). A command is a
  * script of scripts/, or wrangler (installed by the workflow first, for
  * the commands marked setup: npm).
@@ -46,9 +46,12 @@ let runName = '';
  */
 function annotate(data) {
 	if (!process.env.GITHUB_ACTIONS) return;
-	const json = JSON.stringify({ run: runName || null, ...data }).slice(0, 60000);
-	const message = json.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
-	console.log(`::notice title=MyOrdbok::${message}`);
+	// Base64 (URL-safe): GitHub masks each line of a secret wherever it
+	// appears, and a JSON key file's lines are "{" and "}", so plain JSON
+	// would reach the workspace with its braces starred out.
+	let json = JSON.stringify({ run: runName || null, ...data });
+	if (json.length > 44000) json = JSON.stringify({ run: runName || null, ok: data && 'ok' in data ? data.ok : false, error: 'Too much to report here: the run on GitHub has it all.' });
+	console.log(`::notice title=MyOrdbok::${Buffer.from(json).toString('base64url')}`);
 }
 
 /** @param {string} text */

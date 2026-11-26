@@ -5,7 +5,9 @@
  * read without any key, from the reader's own browser: GitHub's public API
  * allows 60 requests an hour from one address, and an unchanged list
  * (If-None-Match, 304) does not count. What a run found is its annotation
- * titled MyOrdbok (scripts/run.js): JSON with run, summary, ok and data.
+ * titled MyOrdbok (scripts/run.js): JSON with run, summary, ok and data,
+ * as base64url (GitHub stars out every line of a secret in what a run
+ * prints, and a key file's lines include "{" and "}").
  */
 
 const API = 'https://api.github.com/repos/khensolomon/myordbok';
@@ -89,7 +91,8 @@ export async function finding(run) {
 		for (const a of await res.json()) {
 			if (a.title !== 'MyOrdbok') continue;
 			try {
-				last = JSON.parse(a.message);
+				const b64 = a.message.trim().replace(/-/g, '+').replace(/_/g, '/');
+				last = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))));
 			} catch {
 				last = { ok: false, error: a.message };
 			}
