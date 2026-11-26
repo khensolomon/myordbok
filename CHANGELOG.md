@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.26+1210
+
+- One number everywhere: the change number is the apps' build number on Play and the App Store (from 1210); the More page shows the version
+
 ## 26.11.26+209
 
 - Tools: recent runs and what each found, read from GitHub; database, backup and data commands

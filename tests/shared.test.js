@@ -55,8 +55,8 @@ test('validate: reactions are like or dislike only', () => {
 
 test('version: date part follows the day, counter keeps counting', () => {
 	assert.deepEqual(parseVersion('26.4.4'), { yy: 26, mm: 4, dd: 4, changes: 0 });
-	assert.equal(nextVersion('26.4.4', new Date(Date.UTC(2026, 10, 7))), '26.11.7+1');
-	assert.equal(nextVersion('26.11.7+1', new Date(Date.UTC(2026, 10, 7))), '26.11.7+2');
-	assert.equal(nextVersion('26.11.7+2', new Date(Date.UTC(2027, 0, 3))), '27.1.3+3');
+	assert.equal(nextVersion('26.11.7+1210', new Date(Date.UTC(2026, 10, 7))), '26.11.7+1211');
+	assert.equal(nextVersion('26.11.7+1211', new Date(Date.UTC(2027, 0, 3))), '27.1.3+1212');
+	assert.equal(nextVersion('26.4.4', new Date(Date.UTC(2026, 10, 7))), '26.11.7+1210', 'never below the stores\' floor');
 	assert.throws(() => parseVersion('26.11.7.1'), /yy\.mm\.dd\+changes/);
 });

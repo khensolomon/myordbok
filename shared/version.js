@@ -4,7 +4,17 @@
  * The date part is the day of the change; `changes` is a counter that never
  * resets and grows by one with every change. The counter sits in semver build
  * metadata so npm accepts the version.
+ *
+ * The counter is also the apps' build number in the stores (Play's version
+ * code, iOS's CFBundleVersion: scripts/app-config.js), so one number names a
+ * change everywhere: 26.11.26+1210 is build 1210 on Play and TestFlight. The
+ * stores take only numbers above every one they have had; they had builds
+ * up to 1207 (1000 + the counter, until then) when the counter became the
+ * build number, so it went on from STORE_FLOOR.
  */
+
+/** The counter's least value from 26 November 2026 on: above every store build before. */
+export const STORE_FLOOR = 1210;
 
 const PATTERN = /^(\d{1,2})\.(\d{1,2})\.(\d{1,2})(?:\+(\d+))?$/;
 
@@ -44,6 +54,6 @@ export function nextVersion(previous, date) {
 		yy: date.getUTCFullYear() % 100,
 		mm: date.getUTCMonth() + 1,
 		dd: date.getUTCDate(),
-		changes: prev.changes + 1,
+		changes: Math.max(prev.changes + 1, STORE_FLOOR),
 	});
 }

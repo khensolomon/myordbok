@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { appConfig, VERSION_CODE_BASE } from '../scripts/app-config.js';
+import { appConfig } from '../scripts/app-config.js';
+import { STORE_FLOOR, nextVersion } from '../shared/version.js';
 
 test('app version: the store version and a version code above the Flutter app’s', () => {
-	assert.deepEqual(appConfig('26.11.21+161'), { version: '26.11.21', bundle: { android: { versionCode: VERSION_CODE_BASE + 161 }, iOS: { bundleVersion: String(VERSION_CODE_BASE + 161) } } });
-	assert.ok(VERSION_CODE_BASE > 44, 'above the last Flutter build');
+	assert.deepEqual(appConfig('26.11.26+1210'), { version: '26.11.26', bundle: { android: { versionCode: 1210 }, iOS: { bundleVersion: '1210' } } });
+	assert.throws(() => appConfig('26.11.26+209'), /below 1210/, 'below the stores\' numbers');
+	assert.equal(STORE_FLOOR, 1210, 'above 1207, the last store build of 1000 + the counter');
+	assert.equal(nextVersion('26.11.26+209', new Date('2026-11-26T12:00:00Z')), '26.11.26+1210', 'the one jump');
+	assert.equal(nextVersion('26.11.27+1210', new Date('2026-11-27T12:00:00Z')), '26.11.27+1211');
 	assert.throws(() => appConfig('26.11.21'), /year\.month\.day\+build/);
 });
 

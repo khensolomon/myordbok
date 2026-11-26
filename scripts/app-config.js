@@ -5,24 +5,22 @@
  *
  *   node scripts/app-config.js > src-tauri/tauri.ci.json
  *
- * The site's version "26.11.21+161" gives:
- *   version                       "26.11.21"  (what the stores show)
- *   bundle.android.versionCode    VERSION_CODE_BASE + 161
- *   bundle.iOS.bundleVersion      "1161" (the same number; CFBundleVersion)
+ * The site's version "26.11.26+1210" gives:
+ *   version                       "26.11.26"  (what the stores show)
+ *   bundle.android.versionCode    1210        (the change number itself)
+ *   bundle.iOS.bundleVersion      "1210"      (the same; CFBundleVersion)
  *
- * Android and iOS need a build number above every one uploaded before; the
- * Flutter app reached 44, and VERSION_CODE_BASE keeps every Tauri build
- * above that.
- * The build number only grows (scripts/version.js), so each release's code
- * is above the last.
+ * Android and iOS need a build number above every one uploaded before. The
+ * change number only grows (scripts/version.js) and is at least STORE_FLOOR
+ * (shared/version.js), above every build the stores had before it became
+ * the build number; a version below it is refused here.
  */
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { STORE_FLOOR } from '../shared/version.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-/** Above the Flutter app's last version code (44). */
-export const VERSION_CODE_BASE = 1000;
 /** Android's largest version code. */
 const VERSION_CODE_MAX = 2100000000;
 
@@ -32,7 +30,8 @@ const VERSION_CODE_MAX = 2100000000;
 export function appConfig(version) {
 	const m = /^(\d+)\.(\d+)\.(\d+)\+(\d+)$/.exec(version);
 	if (!m) throw new Error(`app-config: version "${version}" is not year.month.day+build`);
-	const code = VERSION_CODE_BASE + Number(m[4]);
+	const code = Number(m[4]);
+	if (code < STORE_FLOOR) throw new Error(`app-config: build ${code} is below ${STORE_FLOOR}, where the stores' numbers are (shared/version.js): move the version on first (node scripts/version.js)`);
 	if (code > VERSION_CODE_MAX) throw new Error(`app-config: version code ${code} is above Android's largest`);
 	return { version: `${m[1]}.${m[2]}.${m[3]}`, bundle: { android: { versionCode: code }, iOS: { bundleVersion: String(code) } } };
 }

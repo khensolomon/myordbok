@@ -64,8 +64,21 @@ export async function view(ctx) {
 			link('/terms', ICONS.document, t('Terms of Use')),
 			h('a', { href: '/support', 'data-store-hidden': '', 'data-in-nav': '' }, icon(ICONS.like, 18), h('span', null, t('Support MyOrdbok')), icon(ICONS.chevron, 14)),
 		),
-		h('p', { class: 'you-copy' }, '© MyOrdbok'),
+		h('p', { class: 'you-copy' }, '© MyOrdbok', versionText()),
 	);
+}
+
+/**
+ * This build's version, as the changelog and the stores name it: the
+ * change number is the apps' build number on Play and the App Store too
+ * (shared/version.js). An app asking the beta server says so.
+ */
+function versionText() {
+	const meta = (/** @type {string} */ name) => document.querySelector(`meta[name="${name}"]`)?.getAttribute('content') ?? '';
+	const m = /^(\d+\.\d+\.\d+)\+(\d+)$/.exec(meta('mo-version'));
+	if (!m) return '';
+	const beta = /\/\/beta\./.test(meta('mo-api'));
+	return h('span', { class: 'you-version' }, ' · ', t('Version {version} ({build})', { version: m[1], build: m[2] }), beta ? ` · ${t('beta server')}` : '');
 }
 
 /**

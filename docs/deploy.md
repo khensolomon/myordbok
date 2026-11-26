@@ -804,9 +804,13 @@ the run's artifacts:
 The run's **Use workflow from** list picks the branch: `dev` builds what is
 not yet released.
 
-Version: the store version is the site's date part (`26.11.21`); the
-Android version code is 1000 plus the build number (`scripts/app-config.js`),
-above every Flutter upload (44) and rising with every release.
+Version: the store version is the site's date part (`26.11.26`); the
+build number on both stores (Play's version code, iOS's build) is the
+change number itself (`26.11.26+1210` is build 1210; `scripts/app-config.js`),
+so one number names a build in the changelog, on Play, in TestFlight and on
+the More page. It was 1000 plus the change number until 26 November 2026;
+the stores take only higher numbers, so the change number went on from 1210
+(`STORE_FLOOR`, `shared/version.js`), above every build uploaded before.
 
 ### Play service account
 

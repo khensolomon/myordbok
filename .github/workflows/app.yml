@@ -21,10 +21,10 @@
 # notes (Play's release notes, en-US; "MyOrdbok <version>" when empty) and
 # upload (false: built and kept as the run's artifact only).
 #
-# Each run's version code (Android) and build number (iOS) is 1000 plus the
-# build number (scripts/app-config.js): the stores refuse one they have had
-# before, so a build is uploaded once, and the next comes from a later
-# version (make release).
+# Each run's version code (Android) and build number (iOS) is the change
+# number (26.11.26+1210: 1210; scripts/app-config.js): the stores refuse one
+# they have had before, so a build is uploaded once, and the next comes
+# from a later version (make release).
 
 name: Build (started by Run)
 

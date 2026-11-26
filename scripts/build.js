@@ -208,7 +208,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		html,
 		/<!--importmap[\s\S]*?<!--\/importmap-->/,
 		`<script type="importmap">${JSON.stringify({ imports })}</script>\n${preload}${
-			target === 'web' ? '\n\t<meta name="mo-sw" content="1">' : `\n\t<meta name="mo-api" content="${api}">\n\t<meta name="mo-version" content="${pkg.version}">`
+			target === 'web' ? `\n\t<meta name="mo-sw" content="1">\n\t<meta name="mo-version" content="${pkg.version}">` : `\n\t<meta name="mo-api" content="${api}">\n\t<meta name="mo-version" content="${pkg.version}">`
 		}`,
 		'import map block in index.html',
 	);
