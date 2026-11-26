@@ -43,6 +43,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_iap::init())
+        .plugin(tauri_plugin_web_sheet::init())
         .invoke_handler(tauri::generate_handler![back_swipe])
         .setup(|_app| {
             #[cfg(target_os = "ios")]

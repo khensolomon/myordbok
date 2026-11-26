@@ -180,6 +180,7 @@ async function linkApp(provider) {
 		open_ = false;
 		linking = false;
 		sheet.remove();
+		closeSignInSheet();
 	};
 	cancel.addEventListener('click', close);
 	document.body.append(sheet);
@@ -187,12 +188,22 @@ async function linkApp(provider) {
 		const started = await postJSON('/api/link/start', {});
 		code.textContent = started.user_code;
 		status.textContent = '';
-		const back = `/link?code=${started.user_code}`;
-		go.disabled = false;
-		go.addEventListener('click', () => {
-			open(`${API}/api/auth/${provider}/start?return=${encodeURIComponent(back)}`);
+		const inSheet = signInSheet();
+		const back = `/link?code=${started.user_code}${inSheet ? '&sheet=1' : ''}`;
+		const url = `${API}/api/auth/${provider}/start?return=${encodeURIComponent(back)}`;
+		// On iOS the website opens in Apple's sign-in sheet over the app, at
+		// once; elsewhere in the browser, on the reader's tap.
+		const begin = () => {
 			status.textContent = t('Waiting for the approval on the website…');
-		});
+			if (!inSheet) return open(url);
+			openSignInSheet(url).then((closed) => {
+				if (open_ && closed === 'cancelled') status.textContent = t('Sign-in was closed. Continue to try again.');
+			});
+		};
+		go.textContent = inSheet ? t('Continue') : t('Continue in browser');
+		go.disabled = false;
+		go.addEventListener('click', begin);
+		if (inSheet) begin();
 		const until = Date.now() + started.expires_in * 1000;
 		while (open_ && Date.now() < until) {
 			await new Promise((r) => setTimeout(r, started.interval * 1000));
@@ -205,11 +216,13 @@ async function linkApp(provider) {
 				await member({ fresh: true });
 				return;
 			}
+			closeSignInSheet();
 			status.textContent = answer.status === 'denied' ? t('Cancelled on the website. The app was not linked.') : t('The code has expired. Close this and try again.');
 			go.disabled = true;
 			return;
 		}
 		if (open_) {
+			closeSignInSheet();
 			status.textContent = t('The code has expired. Close this and try again.');
 			go.disabled = true;
 		}
@@ -218,6 +231,36 @@ async function linkApp(provider) {
 		status.textContent = err instanceof Error ? err.message : String(err);
 		go.disabled = true;
 	}
+}
+
+/** Whether sign-in opens in a sheet over the app: iOS, with the web-sheet plugin. */
+function signInSheet() {
+	return document.documentElement.dataset.app === 'ios' && Boolean(/** @type {any} */ (window).__TAURI__?.core?.invoke);
+}
+
+/**
+ * The website in Apple's sign-in sheet (src-tauri/plugins/tauri-plugin-web-sheet).
+ * Resolves with how it closed: 'callback' (the website ended it on
+ * myordbok://), 'cancelled' (the reader, or the app once linked), or
+ * 'failed' (logged; the reader can still go on in the browser).
+ * @param {string} url
+ * @returns {Promise<'callback' | 'cancelled' | 'failed'>}
+ */
+async function openSignInSheet(url) {
+	try {
+		const answer = await /** @type {any} */ (window).__TAURI__.core.invoke('plugin:web-sheet|open', { url, callbackScheme: 'myordbok' });
+		return answer?.closed === 'callback' ? 'callback' : 'cancelled';
+	} catch (err) {
+		console.error('The sign-in sheet did not open; the browser instead:', err);
+		open(url);
+		return 'failed';
+	}
+}
+
+/** Closes the sign-in sheet, should one be open. */
+function closeSignInSheet() {
+	if (!signInSheet()) return;
+	/** @type {any} */ (window).__TAURI__.core.invoke('plugin:web-sheet|close').catch((/** @type {unknown} */ err) => console.error('The sign-in sheet could not be closed:', err));
 }
 
 /**

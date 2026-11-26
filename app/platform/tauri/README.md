@@ -21,6 +21,18 @@ What the app leaves to the website: the workspace and signing in (links to
 `/workspace` and `/api/auth/…` open in the browser). The app sends no session
 cookie.
 
+Signing in links the app (`/api/link`): the app shows a code, the reader
+signs in on the website and approves it at `/link`, and the app, asking every
+few seconds, receives its own session token. On iOS the website opens in
+Apple's sign-in sheet over the app (`tauri-plugin-web-sheet`, vendored in
+`src-tauri/plugins/`: ASWebAuthenticationSession, sharing Safari's sign-ins),
+as the App Store asks; `/link?sheet=1` ends the sheet on `myordbok://linked`
+once answered, and the app closes it itself on seeing the approval. On
+Android the website opens in the browser.
+
+What the store apps send elsewhere: `/support` (the website's own asking
+for gifts) leads to More (`STORE_MOVED`, `app/core/routes.js`).
+
 What the iOS and Android apps leave out: every element marked
 `data-store-hidden` (asking for gifts outside the store), as Apple and Google
 allow no asking for money outside their own payments.

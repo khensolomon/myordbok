@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.26+207
+
+- iOS: signing in opens in Apple's sign-in sheet over the app (ASWebAuthenticationSession), not Safari
+
 ## 26.11.25+206
 
 - Before App Store review: delete the account inside the app; deleting right after linking works; /support goes to More in the store apps; a page without connection says so; texts name Apple sign-in

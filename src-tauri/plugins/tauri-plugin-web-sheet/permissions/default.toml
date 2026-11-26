@@ -1,0 +1,3 @@
+[default]
+description = "Opening and closing the sign-in sheet."
+permissions = ["allow-open", "allow-close"]

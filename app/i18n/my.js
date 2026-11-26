@@ -1281,6 +1281,8 @@ export const MY = {
 	'Getting a code…': 'ကုဒ် ရယူနေသည်…',
 	'The code': 'ကုဒ်',
 	'Continue in browser': 'ဘရောက်ဇာတွင် ဆက်လုပ်ပါ',
+	'Continue': 'ဆက်လုပ်ရန်',
+	'Sign-in was closed. Continue to try again.': 'ဝင်ရောက်မှု ပိတ်သွားသည်။ ထပ်ကြိုးစားရန် ဆက်လုပ်ပါ။',
 	'You sign in on myordbok.com, then approve this code there. The app is then signed in as you.': 'myordbok.com တွင် ဝင်ရောက်ပြီး ဤကုဒ်ကို ထိုနေရာတွင် အတည်ပြုပါ။ ထို့နောက် အက်ပ်သည် သင့်အကောင့်ဖြင့် ဝင်ရောက်ပြီး ဖြစ်မည်။',
 	'Waiting for the approval on the website…': 'ဝဘ်ဆိုက်တွင် အတည်ပြုချက်ကို စောင့်နေသည်…',
 	'Cancelled on the website. The app was not linked.': 'ဝဘ်ဆိုက်တွင် ပယ်ဖျက်ခဲ့သည်။ အက်ပ်ကို မချိတ်ဆက်ခဲ့ပါ။',

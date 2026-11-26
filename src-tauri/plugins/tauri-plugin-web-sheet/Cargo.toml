@@ -1,0 +1,16 @@
+[package]
+name = "tauri-plugin-web-sheet"
+version = "0.1.0"
+edition = "2021"
+description = "A web page in a sheet over the app (iOS: ASWebAuthenticationSession), for signing in without leaving the app."
+license = "MIT"
+publish = false
+links = "tauri-plugin-web-sheet"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2" }
+serde_json = "1"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

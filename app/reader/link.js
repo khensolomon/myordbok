@@ -19,12 +19,16 @@ export function title() {
 export async function view(ctx) {
 	const given = (ctx.query.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
 	const shown = given.length === 8 ? `${given.slice(0, 4)}-${given.slice(4)}` : '';
+	// Opened in the iOS app's sign-in sheet (sheet=1): once answered, the
+	// sheet is ended by the app's own address, and the reader is back in it.
+	const inSheet = ctx.query.get('sheet') === '1';
+	const back = `/link${shown ? `?code=${shown}${inSheet ? '&sheet=1' : ''}` : ''}`;
 	const page = h('section', { class: 'page link' }, h('h1', null, t('Link the app')));
 	const me = await member().catch(() => null);
 	if (!me) {
 		page.append(
 			h('p', null, t('Sign in to link the MyOrdbok app on your phone or tablet to your account.')),
-			providerLinks('ws-provider', `/link${shown ? `?code=${shown}` : ''}`),
+			providerLinks('ws-provider', back),
 		);
 		return page;
 	}
@@ -73,6 +77,10 @@ export async function view(ctx) {
 		approve.disabled = deny.disabled = field.disabled = true;
 		try {
 			await postJSON(`/api/link/code/${ready}`, { approve: yes });
+			if (inSheet) {
+				location.assign(`myordbok://linked?approved=${yes ? 1 : 0}`);
+				return;
+			}
 			form.replaceChildren(
 				h('p', { class: 'link-done' }, yes ? t('Linked. Go back to the app: it is signed in as {name}.', { name: me.name }) : t('Cancelled. The device was not linked.')),
 				h('p', { class: 'ws-quiet' }, t('Linked devices are listed on your account page, where each can be removed.'), ' ', h('a', { href: '/workspace?s=account' }, t('Account'))),
