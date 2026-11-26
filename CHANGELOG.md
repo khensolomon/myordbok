@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.26+1211
+
+- Workspace rail: an icon of its own for each section (Tools, Overview, Questions, Votes, Contributions), lines between groups, names beside the icons at once
+
 ## 26.11.26+1210
 
 - One number everywhere: the change number is the apps' build number on Play and the App Store (from 1210); the More page shows the version

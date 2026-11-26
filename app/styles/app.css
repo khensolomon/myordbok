@@ -1737,6 +1737,14 @@ body[data-route="workspace"] main#view { max-width: none; padding: 0; }
 .ws-logo img { display: block; width: 28px; height: 28px; }
 .ws-rail-item { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--muted); border-radius: 10px; }
 .ws-rail-item:hover { color: var(--ink); }
+/* A line between the rail's groups (index.js, SECTIONS). */
+.ws-rail-item.ws-rail-group { margin-top: 9px; }
+.ws-rail-item.ws-rail-group::before { content: ''; position: absolute; top: -7px; left: 9px; right: 9px; height: 1px; background: var(--line-soft); }
+/* The section's name beside its icon, at once (index.js, railTip). */
+.ws-tip { position: fixed; z-index: 60; transform: translateY(-50%); padding: 6px 10px; border-radius: 8px; background: var(--ink); color: var(--ground); font: 500 13px/1.2 var(--font-ui); white-space: nowrap; pointer-events: none; box-shadow: 0 4px 14px rgb(0 0 0 / 0.18); }
+.ws-tip::before { content: ''; position: absolute; left: -5px; top: 50%; margin-top: -5px; border: 5px solid transparent; border-left-width: 0; border-right-color: var(--ink); }
+.ws-tip[hidden] { display: none; }
+.ws-menu-list a.ws-menu-group { margin-top: 7px; box-shadow: 0 -4px 0 -3px var(--line-soft); }
 .ws-rail-item[aria-current="page"] { color: var(--brand); box-shadow: inset 2px 0 0 var(--brand); border-radius: 0; }
 .ws-badge { position: absolute; top: 5px; right: 3px; min-width: 15px; height: 15px; padding: 0 3px; box-sizing: border-box; border-radius: 999px; background: var(--brand); color: #fff; font-size: 10px; font-weight: 600; line-height: 15px; text-align: center; }
 .ws-badge[hidden] { display: none; }

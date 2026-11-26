@@ -65,23 +65,25 @@ import { studioPanes } from './studio.js';
 /** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'questions' | 'votes' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
 
 /** Sections in rail order, and who has them. */
+// In the rail's groups, a line between them (group): the overview; the
+// dictionary's work; what readers do; the person's own; running the site.
 const SECTIONS = /** @type {const} */ ([
-	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false },
-	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false },
-	{ id: 'studio', label: mark('Studio'), icon: ICONS.dictionary, editor: true, admin: false },
-	{ id: 'comments', label: mark('Comments'), icon: ICONS.comment, editor: true, admin: false },
-	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: false, admin: false, stats: true },
-	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.document, editor: false, admin: false },
-	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false },
-	{ id: 'questions', label: mark('Questions'), icon: ICONS.practice, editor: true, admin: false },
-	{ id: 'votes', label: mark('Votes'), icon: ICONS.check, editor: true, admin: false },
-	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false },
-	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: false, admin: false },
-	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true },
-	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true },
-	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true },
-	{ id: 'tools', label: mark('Tools'), icon: ICONS.overview, editor: true, admin: true },
-	{ id: 'sponsors', label: mark('Sponsors'), icon: ICONS.like, editor: true, admin: true, owner: true },
+	{ id: 'overview', label: mark('Overview'), icon: ICONS.overview, editor: false, admin: false, group: 'home' },
+	{ id: 'suggestions', label: mark('Suggestions'), icon: ICONS.suggest, editor: true, admin: false, group: 'work' },
+	{ id: 'studio', label: mark('Studio'), icon: ICONS.dictionary, editor: true, admin: false, group: 'work' },
+	{ id: 'comments', label: mark('Comments'), icon: ICONS.comment, editor: true, admin: false, group: 'work' },
+	{ id: 'questions', label: mark('Questions'), icon: ICONS.question, editor: true, admin: false, group: 'work' },
+	{ id: 'votes', label: mark('Votes'), icon: ICONS.vote, editor: true, admin: false, group: 'work' },
+	{ id: 'searches', label: mark('Searches'), icon: ICONS.search, editor: false, admin: false, stats: true, group: 'readers' },
+	{ id: 'contributions', label: mark('Contributions'), icon: ICONS.history, editor: false, admin: false, group: 'readers' },
+	{ id: 'ratings', label: mark('Ratings'), icon: ICONS.thumbUp, editor: false, admin: false, group: 'readers' },
+	{ id: 'offline', label: mark('Offline copy'), icon: ICONS.download, editor: false, admin: false, group: 'own' },
+	{ id: 'inbox', label: mark('Inbox'), icon: ICONS.inbox, editor: false, admin: false, group: 'own' },
+	{ id: 'members', label: mark('Members'), icon: ICONS.members, editor: true, admin: true, group: 'site' },
+	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true, group: 'site' },
+	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true, group: 'site' },
+	{ id: 'tools', label: mark('Tools'), icon: ICONS.tools, editor: true, admin: true, group: 'site' },
+	{ id: 'sponsors', label: mark('Sponsors'), icon: ICONS.like, editor: true, admin: true, owner: true, group: 'site' },
 ]);
 
 const FILTERS = /** @type {const} */ ([
@@ -624,15 +626,19 @@ function railFor(me, editor, section, summary) {
 	const sections = SECTIONS.filter((s) => ('owner' in s ? atLeast(me.role, 'owner') : 'stats' in s ? seesStatistics(me) : s.admin ? atLeast(me.role, 'admin') : editor || !s.editor));
 	const countOf = (/** @type {string} */ id) => (id === 'suggestions' ? (summary.waiting ?? 0) : id === 'inbox' ? (summary.unread ?? summary.answers) : 0);
 	const badge = (/** @type {string} */ id, /** @type {number} */ count) => (id === 'suggestions' || id === 'inbox' ? h('span', { class: 'ws-badge', 'data-section-badge': id, hidden: count ? null : true }, num(count)) : null);
-	const items = sections.map((s) => {
+	const items = sections.map((s, i) => {
 		const label = t(s.label);
 		const count = countOf(s.id);
-		return h(
+		// The first of a group after another: a line above it (app.css).
+		const starts = i > 0 && sections[i - 1].group !== s.group;
+		const item = h(
 			'a',
-			{ href: `/workspace?s=${s.id}`, class: 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, title: label, 'aria-label': count ? (s.id === 'inbox' ? t('{label}, {n} new', { label, n: count }) : t('{label}, {n} waiting', { label, n: count })) : label },
+			{ href: `/workspace?s=${s.id}`, class: starts ? 'ws-rail-item ws-rail-group' : 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, 'data-label': label, 'aria-label': count ? (s.id === 'inbox' ? t('{label}, {n} new', { label, n: count }) : t('{label}, {n} waiting', { label, n: count })) : label },
 			icon(s.icon, 20),
 			badge(s.id, count),
 		);
+		railTip(item);
+		return item;
 	});
 	const face = () => (me.avatar_url ? h('img', { src: me.avatar_url, alt: '', referrerpolicy: 'no-referrer' }) : me.name.slice(0, 1).toUpperCase());
 	const current = section === 'account' ? t('Account') : t(SECTIONS.find((s) => s.id === section)?.label ?? 'Overview');
@@ -650,7 +656,7 @@ function railFor(me, editor, section, summary) {
 		h(
 			'nav',
 			{ class: 'ws-menu-list', 'aria-label': t('Workspace') },
-			sections.map((s) => h('a', { href: `/workspace?s=${s.id}`, 'aria-current': section === s.id ? 'page' : null }, icon(s.icon, 18), h('span', null, t(s.label)), badge(s.id, countOf(s.id)))),
+			sections.map((s, i) => h('a', { href: `/workspace?s=${s.id}`, class: i > 0 && sections[i - 1].group !== s.group ? 'ws-menu-group' : null, 'aria-current': section === s.id ? 'page' : null }, icon(s.icon, 18), h('span', null, t(s.label)), badge(s.id, countOf(s.id)))),
 		),
 		h('nav', { class: 'ws-menu-list', 'aria-label': t('More') }, h('a', { href: '/workspace?s=account', 'aria-current': section === 'account' ? 'page' : null }, icon(ICONS.account, 18), h('span', null, t('Account'))), h('a', { href: '/about' }, icon(ICONS.info, 18), h('span', null, t('About'))), h('a', { href: '/' }, icon(ICONS.dictionary, 18), h('span', null, t('Back to the dictionary')))),
 	);
@@ -691,6 +697,39 @@ function railFor(me, editor, section, summary) {
 	);
 	more.watch(rail);
 	return rail;
+}
+
+/** The rail's label beside an icon, shown at once on hover or focus. @type {HTMLElement | null} */
+let tip = null;
+
+/**
+ * The section's name beside its icon while the pointer is on it, or the
+ * keyboard: at once, where the browser's own tooltip waits a second. It
+ * lives on the body, as the rail clips what leaves it.
+ * @param {HTMLElement} item
+ */
+function railTip(item) {
+	const show = () => {
+		if (!matchMedia('(hover: hover)').matches && !item.matches(':focus-visible')) return;
+		if (!tip) {
+			tip = document.body.appendChild(h('div', { class: 'ws-tip', role: 'presentation', 'aria-hidden': 'true' }));
+			// A new page draws a new rail: the label of the old one goes.
+			window.addEventListener('mo:navigated', () => tip && (tip.hidden = true));
+		}
+		tip.textContent = item.dataset.label ?? '';
+		const r = item.getBoundingClientRect();
+		tip.style.left = `${Math.round(r.right + 10)}px`;
+		tip.style.top = `${Math.round(r.top + r.height / 2)}px`;
+		tip.hidden = false;
+	};
+	const hide = () => {
+		if (tip) tip.hidden = true;
+	};
+	item.addEventListener('pointerenter', show);
+	item.addEventListener('pointerleave', hide);
+	item.addEventListener('focus', show);
+	item.addEventListener('blur', hide);
+	item.addEventListener('click', hide);
 }
 
 /**
