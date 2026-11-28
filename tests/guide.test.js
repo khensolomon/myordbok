@@ -181,3 +181,13 @@ test('the Worker serves /guide/ files to editors and up only; the build ships th
 		await rm(out, { recursive: true, force: true });
 	}
 });
+
+test('a sentence that introduces a code block brings the block; a stub without one does not', async () => {
+	const { codeAfter } = await import('../shared/guide/ask.js');
+	const [p] = passages('docs/x.md', '# X\n\nBuild there, then publish from here:\n\n```bash\nmake data-beta\n```\n\nDetails: Releases.\n');
+	assert.equal(codeAfter(p, 0), 'make data-beta');
+	assert.equal(codeAfter(p, 1), null);
+	const r = ask(INDEX, 'how do I update the dictionary?');
+	const first = INDEX.passages[r.answers[0].passage];
+	assert.ok(!r.answers[0].sentences.some((s) => /^Details:/.test(first.sentences[s])), 'a stub is not an answer when fuller sentences are there');
+});

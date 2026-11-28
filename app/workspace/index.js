@@ -48,6 +48,7 @@ import { messagesPane } from './messages.js';
 import { overviewPane } from './overview.js';
 import { settingsPane } from './settings.js';
 import { toolsPane } from './tools.js';
+import { guidePane } from './guide.js';
 import { ratingsPanes } from './ratings.js';
 import { questionsPanes } from './questions.js';
 import { votesPanes } from './votes.js';
@@ -83,6 +84,7 @@ const SECTIONS = /** @type {const} */ ([
 	{ id: 'notices', label: mark('Notices'), icon: ICONS.notice, editor: true, admin: true, group: 'site' },
 	{ id: 'settings', label: mark('Settings'), icon: ICONS.settings, editor: true, admin: true, group: 'site' },
 	{ id: 'tools', label: mark('Tools'), icon: ICONS.tools, editor: true, admin: true, group: 'site' },
+	{ id: 'guide', label: mark('Guide'), icon: ICONS.document, editor: true, admin: false, group: 'site' },
 	{ id: 'sponsors', label: mark('Sponsors'), icon: ICONS.like, editor: true, admin: true, owner: true, group: 'site' },
 ]);
 
@@ -144,7 +146,7 @@ export async function view(ctx) {
 	const admin = atLeast(me.role, 'admin');
 	const asked = ctx.query.get('s');
 	/** @type {Section} */
-	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio' || asked === 'questions' || asked === 'votes') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices' || asked === 'tools') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
+	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio' || asked === 'questions' || asked === 'votes' || asked === 'guide') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices' || asked === 'tools') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
 	const root = h('div', { class: 'ws', 'data-section': section, 'data-rail': railOpen() ? 'open' : null });
@@ -203,6 +205,10 @@ export async function view(ctx) {
 	}
 	if (section === 'tools') {
 		root.append(rail, toolsPane());
+		return root;
+	}
+	if (section === 'guide') {
+		root.append(rail, guidePane(ctx));
 		return root;
 	}
 	if (section === 'notices') {

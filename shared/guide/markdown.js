@@ -196,6 +196,23 @@ export function render(md) {
 			.replace(/(^|[\s(])[*_]([^*_]+)[*_](?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
 	/** @type {string[]} */
 	const out = [];
+	// A run of quoted lines is a quote, rendered as markdown of its own; a
+	// callout's tag ([!NOTE]) becomes its label.
+	const quoted = md.split(/^((?:[ \t]*>.*(?:\n|$))+)/m);
+	if (quoted.length > 1) {
+		for (let i = 0; i < quoted.length; i++) {
+			if (!quoted[i].trim()) continue;
+			if (i % 2 === 0) {
+				out.push(render(quoted[i]));
+				continue;
+			}
+			let inner = quoted[i].replace(/^[ \t]*>[ ]?/gm, '');
+			const tag = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n?/.exec(inner);
+			if (tag) inner = inner.slice(tag[0].length);
+			out.push(`<blockquote${tag ? ` class="callout callout-${tag[1].toLowerCase()}"` : ''}>${tag ? `<p class="callout-tag">${tag[1][0]}${tag[1].slice(1).toLowerCase()}</p>` : ''}${render(inner)}</blockquote>`);
+		}
+		return out.join('\n');
+	}
 	const blocks = md.split(/^\s*(?:```|~~~)(.*)$/m);
 	for (let b = 0; b < blocks.length; b += 3) {
 		const text = blocks[b];
@@ -225,10 +242,6 @@ export function render(md) {
 				}
 				const tag = ordered ? 'ol' : 'ul';
 				out.push(`<${tag}>${items.map((it) => `<li>${inline(it.replace(/^\[([ x])\]\s*/, (_, c) => (c === 'x' ? '☑ ' : '☐ ')))}</li>`).join('')}</${tag}>`);
-				continue;
-			}
-			if (rows.every((l) => /^\s*>/.test(l))) {
-				out.push(`<blockquote><p>${inline(rows.map((l) => l.replace(/^\s*>\s?/, '')).join(' '))}</p></blockquote>`);
 				continue;
 			}
 			out.push(`<p>${inline(rows.join(' '))}</p>`);

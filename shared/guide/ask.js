@@ -191,11 +191,13 @@ export function ask(ix, text) {
 		for (const [s, own] of pp.sentences) {
 			const sentence = pass.sentences[s];
 			const kindBonus = wanted(question.kind, sentence) ? 0.15 * covered : 0;
+			// A stub ("Details: Releases.") says little by itself; a line introducing a block (ends in ":") brings the block with it (codeAfter).
+			const stub = sentence.split(/\s+/).length < 5 && !sentence.endsWith(':') ? 0.6 : 1;
 			// The sentence's own share of the question, lifted a little by its passage's.
 			let mine = 0;
 			for (const g of pp.own.get(s)?.values() ?? []) mine += g;
 			const sentenceCoverage = Math.min(1, (mine + 0.3 * (covered - mine)) / total);
-			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file), coverage: sentenceCoverage });
+			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file) * stub, coverage: sentenceCoverage });
 		}
 		// An answer written for a question: its first sentences stand even without a word in common.
 		if (answerFile && pp.head > 0) pass.sentences.forEach((_, s) => candidates.push({ passage: p, sentence: s, score: pp.head * 2 + covered - s * 0.01, coverage: Math.max(coverage, pp.head / total) }));
@@ -212,7 +214,8 @@ export function ask(ix, text) {
 			if (c.coverage < FLOOR * 0.8) continue;
 			let a = answers.find((x) => x.passage === c.passage);
 			if (!a) {
-				if (answers.length >= ANSWER_PASSAGES) continue;
+				// A second passage only when it stands near the first.
+				if (answers.length >= ANSWER_PASSAGES || c.score < best.score * 0.6) continue;
 				answers.push((a = { passage: c.passage, sentences: [], score: c.score }));
 			}
 			if (a.sentences.length < ANSWER_SENTENCES && !a.sentences.includes(c.sentence)) a.sentences.push(c.sentence);
@@ -261,4 +264,21 @@ function wanted(kind, sentence) {
 		default:
 			return false;
 	}
+}
+
+/**
+ * The code block a sentence introduces, when it ends in ":" and a fenced
+ * block follows it in the passage; else null.
+ * @param {import('./markdown.js').Passage} passage
+ * @param {number} sentence
+ */
+export function codeAfter(passage, sentence) {
+	const text = passage.sentences[sentence];
+	if (!text || !text.endsWith(':')) return null;
+	const key = text.slice(0, 24).replace(/[`*_>]/g, '');
+	const parts = passage.markdown.replace(/^[ \t]*>[ ]?/gm, '').split(/^\s*(?:```|~~~).*$/m);
+	for (let i = 0; i + 1 < parts.length; i += 2) {
+		if (parts[i].replace(/[`*_]/g, '').replace(/\s+/g, ' ').includes(key.replace(/\s+/g, ' '))) return parts[i + 1].replace(/^\n|\n$/g, '');
+	}
+	return null;
 }
