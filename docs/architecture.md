@@ -548,6 +548,25 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   within the same limits (`worker/lib/guard.js`). The app is used signed
   out: the workspace and signing in open the website. On iOS, nothing asks
   for gifts.
+- **The guide is the docs, answered on the device.** `docs/**/*.md` ship
+  with the web build under `/guide/` with a manifest of content hashes
+  (`scripts/build.js`, `guideFiles`), served by the Worker to editors and
+  up only (`worker/routes/guide.js`); the app build has none, and a reader
+  is never sent the guide's code or files (not preloaded, not in the offline
+  shell). The browser keeps each file by its hash (`app/core/guide.js`) and
+  indexes them in a moment (`shared/guide/`): passages by heading and
+  bold-led bullet, sentences, stems (Porter), and where each term occurs.
+  A question is read for its kind and terms, widened by the terms file and
+  by the words that keep its terms company in the guide, and every sentence
+  is scored; the answer is the best sentences from at most two passages,
+  each shown with its passage, or "the guide does not cover this" when the
+  best covers too little. No model and nothing outside: every word shown
+  was written by a person. `docs/guide-answers.md` holds answers written
+  for questions (a heading matched counts double);
+  `docs/guide-terms.md` the words that mean the same here. Workspace › Guide
+  reads, indexes again and asks; the search box offers "Ask the guide" and
+  the nearest passages to an editor, and a question the guide cannot answer
+  goes to the Inbox with one press, to be answered in the file and released.
 
 ## Next
 

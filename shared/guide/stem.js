@@ -23,7 +23,7 @@ function measure(s) {
 	return m;
 }
 
-/** @param {string} s @param {number} i */
+/** @param {string} s @param {number} i @returns {boolean} */
 function isVowel(s, i) {
 	const c = s[i];
 	if ('aeiou'.includes(c)) return true;

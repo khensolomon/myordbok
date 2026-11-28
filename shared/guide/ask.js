@@ -101,9 +101,14 @@ export function widen(ix, q) {
 		if (!have || have.w < w) out.set(t, { w, of });
 	};
 	const n = ix.passages.length;
+	// A group of the terms file whose entry the question holds whole: its one-word entries, as the entry's stand-ins.
+	for (const group of ix.groups) {
+		const held = group.find((entry) => entry.every((t) => q.terms.includes(t)));
+		if (!held) continue;
+		for (const entry of group) if (entry.length === 1 && entry[0] !== held[0]) put(entry[0], 0.8, held[0]);
+	}
 	for (const t of q.terms) {
 		put(t, 1, t);
-		for (const s of ix.synonyms.get(t) ?? []) put(s, 0.8, t);
 		const hits = ix.terms.get(t);
 		if (!hits || hits.length < 2) continue;
 		/** @type {Map<string, number>} */
@@ -151,9 +156,11 @@ export function ask(ix, text) {
 	const wide = widen(ix, question);
 	/** The question's weight: each of its own terms by rarity. */
 	const total = question.terms.reduce((sum, t) => sum + idf(ix, t), 0) || 1;
+	/** Its most telling term (the rarest): an answer must hold it. */
+	const key = question.terms.reduce((best, t) => (idf(ix, t) > idf(ix, best) ? t : best), question.terms[0]);
 
 	/** Per passage: the question terms it covers (weight), and each sentence's score. */
-	/** @type {Map<number, { cover: Map<string, number>, sentences: Map<number, number>, own: Map<number, Map<string, number>>, head: number }>} */
+	/** @type {Map<number, { cover: Map<string, number>, sentences: Map<number, number>, own: Map<number, Map<string, number>>, head: number, headStrong: number, headOf: Map<string, number> }>} */
 	const byPassage = new Map();
 	for (const [t, { w, of }] of wide) {
 		const hits = ix.terms.get(t);
@@ -161,10 +168,15 @@ export function ask(ix, text) {
 		const gain = idf(ix, of) * w;
 		for (const h of hits) {
 			let pp = byPassage.get(h.p);
-			if (!pp) byPassage.set(h.p, (pp = { cover: new Map(), sentences: new Map(), own: new Map(), head: 0 }));
+			if (!pp) byPassage.set(h.p, (pp = { cover: new Map(), sentences: new Map(), own: new Map(), head: 0, headStrong: 0, headOf: new Map() }));
 			if ((pp.cover.get(of) ?? 0) < gain) pp.cover.set(of, gain);
 			// Named after the term by its writer: as telling as the words below it.
-			if (h.head) pp.head += gain;
+			if (h.head) {
+				pp.head += gain;
+				// The question's own words (or their synonyms) in the heading, not a word that merely keeps them company.
+				if (w >= 0.8) pp.headStrong += gain;
+				if ((pp.headOf.get(of) ?? 0) < gain) pp.headOf.set(of, gain);
+			}
 			const per = gain * (h.head ? 1.25 : 1) * (h.code ? 1.15 : 1);
 			for (const s of h.s) {
 				pp.sentences.set(s, (pp.sentences.get(s) ?? 0) + per);
@@ -186,7 +198,7 @@ export function ask(ix, text) {
 		for (const g of pp.cover.values()) covered += g;
 		const coverage = Math.min(1, covered / total);
 		const answerFile = pass.file === ANSWERS_FILE;
-		const passageScore = (covered + pp.head * (answerFile ? 2 : 1)) * fileWeight(pass.file);
+		const passageScore = (covered + pp.head + (answerFile ? pp.headStrong : 0)) * fileWeight(pass.file);
 		ranked.push({ passage: p, score: passageScore, coverage });
 		for (const [s, own] of pp.sentences) {
 			const sentence = pass.sentences[s];
@@ -194,15 +206,18 @@ export function ask(ix, text) {
 			// A stub ("Details: Releases.") says little by itself; a line introducing a block (ends in ":") brings the block with it (codeAfter).
 			const stub = sentence.split(/\s+/).length < 5 && !sentence.endsWith(':') ? 0.3 : 1;
 			// The sentence's own share of the question, lifted a little by its passage's.
+			// Its own words, and the heading's: a sentence under "Updating the dictionary" is about that.
+			const held = new Map(pp.headOf);
+			for (const [of, g] of pp.own.get(s) ?? []) if ((held.get(of) ?? 0) < g) held.set(of, g);
 			let mine = 0;
-			for (const g of pp.own.get(s)?.values() ?? []) mine += g;
+			for (const g of held.values()) mine += g;
 			// At least half the question's words must be in the passage: one rare word is not an answer to a question of several.
-			const enough = pp.cover.size >= Math.ceil(question.terms.length / 2);
+			const enough = pp.cover.size >= Math.ceil(question.terms.length / 2) && pp.cover.has(key);
 			const sentenceCoverage = Math.min(1, (mine + 0.3 * (covered - mine)) / total) * (enough ? 1 : 0.5);
 			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file) * stub, coverage: sentenceCoverage });
 		}
 		// An answer written for a question: its first sentences stand even without a word in common.
-		if (answerFile && pp.head > 0) pass.sentences.forEach((_, s) => candidates.push({ passage: p, sentence: s, score: pp.head * 2 + covered - s * 0.01, coverage: Math.max(coverage, pp.head / total) }));
+		if (answerFile && pp.headStrong > 0) pass.sentences.forEach((_, s) => candidates.push({ passage: p, sentence: s, score: (pp.headStrong * 2 + covered) * fileWeight(pass.file) - s * 0.01, coverage: Math.max(coverage, pp.headStrong / total) }));
 	}
 	ranked.sort((a, b) => b.score - a.score);
 	candidates.sort((a, b) => b.score - a.score);
@@ -234,12 +249,11 @@ export function ask(ix, text) {
 }
 
 /**
- * How much a file's passages count: a to-do list is not guidance, an
- * answer written for a question is the best there is.
+ * How much a file's passages count: a to-do list is not guidance. (An
+ * answer written for a question counts through its heading, above.)
  * @param {string} file
  */
 function fileWeight(file) {
-	if (file === ANSWERS_FILE) return 1.5;
 	if (/\/TODO\.md$/.test(file)) return 0.5;
 	return 1;
 }

@@ -40,7 +40,7 @@ export const STOP = new Set(
  * @property {import('./markdown.js').Passage[]} passages
  * @property {Map<string, Hit[]>} terms  stem → where it occurs, by passage.
  * @property {Map<string, number>} df  stem → passages holding it.
- * @property {Map<string, Set<string>>} synonyms  stem → the stems of its group (guide-terms.md).
+ * @property {string[][][]} groups  guide-terms.md: each group's entries, each entry its stems.
  * @property {{ files: number, words: number }} size
  */
 
@@ -85,17 +85,17 @@ export function terms(text, code = false) {
 export function build(files) {
 	/** @type {import('./markdown.js').Passage[]} */
 	const passages = [];
-	/** @type {Map<string, Set<string>>} */
-	const synonyms = new Map();
+	/** @type {string[][][]} */
+	const groups = [];
 	let words = 0;
 	for (const { file, text } of files) {
 		if (file === TERMS_FILE) {
 			for (const line of text.split('\n')) {
 				const row = line.replace(/^\s*[-*]\s+/, '').trim();
 				if (!row || row.startsWith('#')) continue;
-				const group = new Set(row.split(/\s*[,;]\s*/).flatMap((w) => terms(w)));
-				if (group.size < 2) continue;
-				for (const t of group) synonyms.set(t, new Set([...(synonyms.get(t) ?? []), ...group]));
+				// Each entry as its stems: "legacy font" is one entry of two, matched only whole.
+				const group = row.split(/\s*[,;]\s*/).map((w) => terms(w)).filter((e) => e.length);
+				if (group.length >= 2) groups.push(group);
 			}
 			continue;
 		}
@@ -129,7 +129,7 @@ export function build(files) {
 	/** @type {Map<string, number>} */
 	const df = new Map();
 	for (const [t, hits] of index) df.set(t, hits.length);
-	return { passages, terms: index, df, synonyms, size: { files: files.length, words } };
+	return { passages, terms: index, df, groups, size: { files: files.length, words } };
 }
 
 /**

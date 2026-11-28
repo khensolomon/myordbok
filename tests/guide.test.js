@@ -54,6 +54,7 @@ test('markdown: headings, bold-led bullets and long runs make passages; tables a
 
 test('markdown: inline marks go, code and link text stay; sentences split only at real ends', () => {
 	assert.equal(inlinePlain('Run `make api` and see [the docs](x.md), **bold** and *soft*.'), 'Run make api and see the docs, bold and soft.');
+	assert.equal(inlinePlain('Write `<word>` or `<a/b>`; <b>html</b> goes.'), 'Write <word> or <a/b>; html goes.');
 	assert.deepEqual(split('See scripts/build.js. It runs e.g. twice. Then stop.'), ['See scripts/build.js.', 'It runs e.g. twice.', 'Then stop.']);
 });
 
@@ -113,6 +114,7 @@ test('questions the docs answer land on the right passage, in the guide\'s own w
 });
 
 test('a question the docs do not cover is not answered, and nearest passages are still offered', () => {
+	for (const q of ['which font does the iOS app use for Myanmar', 'which font does the iOS app use']) assert.equal(ask(INDEX, q).answered, false, q);
 	const r = ask(INDEX, 'which font does the iOS app use for Myanmar');
 	assert.equal(r.answered, false);
 	assert.deepEqual(r.answers, []);
@@ -133,12 +135,15 @@ test('a written answer beats a chance of words; a terms group widens the questio
 	const wide = widen(ix, readQuestion('what is a lemma'));
 	assert.equal(wide.get('headword')?.w, 0.8);
 	assert.equal(wide.get('lemma')?.w, 1);
+	const ix2 = build([{ file: TERMS_FILE, text: '- zawgyi, legacy font, font hack\n' }, { file: 'docs/a.md', text: '# A\n\nZawgyi is a font hack.\n' }]);
+	assert.equal(widen(ix2, readQuestion('which font')).get('zawgyi'), undefined, 'a word of a two-word entry is not the entry');
+	assert.equal(widen(ix2, readQuestion('the legacy font')).get('zawgyi')?.w, 0.8, 'the entry whole is');
 });
 
 test('widening brings a term\'s company at a lower weight, never a word that is everywhere', () => {
 	const wide = widen(INDEX, readQuestion('backups'));
 	for (const [t, { w }] of wide) {
-		if (t === 'backup') continue;
+		if (t === 'backup' || w === 0.8) continue; // itself, or a synonym of the terms file
 		assert.equal(w, 0.35);
 		assert.ok((INDEX.df.get(t) ?? 0) <= INDEX.passages.length / 4, t);
 	}

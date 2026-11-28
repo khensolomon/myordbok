@@ -152,10 +152,14 @@ function plain(md) {
  * @param {string[]} [code]
  */
 export function inlinePlain(s, code) {
+	// Code spans are kept as written (a tag-like <word> in them is markup of the dictionary, not HTML).
+	/** @type {string[]} */
+	const spans = [];
 	return s
 		.replace(/`([^`]*)`/g, (_, c) => {
 			code?.push(c);
-			return c;
+			spans.push(c);
+			return `\u0000${spans.length - 1}\u0000`;
 		})
 		.replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
 		.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -163,6 +167,7 @@ export function inlinePlain(s, code) {
 		.replace(/<\/?[a-z][^>]*>/gi, '')
 		.replace(/(\*\*|__)(.*?)\1/g, '$2')
 		.replace(/(^|\W)[*_](.*?)[*_](?=\W|$)/g, '$1$2')
+		.replace(/\u0000(\d+)\u0000/g, (_, i) => spans[Number(i)])
 		.replace(/\s+/g, ' ')
 		.trim();
 }

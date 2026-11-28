@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1217
+
+- Workspace › Guide: the repository's docs on the device for editors, indexed with a click, asked in plain words and answered in the guide's own sentences; the search box offers the guide to editors; docs/guide-answers.md and docs/guide-terms.md
+
 ## 26.11.28+1216
 
 - Suggestions carry a magnifier; sign-in and the store buttons start with the device maker's own; readable faint text, finger-sized small buttons, underlined links in sentences, a deeper blue under button text; grammar tables reachable by keyboard; the service worker drops preload hints it does not need

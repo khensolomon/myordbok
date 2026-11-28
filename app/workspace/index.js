@@ -63,7 +63,7 @@ import { studioPanes } from './studio.js';
 
 /** @typedef {import('../data/api.js').WorkspaceEdit} Edit */
 /** @typedef {import('../core/member.js').Member} Member */
-/** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'questions' | 'votes' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account'} Section */
+/** @typedef {'overview' | 'suggestions' | 'studio' | 'searches' | 'comments' | 'contributions' | 'ratings' | 'questions' | 'votes' | 'offline' | 'inbox' | 'members' | 'notices' | 'settings' | 'sponsors' | 'account' | 'tools' | 'guide'} Section */
 
 /** Sections in rail order, and who has them. */
 // In the rail's groups, a line between them (group): the overview; the
