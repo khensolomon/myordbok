@@ -71,16 +71,14 @@ const editorsOnly = (url) => url.startsWith('/workspace/') || url.startsWith('/s
  * Whether a doc is in the guide: it is, unless its first lines say
  * `<!-- guide: off -->` (a to-do list, a data table, notes not written as
  * guidance). `<!-- guide: on -->` says so explicitly, which reads as a
- * decision. A mark anywhere else, or spelled otherwise, stops the build.
+ * decision. A mark further down is text about the mark; one spelled
+ * otherwise stops the build.
  * @param {string} text
  */
 export function inGuide(text) {
 	const head = text.slice(0, 600);
 	const mark = /<!--\s*guide\s*:\s*([^\s-]+)\s*-->/i.exec(head);
-	if (!mark) {
-		if (/<!--\s*guide/i.test(text)) throw new Error('build: a guide mark must be <!-- guide: on --> or <!-- guide: off --> within the first lines of the file');
-		return true;
-	}
+	if (!mark) return true;
 	const value = mark[1].toLowerCase();
 	if (value !== 'on' && value !== 'off') throw new Error(`build: a guide mark is on or off, not "${mark[1]}"`);
 	return value === 'on';

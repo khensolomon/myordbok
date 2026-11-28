@@ -209,5 +209,5 @@ test('a doc is in the guide unless its first lines say guide: off; a misspelt ma
 	assert.equal(inGuide('<!-- guide: off -->\n# Todo'), false);
 	assert.equal(inGuide('<!--guide:ON-->\n# X'), true);
 	assert.throws(() => inGuide('<!-- guide: maybe -->\n'), /on or off/);
-	assert.throws(() => inGuide('# X\n' + 'a\n'.repeat(400) + '<!-- guide: off -->'), /first lines/);
+	assert.equal(inGuide('# X\n' + 'a\n'.repeat(400) + 'Write `<!-- guide: off -->` to keep a file out.'), true, 'a mark further down is text about the mark');
 });
