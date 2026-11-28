@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1212
+
+- Workspace rail folds and opens (icon and name, kept per device); the website on phones points to the apps (Safari's banner, an Android card, More's Get the app)
+
 ## 26.11.26+1211
 
 - Workspace rail: an icon of its own for each section (Tools, Overview, Questions, Votes, Contributions), lines between groups, names beside the icons at once

@@ -147,7 +147,7 @@ export async function view(ctx) {
 	const section = asked === 'account' || asked === 'contributions' || asked === 'ratings' || asked === 'offline' || asked === 'inbox' ? asked : (asked === 'suggestions' || asked === 'comments' || asked === 'studio' || asked === 'questions' || asked === 'votes') && editor ? asked : asked === 'searches' && seesStatistics(me) ? asked : (asked === 'settings' || asked === 'members' || asked === 'notices' || asked === 'tools') && admin ? asked : asked === 'sponsors' && atLeast(me.role, 'owner') ? asked : 'overview';
 	const [summary, health] = await Promise.all([workspaceSummary(), getJSON('/api/health').catch(() => null)]);
 
-	const root = h('div', { class: 'ws', 'data-section': section });
+	const root = h('div', { class: 'ws', 'data-section': section, 'data-rail': railOpen() ? 'open' : null });
 	/** Sections with a list: its column can be resized on a desktop (list-bar.js). */
 	const resizable = () => {
 		const list = root.querySelector('.ws-list');
@@ -635,6 +635,7 @@ function railFor(me, editor, section, summary) {
 			'a',
 			{ href: `/workspace?s=${s.id}`, class: starts ? 'ws-rail-item ws-rail-group' : 'ws-rail-item', 'aria-current': section === s.id ? 'page' : null, 'data-label': label, 'aria-label': count ? (s.id === 'inbox' ? t('{label}, {n} new', { label, n: count }) : t('{label}, {n} waiting', { label, n: count })) : label },
 			icon(s.icon, 20),
+			h('span', { class: 'ws-rail-label', 'aria-hidden': 'true' }, label),
 			badge(s.id, count),
 		);
 		railTip(item);
@@ -687,16 +688,69 @@ function railFor(me, editor, section, summary) {
 		'nav',
 		{ class: 'ws-rail', 'aria-label': t('Workspace') },
 		// On phones the logo and the section's name share a glass capsule; elsewhere the wrapper is invisible (display: contents).
-		h('span', { class: 'ws-rail-head' }, h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })), h('span', { class: 'ws-rail-title' }, current)),
+		h('span', { class: 'ws-rail-head' }, h('a', { href: '/', class: 'ws-logo', title: 'MyOrdbok', 'aria-label': t('MyOrdbok, the public site') }, h('img', { src: '/static/icon.svg', alt: '', width: 28, height: 28 })), h('span', { class: 'ws-rail-brand', 'aria-hidden': 'true' }, t('Workspace')), h('span', { class: 'ws-rail-title' }, current)),
 		items,
 		more.node,
 		h('span', { class: 'ws-rail-gap' }),
-		h('a', { href: '/workspace?s=account', class: 'ws-rail-face', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) }, face()),
+		railToggle(),
+		h(
+			'a',
+			{ href: '/workspace?s=account', class: 'ws-rail-face ws-rail-me', 'aria-current': section === 'account' ? 'page' : null, title: `${me.name} · ${roleName(me.role)}`, 'aria-label': t('Account: {name}', { name: me.name }) },
+			h('span', { class: 'ws-rail-face-pic' }, face()),
+			h('span', { class: 'ws-rail-label ws-rail-who', 'aria-hidden': 'true' }, h('b', null, me.name), h('small', null, roleName(me.role))),
+		),
 		button,
 		panel,
 	);
 	more.watch(rail);
 	return rail;
+}
+
+/** Where the rail's open or folded state is kept, per device. */
+const RAIL_KEY = 'mo:ws-rail';
+
+/** Whether the rail is open (icon and name) on this device; folded (icons) otherwise. */
+function railOpen() {
+	try {
+		return localStorage.getItem(RAIL_KEY) === 'open';
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * The rail's button, at its foot, that opens it to icon and name or folds
+ * it back to icons; the choice is kept on the device. On phones the rail
+ * is a bar and the button is not shown (app.css).
+ */
+function railToggle() {
+	const label = h('span', { class: 'ws-rail-label', 'aria-hidden': 'true' }, t('Collapse'));
+	const button = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'ws-rail-item ws-rail-toggle' }, icon('<path class="ws-rail-arrow" d="M14.5 6.5 9 12l5.5 5.5"/><path d="M5.5 5v14"/>', 20), label));
+	const show = () => {
+		const open = button.closest('.ws')?.getAttribute('data-rail') === 'open';
+		button.setAttribute('aria-expanded', String(open));
+		const name = open ? t('Collapse') : t('Expand');
+		button.setAttribute('aria-label', name);
+		button.dataset.label = name;
+	};
+	button.addEventListener('click', () => {
+		const root = button.closest('.ws');
+		if (!root) return;
+		const open = root.getAttribute('data-rail') !== 'open';
+		if (open) root.setAttribute('data-rail', 'open');
+		else root.removeAttribute('data-rail');
+		try {
+			localStorage.setItem(RAIL_KEY, open ? 'open' : 'folded');
+		} catch {
+			// Not kept: open or folded for this visit only.
+		}
+		if (tip) tip.hidden = true;
+		show();
+	});
+	railTip(button);
+	queueMicrotask(show);
+	requestAnimationFrame(show);
+	return button;
 }
 
 /** The rail's label beside an icon, shown at once on hover or focus. @type {HTMLElement | null} */
@@ -710,6 +764,8 @@ let tip = null;
  */
 function railTip(item) {
 	const show = () => {
+		// An open rail names its sections itself.
+		if (item.closest('.ws')?.getAttribute('data-rail') === 'open') return;
 		if (!matchMedia('(hover: hover)').matches && !item.matches(':focus-visible')) return;
 		if (!tip) {
 			tip = document.body.appendChild(h('div', { class: 'ws-tip', role: 'presentation', 'aria-hidden': 'true' }));
@@ -790,6 +846,8 @@ function railMore(sections, items, countOf) {
 		items.forEach((el) => (el.hidden = false));
 		node.hidden = true;
 		away = [];
+		// Open, the rail scrolls instead (app.css): every section stays in it.
+		if (rail.closest('.ws')?.getAttribute('data-rail') === 'open') return close();
 		if (rail.scrollHeight <= rail.clientHeight) return close();
 		node.hidden = false;
 		for (let i = items.length - 1; i >= 0 && rail.scrollHeight > rail.clientHeight; i--) {

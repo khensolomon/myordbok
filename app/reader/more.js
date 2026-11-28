@@ -25,6 +25,7 @@ import { ICONS } from '../core/icons.js';
 import { member, providerLinks, signOut } from '../core/member.js';
 import { getTheme, setTheme } from '../core/prefs.js';
 import { SUPPORTER, TIPS, buy, products, restore, storeAvailable, supportState } from '../core/support.js';
+import { getAppSection } from '../core/get-app.js';
 import { deleteAccount, workspaceSummary } from '../data/api.js';
 import { install, installed, packsInfo, remove } from '../data/offline.js';
 import { MYANMAR_OPEN, getLang, num, setLang, t, tn } from '../i18n/index.js';
@@ -51,6 +52,7 @@ export async function view(ctx) {
 		h('h2', { class: 'you-section' }, t('This device')),
 		h('div', { class: 'you-group you-device' }, ...(await offlineRows(me)), themeRow(), languageRow(), analyticsAvailable() ? statsRow() : ''),
 		...(storeAvailable() ? supportSection() : []),
+		...getAppSection(),
 		// The site's pages: the sidebar lists them all (1024px to 1179px), so there this is not shown (app.css).
 		h('h2', { class: 'you-section you-site' }, 'MyOrdbok'),
 		h(

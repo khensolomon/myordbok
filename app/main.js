@@ -19,6 +19,7 @@ import { pullToRefresh } from './core/pull.js';
 import { forgetKept, savingData, siteSwitches } from './data/api.js';
 import { checkIn, keepWordLists } from './data/offline.js';
 import { hrefFor } from './reader/query.js';
+import { offerApp } from './core/get-app.js';
 import './reader/search-box.js';
 
 // The interface language's text loads before anything is built.
@@ -204,3 +205,6 @@ const idle = /** @type {(f: () => void) => void} */ (window.requestIdleCallback 
 idle(() => keepWordLists(savingData).catch((err) => console.warn('Word lists were not kept for offline use:', err)));
 // Once a day: whether this device keeps definitions and how often it answered offline (offline.js).
 idle(() => checkIn().catch((err) => console.warn('Offline check-in failed:', err)));
+
+// The website on a phone points to the apps (never inside them).
+offerApp();

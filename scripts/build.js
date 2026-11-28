@@ -27,6 +27,7 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { transform } from 'esbuild';
+import { APP_STORE_ID } from '../shared/stores.js';
 import { GRAMMAR_DIR, grammarFiles } from './grammar-data.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -208,7 +209,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		html,
 		/<!--importmap[\s\S]*?<!--\/importmap-->/,
 		`<script type="importmap">${JSON.stringify({ imports })}</script>\n${preload}${
-			target === 'web' ? `\n\t<meta name="mo-sw" content="1">\n\t<meta name="mo-version" content="${pkg.version}">` : `\n\t<meta name="mo-api" content="${api}">\n\t<meta name="mo-version" content="${pkg.version}">`
+			target === 'web' ? `\n\t<meta name="mo-sw" content="1">\n\t<meta name="mo-version" content="${pkg.version}">\n\t<meta name="apple-itunes-app" content="app-id=${APP_STORE_ID}">` : `\n\t<meta name="mo-api" content="${api}">\n\t<meta name="mo-version" content="${pkg.version}">`
 		}`,
 		'import map block in index.html',
 	);
