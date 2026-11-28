@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1223
+
+- The stage's ground runs the mockup's way: the page's own colour under the top bar, dimmer towards the strip; the footer sits on it without a band
+
 ## 26.11.28+1222
 
 - Liked and Practice on one stage: the words along the bottom, the chosen one in the card, a small palette of tools at the top right (filters, find, a round of the liked words, settings); on a phone the list, then the card; ← → through the words, / to find; a rated meaning can be rated again or let go from its card

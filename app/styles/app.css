@@ -3276,8 +3276,14 @@ html[data-app] .get-app { display: none; }
    words along the bottom as a strip of chips. Under 761px the parts stand
    in a column: the filters as a segmented row, then the list or the card. */
 body:is([data-route="liked"], [data-route="practice"]) {
-	background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 7%, var(--ground)) 0%, var(--ground) 42%, var(--ground) 100%) fixed;
+	--stage-foot: var(--grouped);
+	min-height: 100dvh;
+	background: linear-gradient(180deg, var(--ground) 0, var(--ground) 80px, color-mix(in srgb, var(--stage-foot) 40%, var(--ground)) 240px, var(--stage-foot) 100%) fixed;
 }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body:is([data-route="liked"], [data-route="practice"]) { --stage-foot: #141a21; } }
+:root[data-theme="dark"] body:is([data-route="liked"], [data-route="practice"]) { --stage-foot: #141a21; }
+/* The footer sits on the stage's ground without a band of its own. */
+body:is([data-route="liked"], [data-route="practice"]) .site-footer { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 body:is([data-route="liked"], [data-route="practice"]) main#view { max-width: none; padding-bottom: 0; }
 :is(.liked, .practice) > .large-title { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); }
 .stage { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: calc(100dvh - var(--header-h) - 48px); }
