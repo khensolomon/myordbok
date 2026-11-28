@@ -35,7 +35,7 @@ export const APP_LINK_PATHS = Object.freeze(['/definition', '/grammar', '/myanma
  * one of these. Public: every site's assetlinks.json lists its own.
  * @type {readonly string[]}
  */
-export const PLAY_SIGNING_SHA256 = Object.freeze([]);
+export const PLAY_SIGNING_SHA256 = Object.freeze(['0A:37:47:F9:9A:6A:60:29:21:3A:72:EC:78:67:25:B4:F2:7B:67:27:5F:01:12:EE:64:F3:35:C1:E2:05:F4:9C']);
 
 /**
  * The app's path for a website's link (its query and fragment kept), or
