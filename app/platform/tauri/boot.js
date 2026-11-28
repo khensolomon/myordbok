@@ -26,6 +26,7 @@
  */
 import { AppError } from '#shared/errors.js';
 import { STORES } from '../../core/config.js';
+import { appLinkPath } from '#shared/stores.js';
 import { h } from '../../core/dom.js';
 import { member } from '../../core/member.js';
 import { restoreQuietly } from '../../core/support.js';
@@ -63,8 +64,42 @@ export async function boot() {
 	// A tap felt when the page asks for one (pull to refresh reaching its mark, core/pull.js).
 	document.addEventListener('mo:haptic', () => tap('plugin:haptics|impact_feedback', { style: 'light' }));
 	if (os === 'ios') followBackSwipe();
-	if (os === 'ios' || os === 'android') restoreQuietly();
+	if (os === 'ios' || os === 'android') {
+		restoreQuietly();
+		followAppLinks();
+	}
 	checkVersion(os).catch((err) => console.warn('The app could not ask which builds are served:', err));
+}
+
+/**
+ * The website's links that open the app (Android App Links, iOS Universal
+ * Links: shared/stores.js), each shown as the same page here: the one the
+ * app was started with, then each while it runs.
+ */
+function followAppLinks() {
+	const tauri = /** @type {any} */ (window).__TAURI__;
+	tauri.event
+		.listen('deep-link://new-url', (/** @type {{ payload: string[] }} */ ev) => openAppLink(ev.payload))
+		.catch((/** @type {unknown} */ err) => console.error('The app does not follow the website\'s links:', err));
+	tauri.core
+		.invoke('plugin:deep-link|get_current')
+		.then((/** @type {string[] | null} */ urls) => openAppLink(urls))
+		.catch((/** @type {unknown} */ err) => console.error('The link the app was opened with could not be read:', err));
+}
+
+/**
+ * Shows the page of a website's link, when it is one the app answers.
+ * @param {string[] | null} urls
+ */
+function openAppLink(urls) {
+	const href = urls?.at(-1);
+	if (!href) return;
+	const path = appLinkPath(href);
+	if (path === null) {
+		console.warn('A link the app does not show:', href);
+		return;
+	}
+	window.dispatchEvent(new CustomEvent('mo:go', { detail: path }));
 }
 
 /**

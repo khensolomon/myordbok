@@ -19,6 +19,7 @@ tauri = { version = "2.12.7", features = [] }
 tauri-plugin-http = "2.9.0"
 tauri-plugin-opener = "2.7.3"
 tauri-plugin-haptics = "2.4.2"
+tauri-plugin-deep-link = "2.6.3"
 # Kept in this repository with one change: plugins/tauri-plugin-iap/README.md.
 tauri-plugin-iap = { path = "plugins/tauri-plugin-iap" }
 tauri-plugin-web-sheet = { path = "plugins/tauri-plugin-web-sheet" }

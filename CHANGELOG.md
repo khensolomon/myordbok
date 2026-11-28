@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1213
+
+- Links to myordbok.com's word, grammar, fonts and practice pages open in the app once installed (iOS Universal Links now; Android App Links once Play's signing fingerprint is added)
+
 ## 26.11.28+1212
 
 - Workspace rail folds and opens (icon and name, kept per device); the website on phones points to the apps (Safari's banner, an Android card, More's Get the app)

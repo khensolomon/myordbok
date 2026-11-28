@@ -10,6 +10,10 @@
 //! - iap: the store's payments (App Store, Google Play) for supporting
 //!   MyOrdbok, and what the store account bought before
 //!   (app/core/support.js); nothing is unlocked by them.
+//! - deep-link: the website's links that open in the app once installed
+//!   (Android App Links, iOS Universal Links: plugins.deep-link of
+//!   tauri.conf.json, shared/stores.js), each shown as its page
+//!   (app/platform/tauri/boot.js).
 //!
 //! On iOS the web view's own swipe from the edge goes back through the
 //! pages, as in Safari: the pages keep their history with pushState
@@ -44,6 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_iap::init())
         .plugin(tauri_plugin_web_sheet::init())
+        .plugin(tauri_plugin_deep_link::init())
         .invoke_handler(tauri::generate_handler![back_swipe])
         .setup(|_app| {
             #[cfg(target_os = "ios")]

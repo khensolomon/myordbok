@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/mobile-schema.json",
 	"identifier": "default",
-	"description": "What the app's pages may ask of the native side: the MyOrdbok API, opening links in the system browser, light haptic taps, the store's payments for supporting MyOrdbok, and the sign-in sheet (iOS).",
+	"description": "What the app's pages may ask of the native side: the MyOrdbok API, opening links in the system browser, light haptic taps, the store's payments for supporting MyOrdbok, the sign-in sheet (iOS), and the website's link the app was opened with.",
 	"windows": ["main"],
 	"permissions": [
 		"core:default",
@@ -17,6 +17,7 @@
 		"iap:allow-remove-listener",
 		"web-sheet:allow-open",
 		"web-sheet:allow-close",
+		"deep-link:default",
 		{
 			"identifier": "http:default",
 			"allow": [{ "url": "https://myordbok.com/api/*" }, { "url": "https://beta.myordbok.com/api/*" }]

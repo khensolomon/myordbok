@@ -183,6 +183,12 @@ export function startRouter(outlet, onRoute) {
 		go(url.pathname + url.search);
 	});
 	window.addEventListener('popstate', () => render('pop'));
+	// A page asked for from outside the pages (the app opened with a
+	// website's link: app/platform/tauri/boot.js), as a link followed.
+	window.addEventListener('mo:go', (ev) => {
+		const path = /** @type {CustomEvent<string>} */ (ev).detail;
+		if (typeof path === 'string' && path.startsWith('/')) go(path);
+	});
 	render();
 
 	/**

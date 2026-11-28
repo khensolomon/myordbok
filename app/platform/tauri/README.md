@@ -61,3 +61,31 @@ finishes both by itself.
 The offline copy is the web's, in IndexedDB (`app/data/offline.js`), which
 the system web views keep. A native store (files or SQLite) is for when a
 phone is seen to clear it or to be too slow.
+
+## The website's links, opened in the app
+
+Links to the reader's pages of myordbok.com (`APP_LINK_PATHS`,
+`shared/stores.js`: a word, grammar, the fonts, practice) open in the app
+once it is installed: Android App Links and iOS Universal Links, through
+the deep-link plugin (`plugins.deep-link` of `src-tauri/tauri.conf.json`,
+which writes the Android manifest's verified intent filter and the iOS
+entitlement `applinks:myordbok.com` at build time). `boot.js` shows each
+link as the same page (`appLinkPath`, then the router's `mo:go`): the one
+the app started with, then each while it runs. Sign-in, the workspace, the
+account and the legal pages are not claimed, since the app opens those in
+the browser itself.
+
+Each system confirms the claim with a file of the website, answered by
+the Worker (`worker/routes/app-links.js`):
+
+- `/.well-known/apple-app-site-association`: the team and bundle id, and
+  the pages. Apple's CDN reads it when the app is installed and caches it
+  for a while.
+- `/.well-known/assetlinks.json`: the SHA-256 fingerprint of the
+  certificate Google Play signs the app with (`PLAY_SIGNING_SHA256`, from
+  Play Console: Test and release, App integrity). Not served until one is
+  given. An app signed with any other key (a test build) is not confirmed,
+  and opens the links only when chosen in Android's settings.
+
+Both files must reach the systems' fetchers without a challenge: no bot
+protection or redirect on `/.well-known/*`.
