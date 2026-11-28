@@ -192,11 +192,13 @@ export function ask(ix, text) {
 			const sentence = pass.sentences[s];
 			const kindBonus = wanted(question.kind, sentence) ? 0.15 * covered : 0;
 			// A stub ("Details: Releases.") says little by itself; a line introducing a block (ends in ":") brings the block with it (codeAfter).
-			const stub = sentence.split(/\s+/).length < 5 && !sentence.endsWith(':') ? 0.6 : 1;
+			const stub = sentence.split(/\s+/).length < 5 && !sentence.endsWith(':') ? 0.3 : 1;
 			// The sentence's own share of the question, lifted a little by its passage's.
 			let mine = 0;
 			for (const g of pp.own.get(s)?.values() ?? []) mine += g;
-			const sentenceCoverage = Math.min(1, (mine + 0.3 * (covered - mine)) / total);
+			// At least half the question's words must be in the passage: one rare word is not an answer to a question of several.
+			const enough = pp.cover.size >= Math.ceil(question.terms.length / 2);
+			const sentenceCoverage = Math.min(1, (mine + 0.3 * (covered - mine)) / total) * (enough ? 1 : 0.5);
 			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file) * stub, coverage: sentenceCoverage });
 		}
 		// An answer written for a question: its first sentences stand even without a word in common.
@@ -215,7 +217,7 @@ export function ask(ix, text) {
 			let a = answers.find((x) => x.passage === c.passage);
 			if (!a) {
 				// A second passage only when it stands near the first.
-				if (answers.length >= ANSWER_PASSAGES || c.score < best.score * 0.6) continue;
+				if (answers.length >= ANSWER_PASSAGES || c.score < best.score * 0.75) continue;
 				answers.push((a = { passage: c.passage, sentences: [], score: c.score }));
 			}
 			if (a.sentences.length < ANSWER_SENTENCES && !a.sentences.includes(c.sentence)) a.sentences.push(c.sentence);

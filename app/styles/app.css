@@ -754,8 +754,15 @@ mo-search[data-open] .search-box {
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
 /* Each word with what it is: a clock for this device's recent searches
    (listed when the field is cleared), a magnifier for a suggestion. */
-.search-recent a, .search-word a { display: flex; align-items: center; gap: 10px; }
-.search-recent svg, .search-word svg { flex: none; color: var(--faint); }
+.search-recent a, .search-word a, .search-guide a { display: flex; align-items: center; gap: 10px; }
+.search-recent svg, .search-word svg, .search-guide svg { flex: none; color: var(--faint); }
+/* The guide's rows, for an editor: a group line, then "Ask the guide" and the nearest passages. */
+.search-group { display: flex; align-items: center; gap: 8px; padding: 10px 18px 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.search-group::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+.search-guide-text { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.search-guide-text small { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-guide-ask a { color: var(--link); }
+.search-guide-ask b { font-weight: 600; }
 
 /* Open over a page, nothing behind may show through the suggestions: the
    box turns opaque while the list is open, glass again once it closes. */
@@ -812,8 +819,10 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
 	.search-list li { position: relative; }
 	.search-list li + li::before { content: ""; position: absolute; top: 0; right: 0; left: calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border-top: 0.5px solid var(--line); pointer-events: none; }
 	.search-list a, .search-list li:last-child a { display: flex; align-items: center; gap: var(--lead-gap); min-height: 52px; padding: 10px 12px 10px calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border: none; border-radius: 12px; font-size: 17px; }
-	.search-recent a, .search-word a, .search-list .search-recent:last-child a, .search-list .search-word:last-child a { padding-left: var(--lead-pad); }
-	.search-recent a .icon, .search-word a .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.7; }
+	.search-recent a, .search-word a, .search-guide a, .search-list :is(.search-recent, .search-word, .search-guide):last-child a { padding-left: var(--lead-pad); }
+	.search-recent a .icon, .search-word a .icon, .search-guide a .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.7; }
+	.search-group { padding-left: calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); }
+	.search-group + li::before { display: none; }
 	.search-list a:hover, .search-list [aria-selected="true"] a { background: none; }
 	@media (hover: hover) { .search-list a:hover { background: var(--row-hover); } }
 	.search-list a:active { background: var(--row-press); }

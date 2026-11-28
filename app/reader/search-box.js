@@ -25,6 +25,11 @@ import { t, tn } from '../i18n/index.js';
 import { definitionHref } from '../core/routes.js';
 import { suggest } from '../data/api.js';
 import { recentSearches } from '../data/recent.js';
+import { member } from '../core/member.js';
+import { atLeast } from '#shared/roles.js';
+
+/** The role the guide is written for (core/guide.js, GUIDE_ROLE). */
+const GUIDE_ROLE = 'editor';
 import { classify, preview, understoodHref } from './query.js';
 
 const DEBOUNCE_MS = 150;
@@ -234,9 +239,11 @@ export class SearchBox extends HTMLElement {
 		if (intent.kind === 'ask') return this.show([], intent.options.map((o) => row(o.label, '', definitionHref(o.query), o.query)));
 		if (intent.kind !== 'lookup') return this.show([]);
 		const lead = intent.understood ? [row(t('Look up “{word}”', { word: intent.word }), '', understoodHref(intent, q), q)] : [];
+		// The guide's rows ride along for an editor (never asked for by anyone else).
+		const guide = guideRows(q);
 		try {
-			const { words } = await suggest(intent.word);
-			if (mine === this.seq) this.show(words, lead);
+			const [{ words }, extra] = await Promise.all([suggest(intent.word), guide]);
+			if (mine === this.seq) this.show(words, lead, false, extra);
 		} catch (err) {
 			// Suggestions are optional; the search itself still submits and reports errors.
 			if (mine === this.seq) this.show([], lead);
@@ -248,11 +255,12 @@ export class SearchBox extends HTMLElement {
 	 * @param {string[]} words
 	 * @param {HTMLElement[]} [lead]  Rows before the words: an answer, or choices.
 	 * @param {boolean} [recent]  The words are this device's recent searches.
+	 * @param {HTMLElement[]} [extra]  Rows after the words: the guide's, for an editor.
 	 */
-	show(words, lead = [], recent = false) {
+	show(words, lead = [], recent = false, extra = []) {
 		const list = /** @type {HTMLUListElement} */ (this.list);
 		// Each word with what it is: a clock for one searched before, a magnifier for one suggested.
-		const items = [...lead, ...words.map((w) => h('li', { class: recent ? 'search-recent' : 'search-word' }, h('a', { href: definitionHref(w), tabindex: '-1' }, icon(recent ? ICONS.clock : ICONS.search, 15), w)))];
+		const items = [...lead, ...words.map((w) => h('li', { class: recent ? 'search-recent' : 'search-word' }, h('a', { href: definitionHref(w), tabindex: '-1' }, icon(recent ? ICONS.clock : ICONS.search, 15), w))), ...extra];
 		items.forEach((li, i) => {
 			li.setAttribute('role', 'option');
 			li.id = `${list.id}-${i}`;
@@ -305,6 +313,45 @@ export class SearchBox extends HTMLElement {
 		// Enter and the search button alike: the search screen closes with the keyboard.
 		if (NARROW.matches) this.leave();
 		this.dispatchEvent(new CustomEvent('mo-search', { detail: q, bubbles: true }));
+	}
+}
+
+/**
+ * The guide's rows for what is typed, for a signed-in editor (or above):
+ * "Ask the guide" when it reads as a question, then the passages nearest
+ * to the words, each opening in the workspace. Anyone else gets none,
+ * and their browser never loads the guide (core/guide.js).
+ * @param {string} q
+ * @returns {Promise<HTMLElement[]>}
+ */
+async function guideRows(q) {
+	try {
+		const me = await member().catch(() => null);
+		// The same test as core/guide.js's readsGuide, without loading it for anyone else.
+		if (!me || !atLeast(me.role, GUIDE_ROLE)) return [];
+		const { loadGuide } = await import('../core/guide.js');
+		const [{ index }, { ask }] = await Promise.all([loadGuide(), import('#shared/guide/ask.js')]);
+		const reply = ask(index, q);
+		const words = q.split(/\s+/).filter(Boolean).length;
+		const asks = reply.question.kind !== null || words >= 3;
+		if (!reply.passages.length && !asks) return [];
+		const askHref = `/workspace?s=guide&q=${encodeURIComponent(q)}`;
+		/** @type {HTMLElement[]} */
+		const rows = [h('li', { class: 'search-group', role: 'presentation', 'aria-hidden': 'true' }, h('span', null, t('Guide')))];
+		if (asks) rows.push(h('li', { class: 'search-guide search-guide-ask' }, h('a', { href: askHref, tabindex: '-1', 'data-value': q }, icon(ICONS.comment, 15), h('span', { class: 'search-guide-text' }, h('b', null, t('Ask the guide:')), ' ', q))));
+		const seen = new Set();
+		for (const { passage } of reply.passages) {
+			const p = index.passages[passage];
+			// One row per heading: a long section cut in passages is listed once.
+			if (seen.has(`${p.file} ${p.title}`)) continue;
+			seen.add(`${p.file} ${p.title}`);
+			if (seen.size > 3) break;
+			rows.push(h('li', { class: 'search-guide' }, h('a', { href: `/workspace?s=guide&p=${encodeURIComponent(p.id)}&q=${encodeURIComponent(q)}`, tabindex: '-1', 'data-value': q }, icon(ICONS.document, 15), h('span', { class: 'search-guide-text' }, p.title, h('small', null, p.file.replace(/^docs\//, ''))))));
+		}
+		return rows;
+	} catch (err) {
+		console.warn('The guide\'s rows are not shown:', err);
+		return [];
 	}
 }
 

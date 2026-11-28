@@ -61,6 +61,13 @@ async function appSplash(root) {
 }
 
 /**
+ * Modules only editors use: the workspace, and the guide's code (core/guide.js,
+ * shared/guide/). Neither preloaded nor kept for offline use: a reader never downloads them.
+ * @param {string} url
+ */
+const editorsOnly = (url) => url.startsWith('/workspace/') || url.startsWith('/shared/guide/') || url === '/core/guide.js' || /^\/core\/guide\.[0-9a-f]{8}\.js$/.test(url) || /^\/workspace\//.test(url);
+
+/**
  * The guide's files: every markdown file under docs/, with its path as the
  * index names it (docs/deploy.md), the address it is served at, a hash of
  * its text and its word count.
@@ -222,9 +229,9 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		if (from.startsWith('/shared/')) imports[`#shared/${from.slice('/shared/'.length)}`] = to;
 	}
 
-	// Modules the reader needs on first paint; the workspace stays out.
+	// Modules the reader needs on first paint; the workspace and the guide (editors only) stay out.
 	const preload = [...hashed]
-		.filter(([from]) => from.endsWith('.js') && !from.startsWith('/workspace/') && !from.endsWith('/types.js'))
+		.filter(([from]) => from.endsWith('.js') && !editorsOnly(from) && !from.endsWith('/types.js'))
 		.map(([, to]) => `\t<link rel="modulepreload" href="${to}">`)
 		.join('\n');
 	const styles = [...hashed]
@@ -257,7 +264,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 	if (target === 'web') {
 		// Source maps are for the browser's tools only: never precached.
 		const all = (await walk(dist)).filter((f) => f !== '_headers' && !f.endsWith('.map'));
-		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/') && !u.startsWith('/guide/'));
+		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !editorsOnly(u) && !u.startsWith('/guide/'));
 		// The offline copy is replaced when this changes. Names alone would miss
 		// a file whose content changed under the same name (grammar JSON, icons,
 		// fonts), so each file's content counts too.

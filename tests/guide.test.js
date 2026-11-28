@@ -173,7 +173,9 @@ test('the Worker serves /guide/ files to editors and up only; the build ships th
 		assert.ok(manifest.files.every((/** @type {any} */ f) => f.path.endsWith('.md')));
 		assert.match(await readFile(join(out, 'guide', 'deploy.md'), 'utf8'), /^# Deploying to Cloudflare/);
 		const sw = await readFile(join(out, 'sw.js'), 'utf8');
-		assert.doesNotMatch(sw, /"\/guide\//, 'the guide is not in the offline shell');
+		assert.doesNotMatch(sw, /"\/guide\/|\/shared\/guide\/|\/core\/guide\./, 'the guide, files and code, is not in the offline shell');
+		const html = await readFile(join(out, 'index.html'), 'utf8');
+		assert.doesNotMatch(html, /modulepreload" href="\/(shared\/guide|core\/guide\.)/, 'a reader is not sent the guide\'s code');
 		const app = join(out, 'tauri');
 		await build({ target: 'tauri', out: app, api: 'https://myordbok.com', minify: false });
 		await assert.rejects(readFile(join(app, 'guide', 'manifest.json')), /ENOENT/, 'the app build has no guide');
