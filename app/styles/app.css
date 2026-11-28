@@ -714,6 +714,9 @@ mo-search[data-open] .search-box {
 	display: flex; align-items: center; gap: 4px;
 	height: 43px;
 	padding: 0 4px 0 18px;
+	/* The lead's width and the gap after it are the rows' (icon 15px, gap 10px: .search-recent a),
+	   so the first letter typed sits over the rows' first letters. */
+	--lead-icon: 15px; --lead-gap: 10px;
 	border-radius: var(--field-r);
 	transition: border-radius 0.18s, background-color 0.15s;
 }
@@ -777,7 +780,12 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
    keyboard's Search key to search (no button of its own), and while
    searching, Cancel at the end of the field. The suggestions are a plain
    list under it, the search screen's own (body[data-searching]). */
-.search-lead, .search-done { display: none; }
+/* The lead: what the field read (search-box.js, showLead), in the slot the rows' icons use. */
+.search-lead { display: flex; flex: none; width: var(--lead-icon); margin-right: calc(var(--lead-gap) - 4px); justify-content: center; align-items: center; color: var(--faint); }
+.search-lead .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.8; }
+.search-lead-sign { font: 600 14px/1 var(--font-ui); letter-spacing: 0; }
+.search-lead-sign.is-my { font-family: var(--font-my); font-size: 13px; }
+.search-done { display: none; }
 @media (max-width: 1023px) {
 	mo-search { height: 40px; }
 	.search-box, .search-box:hover, .search-box:focus-within, mo-search[data-open] .search-box,
@@ -789,8 +797,9 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
 	   the field's inset, the magnifier, the gap after it. */
 	mo-search { --lead-pad: 10px; --lead-icon: 18px; --lead-gap: 7px; }
 	.search, mo-search[data-open] .search { height: 40px; padding: 0 2px 0 var(--lead-pad); gap: var(--lead-gap); border-radius: 12px; background: var(--field-fill); }
-	.search-lead { display: flex; flex: none; width: var(--lead-icon); justify-content: center; color: var(--muted); }
-	.search-lead .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.8; }
+	.search-lead { margin-right: 0; color: var(--muted); }
+	.search-lead-sign { font-size: 16px; }
+	.search-lead-sign.is-my { font-size: 15px; }
 	/* The field the full height of the box: the text, and the hint, sit in
 	   its middle whatever the script (a Myanmar line is taller). */
 	.search input { align-self: stretch; height: 40px; padding: 0; font-size: 17px; line-height: normal; }

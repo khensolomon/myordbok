@@ -81,7 +81,10 @@ export class SearchBox extends HTMLElement {
 			'aria-controls': `${id}-list`,
 			'aria-autocomplete': 'list',
 			'aria-keyshortcuts': '/ Control+K Meta+K',
-			onInput: () => this.schedule(),
+			onInput: () => {
+				this.showLead();
+				this.schedule();
+			},
 			// Focus shows suggestions only for text already in the field.
 			onFocus: () => {
 				if (this.input?.value.trim()) this.suggest();
@@ -95,8 +98,8 @@ export class SearchBox extends HTMLElement {
 			'form',
 			{ role: 'search', class: 'search', onSubmit: (/** @type {SubmitEvent} */ e) => this.submit(e) },
 			h('label', { for: id, class: 'visually-hidden' }, t('Search a word')),
-			// Under 1024px the field reads as the phone's own: a magnifier first (app.css).
-			h('span', { class: 'search-lead', 'aria-hidden': 'true' }, icon(ICONS.search, 17)),
+			// What the field read (lead()): the direction of the lookup, or the kind of question.
+			(this.lead = h('span', { class: 'search-lead', 'aria-hidden': 'true' }, h('span', { class: 'search-lead-sign' }, '⇄'))),
 			this.input,
 			h(
 				'button',
@@ -191,6 +194,7 @@ export class SearchBox extends HTMLElement {
 	 */
 	setValue(value) {
 		if (this.input && this.input.value !== value) this.input.value = value;
+		this.showLead();
 		this.seq++; // a suggestion request still under way is no longer wanted
 		this.show([]);
 	}
@@ -220,7 +224,41 @@ export class SearchBox extends HTMLElement {
 		this.seq++; // a suggestion request still under way is no longer wanted
 		input.value = '';
 		input.focus();
+		this.showLead();
 		this.show(recentSearches(), [], true);
+	}
+
+	/**
+	 * The lead: what the field holds, as the search reads it. Empty, the two
+	 * directions (⇄, as under the logo); English, A; Myanmar, မ; a sum, =;
+	 * a number, #; a time or a date, a clock or a calendar; a question, ?;
+	 * what cannot be read, i. Each sign has one job: the rows' magnifier
+	 * says "search this one", the button is the action.
+	 */
+	showLead() {
+		const q = this.input?.value.trim() ?? '';
+		const lead = /** @type {HTMLElement} */ (this.lead);
+		/** @param {string} sign @param {string} [cls] */
+		const sign = (sign, cls = '') => lead.replaceChildren(h('span', { class: `search-lead-sign ${cls}`.trim() }, sign));
+		if (!q) return sign('⇄');
+		const intent = classify(q);
+		switch (intent.kind) {
+			case 'math':
+			case 'shares':
+				return lead.replaceChildren(icon(ICONS.equals, 15));
+			case 'number':
+				return lead.replaceChildren(icon(ICONS.hash, 15));
+			case 'time':
+				return lead.replaceChildren(icon(ICONS.clock, 15));
+			case 'date':
+				return lead.replaceChildren(icon(ICONS.calendar, 15));
+			case 'ask':
+				return lead.replaceChildren(icon(ICONS.question, 15));
+			case 'problem':
+				return lead.replaceChildren(icon(ICONS.info, 15));
+			default:
+				return /[\u1000-\u109F]/.test(q) ? sign('မ', 'is-my') : sign('A');
+		}
 	}
 
 	schedule() {

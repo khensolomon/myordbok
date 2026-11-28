@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1220
+
+- The search field's lead says what it read: ⇄ empty, A for English, မ for Myanmar, = a sum, # a number, a clock or calendar, ? a question; what is typed lines up with the suggestions
+
 ## 26.11.28+1219
 
 - A doc joins the guide with <!-- guide: on --> (architecture and deploy for now); arrow keys and Enter follow the guide's rows in the search box

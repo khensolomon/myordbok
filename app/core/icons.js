@@ -32,6 +32,10 @@ export const ICONS = Object.freeze({
 	info: '<circle cx="12" cy="12" r="8"/><path d="M12 11v5"/><path d="M12 8.1v.1"/>',
 	notice: '<path d="M4.5 10v4a1 1 0 0 0 1 1H8l6 4V5L8 9H5.5a1 1 0 0 0-1 1z"/><path d="M17.5 9.5a3.5 3.5 0 0 1 0 5"/>',
 	clock: '<circle cx="12" cy="12" r="7.5"/><path d="M12 8v4.5l3 1.8"/>',
+	calendar: '<rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+	// The search field's lead (reader/search-box.js): a sum, a number.
+	equals: '<path d="M6 9.5h12M6 14.5h12"/>',
+	hash: '<path d="M9.5 4.5 8 19.5M16 4.5l-1.5 15M4.5 9.5h16M3.5 14.5h16"/>',
 	back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
 	chevron: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
 	close: '<path d="M7 7l10 10M17 7 7 17"/>',
