@@ -2408,6 +2408,7 @@ name = "myordbok"
 version = "0.0.0"
 dependencies = [
  "objc2",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-deep-link",
