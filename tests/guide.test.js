@@ -186,7 +186,10 @@ test('the Worker serves /guide/ files to editors and up only; the build ships th
 		const manifest = JSON.parse(await readFile(join(out, 'guide', 'manifest.json'), 'utf8'));
 		assert.ok(manifest.files.some((/** @type {any} */ f) => f.path === 'docs/deploy.md' && f.url === '/guide/deploy.md' && /^[0-9a-f]{8}$/.test(f.hash) && f.words > 100));
 		assert.ok(manifest.files.every((/** @type {any} */ f) => f.path.endsWith('.md')));
-		assert.deepEqual(manifest.files.map((/** @type {any} */ f) => f.path), ['docs/architecture.md', 'docs/deploy.md', 'docs/guide-answers.md', 'docs/guide-terms.md'], 'only files marked on are shipped');
+		// Exactly the files marked on, whichever those are at the time.
+		const shipped = manifest.files.map((/** @type {any} */ f) => f.path).sort();
+		assert.deepEqual(shipped, docs().map((d) => d.file).sort(), 'the files marked on are shipped, and no other');
+		assert.ok(shipped.includes('docs/deploy.md') && !shipped.includes('docs/TODO.md'));
 		assert.match(await readFile(join(out, 'guide', 'deploy.md'), 'utf8'), /^# Deploying to Cloudflare/);
 		const sw = await readFile(join(out, 'sw.js'), 'utf8');
 		assert.doesNotMatch(sw, /"\/guide\/|\/shared\/guide\/|\/core\/guide\./, 'the guide, files and code, is not in the offline shell');
