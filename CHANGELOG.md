@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1218
+
+- A doc stays out of the guide with <!-- guide: off --> on its first line (the to-do list, data tables)
+
 ## 26.11.28+1217
 
 - Workspace › Guide: the repository's docs on the device for editors, indexed with a click, asked in plain words and answered in the guide's own sentences; the search box offers the guide to editors; docs/guide-answers.md and docs/guide-terms.md

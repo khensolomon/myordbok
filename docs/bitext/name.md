@@ -1,3 +1,4 @@
+<!-- guide: off -->
 # Name
 
 A landowner (14th and 15th centuries) who was free but not of noble birth

@@ -1,3 +1,4 @@
+<!-- guide: off -->
 # type
 
 [type:dialect]

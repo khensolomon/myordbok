@@ -11,6 +11,7 @@ import { stem } from '../shared/guide/stem.js';
 import { inlinePlain, passages, render, split } from '../shared/guide/markdown.js';
 import { ANSWERS_FILE, TERMS_FILE, build, terms } from '../shared/guide/index.js';
 import { ask, readQuestion, widen } from '../shared/guide/ask.js';
+import { inGuide } from '../scripts/build.js';
 
 const ROOT = join(import.meta.dirname, '..');
 /** Every markdown file under docs/, as the build ships it. */
@@ -21,7 +22,10 @@ function docs() {
 		for (const f of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
 			const path = `${dir}/${f.name}`;
 			if (f.isDirectory()) walk(path);
-			else if (f.name.endsWith('.md')) out.push({ file: path, text: readFileSync(join(ROOT, path), 'utf8') });
+			else if (f.name.endsWith('.md')) {
+				const text = readFileSync(join(ROOT, path), 'utf8');
+				if (inGuide(text)) out.push({ file: path, text });
+			}
 		}
 	};
 	walk('docs');
@@ -97,7 +101,7 @@ test('questions the docs answer land on the right passage, in the guide\'s own w
 	const cases = /** @type {[string, RegExp][]} */ ([
 		['how do I update the dictionary?', /Updating the dictionary/],
 		['what is zawgyi', /Zawgyi/],
-		['how to restore a backup', /Restoring rows|Backups/],
+		['how to restore a backup', /Restoring rows|Backups|A copy outside Cloudflare/],
 		['how is the app version numbered', /testflight|Version/i],
 		['what is the layer', /layer/i],
 	]);
@@ -176,6 +180,7 @@ test('the Worker serves /guide/ files to editors and up only; the build ships th
 		const manifest = JSON.parse(await readFile(join(out, 'guide', 'manifest.json'), 'utf8'));
 		assert.ok(manifest.files.some((/** @type {any} */ f) => f.path === 'docs/deploy.md' && f.url === '/guide/deploy.md' && /^[0-9a-f]{8}$/.test(f.hash) && f.words > 100));
 		assert.ok(manifest.files.every((/** @type {any} */ f) => f.path.endsWith('.md')));
+		assert.ok(!manifest.files.some((/** @type {any} */ f) => /TODO\.md$|\/bitext\//.test(f.path)), 'files marked off are not shipped');
 		assert.match(await readFile(join(out, 'guide', 'deploy.md'), 'utf8'), /^# Deploying to Cloudflare/);
 		const sw = await readFile(join(out, 'sw.js'), 'utf8');
 		assert.doesNotMatch(sw, /"\/guide\/|\/shared\/guide\/|\/core\/guide\./, 'the guide, files and code, is not in the offline shell');
@@ -197,4 +202,12 @@ test('a sentence that introduces a code block brings the block; a stub without o
 	const r = ask(INDEX, 'how do I update the dictionary?');
 	const first = INDEX.passages[r.answers[0].passage];
 	assert.ok(!r.answers[0].sentences.some((s) => /^Details:/.test(first.sentences[s])), 'a stub is not an answer when fuller sentences are there');
+});
+
+test('a doc is in the guide unless its first lines say guide: off; a misspelt mark stops the build', () => {
+	assert.equal(inGuide('# Deploy\n\nText.'), true);
+	assert.equal(inGuide('<!-- guide: off -->\n# Todo'), false);
+	assert.equal(inGuide('<!--guide:ON-->\n# X'), true);
+	assert.throws(() => inGuide('<!-- guide: maybe -->\n'), /on or off/);
+	assert.throws(() => inGuide('# X\n' + 'a\n'.repeat(400) + '<!-- guide: off -->'), /first lines/);
 });

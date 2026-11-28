@@ -68,7 +68,26 @@ async function appSplash(root) {
 const editorsOnly = (url) => url.startsWith('/workspace/') || url.startsWith('/shared/guide/') || url === '/core/guide.js' || /^\/core\/guide\.[0-9a-f]{8}\.js$/.test(url) || /^\/workspace\//.test(url);
 
 /**
- * The guide's files: every markdown file under docs/, with its path as the
+ * Whether a doc is in the guide: it is, unless its first lines say
+ * `<!-- guide: off -->` (a to-do list, a data table, notes not written as
+ * guidance). `<!-- guide: on -->` says so explicitly, which reads as a
+ * decision. A mark anywhere else, or spelled otherwise, stops the build.
+ * @param {string} text
+ */
+export function inGuide(text) {
+	const head = text.slice(0, 600);
+	const mark = /<!--\s*guide\s*:\s*([^\s-]+)\s*-->/i.exec(head);
+	if (!mark) {
+		if (/<!--\s*guide/i.test(text)) throw new Error('build: a guide mark must be <!-- guide: on --> or <!-- guide: off --> within the first lines of the file');
+		return true;
+	}
+	const value = mark[1].toLowerCase();
+	if (value !== 'on' && value !== 'off') throw new Error(`build: a guide mark is on or off, not "${mark[1]}"`);
+	return value === 'on';
+}
+
+/**
+ * The guide's files: every markdown file under docs/ not marked off (inGuide), with its path as the
  * index names it (docs/deploy.md), the address it is served at, a hash of
  * its text and its word count.
  * @param {string} docs
@@ -78,6 +97,7 @@ export async function guideFiles(docs) {
 	for (const f of (await walk(docs)).sort()) {
 		if (!f.endsWith('.md')) continue;
 		const text = await readFile(join(docs, f), 'utf8');
+		if (!inGuide(text)) continue;
 		out.push({ path: `docs/${f}`, url: `/guide/${f}`, hash: hash8(Buffer.from(text)), words: text.split(/\s+/).filter(Boolean).length, text });
 	}
 	return out;

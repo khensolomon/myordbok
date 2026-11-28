@@ -190,7 +190,7 @@ export function ask(ix, text) {
 
 	/** @type {{ passage: number, score: number, coverage: number }[]} */
 	const ranked = [];
-	/** @type {{ passage: number, sentence: number, score: number, coverage: number }[]} */
+	/** @type {{ passage: number, sentence: number, score: number, coverage: number, stub?: boolean }[]} */
 	const candidates = [];
 	for (const [p, pp] of byPassage) {
 		const pass = ix.passages[p];
@@ -214,7 +214,7 @@ export function ask(ix, text) {
 			// At least half the question's words must be in the passage: one rare word is not an answer to a question of several.
 			const enough = pp.cover.size >= Math.ceil(question.terms.length / 2) && pp.cover.has(key);
 			const sentenceCoverage = Math.min(1, (mine + 0.3 * (covered - mine)) / total) * (enough ? 1 : 0.5);
-			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file) * stub, coverage: sentenceCoverage });
+			candidates.push({ passage: p, sentence: s, score: (own + 0.8 * passageScore + kindBonus) * fileWeight(pass.file) * stub, coverage: sentenceCoverage, stub: stub < 1 });
 		}
 		// An answer written for a question: its first sentences stand even without a word in common.
 		if (answerFile && pp.headStrong > 0) pass.sentences.forEach((_, s) => candidates.push({ passage: p, sentence: s, score: (pp.headStrong * 2 + covered) * fileWeight(pass.file) - s * 0.01, coverage: Math.max(coverage, pp.headStrong / total) }));
@@ -235,6 +235,8 @@ export function ask(ix, text) {
 				if (answers.length >= ANSWER_PASSAGES || c.score < best.score * 0.75) continue;
 				answers.push((a = { passage: c.passage, sentences: [], score: c.score }));
 			}
+			// A stub stands only alone: never beside a fuller sentence of its passage.
+			if (c.stub && a.sentences.length) continue;
 			if (a.sentences.length < ANSWER_SENTENCES && !a.sentences.includes(c.sentence)) a.sentences.push(c.sentence);
 		}
 		for (const a of answers) a.sentences.sort((x, y) => x - y);
