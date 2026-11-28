@@ -246,8 +246,11 @@
 
 /* A phone on its side: its rounded corners and the camera sit at the ends,
    and the phone's own apps keep their content well in from both. The safe
-   area says so where the page fills the screen; the margin holds either way. */
-@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+   area says so where the page fills the screen; the margin holds either way.
+   Told by the shape (a phone is 16:9 or longer), not by "landscape": Chrome
+   on iOS shrinks the page to what is above the keyboard, which makes an
+   upright phone wider than tall for as long as the keyboard is up. */
+@media (min-aspect-ratio: 3/2) and (max-height: 500px) and (pointer: coarse) {
 	:root {
 		--edge-l: max(var(--gutter), var(--safe-l), 44px);
 		--edge-r: max(var(--gutter), var(--safe-r), 44px);

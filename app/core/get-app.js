@@ -46,9 +46,22 @@ function keep(state) {
 	}
 }
 
-/** Watches for look-ups and, on Android, offers the app once. Called once at start. */
+/**
+ * Where the card is for: Android, and iPhone or iPad in a browser other
+ * than Safari (Chrome, Firefox, Edge… on iOS never show Apple's banner;
+ * Safari does, from the page's apple-itunes-app meta, so it gets no card).
+ * @returns {'ios' | 'android' | null}
+ */
+export function cardSystem() {
+	const system = phoneSystem();
+	if (system === 'android') return 'android';
+	if (system === 'ios' && /CriOS|FxiOS|EdgiOS|OPT\/|DuckDuckGo|Brave|YaBrowser/.test(navigator.userAgent)) return 'ios';
+	return null;
+}
+
+/** Watches for look-ups and offers the app once, where the system shows no offer of its own. Called once at start. */
 export function offerApp() {
-	if (phoneSystem() !== 'android' || matchMedia('(display-mode: standalone)').matches) return;
+	if (!cardSystem() || matchMedia('(display-mode: standalone)').matches) return;
 	window.addEventListener('mo:navigated', (e) => {
 		if (/** @type {CustomEvent} */ (e).detail !== 'definition') return;
 		const state = kept();
@@ -59,13 +72,15 @@ export function offerApp() {
 }
 
 function show() {
+	const ios = cardSystem() === 'ios';
+	const name = ios ? t('MyOrdbok for iPhone and iPad') : t('MyOrdbok for Android');
 	const close = h('button', { type: 'button', class: 'get-app-close', 'aria-label': t('Close') }, '✕');
-	const go = h('a', { class: 'get-app-go', href: PLAY_URL, target: '_blank', rel: 'noopener' }, t('Get'));
+	const go = h('a', { class: 'get-app-go', href: ios ? APP_STORE_URL : PLAY_URL, target: '_blank', rel: 'noopener' }, t('Get'));
 	const card = h(
 		'aside',
-		{ class: 'get-app', role: 'complementary', 'aria-label': t('MyOrdbok for Android') },
+		{ class: 'get-app', role: 'complementary', 'aria-label': name },
 		h('img', { src: '/static/icons/apple-touch-icon.png', alt: '', width: 44, height: 44 }),
-		h('div', { class: 'get-app-text' }, h('b', null, t('MyOrdbok for Android')), h('span', null, t('The whole dictionary offline, practice, no ads'))),
+		h('div', { class: 'get-app-text' }, h('b', null, name), h('span', null, t('The whole dictionary offline, practice, no ads'))),
 		go,
 		close,
 	);

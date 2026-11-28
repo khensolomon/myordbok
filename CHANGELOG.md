@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1221
+
+- Chrome on iOS: the search field keeps its width with the keyboard up (the sideways-phone margin was being applied), and the website offers the App Store card where Safari's banner cannot show
+
 ## 26.11.28+1220
 
 - The search field's lead says what it read: ⇄ empty, A for English, မ for Myanmar, = a sum, # a number, a clock or calendar, ? a question; what is typed lines up with the suggestions

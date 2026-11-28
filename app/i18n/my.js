@@ -305,6 +305,7 @@ export const MY = {
 	'The whole dictionary offline, practice, no ads': 'အင်တာနက်မလိုဘဲ အဘိဓာန်တစ်ခုလုံး၊ လေ့ကျင့်ခန်း၊ ကြော်ငြာမရှိ',
 	Get: 'ရယူရန်',
 	'Get the app': 'အက်ပ်ကို ရယူရန်',
+	'MyOrdbok for iPhone and iPad': 'iPhone နှင့် iPad အတွက် MyOrdbok',
 	Guide: 'လမ်းညွှန်',
 	'Ask the guide:': 'လမ်းညွှန်ကို မေးရန် -',
 	'Download on the': 'ဒေါင်းလုဒ်ရယူရန်',
