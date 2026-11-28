@@ -143,3 +143,41 @@ test('widening brings a term\'s company at a lower weight, never a word that is 
 		assert.ok((INDEX.df.get(t) ?? 0) <= INDEX.passages.length / 4, t);
 	}
 });
+
+test('the Worker serves /guide/ files to editors and up only; the build ships them, web only, never precached', async () => {
+	const { createHash } = await import('node:crypto');
+	const { MIGRATION, d1, sqlite } = await import('./helpers/d1.js');
+	const { default: worker } = await import('../worker/index.js');
+	const raw = sqlite(MIGRATION);
+	const hash = (/** @type {string} */ t) => createHash('sha256').update(t).digest('hex');
+	raw.exec(`INSERT INTO users (id, name, email, role) VALUES (1, 'Mya', 'm@example.com', 'member'), (2, 'Ed', 'e@example.com', 'editor');
+		INSERT INTO sessions (id_hash, user_id, expires_at) VALUES ('${hash('mya')}', 1, unixepoch() + 3600), ('${hash('ed')}', 2, unixepoch() + 3600);`);
+	const env = /** @type {any} */ ({ APP: d1(raw), ASSETS: { fetch: async (/** @type {Request} */ r) => new Response(`served ${new URL(r.url).pathname}`, { headers: { 'content-type': 'text/markdown', 'cache-control': 'public, max-age=3600' } }) } });
+	const get = (/** @type {string} */ path, /** @type {string} */ [who] = []) => worker.fetch(new Request(`https://myordbok.test${path}`, { headers: who ? { cookie: `__Host-mo_session=${who}` } : {} }), env);
+	assert.equal((await get('/guide/deploy.md')).status, 404, 'signed out');
+	assert.equal((await get('/guide/deploy.md', ['mya'])).status, 404, 'a member');
+	const ok = await get('/guide/deploy.md', ['ed']);
+	assert.equal(ok.status, 200);
+	assert.equal(await ok.text(), 'served /guide/deploy.md');
+	assert.equal(ok.headers.get('cache-control'), 'private, no-cache');
+	assert.equal((await get('/guide/manifest.json', ['ed'])).status, 200);
+
+	const { build } = await import('../scripts/build.js');
+	const { mkdtemp, readFile, rm } = await import('node:fs/promises');
+	const { tmpdir } = await import('node:os');
+	const out = await mkdtemp(join(tmpdir(), 'myordbok-guide-'));
+	try {
+		await build({ target: 'web', out, minify: false });
+		const manifest = JSON.parse(await readFile(join(out, 'guide', 'manifest.json'), 'utf8'));
+		assert.ok(manifest.files.some((/** @type {any} */ f) => f.path === 'docs/deploy.md' && f.url === '/guide/deploy.md' && /^[0-9a-f]{8}$/.test(f.hash) && f.words > 100));
+		assert.ok(manifest.files.every((/** @type {any} */ f) => f.path.endsWith('.md')));
+		assert.match(await readFile(join(out, 'guide', 'deploy.md'), 'utf8'), /^# Deploying to Cloudflare/);
+		const sw = await readFile(join(out, 'sw.js'), 'utf8');
+		assert.doesNotMatch(sw, /"\/guide\//, 'the guide is not in the offline shell');
+		const app = join(out, 'tauri');
+		await build({ target: 'tauri', out: app, api: 'https://myordbok.com', minify: false });
+		await assert.rejects(readFile(join(app, 'guide', 'manifest.json')), /ENOENT/, 'the app build has no guide');
+	} finally {
+		await rm(out, { recursive: true, force: true });
+	}
+});

@@ -29,6 +29,7 @@ import { spelling } from './routes/spelling.js';
 import { definitionPage, movedTo, privacyPage } from './routes/page.js';
 import { robots, sitemap } from './routes/sitemap.js';
 import { appLinkFile } from './routes/app-links.js';
+import { guideFile } from './routes/guide.js';
 import { publicStats } from './routes/stats.js';
 import { suggest } from './routes/suggest.js';
 import { pronunciation } from './routes/pronunciation.js';
@@ -228,6 +229,7 @@ export default {
 			if (pathname === '/definition' && request.method === 'GET') return definitionPage(request, env);
 			if (pathname === '/privacy' && request.method === 'GET') return privacyPage(request, env);
 			if (pathname === '/robots.txt') return robots(env, url);
+			if (pathname.startsWith('/guide/') && request.method === 'GET') return guideFile(request, env);
 			if (pathname.startsWith('/.well-known/')) {
 				const file = appLinkFile(pathname);
 				if (file) return file;

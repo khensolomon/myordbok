@@ -61,6 +61,22 @@ async function appSplash(root) {
 }
 
 /**
+ * The guide's files: every markdown file under docs/, with its path as the
+ * index names it (docs/deploy.md), the address it is served at, a hash of
+ * its text and its word count.
+ * @param {string} docs
+ */
+export async function guideFiles(docs) {
+	const out = [];
+	for (const f of (await walk(docs)).sort()) {
+		if (!f.endsWith('.md')) continue;
+		const text = await readFile(join(docs, f), 'utf8');
+		out.push({ path: `docs/${f}`, url: `/guide/${f}`, hash: hash8(Buffer.from(text)), words: text.split(/\s+/).filter(Boolean).length, text });
+	}
+	return out;
+}
+
+/**
  * @param {string} dir
  * @returns {Promise<string[]>} file paths relative to `dir`, POSIX separators
  */
@@ -176,6 +192,20 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 		await writeFile(dest, data);
 	}
 
+	// The guide (web only): docs/**/*.md as the workspace's Guide reads them,
+	// under /guide/, with a manifest naming each file and its content hash
+	// (so a device keeps its copy until a release changes it). Served by the
+	// Worker to editors and up only (worker/routes/guide.js); never precached.
+	if (target === 'web') {
+		const files = await guideFiles(join(root, 'docs'));
+		for (const f of files) {
+			const dest = join(dist, 'guide', ...f.path.split('/').slice(1));
+			await mkdir(dirname(dest), { recursive: true });
+			await writeFile(dest, f.text);
+		}
+		await writeFile(join(dist, 'guide', 'manifest.json'), JSON.stringify({ release: pkg.version, files: files.map(({ path, url, hash, words }) => ({ path, url, hash, words })) }));
+	}
+
 	// Grammar content: plain JSON, fetched per page and precached for offline use.
 	for (const [url, json] of await grammarFiles(grammar)) {
 		const dest = join(dist, ...url.split('/').filter(Boolean));
@@ -227,7 +257,7 @@ export async function build({ target, out, root = ROOT, noindex = false, grammar
 	if (target === 'web') {
 		// Source maps are for the browser's tools only: never precached.
 		const all = (await walk(dist)).filter((f) => f !== '_headers' && !f.endsWith('.map'));
-		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/'));
+		const precache = all.map((f) => `/${f}`).filter((u) => u !== '/index.html' && !u.startsWith('/workspace/') && !u.startsWith('/guide/'));
 		// The offline copy is replaced when this changes. Names alone would miss
 		// a file whose content changed under the same name (grammar JSON, icons,
 		// fonts), so each file's content counts too.
