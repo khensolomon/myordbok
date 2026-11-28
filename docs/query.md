@@ -1,3 +1,4 @@
+<!-- guide: on -->
 # Reading a query
 
 What is typed in the search box is read before anything is fetched, and the
