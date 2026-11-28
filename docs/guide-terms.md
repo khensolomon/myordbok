@@ -1,3 +1,4 @@
+<!-- guide: on -->
 # Terms
 
 Words that mean the same thing in MyOrdbok, one group a line, separated by

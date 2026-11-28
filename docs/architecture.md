@@ -1,3 +1,4 @@
+<!-- guide: on -->
 # Architecture
 
 MyOrdbok is a single-page HTML5 app (PWA) backed by a Cloudflare Worker and
@@ -550,8 +551,9 @@ tests/                node:test; tests/helpers/d1.js runs D1 code on node:sqlite
   for gifts.
 - **The guide is the docs, answered on the device.** `docs/**/*.md` ship
   with the web build under `/guide/` with a manifest of content hashes
-  (`scripts/build.js`, `guideFiles`; a file whose first lines say
-  `<!-- guide: off -->` stays out: a to-do list, a data table), served by the Worker to editors and
+  (`scripts/build.js`, `guideFiles`; only a file whose first line says
+  `<!-- guide: on -->` is in: the rest of docs/ is notes and tables for the
+  people writing the code), served by the Worker to editors and
   up only (`worker/routes/guide.js`); the app build has none, and a reader
   is never sent the guide's code or files (not preloaded, not in the offline
   shell). The browser keeps each file by its hash (`app/core/guide.js`) and

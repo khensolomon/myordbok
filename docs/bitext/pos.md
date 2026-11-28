@@ -1,4 +1,3 @@
-<!-- guide: off -->
 # POS
 
 0. thesaurus (thesauri,thesauruses)

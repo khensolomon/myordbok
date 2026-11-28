@@ -1,3 +1,4 @@
+<!-- guide: on -->
 # Answers
 
 Questions editors ask, answered in a few lines. The workspace's Guide
@@ -6,6 +7,9 @@ doc, with one difference: a heading here is a question as an editor would
 put it, and a question that matches one counts double
 (`shared/guide/index.js`, `ANSWERS_FILE`). So the answer written here is
 found before a chance of the same words elsewhere.
+
+A doc joins the guide with `<!-- guide: on -->` as its first line (this
+file and the terms file carry it too).
 
 Writing one: a `##` heading with the question, then the answer in plain
 sentences, each one standing on its own (an answer is shown sentence by

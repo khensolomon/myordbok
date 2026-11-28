@@ -262,8 +262,8 @@ export class SearchBox extends HTMLElement {
 		// Each word with what it is: a clock for one searched before, a magnifier for one suggested.
 		const items = [...lead, ...words.map((w) => h('li', { class: recent ? 'search-recent' : 'search-word' }, h('a', { href: definitionHref(w), tabindex: '-1' }, icon(recent ? ICONS.clock : ICONS.search, 15), w))), ...extra];
 		items.forEach((li, i) => {
-			li.setAttribute('role', 'option');
 			li.id = `${list.id}-${i}`;
+			if (li.getAttribute('role') !== 'presentation') li.setAttribute('role', 'option');
 		});
 		list.replaceChildren(...items);
 		const open = items.length > 0;
@@ -299,14 +299,25 @@ export class SearchBox extends HTMLElement {
 		else if (e.key === 'Escape') return this.show([]);
 		else return;
 		e.preventDefault();
-		list.querySelectorAll('li').forEach((li, i) => li.setAttribute('aria-selected', String(i === next)));
-		this.input?.setAttribute('aria-activedescendant', next >= 0 ? `${list.id}-${next}` : '');
+		// The row is the link's own: a group line (no link) is passed over and never counted.
+		const chosen = next >= 0 ? links[next].closest('li') : null;
+		list.querySelectorAll('li').forEach((li) => li.setAttribute('aria-selected', String(li === chosen)));
+		this.input?.setAttribute('aria-activedescendant', chosen?.id ?? '');
 		if (next >= 0 && this.input) this.input.value = links[next].dataset.value ?? links[next].textContent ?? '';
+		chosen?.scrollIntoView({ block: 'nearest' });
 	}
 
 	/** @param {SubmitEvent} e */
 	submit(e) {
 		e.preventDefault();
+		// A guide row chosen by key opens where it points, not a search for its words.
+		const chosen = /** @type {HTMLAnchorElement | null} */ (this.list?.querySelector('[aria-selected="true"].search-guide a'));
+		if (chosen) {
+			this.show([]);
+			if (NARROW.matches) this.leave();
+			chosen.click();
+			return;
+		}
 		const q = this.input?.value.trim();
 		if (!q) return;
 		this.show([]);

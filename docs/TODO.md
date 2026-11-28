@@ -1,4 +1,3 @@
-<!-- guide: off -->
 # Todo
 
 ## PWA rewrite

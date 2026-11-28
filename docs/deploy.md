@@ -1,3 +1,4 @@
+<!-- guide: on -->
 # Deploying to Cloudflare
 
 MyOrdbok runs as a Cloudflare Worker with static assets and three D1

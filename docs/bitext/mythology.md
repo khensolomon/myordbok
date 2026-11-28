@@ -1,4 +1,3 @@
-<!-- guide: off -->
 # Mythology
 
 0. Odin

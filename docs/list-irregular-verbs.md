@@ -1,4 +1,3 @@
-<!-- guide: off -->
 # A list of irregular verbs
 
 Infinitive | Past Simple | Past Participle

@@ -68,24 +68,25 @@ async function appSplash(root) {
 const editorsOnly = (url) => url.startsWith('/workspace/') || url.startsWith('/shared/guide/') || url === '/core/guide.js' || /^\/core\/guide\.[0-9a-f]{8}\.js$/.test(url) || /^\/workspace\//.test(url);
 
 /**
- * Whether a doc is in the guide: it is, unless its first lines say
- * `<!-- guide: off -->` (a to-do list, a data table, notes not written as
- * guidance). `<!-- guide: on -->` says so explicitly, which reads as a
- * decision. A mark further down is text about the mark; one spelled
- * otherwise stops the build.
+ * Whether a doc is in the guide: only when its first lines say
+ * `<!-- guide: on -->`. Most files under docs/ are notes, tables and plans
+ * for the people writing the code; the guide is the few written as
+ * guidance, named one by one. `<!-- guide: off -->` is accepted (a file
+ * taken out keeps saying so); a mark spelled otherwise stops the build, and
+ * one further down the file is text about the mark.
  * @param {string} text
  */
 export function inGuide(text) {
 	const head = text.slice(0, 600);
 	const mark = /<!--\s*guide\s*:\s*([^\s-]+)\s*-->/i.exec(head);
-	if (!mark) return true;
+	if (!mark) return false;
 	const value = mark[1].toLowerCase();
 	if (value !== 'on' && value !== 'off') throw new Error(`build: a guide mark is on or off, not "${mark[1]}"`);
 	return value === 'on';
 }
 
 /**
- * The guide's files: every markdown file under docs/ not marked off (inGuide), with its path as the
+ * The guide's files: the markdown files under docs/ marked on (inGuide), with its path as the
  * index names it (docs/deploy.md), the address it is served at, a hash of
  * its text and its word count.
  * @param {string} docs
@@ -94,8 +95,10 @@ export async function guideFiles(docs) {
 	const out = [];
 	for (const f of (await walk(docs)).sort()) {
 		if (!f.endsWith('.md')) continue;
-		const text = await readFile(join(docs, f), 'utf8');
-		if (!inGuide(text)) continue;
+		const raw = await readFile(join(docs, f), 'utf8');
+		if (!inGuide(raw)) continue;
+		// The mark is the build's; the guide gets the text without it.
+		const text = raw.replace(/^\s*<!--\s*guide\s*:\s*on\s*-->[ \t]*\n?/i, '');
 		out.push({ path: `docs/${f}`, url: `/guide/${f}`, hash: hash8(Buffer.from(text)), words: text.split(/\s+/).filter(Boolean).length, text });
 	}
 	return out;

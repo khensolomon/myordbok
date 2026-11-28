@@ -1,4 +1,3 @@
-<!-- guide: off -->
 # Decade
 
 n. 1530s

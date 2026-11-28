@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1219
+
+- A doc joins the guide with <!-- guide: on --> (architecture and deploy for now); arrow keys and Enter follow the guide's rows in the search box
+
 ## 26.11.28+1218
 
 - A doc stays out of the guide with <!-- guide: off --> on its first line (the to-do list, data tables)

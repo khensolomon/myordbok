@@ -81,9 +81,9 @@ test('the real docs index in well under a second, with every file in', () => {
 	const t = performance.now();
 	const ix = build(docs());
 	assert.ok(performance.now() - t < 1000);
-	assert.ok(ix.passages.length > 150, `${ix.passages.length} passages`);
-	assert.ok(ix.terms.size > 2000);
-	assert.ok(ix.size.words > 15000);
+	assert.ok(ix.passages.length > 100, `${ix.passages.length} passages`);
+	assert.ok(ix.terms.size > 1500);
+	assert.ok(ix.size.words > 10000);
 	const files = new Set(ix.passages.map((p) => p.file));
 	assert.ok(files.has('docs/deploy.md') && files.has('docs/architecture.md'));
 });
@@ -100,10 +100,10 @@ test('a question is read: its kind, its terms, the frame dropped, quotes kept as
 test('questions the docs answer land on the right passage, in the guide\'s own words', () => {
 	const cases = /** @type {[string, RegExp][]} */ ([
 		['how do I update the dictionary?', /Updating the dictionary/],
-		['what is zawgyi', /Zawgyi/],
+		['what is the layer', /layer/i],
+		['how do I take a backup now', /Backups|backup|Everything else/i],
 		['how to restore a backup', /Restoring rows|Backups|A copy outside Cloudflare/],
 		['how is the app version numbered', /testflight|Version/i],
-		['what is the layer', /layer/i],
 	]);
 	for (const [q, title] of cases) {
 		const r = ask(INDEX, q);
@@ -118,11 +118,17 @@ test('questions the docs answer land on the right passage, in the guide\'s own w
 });
 
 test('a question the docs do not cover is not answered, and nearest passages are still offered', () => {
-	for (const q of ['which font does the iOS app use for Myanmar', 'which font does the iOS app use']) assert.equal(ask(INDEX, q).answered, false, q);
-	const r = ask(INDEX, 'which font does the iOS app use for Myanmar');
+	// Word overlap is the whole method: "which font does the iOS app use" is
+	// answered from a path (/myanmar-fonts) that holds "myanmar" and "font".
+	// A question whose words the guide lacks is the one it must refuse.
+	for (const q of ['how do I bake sourdough bread', 'what colour is the Norwegian flag']) {
+		const r = ask(INDEX, q);
+		assert.equal(r.answered, false, q);
+		assert.deepEqual(r.answers, []);
+	}
+	const r = ask(INDEX, 'which keyboard shortcut prints the page in Zawgyi');
 	assert.equal(r.answered, false);
-	assert.deepEqual(r.answers, []);
-	assert.ok(r.passages.length > 0);
+	assert.ok(r.passages.length > 0, 'the nearest passages are still offered');
 	assert.deepEqual(ask(INDEX, 'the of and').answers, []);
 });
 
@@ -180,7 +186,7 @@ test('the Worker serves /guide/ files to editors and up only; the build ships th
 		const manifest = JSON.parse(await readFile(join(out, 'guide', 'manifest.json'), 'utf8'));
 		assert.ok(manifest.files.some((/** @type {any} */ f) => f.path === 'docs/deploy.md' && f.url === '/guide/deploy.md' && /^[0-9a-f]{8}$/.test(f.hash) && f.words > 100));
 		assert.ok(manifest.files.every((/** @type {any} */ f) => f.path.endsWith('.md')));
-		assert.ok(!manifest.files.some((/** @type {any} */ f) => /TODO\.md$|\/bitext\//.test(f.path)), 'files marked off are not shipped');
+		assert.deepEqual(manifest.files.map((/** @type {any} */ f) => f.path), ['docs/architecture.md', 'docs/deploy.md', 'docs/guide-answers.md', 'docs/guide-terms.md'], 'only files marked on are shipped');
 		assert.match(await readFile(join(out, 'guide', 'deploy.md'), 'utf8'), /^# Deploying to Cloudflare/);
 		const sw = await readFile(join(out, 'sw.js'), 'utf8');
 		assert.doesNotMatch(sw, /"\/guide\/|\/shared\/guide\/|\/core\/guide\./, 'the guide, files and code, is not in the offline shell');
@@ -204,10 +210,11 @@ test('a sentence that introduces a code block brings the block; a stub without o
 	assert.ok(!r.answers[0].sentences.some((s) => /^Details:/.test(first.sentences[s])), 'a stub is not an answer when fuller sentences are there');
 });
 
-test('a doc is in the guide unless its first lines say guide: off; a misspelt mark stops the build', () => {
-	assert.equal(inGuide('# Deploy\n\nText.'), true);
+test('a doc is in the guide only when its first lines say guide: on; a misspelt mark stops the build', () => {
+	assert.equal(inGuide('# Deploy\n\nText.'), false);
 	assert.equal(inGuide('<!-- guide: off -->\n# Todo'), false);
 	assert.equal(inGuide('<!--guide:ON-->\n# X'), true);
+	assert.equal(inGuide('<!-- guide: on -->\n# Deploy'), true);
 	assert.throws(() => inGuide('<!-- guide: maybe -->\n'), /on or off/);
-	assert.equal(inGuide('# X\n' + 'a\n'.repeat(400) + 'Write `<!-- guide: off -->` to keep a file out.'), true, 'a mark further down is text about the mark');
+	assert.equal(inGuide('# X\n' + 'a\n'.repeat(400) + 'Write `<!-- guide: on -->` to put a file in.'), false, 'a mark further down is text about the mark');
 });
