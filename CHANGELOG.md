@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1215
+
+- The app starts again (1214 stopped at the splash: a module the app build left out); a test now checks every import of both builds
+
 ## 26.11.28+1214
 
 - The app on iPad is the iOS app (an iPad's web view introduces itself as a Mac): sign-in in the sheet, the store's payments, no Support page

@@ -32,7 +32,7 @@ import { member } from '../../core/member.js';
 import { restoreQuietly } from '../../core/support.js';
 import { t } from '../../i18n/index.js';
 import { getJSON, postJSON } from './http.js';
-import { platformOf } from '../os.js';
+import { platformOf } from '../../core/app-os.js';
 
 /** A value the build wrote into the page (scripts/build.js --target tauri). @param {string} name */
 const meta = (name) => globalThis.document?.querySelector(`meta[name="${name}"]`)?.getAttribute('content') ?? '';

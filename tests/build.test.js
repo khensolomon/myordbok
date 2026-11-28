@@ -121,3 +121,27 @@ test('the built page holds each mark the Worker writes into, exactly once', asyn
 	assert.match(written, /<main id="view" tabindex="-1"><article class="page entry-summary">/);
 	assert.ok(!written.includes(MARKS.title));
 });
+
+test('every module a built module imports is in the build (web and the app)', async () => {
+	for (const target of /** @type {const} */ (['web', 'tauri'])) {
+		const dist = join(out, `imports-${target}`);
+		await build({ target, out: dist, minify: false, ...(target === 'tauri' ? { api: 'https://myordbok.com' } : {}) });
+		const html = await readFile(join(dist, 'index.html'), 'utf8');
+		const { imports } = JSON.parse(/<script type="importmap">(.*?)<\/script>/.exec(html)?.[1] ?? '{}');
+		const files = (await readdir(dist, { recursive: true })).filter((f) => f.endsWith('.js'));
+		for (const file of files) {
+			const code = await readFile(join(dist, file), 'utf8');
+			const specs = [...code.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+			for (const spec of specs) {
+				if (spec.startsWith('#')) {
+					assert.ok(imports[spec], `${target}: ${file} imports ${spec}, which the import map lacks`);
+					continue;
+				}
+				if (!spec.startsWith('.') && !spec.startsWith('/')) continue;
+				const path = new URL(spec, `https://x/${file.split('\\').join('/')}`).pathname;
+				const found = imports[path] || (await readFile(join(dist, path)).then(() => true, () => false));
+				assert.ok(found, `${target}: ${file} imports ${spec} (${path}), which the build lacks`);
+			}
+		}
+	}
+});

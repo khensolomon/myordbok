@@ -14,7 +14,7 @@
  */
 import { answerOf, unreachable } from '../../core/answer.js';
 import { AppError } from '#shared/errors.js';
-import { platformOf } from '../os.js';
+import { platformOf } from '../../core/app-os.js';
 
 /** The server, "https://myordbok.com"; written by the build (scripts/build.js --api). */
 const API = globalThis.document?.querySelector('meta[name="mo-api"]')?.getAttribute('content') ?? '';

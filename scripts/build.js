@@ -28,7 +28,7 @@ import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { transform } from 'esbuild';
 import { APP_STORE_ID } from '../shared/stores.js';
-import { PLATFORM_SCRIPT } from '../app/platform/os.js';
+import { PLATFORM_SCRIPT } from '../app/core/app-os.js';
 import { GRAMMAR_DIR, grammarFiles } from './grammar-data.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');

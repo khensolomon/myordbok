@@ -2,7 +2,7 @@
 /** The app's system, from its web view: an iPad introduces itself as a Mac. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PLATFORM_SCRIPT, platformOf } from '../app/platform/os.js';
+import { PLATFORM_SCRIPT, platformOf } from '../app/core/app-os.js';
 
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 26_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
 const IPAD = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)';
