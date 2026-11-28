@@ -14,13 +14,14 @@
  */
 import { answerOf, unreachable } from '../../core/answer.js';
 import { AppError } from '#shared/errors.js';
+import { platformOf } from '../os.js';
 
 /** The server, "https://myordbok.com"; written by the build (scripts/build.js --api). */
 const API = globalThis.document?.querySelector('meta[name="mo-api"]')?.getAttribute('content') ?? '';
 /** The app's version, "26.11.21+161"; written by the build. */
 const VERSION = globalThis.document?.querySelector('meta[name="mo-version"]')?.getAttribute('content') ?? '';
 /** What the app names itself as to the server: "android/26.11.21+161". */
-const APP = `${platformOf(globalThis.navigator?.userAgent ?? '')}/${VERSION}`;
+const APP = `${platformOf()}/${VERSION}`;
 
 /** Where the app keeps its session token; boot.js writes it once linked. */
 const TOKEN_KEY = 'mo:app-token';
@@ -40,15 +41,6 @@ function forgetToken() {
 	} catch (err) {
 		console.warn('The app could not forget its session token:', err);
 	}
-}
-
-/**
- * The platform the app runs on, from the web view's user agent.
- * @param {string} agent
- * @returns {'ios' | 'android' | 'desktop'}
- */
-function platformOf(agent) {
-	return /iPhone|iPad|iPod/.test(agent) ? 'ios' : /Android/.test(agent) ? 'android' : 'desktop';
 }
 
 /** The plugin's fetch; a build without it cannot reach the server at all. */

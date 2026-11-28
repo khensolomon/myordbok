@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1214
+
+- The app on iPad is the iOS app (an iPad's web view introduces itself as a Mac): sign-in in the sheet, the store's payments, no Support page
+
 ## 26.11.28+1213
 
 - Links to myordbok.com's word, grammar, fonts and practice pages open in the app once installed (iOS Universal Links now; Android App Links once Play's signing fingerprint is added)

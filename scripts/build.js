@@ -28,6 +28,7 @@ import { dirname, extname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { transform } from 'esbuild';
 import { APP_STORE_ID } from '../shared/stores.js';
+import { PLATFORM_SCRIPT } from '../app/platform/os.js';
 import { GRAMMAR_DIR, grammarFiles } from './grammar-data.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -56,7 +57,7 @@ async function appSplash(root) {
 			.replace(/<svg /, `<svg class="app-splash-${prefix.slice(0, -1)}" aria-hidden="true" `);
 	};
 	return `<div class="app-splash" aria-hidden="true">${await logo('logo.svg', 'light-')}${await logo('logo-dark.svg', 'dark-')}<p>Myanmar dictionary</p></div>
-	<script>if(/Android/.test(navigator.userAgent))document.querySelector('.app-splash').classList.add('app-splash-android');document.documentElement.dataset.app=/iPhone|iPad|iPod/.test(navigator.userAgent)?'ios':/Android/.test(navigator.userAgent)?'android':'desktop'</script>`;
+	<script>if(/Android/.test(navigator.userAgent))document.querySelector('.app-splash').classList.add('app-splash-android');document.documentElement.dataset.app=${PLATFORM_SCRIPT}</script>`;
 }
 
 /**
