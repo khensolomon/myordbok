@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1222
+
+- Liked and Practice on one stage: the words along the bottom, the chosen one in the card, a small palette of tools at the top right (filters, find, a round of the liked words, settings); on a phone the list, then the card; ← → through the words, / to find; a rated meaning can be rated again or let go from its card
+
 ## 26.11.28+1221
 
 - Chrome on iOS: the search field keeps its width with the keyboard up (the sideways-phone margin was being applied), and the website offers the App Store card where Safari's banner cannot show
