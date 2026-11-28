@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.11.28+1216
+
+- Suggestions carry a magnifier; sign-in and the store buttons start with the device maker's own; readable faint text, finger-sized small buttons, underlined links in sentences, a deeper blue under button text; grammar tables reachable by keyboard; the service worker drops preload hints it does not need
+
 ## 26.11.28+1215
 
 - The app starts again (1214 stopped at the splash: a module the app build left out); a test now checks every import of both builds
