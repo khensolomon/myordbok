@@ -145,3 +145,22 @@ test('every module a built module imports is in the build (web and the app)', as
 		}
 	}
 });
+
+test('the service worker strips the modulepreload hints from pages it answers, and leaves other answers alone', async () => {
+	// The worker is a classic script: its function is read out of the source and run here.
+	const source = await readFile(join(import.meta.dirname, '..', 'app', 'sw.js'), 'utf8');
+	const fn = /async function withoutPreloads[\s\S]*?\n}\n/.exec(source)?.[0];
+	assert.ok(fn, 'withoutPreloads is in sw.js');
+	const withoutPreloads = new Function(`${fn}; return withoutPreloads;`)();
+	const html = '<head>\n\t<link rel="modulepreload" href="/core/a.1234abcd.js">\n\t<link rel="modulepreload" href="/shared/b.1234abcd.js">\n\t<link rel="stylesheet" href="/styles/app.css">\n</head>';
+	for (const status of [200, 404]) {
+		const res = await withoutPreloads(new Response(html, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'x-robots-tag': 'noindex' } }));
+		assert.equal(res.status, status);
+		assert.equal(res.headers.get('x-robots-tag'), 'noindex');
+		const out = await res.text();
+		assert.doesNotMatch(out, /modulepreload/);
+		assert.match(out, /stylesheet/);
+	}
+	const js = new Response('export {}', { headers: { 'content-type': 'text/javascript' } });
+	assert.equal(await withoutPreloads(js), js);
+});

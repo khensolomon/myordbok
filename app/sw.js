@@ -3,7 +3,8 @@
 //
 // - App shell (hashed files): cache first, so the app opens offline.
 // - Navigations: network first, falling back to the cached index.html, so
-//   deep links such as /definition?q=love still open offline.
+//   deep links such as /definition?q=love still open offline. Either way
+//   without the page's modulepreload hints (withoutPreloads).
 // - /api: always network. Offline dictionary data comes from packs stored
 //   by the app, not from this cache.
 //
@@ -77,13 +78,33 @@ async function cached(request) {
 	return undefined;
 }
 
+/**
+ * The page without its modulepreload hints. The hints speed up a first
+ * visit, before this worker exists; on a page this worker answers, every
+ * module comes from the cache above anyway, and Chrome fetches each hint
+ * separately, then throws the copy away as not the one the page used
+ * ("cross-world service worker resource mismatch"): wasted reads, and a
+ * warning for each.
+ * @param {Response} res
+ */
+async function withoutPreloads(res) {
+	// Any page, a not-found one too (an unknown word's page answers 404).
+	if (!(res.headers.get('content-type') ?? '').startsWith('text/html')) return res;
+	const html = (await res.text()).replace(/^\s*<link rel="modulepreload" href="[^"]*">\n/gm, '');
+	return new Response(html, { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
 self.addEventListener('fetch', (event) => {
 	const { request } = event;
 	const url = new URL(request.url);
 	if (request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
 
 	if (request.mode === 'navigate') {
-		event.respondWith(fetch(request).catch(() => caches.match('/', { cacheName: CACHE }).then((r) => r ?? Response.error())));
+		event.respondWith(
+			fetch(request)
+				.catch(() => caches.match('/', { cacheName: CACHE }).then((r) => r ?? Response.error()))
+				.then(withoutPreloads),
+		);
 		return;
 	}
 	event.respondWith(cached(request).then((hit) => hit ?? fetch(request)));

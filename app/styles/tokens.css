@@ -27,6 +27,8 @@
 	--font-my: "MyOrdbok Myanmar", "Inter", system-ui, "Noto Sans Myanmar", "Myanmar Text", sans-serif;
 
 	--brand: #318ed7;
+	/* The brand blue as a fill under white text (buttons, counts): a shade deeper, so the text reads 4.5:1. */
+	--brand-fill: #2779c0;
 	--ground: #ffffff;
 	--surface: #f3f5f8;
 	--surface-hover: #eaeef3;
