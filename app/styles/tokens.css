@@ -34,10 +34,12 @@
 	--ink: #17202b;
 	--ink-2: #4a5462;
 	--muted: #5b6573;
-	--faint: #7a8492;
+	--faint: #6b7584;
 	--line: #e3e8ee;
 	--line-soft: #eef1f4;
 	--link: #1f6fb2;
+	/* Text on a --link fill: white in light, the ground in dark (white on the light blue reads badly). */
+	--on-link: #ffffff;
 	--link-hover: #16588f;
 	--ring: #6aaee6;
 	--guide: #9cc8ec;
@@ -136,6 +138,7 @@
 	--line: #263038;
 	--line-soft: #1d252d;
 	--link: #6db3f2;
+	--on-link: #0d1116;
 	--link-hover: #9ccbf7;
 	--ring: #4f9de0;
 	--guide: #2f5a80;
@@ -193,6 +196,7 @@
 		--line: #263038;
 		--line-soft: #1d252d;
 		--link: #6db3f2;
+		--on-link: #0d1116;
 		--link-hover: #9ccbf7;
 		--ring: #4f9de0;
 		--guide: #2f5a80;

@@ -266,7 +266,8 @@ function formTable(f) {
 		h('tr', null, cells.flatMap((c, i) => [i && chain ? h(tag, { class: 'g-chain', 'aria-hidden': 'true' }, tag === 'td' ? chain : '') : null, h(tag, null, c)]));
 	return h(
 		'div',
-		{ class: 'g-table' },
+		// Wider than the page on a phone, it scrolls sideways: reachable by keyboard too.
+		{ class: 'g-table', tabindex: '0' },
 		h('table', null, f.caption ? h('caption', null, f.caption) : null, h('thead', null, line(f.title, 'th')), h('tbody', null, f.row.map((r) => line(r, 'td')))),
 	);
 }
