@@ -752,9 +752,10 @@ mo-search[data-open] .search-box {
 .search-list a { display: block; padding: 8px 18px; border-radius: 0; color: var(--ink); }
 .search-list li:last-child a { border-bottom-left-radius: var(--field-r); border-bottom-right-radius: var(--field-r); }
 .search-list a:hover, .search-list [aria-selected="true"] a { background: var(--glass-fill); text-decoration: none; }
-/* This device's recent searches, listed when the field is cleared. */
-.search-recent a { display: flex; align-items: center; gap: 10px; }
-.search-recent svg { flex: none; color: var(--faint); }
+/* Each word with what it is: a clock for this device's recent searches
+   (listed when the field is cleared), a magnifier for a suggestion. */
+.search-recent a, .search-word a { display: flex; align-items: center; gap: 10px; }
+.search-recent svg, .search-word svg { flex: none; color: var(--faint); }
 
 /* Open over a page, nothing behind may show through the suggestions: the
    box turns opaque while the list is open, glass again once it closes. */
@@ -801,16 +802,16 @@ mo-search[data-open] .search-box { background: var(--glass-solid); }
 		margin-left: 0; padding: 0 10px 0 4px; border: none;
 		background: none; color: var(--brand); font: 400 17px var(--font-ui); cursor: pointer;
 	}
-	/* The suggestions: each row's words start where the field's do, a
-	   recent search's clock under the magnifier, a little larger than the
-	   row's text; pressed, a row shades with the field's own corners. The
-	   hairlines start at the words. */
+	/* The suggestions: each row's words start where the field's do, its
+	   clock or magnifier under the field's magnifier, a little larger than
+	   the row's text; pressed, a row shades with the field's own corners.
+	   The hairlines start at the words. */
 	.search-list { margin: 8px 0 0; padding: 0; border-top: none; background: var(--ground); }
 	.search-list li { position: relative; }
 	.search-list li + li::before { content: ""; position: absolute; top: 0; right: 0; left: calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border-top: 0.5px solid var(--line); pointer-events: none; }
 	.search-list a, .search-list li:last-child a { display: flex; align-items: center; gap: var(--lead-gap); min-height: 52px; padding: 10px 12px 10px calc(var(--lead-pad) + var(--lead-icon) + var(--lead-gap)); border: none; border-radius: 12px; font-size: 17px; }
-	.search-recent a, .search-list .search-recent:last-child a { padding-left: var(--lead-pad); }
-	.search-recent a .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.7; }
+	.search-recent a, .search-word a, .search-list .search-recent:last-child a, .search-list .search-word:last-child a { padding-left: var(--lead-pad); }
+	.search-recent a .icon, .search-word a .icon { width: var(--lead-icon); height: var(--lead-icon); stroke-width: 1.7; }
 	.search-list a:hover, .search-list [aria-selected="true"] a { background: none; }
 	@media (hover: hover) { .search-list a:hover { background: var(--row-hover); } }
 	.search-list a:active { background: var(--row-press); }

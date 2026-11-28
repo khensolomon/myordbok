@@ -251,7 +251,8 @@ export class SearchBox extends HTMLElement {
 	 */
 	show(words, lead = [], recent = false) {
 		const list = /** @type {HTMLUListElement} */ (this.list);
-		const items = [...lead, ...words.map((w) => h('li', recent ? { class: 'search-recent' } : null, h('a', { href: definitionHref(w), tabindex: '-1' }, recent ? icon(ICONS.clock, 15) : null, w)))];
+		// Each word with what it is: a clock for one searched before, a magnifier for one suggested.
+		const items = [...lead, ...words.map((w) => h('li', { class: recent ? 'search-recent' : 'search-word' }, h('a', { href: definitionHref(w), tabindex: '-1' }, icon(recent ? ICONS.clock : ICONS.search, 15), w)))];
 		items.forEach((li, i) => {
 			li.setAttribute('role', 'option');
 			li.id = `${list.id}-${i}`;

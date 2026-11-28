@@ -69,6 +69,20 @@ export async function signOut() {
 }
 
 /**
+ * The sign-ins in the order of the device: the maker's own first (Apple
+ * on an iPhone, iPad or Mac; Google on Android), the rest as the server
+ * lists them. Elsewhere, the server's order.
+ * @param {Provider[]} list
+ * @param {string} [agent]
+ * @returns {Provider[]}
+ */
+export function providerOrder(list, agent = globalThis.navigator?.userAgent ?? '') {
+	const own = /iPhone|iPad|iPod|Macintosh/.test(agent) ? 'apple' : /Android/.test(agent) ? 'google' : null;
+	if (!own || !list.includes(own)) return list;
+	return [own, ...list.filter((p) => p !== own)];
+}
+
+/**
  * "Continue with …" links for the providers this site offers now (GET
  * /api/site, signin), filled in once known; Apple's in its own style.
  * @param {string} cls  The links' class.
@@ -79,7 +93,7 @@ export function providerLinks(cls, back, which = () => true) {
 	const box = h('div', { class: `${cls}s` });
 	getJSON('/api/site')
 		.then((/** @type {{ signin?: Provider[] }} */ site) => {
-			const list = (site.signin ?? []).filter(which);
+			const list = providerOrder((site.signin ?? []).filter(which));
 			box.replaceChildren(
 				...list.map((p) => {
 					const a = h('a', { class: p === 'apple' ? `${cls} is-apple` : cls, href: signInHref(p, back) }, t('Continue with {provider}', { provider: PROVIDER_NAMES[p] }));

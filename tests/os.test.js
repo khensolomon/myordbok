@@ -26,3 +26,13 @@ test('the splash\'s inline script answers as platformOf does', () => {
 		assert.equal(answer, want, `${agent} ${touch}`);
 	}
 });
+
+test('sign-in buttons: the device maker\'s own first, the rest in the server\'s order', async () => {
+	const { providerOrder } = await import('../app/core/member.js');
+	const served = /** @type {const} */ (['github', 'google', 'apple']);
+	assert.deepEqual(providerOrder([...served], IPHONE), ['apple', 'github', 'google']);
+	assert.deepEqual(providerOrder([...served], IPAD), ['apple', 'github', 'google']);
+	assert.deepEqual(providerOrder([...served], ANDROID), ['google', 'github', 'apple']);
+	assert.deepEqual(providerOrder([...served], 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'), ['github', 'google', 'apple']);
+	assert.deepEqual(providerOrder(['github', 'google'], IPHONE), ['github', 'google'], 'Apple sign-in off: unchanged');
+});
